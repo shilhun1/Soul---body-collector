@@ -1,6 +1,7 @@
 using UnityEngine;
 using System;
 
+
 [Serializable]
 public class JumpJsonData
 {
@@ -10,4 +11,5 @@ public class JumpJsonData
     public float coyoteTime; // 발판에서 떨어진 직후에도 점프 가능한 짧은 시간
     public float jumpBufferTime; // 점프 키를 일찍 눌러도 착지 후 점프되게 하는 시간
     public float fallGravityMultiplier; // 낙하 중력을 강하게 적용
+    public string behaviourId; // 실제 점프 행동 클래스와 연결할 ID
 }
