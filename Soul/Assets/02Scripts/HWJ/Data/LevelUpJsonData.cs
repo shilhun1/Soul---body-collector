@@ -1,16 +1,10 @@
 using UnityEngine;
+using System;
 
-public class LevelUpJsonData : MonoBehaviour
+[Serializable]
+public class LevelUpJsonData
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
+    public int level; // 적용될 레벨
+    public int requiredExp; // 레벨업에 필요한 경험치
+    public StatData statBouns; // 해당 레벨에서 추가로 얻는 능력치
 }
