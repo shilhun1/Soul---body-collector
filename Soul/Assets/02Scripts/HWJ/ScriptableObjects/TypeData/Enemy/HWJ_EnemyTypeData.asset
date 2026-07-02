@@ -12,21 +12,42 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 62b1072cf898fa14b8272b23fb396e5a, type: 3}
   m_Name: HWJ_EnemyTypeData
   m_EditorClassIdentifier: Assembly-CSharp::HWJ_EnemyTypeDataSO
-  objectType: 0
-  typeId: 
+  objectType: 1
+  typeId: enemy_default
+  displayName: Enemy
+  defaultWeaponType: 0
+  description: Enemy type data with weapon role, tracking, AI, navigation, skill cycle, and possession body settings.
+  role:
+    weaponType: 3
+    isElite: 0
+    leavesCorpseOnDeath: 1
+    isPossessableBody: 1
+    guaranteesStatOrb: 0
   tracking:
     trackingRange: 0
     loseTargetRange: 0
   ai:
     aiProfileId: 
     decisionIntervalSeconds: 0
+    behaviorTreeId: ""
   navigation:
     stoppingDistance: 0
     pathRefreshSeconds: 0
+    canUsePlatformDrop: 0
+  state:
+    startState: 1
+    attackRange: 1
+    returnToIdleDelaySeconds: 1
+    stopWhenHit: 1
   skillCycle:
     skills: []
   possessionBody:
     canPossess: 0
-    canBePossessed: 0
+    canBePossessed: 1
     possessableHeartEffectPrefab: {fileID: 0}
+    heartSocketName: ""
     possessionInputId: 
+    possessionRange: 0
+    requiresDefeatedState: 1
+    transfersControlToBody: 1
+    loadsBodyStatsToPlayer: 1

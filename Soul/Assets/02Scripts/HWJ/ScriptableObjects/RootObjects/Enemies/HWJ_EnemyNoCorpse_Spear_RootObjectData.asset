@@ -1,0 +1,57 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5886d2e199e90b44e8180bfd0e5de850, type: 3}
+  m_Name: HWJ_EnemyNoCorpse_Spear_RootObjectData
+  m_EditorClassIdentifier: Assembly-CSharp::HWJ_RootObjectDataSO
+  identity:
+    objectId: enemy_nocorpse_spear
+    displayName: Spear No-Corpse Enemy
+    objectType: 1
+    faction: 3
+    weaponType: 0
+  status:
+    level: 1
+    maxHp: 100
+    moveSpeed: 3
+    attackPower: 10
+    defense: 0
+    attackSpeed: 1
+  model:
+    modelPrefab: {fileID: 0}
+    animatorController: {fileID: 0}
+    heartEffectSocketName: ""
+    hitEffectSocketName: ""
+    possessedEyeSocketName: ""
+  damage:
+    damageType: 0
+    baseDamage: 5
+    criticalChance: 0
+    criticalMultiplier: 1.5
+    knockbackPower: 0
+    hitStunSeconds: 0
+  receivedDamage:
+    damageMultiplier: 1
+    invincibleSecondsAfterHit: 0
+    isInvincible: 0
+    ignoreTrapDamage: 0
+    ignoreEnemyDamage: 0
+  interaction:
+    canInteract: 0
+    canBeTargeted: 1
+    interactionRange: 0
+    interactionInputId: ""
+  reward:
+    experienceReward: 10
+    skillPointReward: 0
+    dropsStatOrb: 0
+    statOrbId: ""
+  selectedTypeData: {fileID: 11400000, guid: bb000000000000000000000000000002, type: 2}

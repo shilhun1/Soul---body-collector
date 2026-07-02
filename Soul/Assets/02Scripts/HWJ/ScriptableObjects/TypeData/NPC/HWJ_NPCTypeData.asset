@@ -12,10 +12,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a928ba044ea83d642b8c849bb4e6335d, type: 3}
   m_Name: HWJ_NPCTypeData
   m_EditorClassIdentifier: Assembly-CSharp::HWJ_NPCTypeDataSO
-  objectType: 0
-  typeId: 
+  objectType: 2
+  typeId: npc_default
+  displayName: NPC
+  defaultWeaponType: 0
+  description: NPC type data with interaction, dialogue, behavior, and temporary stat buff settings.
   interaction:
     interactionId: 
     interactionRange: 0
+    givesTemporaryStatBuff: 0
+    statBuffId: ""
+    statBuffDurationSeconds: 0
   dialogueId: 
   behaviorId: 

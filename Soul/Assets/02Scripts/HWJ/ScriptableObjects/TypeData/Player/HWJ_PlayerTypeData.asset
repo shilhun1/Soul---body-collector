@@ -13,26 +13,75 @@ MonoBehaviour:
   m_Name: HWJ_PlayerTypeData
   m_EditorClassIdentifier: Assembly-CSharp::HWJ_PlayerTypeDataSO
   objectType: 0
-  typeId: 
+  typeId: player_default
+  displayName: Player
+  defaultWeaponType: 0
+  description: Player type data with control, skill, growth, soul, possession, and body decay settings.
   control:
+    dashKey: 304
     acceleration: 0
     deceleration: 0
-    jumpPower: 0
+    jumpPower: 12
+    jumpBufferTime: 0.15
+    maxJumpCount: 2
+    dashDistance: 9
+    dashSpeed: 15
+    dashDuration: 0.2
+    dashCooldown: 1
+    canAirDash: 1
+    fallGravityMultiplier: 1.5
+    dashInvincibleSeconds: 0.16
+    dashRecoverySeconds: 0
     canFreeFly: 0
+  attack:
+    attackInputId: Fire1
+    attackRange: 1.5
+    attackIntervalSeconds: 0.3
+    comboResetSeconds: 0.8
+    basicAttackSkillActionId: ""
+  state:
+    startState: 1
+    canMoveOnBodyState: 1
+    canAttackOnBodyState: 1
+    canMoveOnSoulState: 1
+    canAttackOnSoulState: 0
+  camera:
+    followSpeed: 8
+    lookAheadDistance: 1.5
+    verticalOffset: 1
+    clampToBounds: 0
+    minBounds: {x: 0, y: 0}
+    maxBounds: {x: 0, y: 0}
   skillSet:
     skills: []
+  growth:
+    startLevel: 1
+    maxLevel: 0
+    startSkillPoint: 0
+    skillTreeId: ""
+    experienceToLevelUp: []
   soulState:
     possessionDeadlineSeconds: 10
-    isInvincible: 1
+    soulMoveSpeed: 6
+    isInvincible: 0
     canPassThroughWalls: 1
     canFreeFly: 1
+    hasHp: 1
+    blocksControlOnDeadline: 1
   possession:
-    canPossess: 0
+    canPossess: 1
     canBePossessed: 0
     possessableHeartEffectPrefab: {fileID: 0}
+    heartSocketName: ""
     possessionInputId: 
+    possessionRange: 0
+    requiresDefeatedState: 1
+    transfersControlToBody: 1
+    loadsBodyStatsToPlayer: 1
   bodyDecay:
-    maxDecayValue: 0
+    maxDecayValue: 100
     decayTickSeconds: 0.5
-    decayAmountPerTick: 0
-    hitDecayPenalty: 0
+    decayAmountPerTick: 1
+    hitDecayPenalty: 10
+    startDecayOnEnterBody: 1
+    enterSoulStateWhenEmpty: 1

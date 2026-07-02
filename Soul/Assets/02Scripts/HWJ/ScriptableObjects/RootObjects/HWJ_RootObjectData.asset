@@ -12,22 +12,46 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5886d2e199e90b44e8180bfd0e5de850, type: 3}
   m_Name: HWJ_RootObjectData
   m_EditorClassIdentifier: Assembly-CSharp::HWJ_RootObjectDataSO
+  identity:
+    objectId: root_default
+    displayName: Root Object
+    objectType: 0
+    faction: 0
+    weaponType: 0
   status:
+    level: 1
     maxHp: 0
-    moveSpeed: 0
+    moveSpeed: 6
     attackPower: 0
     defense: 0
+    attackSpeed: 1
   model:
     modelPrefab: {fileID: 0}
     animatorController: {fileID: 0}
     heartEffectSocketName: 
+    hitEffectSocketName: 
+    possessedEyeSocketName: 
   damage:
     damageType: 0
     baseDamage: 0
     criticalChance: 0
     criticalMultiplier: 1.5
+    knockbackPower: 0
+    hitStunSeconds: 0
   receivedDamage:
     damageMultiplier: 1
     invincibleSecondsAfterHit: 0
     isInvincible: 0
+    ignoreTrapDamage: 0
+    ignoreEnemyDamage: 0
+  interaction:
+    canInteract: 0
+    canBeTargeted: 1
+    interactionRange: 0
+    interactionInputId: 
+  reward:
+    experienceReward: 0
+    skillPointReward: 0
+    dropsStatOrb: 0
+    statOrbId: 
   selectedTypeData: {fileID: 0}
