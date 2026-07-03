@@ -7,6 +7,7 @@ using UnityEngine;
 public enum HWJ_SoulRuntimeState
 {
     Body,
+    BodyToSoul,
     Soul,
     Dead
 }
@@ -20,11 +21,18 @@ public class HWJ_SoulSystem : MonoBehaviour
     [SerializeField] private HWJ_RootObjectDataResolver dataResolver;
     [SerializeField] private HWJ_PossessionSystem possessionSystem;
     [SerializeField] private HWJ_RuntimeStatusSystem runtimeStatus;
-    [SerializeField] private HWJ_SoulRuntimeState currentState = HWJ_SoulRuntimeState.Soul;
+    [SerializeField] private HWJ_SoulRuntimeState currentState = HWJ_SoulRuntimeState.Body;
+    [SerializeField] private float bodyToSoulTransitionSeconds = 2.5f;
     [SerializeField] private float soulDeadlineTimer;
+
+    private float bodyToSoulTransitionTimer;
+    private bool refillSoulHpAfterTransition;
 
     public HWJ_SoulRuntimeState CurrentState => currentState;
     public float SoulDeadlineTimer => soulDeadlineTimer;
+    public float BodyToSoulTransitionTimer => bodyToSoulTransitionTimer;
+    public bool IsControlLocked => currentState == HWJ_SoulRuntimeState.BodyToSoul
+        || currentState == HWJ_SoulRuntimeState.Dead;
 
     private void Awake()
     {
@@ -60,6 +68,18 @@ public class HWJ_SoulSystem : MonoBehaviour
     /// </summary>
     private void Update()
     {
+        if (currentState == HWJ_SoulRuntimeState.BodyToSoul)
+        {
+            bodyToSoulTransitionTimer -= Time.deltaTime;
+
+            if (bodyToSoulTransitionTimer <= 0f)
+            {
+                CompleteBodyToSoulTransition();
+            }
+
+            return;
+        }
+
         if (currentState != HWJ_SoulRuntimeState.Soul)
         {
             return;
@@ -85,10 +105,11 @@ public class HWJ_SoulSystem : MonoBehaviour
     public void EnterSoulState(bool refillSoulHp = false)
     {
         runtimeStatus?.CacheCurrentHpForActiveState();
-        currentState = HWJ_SoulRuntimeState.Soul;
         possessionSystem?.ClearPossessedBody(false);
-        ResetSoulDeadlineTimer();
-        runtimeStatus?.RefreshCurrentHpFromData(refillSoulHp);
+        currentState = HWJ_SoulRuntimeState.BodyToSoul;
+        bodyToSoulTransitionTimer = bodyToSoulTransitionSeconds;
+        soulDeadlineTimer = 0f;
+        refillSoulHpAfterTransition = refillSoulHp;
         ApplyRuntimeState();
     }
 
@@ -100,6 +121,7 @@ public class HWJ_SoulSystem : MonoBehaviour
     {
         runtimeStatus?.CacheCurrentHpForActiveState();
         currentState = HWJ_SoulRuntimeState.Body;
+        bodyToSoulTransitionTimer = 0f;
         soulDeadlineTimer = 0f;
         ApplyRuntimeState();
     }
@@ -112,7 +134,18 @@ public class HWJ_SoulSystem : MonoBehaviour
     {
         runtimeStatus?.CacheCurrentHpForActiveState();
         currentState = HWJ_SoulRuntimeState.Dead;
+        bodyToSoulTransitionTimer = 0f;
         soulDeadlineTimer = 0f;
+        ApplyRuntimeState();
+    }
+
+    private void CompleteBodyToSoulTransition()
+    {
+        currentState = HWJ_SoulRuntimeState.Soul;
+        bodyToSoulTransitionTimer = 0f;
+        ResetSoulDeadlineTimer();
+        runtimeStatus?.RefreshCurrentHpFromData(refillSoulHpAfterTransition);
+        refillSoulHpAfterTransition = false;
         ApplyRuntimeState();
     }
 
@@ -152,6 +185,9 @@ public class HWJ_SoulSystem : MonoBehaviour
         {
             case HWJ_SoulRuntimeState.Body:
                 runtimeStatus.SetState(HWJ_RuntimeState.Possessed);
+                break;
+            case HWJ_SoulRuntimeState.BodyToSoul:
+                runtimeStatus.SetState(HWJ_RuntimeState.Hit);
                 break;
             case HWJ_SoulRuntimeState.Soul:
                 runtimeStatus.SetState(HWJ_RuntimeState.Soul);

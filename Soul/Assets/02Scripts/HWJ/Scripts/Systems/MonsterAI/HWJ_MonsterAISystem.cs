@@ -17,6 +17,11 @@ public class HWJ_MonsterAISystem : MonoBehaviour
             dataResolver = GetComponent<HWJ_RootObjectDataResolver>();
         }
 
+        RefreshData();
+    }
+
+    public void RefreshData()
+    {
         if (dataResolver != null)
         {
             dataResolver.TryGetTypeData(out HWJ_EnemyTypeDataSO enemyData);

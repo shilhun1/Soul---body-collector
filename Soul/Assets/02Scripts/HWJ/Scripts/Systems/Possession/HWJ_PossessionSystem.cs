@@ -10,8 +10,21 @@ public class HWJ_PossessionSystem : MonoBehaviour
     [SerializeField] private HWJ_SoulSystem soulSystem;
     [SerializeField] private HWJ_RuntimeStatusSystem runtimeStatus;
     [SerializeField] private HWJ_RootObjectDataResolver possessedBodyResolver;
+    [SerializeField] private bool moveOwnerToPossessedBody = true;
+    [SerializeField] private bool copyPossessedBodyVisual = true;
+    [SerializeField] private bool consumePossessedCorpse = true;
+    [SerializeField] private string lastPossessionResult;
 
     private HWJ_PossessionData activePossessionBodyData;
+    private SpriteRenderer ownerSpriteRenderer;
+    private Sprite ownerOriginalSprite;
+    private Color ownerOriginalColor;
+    private bool ownerOriginalFlipX;
+    private bool ownerOriginalFlipY;
+    private bool hasOwnerSpriteCache;
+    private Animator ownerAnimator;
+    private RuntimeAnimatorController ownerOriginalAnimatorController;
+    private bool hasOwnerAnimatorCache;
 
     public bool HasActivePossessedBody => possessedBodyResolver != null
         && (soulSystem == null || soulSystem.CurrentState == HWJ_SoulRuntimeState.Body);
@@ -37,6 +50,8 @@ public class HWJ_PossessionSystem : MonoBehaviour
         {
             runtimeStatus = GetComponent<HWJ_RuntimeStatusSystem>();
         }
+
+        CacheOwnerVisual();
     }
 
     /// <summary>
@@ -47,11 +62,13 @@ public class HWJ_PossessionSystem : MonoBehaviour
     {
         if (targetDataResolver == null)
         {
+            lastPossessionResult = "Possession failed: missing target.";
             return false;
         }
 
         if (soulSystem != null && soulSystem.CurrentState != HWJ_SoulRuntimeState.Soul)
         {
+            lastPossessionResult = "Possession failed: player is not in Soul state.";
             return false;
         }
 
@@ -60,12 +77,30 @@ public class HWJ_PossessionSystem : MonoBehaviour
             && playerData.Possession != null
             && !playerData.Possession.canPossess)
         {
+            lastPossessionResult = "Possession failed: player possession is disabled.";
             return false;
         }
 
-        return TryGetPossessionBodyData(targetDataResolver, out HWJ_PossessionData possessionBody)
-            && possessionBody.canBePossessed
-            && IsDefeatedIfRequired(targetDataResolver, possessionBody);
+        if (!TryGetPossessionBodyData(targetDataResolver, out HWJ_PossessionData possessionBody))
+        {
+            lastPossessionResult = "Possession failed: target has no possessable body data.";
+            return false;
+        }
+
+        if (!possessionBody.canBePossessed)
+        {
+            lastPossessionResult = "Possession failed: target cannot be possessed.";
+            return false;
+        }
+
+        if (!IsDefeatedIfRequired(targetDataResolver, possessionBody))
+        {
+            lastPossessionResult = "Possession failed: target is not defeated.";
+            return false;
+        }
+
+        lastPossessionResult = "Possession target is valid.";
+        return true;
     }
 
     /// <summary>
@@ -81,6 +116,12 @@ public class HWJ_PossessionSystem : MonoBehaviour
 
         TryGetPossessionBodyData(targetDataResolver, out activePossessionBodyData);
         possessedBodyResolver = targetDataResolver;
+
+        if (activePossessionBodyData == null || activePossessionBodyData.transfersControlToBody)
+        {
+            TransferOwnerToPossessedBody(targetDataResolver);
+        }
+
         soulSystem?.EnterBodyState();
 
         if (activePossessionBodyData != null
@@ -90,6 +131,7 @@ public class HWJ_PossessionSystem : MonoBehaviour
             runtimeStatus.RefreshCurrentHpFromData(true);
         }
 
+        lastPossessionResult = $"Possessed {targetDataResolver.name}.";
         return true;
     }
 
@@ -101,6 +143,7 @@ public class HWJ_PossessionSystem : MonoBehaviour
     {
         possessedBodyResolver = null;
         activePossessionBodyData = null;
+        RestoreOwnerVisual();
 
         if (refreshStatus)
         {
@@ -285,5 +328,165 @@ public class HWJ_PossessionSystem : MonoBehaviour
 
         HWJ_RuntimeStatusSystem targetStatus = targetDataResolver.GetComponent<HWJ_RuntimeStatusSystem>();
         return targetStatus != null && targetStatus.IsDead;
+    }
+
+    private void TransferOwnerToPossessedBody(HWJ_RootObjectDataResolver targetDataResolver)
+    {
+        if (targetDataResolver == null)
+        {
+            return;
+        }
+
+        if (moveOwnerToPossessedBody)
+        {
+            Vector3 targetPosition = targetDataResolver.transform.position;
+            targetPosition.z = transform.position.z;
+            transform.SetPositionAndRotation(targetPosition, targetDataResolver.transform.rotation);
+
+            if (TryGetComponent(out Rigidbody2D ownerBody))
+            {
+                ownerBody.linearVelocity = Vector2.zero;
+                ownerBody.angularVelocity = 0f;
+            }
+        }
+
+        if (copyPossessedBodyVisual)
+        {
+            ApplyPossessedBodyVisual(targetDataResolver.gameObject);
+        }
+
+        if (consumePossessedCorpse)
+        {
+            DisablePossessedCorpseObject(targetDataResolver.gameObject);
+        }
+    }
+
+    private void CacheOwnerVisual()
+    {
+        if (ownerSpriteRenderer == null)
+        {
+            ownerSpriteRenderer = GetComponentInChildren<SpriteRenderer>();
+        }
+
+        if (ownerSpriteRenderer != null && !hasOwnerSpriteCache)
+        {
+            ownerOriginalSprite = ownerSpriteRenderer.sprite;
+            ownerOriginalColor = ownerSpriteRenderer.color;
+            ownerOriginalFlipX = ownerSpriteRenderer.flipX;
+            ownerOriginalFlipY = ownerSpriteRenderer.flipY;
+            hasOwnerSpriteCache = true;
+        }
+
+        if (ownerAnimator == null)
+        {
+            ownerAnimator = GetComponentInChildren<Animator>();
+        }
+
+        if (ownerAnimator != null && !hasOwnerAnimatorCache)
+        {
+            ownerOriginalAnimatorController = ownerAnimator.runtimeAnimatorController;
+            hasOwnerAnimatorCache = true;
+        }
+    }
+
+    private void ApplyPossessedBodyVisual(GameObject possessedBody)
+    {
+        CacheOwnerVisual();
+
+        if (possessedBody == null)
+        {
+            return;
+        }
+
+        SpriteRenderer possessedRenderer = possessedBody.GetComponentInChildren<SpriteRenderer>();
+
+        if (ownerSpriteRenderer != null && possessedRenderer != null)
+        {
+            ownerSpriteRenderer.sprite = possessedRenderer.sprite;
+            ownerSpriteRenderer.color = possessedRenderer.color;
+            ownerSpriteRenderer.flipX = possessedRenderer.flipX;
+            ownerSpriteRenderer.flipY = possessedRenderer.flipY;
+        }
+
+        Animator possessedAnimator = possessedBody.GetComponentInChildren<Animator>();
+
+        if (ownerAnimator != null && possessedAnimator != null)
+        {
+            ownerAnimator.runtimeAnimatorController = possessedAnimator.runtimeAnimatorController;
+        }
+    }
+
+    private void RestoreOwnerVisual()
+    {
+        if (ownerSpriteRenderer != null && hasOwnerSpriteCache)
+        {
+            ownerSpriteRenderer.sprite = ownerOriginalSprite;
+            ownerSpriteRenderer.color = ownerOriginalColor;
+            ownerSpriteRenderer.flipX = ownerOriginalFlipX;
+            ownerSpriteRenderer.flipY = ownerOriginalFlipY;
+        }
+
+        if (ownerAnimator != null && hasOwnerAnimatorCache)
+        {
+            ownerAnimator.runtimeAnimatorController = ownerOriginalAnimatorController;
+        }
+    }
+
+    private void DisablePossessedCorpseObject(GameObject possessedBody)
+    {
+        if (possessedBody == null)
+        {
+            return;
+        }
+
+        HWJ_EnemyNavigationSystem navigation = possessedBody.GetComponent<HWJ_EnemyNavigationSystem>();
+
+        if (navigation != null)
+        {
+            navigation.enabled = false;
+        }
+
+        HWJ_MonsterAISystem monsterAI = possessedBody.GetComponent<HWJ_MonsterAISystem>();
+
+        if (monsterAI != null)
+        {
+            monsterAI.enabled = false;
+        }
+
+        Collider2D[] colliders = possessedBody.GetComponentsInChildren<Collider2D>();
+
+        for (int i = 0; i < colliders.Length; i++)
+        {
+            if (colliders[i] != null)
+            {
+                colliders[i].enabled = false;
+            }
+        }
+
+        SpriteRenderer[] renderers = possessedBody.GetComponentsInChildren<SpriteRenderer>();
+
+        for (int i = 0; i < renderers.Length; i++)
+        {
+            if (renderers[i] != null)
+            {
+                renderers[i].enabled = false;
+            }
+        }
+
+        Animator animator = possessedBody.GetComponentInChildren<Animator>();
+
+        if (animator != null)
+        {
+            animator.enabled = false;
+        }
+
+        Rigidbody2D body = possessedBody.GetComponent<Rigidbody2D>();
+
+        if (body != null)
+        {
+            body.linearVelocity = Vector2.zero;
+            body.angularVelocity = 0f;
+            body.simulated = false;
+        }
     }
 }

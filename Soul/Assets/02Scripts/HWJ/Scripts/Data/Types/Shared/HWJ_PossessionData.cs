@@ -12,7 +12,6 @@ public class HWJ_PossessionData
     public bool canBePossessed;
     public GameObject possessableHeartEffectPrefab;
     public string heartSocketName;
-    public string possessionInputId;
     public float possessionRange;
     public bool requiresDefeatedState = true;
     public bool transfersControlToBody = true;

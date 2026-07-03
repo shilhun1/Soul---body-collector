@@ -9,10 +9,13 @@ using UnityEngine;
 public class HWJ_SpawnEntryData
 {
     public string spawnId;
+    public string spawnPointId;
     public HWJ_SpawnPointType spawnPointType;
     public HWJ_RootObjectDataSO rootObjectData;
     public GameObject prefabOverride;
     public int spawnCount = 1;
     public float spawnDelaySeconds;
+    public Vector2 spawnOffset;
+    public bool randomizePoint;
     public bool spawnOnStart = true;
 }

@@ -18,12 +18,15 @@ MonoBehaviour:
   defaultWeaponType: 0
   description: Player type data with control, skill, growth, soul, possession, and body decay settings.
   control:
-    dashKey: 304
     acceleration: 0
     deceleration: 0
-    jumpPower: 12
-    jumpBufferTime: 0.15
-    maxJumpCount: 2
+    normalJump:
+      jumpPower: 12
+      jumpBufferTime: 0.15
+    doubleJump:
+      canDoubleJump: 1
+      maxDoubleJumpCount: 1
+      jumpPower: 11
     dashDistance: 9
     dashSpeed: 15
     dashDuration: 0.2
@@ -74,12 +77,12 @@ MonoBehaviour:
     possessableHeartEffectPrefab: {fileID: 0}
     heartSocketName: ""
     possessionInputId: 
-    possessionRange: 0
+    possessionRange: 2.5
     requiresDefeatedState: 1
     transfersControlToBody: 1
     loadsBodyStatsToPlayer: 1
   bodyDecay:
-    maxDecayValue: 100
+    maxDecayValue: 120
     decayTickSeconds: 0.5
     decayAmountPerTick: 1
     hitDecayPenalty: 10

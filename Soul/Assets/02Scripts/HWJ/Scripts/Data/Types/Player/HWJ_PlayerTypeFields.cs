@@ -7,12 +7,10 @@ using System;
 [Serializable]
 public class HWJ_ControlData
 {
-    public UnityEngine.KeyCode dashKey = UnityEngine.KeyCode.LeftShift;
     public float acceleration;
     public float deceleration;
-    public float jumpPower = 12f;
-    public float jumpBufferTime = 0.15f;
-    public int maxJumpCount = 2;
+    public HWJ_NormalJumpData normalJump = new HWJ_NormalJumpData();
+    public HWJ_DoubleJumpData doubleJump = new HWJ_DoubleJumpData();
     public float dashDistance = 9f;
     public float dashSpeed = 15f;
     public float dashDuration = 0.2f;
@@ -24,6 +22,21 @@ public class HWJ_ControlData
     public bool canFreeFly;
 }
 
+[Serializable]
+public class HWJ_NormalJumpData
+{
+    public float jumpPower = 12f;
+    public float jumpBufferTime = 0.15f;
+}
+
+[Serializable]
+public class HWJ_DoubleJumpData
+{
+    public bool canDoubleJump = true;
+    public int maxDoubleJumpCount = 1;
+    public float jumpPower = 11f;
+}
+
 /// <summary>
 /// 플레이어 기본 공격과 공격 입력 규칙을 관리합니다.
 /// PlayerAttackSystem이 사거리, 공격 간격, 입력 ID, 스킬 연결 ID를 읽어 사용합니다.
@@ -31,7 +44,6 @@ public class HWJ_ControlData
 [Serializable]
 public class HWJ_PlayerAttackData
 {
-    public string attackInputId;
     public float attackRange;
     public float attackIntervalSeconds = 0.3f;
     public float comboResetSeconds = 0.8f;
@@ -90,9 +102,9 @@ public class HWJ_SoulStateData
 [Serializable]
 public class HWJ_BodyDecayData
 {
-    public float maxDecayValue;
+    public float maxDecayValue = 120f;
     public float decayTickSeconds = 0.5f;
-    public float decayAmountPerTick;
+    public float decayAmountPerTick = 1f;
     public float hitDecayPenalty;
     public bool startDecayOnEnterBody = true;
     public bool enterSoulStateWhenEmpty = true;

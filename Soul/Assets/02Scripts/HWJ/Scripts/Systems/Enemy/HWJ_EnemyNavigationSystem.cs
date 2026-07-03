@@ -8,7 +8,16 @@ public class HWJ_EnemyNavigationSystem : MonoBehaviour
 {
     [SerializeField] private HWJ_RootObjectDataResolver dataResolver;
     [SerializeField] private HWJ_RuntimeStatusSystem runtimeStatus;
+    [SerializeField] private Rigidbody2D body;
     [SerializeField] private Transform target;
+    [SerializeField] private bool autoFindPlayerTarget = true;
+    [SerializeField] private bool chaseOnlyBodyState = true;
+    [SerializeField] private bool horizontalMoveOnly = true;
+    [SerializeField] private float fallbackTrackingRange = 8f;
+    [SerializeField] private float fallbackStoppingDistance = 1f;
+    [SerializeField] private float targetSearchIntervalSeconds = 0.5f;
+
+    private float nextTargetSearchTime;
 
     private void Awake()
     {
@@ -21,34 +30,57 @@ public class HWJ_EnemyNavigationSystem : MonoBehaviour
         {
             runtimeStatus = GetComponent<HWJ_RuntimeStatusSystem>();
         }
+
+        if (body == null)
+        {
+            body = GetComponent<Rigidbody2D>();
+        }
     }
 
     private void Update()
     {
+        if (target == null && autoFindPlayerTarget && Time.time >= nextTargetSearchTime)
+        {
+            target = FindPlayerTarget();
+            nextTargetSearchTime = Time.time + targetSearchIntervalSeconds;
+        }
+
         if (target == null || dataResolver == null || !dataResolver.TryGetTypeData(out HWJ_EnemyTypeDataSO enemyData))
         {
+            StopHorizontalMovement();
             return;
         }
 
         if (runtimeStatus != null && runtimeStatus.IsDead)
         {
+            StopHorizontalMovement();
             return;
         }
 
-        float distance = Vector2.Distance(transform.position, target.position);
-
-        if (distance > enemyData.Tracking.trackingRange || distance <= enemyData.Navigation.stoppingDistance)
+        if (chaseOnlyBodyState && !CanChaseTargetState())
         {
-            if (runtimeStatus != null)
-            {
-                runtimeStatus.SetState(HWJ_RuntimeState.Idle);
-            }
+            SetIdle();
+            return;
+        }
 
+        float distance = horizontalMoveOnly
+            ? Mathf.Abs(target.position.x - transform.position.x)
+            : Vector2.Distance(transform.position, target.position);
+        float trackingRange = enemyData.Tracking.trackingRange > 0f
+            ? enemyData.Tracking.trackingRange
+            : fallbackTrackingRange;
+        float stoppingDistance = enemyData.Navigation.stoppingDistance > 0f
+            ? enemyData.Navigation.stoppingDistance
+            : fallbackStoppingDistance;
+
+        if (distance > trackingRange || distance <= stoppingDistance)
+        {
+            SetIdle();
             return;
         }
 
         float moveSpeed = runtimeStatus != null ? runtimeStatus.MoveSpeed : dataResolver.Status.moveSpeed;
-        transform.position = Vector2.MoveTowards(transform.position, target.position, moveSpeed * Time.deltaTime);
+        MoveTowardTarget(moveSpeed);
 
         if (runtimeStatus != null)
         {
@@ -63,5 +95,90 @@ public class HWJ_EnemyNavigationSystem : MonoBehaviour
     public void SetTarget(Transform target)
     {
         this.target = target;
+    }
+
+    private void MoveTowardTarget(float moveSpeed)
+    {
+        float directionX = Mathf.Sign(target.position.x - transform.position.x);
+
+        if (horizontalMoveOnly)
+        {
+            if (body != null)
+            {
+                Vector2 velocity = body.linearVelocity;
+                velocity.x = directionX * moveSpeed;
+                body.linearVelocity = velocity;
+                return;
+            }
+
+            transform.position += Vector3.right * directionX * moveSpeed * Time.deltaTime;
+            return;
+        }
+
+        Vector2 nextPosition = Vector2.MoveTowards(transform.position, target.position, moveSpeed * Time.deltaTime);
+
+        if (body != null)
+        {
+            body.MovePosition(nextPosition);
+            return;
+        }
+
+        transform.position = nextPosition;
+    }
+
+    private void SetIdle()
+    {
+        StopHorizontalMovement();
+
+        if (runtimeStatus != null)
+        {
+            runtimeStatus.SetState(HWJ_RuntimeState.Idle);
+        }
+    }
+
+    private void StopHorizontalMovement()
+    {
+        if (body == null)
+        {
+            return;
+        }
+
+        Vector2 velocity = body.linearVelocity;
+        velocity.x = 0f;
+        body.linearVelocity = velocity;
+    }
+
+    private bool CanChaseTargetState()
+    {
+        HWJ_SoulSystem targetSoul = target.GetComponent<HWJ_SoulSystem>();
+
+        if (targetSoul == null)
+        {
+            targetSoul = target.GetComponentInParent<HWJ_SoulSystem>();
+        }
+
+        return targetSoul == null || targetSoul.CurrentState == HWJ_SoulRuntimeState.Body;
+    }
+
+    private Transform FindPlayerTarget()
+    {
+        if (HWJ_GameAccess.HasManager && HWJ_GameAccess.Manager.PlayerResolver != null)
+        {
+            return HWJ_GameAccess.Manager.PlayerResolver.transform;
+        }
+
+        HWJ_RootObjectDataResolver[] resolvers = FindObjectsByType<HWJ_RootObjectDataResolver>(
+            FindObjectsInactive.Exclude,
+            FindObjectsSortMode.None);
+
+        for (int i = 0; i < resolvers.Length; i++)
+        {
+            if (resolvers[i] != null && resolvers[i].ObjectType == HWJ_ObjectType.Player)
+            {
+                return resolvers[i].transform;
+            }
+        }
+
+        return null;
     }
 }

@@ -9,13 +9,30 @@ public class HWJ_PlayerMovementSystem : MonoBehaviour
     [SerializeField] private HWJ_RootObjectDataResolver dataResolver;
     [SerializeField] private HWJ_RuntimeStatusSystem runtimeStatus;
     [SerializeField] private HWJ_SoulSystem soulSystem;
+    [SerializeField] private HWJ_PlayerInputSystem playerInput;
     [SerializeField] private Rigidbody2D body;
-    [SerializeField] private bool isGrounded;
 
-    private int usedJumpCount;
+    [Header("Ground Check")]
+    [SerializeField] private bool isGrounded;
+    [SerializeField] private LayerMask groundLayer;
+    [SerializeField] private Vector2 groundCheckOffset = new Vector2(0f, -0.55f);
+    [SerializeField] private Vector2 groundCheckSize = new Vector2(0.7f, 0.12f);
+
+    [Header("Soul Collision")]
+    [SerializeField] private bool phaseThroughCollidersInSoul = true;
+    [SerializeField] private bool isSoulCollisionMode;
+
+    private int usedDoubleJumpCount;
     private float dashEndTime;
     private float nextDashTime;
     private Vector2 moveInput;
+    private float originalGravityScale;
+    private bool hasOriginalGravityScale;
+    private bool isGravitySuppressed;
+    private Collider2D[] ownedColliders;
+    private bool[] originalColliderTriggerStates;
+
+    public bool IsGrounded => isGrounded;
 
     private void Awake()
     {
@@ -34,27 +51,42 @@ public class HWJ_PlayerMovementSystem : MonoBehaviour
             soulSystem = GetComponent<HWJ_SoulSystem>();
         }
 
+        if (playerInput == null)
+        {
+            playerInput = GetComponent<HWJ_PlayerInputSystem>();
+        }
+
         if (body == null)
         {
             body = GetComponent<Rigidbody2D>();
         }
+
+        CacheOriginalGravityScale();
+        CacheOwnedColliders();
     }
 
     private void Update()
     {
-        moveInput = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
+        moveInput = playerInput != null ? playerInput.MoveInput : Vector2.zero;
+        UpdateSoulCollisionMode();
+        bool canUseBodyActions = CanUseBodyActions();
 
-        if (isGrounded)
+        if (canUseBodyActions)
         {
-            usedJumpCount = 0;
+            UpdateGrounded();
         }
 
-        if (Input.GetButtonDown("Jump"))
+        if (canUseBodyActions && isGrounded)
+        {
+            usedDoubleJumpCount = 0;
+        }
+
+        if (canUseBodyActions && playerInput != null && playerInput.JumpPressedThisFrame)
         {
             TryJump();
         }
 
-        if (IsDashInputPressed())
+        if (canUseBodyActions && playerInput != null && playerInput.DashPressedThisFrame)
         {
             TryDash();
         }
@@ -62,18 +94,39 @@ public class HWJ_PlayerMovementSystem : MonoBehaviour
 
     private void FixedUpdate()
     {
+        UpdateSoulCollisionMode();
+
         if (body == null || dataResolver == null || !dataResolver.TryGetTypeData(out HWJ_PlayerTypeDataSO playerData))
         {
             return;
         }
 
-        if (soulSystem != null && soulSystem.CurrentState == HWJ_SoulRuntimeState.Soul)
+        UpdateGrounded();
+
+        if (soulSystem == null)
         {
-            MoveSoul(playerData);
+            SetGravitySuppressed(false);
+            MoveBody(playerData);
             return;
         }
 
-        MoveBody(playerData);
+        switch (soulSystem.CurrentState)
+        {
+            case HWJ_SoulRuntimeState.Body:
+                SetGravitySuppressed(false);
+                MoveBody(playerData);
+                break;
+            case HWJ_SoulRuntimeState.BodyToSoul:
+                StopMovement(true);
+                break;
+            case HWJ_SoulRuntimeState.Soul:
+                SetGravitySuppressed(true);
+                MoveSoul(playerData);
+                break;
+            case HWJ_SoulRuntimeState.Dead:
+                StopMovement(true);
+                break;
+        }
     }
 
     /// <summary>
@@ -83,6 +136,67 @@ public class HWJ_PlayerMovementSystem : MonoBehaviour
     public void SetGrounded(bool grounded)
     {
         isGrounded = grounded;
+    }
+
+    private void UpdateGrounded()
+    {
+        if (!CanUseBodyActions())
+        {
+            isGrounded = false;
+            return;
+        }
+
+        if (body != null && body.linearVelocity.y > 0.01f)
+        {
+            isGrounded = false;
+            return;
+        }
+
+        bool wasGrounded = isGrounded;
+        isGrounded = CheckGrounded();
+
+        if (isGrounded && !wasGrounded)
+        {
+            usedDoubleJumpCount = 0;
+        }
+    }
+
+    private void OnDisable()
+    {
+        SetSoulCollisionMode(false);
+    }
+
+    private bool CheckGrounded()
+    {
+        Vector2 checkCenter = (Vector2)transform.position + groundCheckOffset;
+        ContactFilter2D filter = new ContactFilter2D
+        {
+            useLayerMask = groundLayer.value != 0,
+            layerMask = groundLayer,
+            useTriggers = false
+        };
+
+        Collider2D[] hits = new Collider2D[8];
+        int hitCount = Physics2D.OverlapBox(checkCenter, groundCheckSize, 0f, filter, hits);
+
+        for (int i = 0; i < hitCount; i++)
+        {
+            Collider2D hit = hits[i];
+
+            if (hit == null || IsOwnCollider(hit))
+            {
+                continue;
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool IsOwnCollider(Collider2D hit)
+    {
+        return hit.attachedRigidbody == body || hit.transform.IsChildOf(transform);
     }
 
     private void MoveBody(HWJ_PlayerTypeDataSO playerData)
@@ -107,6 +221,7 @@ public class HWJ_PlayerMovementSystem : MonoBehaviour
     {
         if (!playerData.SoulState.canFreeFly)
         {
+            StopMovement(true);
             return;
         }
 
@@ -125,25 +240,66 @@ public class HWJ_PlayerMovementSystem : MonoBehaviour
             return;
         }
 
-        if (soulSystem != null && soulSystem.CurrentState == HWJ_SoulRuntimeState.Soul)
+        if (!CanUseBodyActions())
         {
             return;
         }
 
-        if (usedJumpCount >= playerData.Control.maxJumpCount)
+        if (isGrounded)
+        {
+            ExecuteNormalJump(playerData.Control.normalJump);
+            return;
+        }
+
+        if (!CanDoubleJump(playerData.Control.doubleJump))
+        {
+            return;
+        }
+
+        ExecuteDoubleJump(playerData.Control.doubleJump);
+    }
+
+    private void ExecuteNormalJump(HWJ_NormalJumpData jumpData)
+    {
+        if (jumpData == null)
         {
             return;
         }
 
         Vector2 velocity = body.linearVelocity;
-        velocity.y = playerData.Control.jumpPower;
+        velocity.y = jumpData.jumpPower;
         body.linearVelocity = velocity;
-        usedJumpCount++;
+        isGrounded = false;
+    }
+
+    private void ExecuteDoubleJump(HWJ_DoubleJumpData jumpData)
+    {
+        if (jumpData == null)
+        {
+            return;
+        }
+
+        Vector2 velocity = body.linearVelocity;
+        velocity.y = jumpData.jumpPower;
+        body.linearVelocity = velocity;
+        usedDoubleJumpCount++;
+    }
+
+    private bool CanDoubleJump(HWJ_DoubleJumpData jumpData)
+    {
+        return jumpData != null
+            && jumpData.canDoubleJump
+            && usedDoubleJumpCount < jumpData.maxDoubleJumpCount;
     }
 
     private void TryDash()
     {
         if (body == null || dataResolver == null || !dataResolver.TryGetTypeData(out HWJ_PlayerTypeDataSO playerData))
+        {
+            return;
+        }
+
+        if (!CanUseBodyActions())
         {
             return;
         }
@@ -168,15 +324,113 @@ public class HWJ_PlayerMovementSystem : MonoBehaviour
         nextDashTime = Time.time + playerData.Control.dashCooldown;
     }
 
-    private bool IsDashInputPressed()
+    private void StopMovement(bool suppressGravity = false)
     {
-        if (dataResolver != null
-            && dataResolver.TryGetTypeData(out HWJ_PlayerTypeDataSO playerData)
-            && playerData.Control != null)
+        if (body != null)
         {
-            return Input.GetKeyDown(playerData.Control.dashKey);
+            SetGravitySuppressed(suppressGravity);
+            body.linearVelocity = Vector2.zero;
+        }
+    }
+
+    private void CacheOriginalGravityScale()
+    {
+        if (body == null || hasOriginalGravityScale)
+        {
+            return;
         }
 
-        return Input.GetKeyDown(KeyCode.LeftShift);
+        originalGravityScale = body.gravityScale;
+        hasOriginalGravityScale = true;
+    }
+
+    private void SetGravitySuppressed(bool suppress)
+    {
+        if (body == null)
+        {
+            return;
+        }
+
+        CacheOriginalGravityScale();
+
+        if (suppress)
+        {
+            if (!isGravitySuppressed)
+            {
+                body.gravityScale = 0f;
+                isGravitySuppressed = true;
+            }
+
+            return;
+        }
+
+        if (isGravitySuppressed)
+        {
+            body.gravityScale = originalGravityScale;
+            isGravitySuppressed = false;
+        }
+    }
+
+    private bool CanUseBodyActions()
+    {
+        return soulSystem == null || soulSystem.CurrentState == HWJ_SoulRuntimeState.Body;
+    }
+
+    private void CacheOwnedColliders()
+    {
+        ownedColliders = GetComponentsInChildren<Collider2D>();
+        originalColliderTriggerStates = new bool[ownedColliders.Length];
+
+        for (int i = 0; i < ownedColliders.Length; i++)
+        {
+            originalColliderTriggerStates[i] = ownedColliders[i] != null && ownedColliders[i].isTrigger;
+        }
+    }
+
+    private void UpdateSoulCollisionMode()
+    {
+        if (!phaseThroughCollidersInSoul)
+        {
+            SetSoulCollisionMode(false);
+            return;
+        }
+
+        bool shouldPhase = soulSystem != null
+            && (soulSystem.CurrentState == HWJ_SoulRuntimeState.Soul
+                || soulSystem.CurrentState == HWJ_SoulRuntimeState.BodyToSoul);
+
+        SetSoulCollisionMode(shouldPhase);
+    }
+
+    private void SetSoulCollisionMode(bool enabled)
+    {
+        if (isSoulCollisionMode == enabled)
+        {
+            return;
+        }
+
+        if (ownedColliders == null || originalColliderTriggerStates == null)
+        {
+            CacheOwnedColliders();
+        }
+
+        for (int i = 0; i < ownedColliders.Length; i++)
+        {
+            if (ownedColliders[i] == null)
+            {
+                continue;
+            }
+
+            ownedColliders[i].isTrigger = enabled || originalColliderTriggerStates[i];
+        }
+
+        isSoulCollisionMode = enabled;
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        Gizmos.color = isGrounded ? Color.green : Color.red;
+        Vector3 checkCenter = transform.position + (Vector3)groundCheckOffset;
+        Gizmos.DrawWireCube(checkCenter, groundCheckSize);
     }
 }

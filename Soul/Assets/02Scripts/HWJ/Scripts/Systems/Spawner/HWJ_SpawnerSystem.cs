@@ -10,7 +10,16 @@ public class HWJ_SpawnerSystem : MonoBehaviour
     [SerializeField] private HWJ_SpawnTableDataSO spawnTable;
     [SerializeField] private HWJ_SpawnPoint[] spawnPoints;
     [SerializeField] private HWJ_ObjectPoolSystem objectPool;
+    [SerializeField] private bool autoCollectSpawnPoints = true;
     [SerializeField] private bool spawnOnStart = true;
+
+    private void Awake()
+    {
+        if (autoCollectSpawnPoints)
+        {
+            CollectSpawnPoints();
+        }
+    }
 
     private void Start()
     {
@@ -52,9 +61,14 @@ public class HWJ_SpawnerSystem : MonoBehaviour
         }
     }
 
+    public void CollectSpawnPoints()
+    {
+        spawnPoints = FindObjectsByType<HWJ_SpawnPoint>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+    }
+
     private void SpawnEntry(HWJ_SpawnEntryData entry)
     {
-        HWJ_SpawnPoint point = FindPoint(entry.spawnPointType);
+        HWJ_SpawnPoint point = FindPoint(entry);
 
         if (point == null)
         {
@@ -93,10 +107,9 @@ public class HWJ_SpawnerSystem : MonoBehaviour
             return;
         }
 
+        Vector3 spawnPosition = point.Position + (Vector3)entry.spawnOffset;
         Transform parent = point.SpawnParent != null ? point.SpawnParent : null;
-        GameObject instance = objectPool != null
-            ? objectPool.Spawn(prefab, point.Position, point.Rotation, parent)
-            : HWJ_GameAccess.Spawn(prefab, point.Position, point.Rotation, parent);
+        GameObject instance = SpawnPrefab(prefab, spawnPosition, point.Rotation, parent);
 
         if (instance == null)
         {
@@ -108,29 +121,132 @@ public class HWJ_SpawnerSystem : MonoBehaviour
         if (resolver != null && entry.rootObjectData != null)
         {
             resolver.SetRootObjectData(entry.rootObjectData);
+            RefreshSpawnedRuntimeData(instance);
 
             if (entry.spawnPointType == HWJ_SpawnPointType.PlayerStart && HWJ_GameAccess.HasManager)
             {
                 HWJ_GameAccess.Manager.RegisterPlayer(resolver);
             }
         }
+
+        WireSpawnedObject(instance);
     }
 
-    private HWJ_SpawnPoint FindPoint(HWJ_SpawnPointType spawnPointType)
+    private GameObject SpawnPrefab(GameObject prefab, Vector3 position, Quaternion rotation, Transform parent)
+    {
+        if (objectPool != null)
+        {
+            return objectPool.Spawn(prefab, position, rotation, parent);
+        }
+
+        if (HWJ_GameAccess.HasManager)
+        {
+            return HWJ_GameAccess.Spawn(prefab, position, rotation, parent);
+        }
+
+        return Instantiate(prefab, position, rotation, parent);
+    }
+
+    private void WireSpawnedObject(GameObject instance)
+    {
+        if (instance == null)
+        {
+            return;
+        }
+
+        HWJ_EnemyNavigationSystem enemyNavigation = instance.GetComponent<HWJ_EnemyNavigationSystem>();
+
+        if (enemyNavigation != null)
+        {
+            enemyNavigation.SetTarget(FindPlayerTransform());
+        }
+    }
+
+    private void RefreshSpawnedRuntimeData(GameObject instance)
+    {
+        if (instance == null)
+        {
+            return;
+        }
+
+        HWJ_RuntimeStatusSystem runtimeStatus = instance.GetComponent<HWJ_RuntimeStatusSystem>();
+
+        if (runtimeStatus != null)
+        {
+            runtimeStatus.RefreshCurrentHpFromData(true);
+        }
+
+        HWJ_MonsterAISystem monsterAI = instance.GetComponent<HWJ_MonsterAISystem>();
+
+        if (monsterAI != null)
+        {
+            monsterAI.RefreshData();
+        }
+    }
+
+    private Transform FindPlayerTransform()
+    {
+        if (HWJ_GameAccess.HasManager && HWJ_GameAccess.Manager.PlayerResolver != null)
+        {
+            return HWJ_GameAccess.Manager.PlayerResolver.transform;
+        }
+
+        HWJ_RootObjectDataResolver[] resolvers = FindObjectsByType<HWJ_RootObjectDataResolver>(
+            FindObjectsInactive.Exclude,
+            FindObjectsSortMode.None);
+
+        for (int i = 0; i < resolvers.Length; i++)
+        {
+            if (resolvers[i] != null && resolvers[i].ObjectType == HWJ_ObjectType.Player)
+            {
+                return resolvers[i].transform;
+            }
+        }
+
+        return null;
+    }
+
+    private HWJ_SpawnPoint FindPoint(HWJ_SpawnEntryData entry)
     {
         if (spawnPoints == null)
         {
             return null;
         }
 
-        for (int i = 0; i < spawnPoints.Length; i++)
+        if (!string.IsNullOrWhiteSpace(entry.spawnPointId))
         {
-            if (spawnPoints[i] != null && spawnPoints[i].SpawnPointType == spawnPointType)
+            for (int i = 0; i < spawnPoints.Length; i++)
             {
-                return spawnPoints[i];
+                if (spawnPoints[i] != null && spawnPoints[i].PointId == entry.spawnPointId)
+                {
+                    return spawnPoints[i];
+                }
             }
         }
 
-        return null;
+        HWJ_SpawnPoint firstMatchedPoint = null;
+        int matchedCount = 0;
+
+        for (int i = 0; i < spawnPoints.Length; i++)
+        {
+            if (spawnPoints[i] == null || spawnPoints[i].SpawnPointType != entry.spawnPointType)
+            {
+                continue;
+            }
+
+            if (firstMatchedPoint == null)
+            {
+                firstMatchedPoint = spawnPoints[i];
+            }
+
+            matchedCount++;
+
+            if (entry.randomizePoint && Random.Range(0, matchedCount) == 0)
+            {
+                firstMatchedPoint = spawnPoints[i];
+            }
+        }
+
+        return firstMatchedPoint;
     }
 }

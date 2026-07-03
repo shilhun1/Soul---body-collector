@@ -83,7 +83,6 @@ public class HWJ_InteractionData
     public bool canInteract;
     public bool canBeTargeted = true;
     public float interactionRange;
-    public string interactionInputId;
 }
 
 /// <summary>
