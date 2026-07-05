@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e491448eae275db449cdef0a265bfeca, type: 3}
+  m_Name: Node Data_Angel Pet
+  m_EditorClassIdentifier: Assembly-CSharp::SmilingEclipse.STMImporter.SkillNodeData
+  skillName: Angel Pet
+  description: Click to edit skill description.
+  icon: {fileID: 21300000, guid: 1725220ad396d06488bf1ac7d73094b2, type: 3}
+  position: {x: 2892, y: 1097}
+  cost: 10
+  costCoeficient: 5
+  startLevel: 0
+  maxLevel: 5
+  nodeIndex: 41
+  childNodes:
+  - {fileID: 11400000, guid: 4a0cc7c619738b04fbcea20d935ef3e9, type: 2}
+  - {fileID: 11400000, guid: e750acb8005d438499dbc0c3d5530dfc, type: 2}
+  parentNodes:
+  - {fileID: 11400000, guid: 062beaa32d89e19418238d6ccd123490, type: 2}
