@@ -15,7 +15,7 @@ public enum hys_PlayerState
 
 public class hys_Player_State : MonoBehaviour
 {
-    // 현재 플레이어 상태입니다. 인스펙터에서 확인하기 쉽게 SerializeField로 둡니다.
+    // 현재 플레이어 상태입니다. 인스펙터에서 확인하기 쉽게 SerializeField로 둡니다. //파일변경을 위해 추가함
     [SerializeField] private hys_PlayerState currentState = hys_PlayerState.Idle;
 
     // 상태가 바뀔 때 Unity Console에 로그를 찍을지 정합니다.
