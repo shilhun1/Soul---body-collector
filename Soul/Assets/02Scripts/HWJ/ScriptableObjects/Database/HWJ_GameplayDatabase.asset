@@ -27,7 +27,16 @@ MonoBehaviour:
   spawnTables: []
   statOrbs: []
   levelTables: []
-  skillActions: []
+  skillActions:
+  - {fileID: 11400000, guid: 475f4cdb83ab44998b5ed9af22fc1d22, type: 2}
+  - {fileID: 11400000, guid: 231bcea507324f11b034af6563e5bc2a, type: 2}
+  - {fileID: 11400000, guid: 290eb9f186c0432b86fe7aaa8acfc25c, type: 2}
+  - {fileID: 11400000, guid: f84e7cd1773747c4891d25c7b3af09f1, type: 2}
+  - {fileID: 11400000, guid: 3156c6d9f4ac4ec6b8f57c1e01dff020, type: 2}
+  - {fileID: 11400000, guid: bf20b947febf4fa68e86acac697a2ca7, type: 2}
+  - {fileID: 11400000, guid: 457efcc5bac94880998e13e03598925f, type: 2}
+  - {fileID: 11400000, guid: 865e14be67024091941d0d1c7b1918d6, type: 2}
+  - {fileID: 11400000, guid: 5f49bad13cdb468eb1628b795442af64, type: 2}
   bossPatterns: []
   healthBars: []
   gameOverWindows: []

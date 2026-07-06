@@ -1,110 +1,501 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// SkillActionDataSO를 실행하는 공통 스킬 행동 시스템입니다.
-/// 플레이어 공격, 적 스킬 사이클, 보스 패턴 시스템이 같은 방식으로 스킬 데이터를 사용할 수 있게 합니다.
+/// SkillActionDataSO를 실제 전투 행동으로 실행하는 공통 스킬 시스템입니다.
+/// 플레이어, 빙의 상태, 몬스터 AI가 같은 스킬 데이터를 사용하도록 ID 조회, 쿨타임, 모션, 판정을 한 곳에서 처리합니다.
 /// </summary>
 public class HWJ_SkillActionSystem : MonoBehaviour
 {
+    private const float MinimumProjectileDistance = 30f;
+    private const float DefaultProjectileSpeed = 24f;
+    private const float MinimumDashSpeed = 15f;
+
     [SerializeField] private HWJ_RootObjectDataResolver dataResolver;
     [SerializeField] private HWJ_CombatSystem combatSystem;
+    [SerializeField] private HWJ_CombatExecutionSystem combatExecutionSystem;
     [SerializeField] private HWJ_PossessionSystem possessionSystem;
     [SerializeField] private HWJ_CharacterMotionSystem motionSystem;
     [SerializeField] private HWJ_ObjectPoolSystem objectPool;
     [SerializeField] private HWJ_GameplayDatabaseSO database;
+    [SerializeField] private Rigidbody2D body;
     [SerializeField] private HWJ_SkillActionDataSO[] localSkillActions;
+    [SerializeField] private string lastSkillResult;
+    [SerializeField] private float lastDamageApplied;
 
     private readonly Dictionary<string, float> nextUseTimes = new Dictionary<string, float>();
+    private Coroutine movementRoutine;
+    private Coroutine motionRoutine;
+    private Coroutine projectileRoutine;
+    private float navigationBlockEndTime;
+    private bool skillMovementControlsVelocity;
+
+    public string LastSkillResult => lastSkillResult;
+    public float LastDamageApplied => lastDamageApplied;
+    public bool IsNavigationBlocked => Time.time < navigationBlockEndTime;
+    public bool ShouldStopNavigationMovement => IsNavigationBlocked && !skillMovementControlsVelocity;
 
     private void Awake()
     {
-        if (dataResolver == null)
-        {
-            dataResolver = GetComponent<HWJ_RootObjectDataResolver>();
-        }
-
-        if (combatSystem == null)
-        {
-            combatSystem = GetComponent<HWJ_CombatSystem>();
-        }
-
-        if (possessionSystem == null)
-        {
-            possessionSystem = GetComponent<HWJ_PossessionSystem>();
-        }
-
-        if (motionSystem == null)
-        {
-            motionSystem = GetComponent<HWJ_CharacterMotionSystem>();
-        }
+        CacheReferences();
     }
 
     /// <summary>
-    /// 스킬 ID로 스킬 데이터를 찾아 실행합니다.
-    /// 먼저 로컬 목록을 보고, 없으면 GameplayDatabase에서 찾습니다.
+    /// 스킬 ID로 SkillActionDataSO를 찾아 실행합니다.
+    /// 플레이어 기본 공격이나 외부 시스템이 스킬 ID만 알고 있을 때 사용합니다.
     /// </summary>
     public bool TryUseSkill(string skillActionId)
     {
+        return TryUseSkill(skillActionId, null);
+    }
+
+    /// <summary>
+    /// 스킬 ID와 대상 위치를 함께 넘겨 실행합니다.
+    /// 몬스터 AI는 대상 방향 돌진과 사거리 판정을 위해 target을 전달합니다.
+    /// </summary>
+    public bool TryUseSkill(string skillActionId, Transform target)
+    {
         if (!TryGetSkillAction(skillActionId, out HWJ_SkillActionDataSO skillAction))
         {
+            lastSkillResult = $"Skill failed: missing action data for {skillActionId}.";
             return false;
         }
 
-        return TryUseSkill(skillAction);
+        return TryUseSkill(skillAction, target);
+    }
+
+    /// <summary>
+    /// EnemyTypeDataSO의 SkillCycle에 들어간 스킬 항목을 실행합니다.
+    /// SkillEntry의 쿨타임 값이 0보다 크면 SO 기본 쿨타임보다 우선합니다.
+    /// </summary>
+    public bool TryUseSkillEntry(HWJ_SkillEntryData skillEntry, Transform target)
+    {
+        if (skillEntry == null || string.IsNullOrEmpty(skillEntry.skillId))
+        {
+            lastSkillResult = "Skill failed: missing skill entry.";
+            return false;
+        }
+
+        if (!IsSkillEntryWeaponMatched(skillEntry))
+        {
+            lastSkillResult = $"Skill failed: {skillEntry.skillId} weapon mismatch.";
+            return false;
+        }
+
+        if (!TryGetSkillAction(skillEntry.skillId, out HWJ_SkillActionDataSO skillAction))
+        {
+            lastSkillResult = $"Skill failed: missing action data for {skillEntry.skillId}.";
+            return false;
+        }
+
+        float cooldownOverride = skillEntry.cooldownSeconds > 0f
+            ? skillEntry.cooldownSeconds
+            : -1f;
+
+        return TryUseSkill(skillAction, target, cooldownOverride);
     }
 
     /// <summary>
     /// 이미 참조된 SkillActionDataSO를 직접 실행합니다.
-    /// 보스 패턴처럼 데이터가 배열로 연결된 경우 이 경로를 사용합니다.
+    /// 보스 패턴처럼 SO 배열을 직접 들고 있는 시스템에서 사용합니다.
     /// </summary>
     public bool TryUseSkill(HWJ_SkillActionDataSO skillAction)
     {
+        return TryUseSkill(skillAction, null);
+    }
+
+    public bool TryUseSkill(HWJ_SkillActionDataSO skillAction, Transform target)
+    {
+        return TryUseSkill(skillAction, target, -1f);
+    }
+
+    public bool TryUseSkill(HWJ_SkillActionDataSO skillAction, Transform target, float cooldownOverride)
+    {
+        CacheReferences();
+        lastDamageApplied = 0f;
+
         if (skillAction == null || dataResolver == null)
         {
+            lastSkillResult = "Skill failed: missing skill action or data resolver.";
             return false;
         }
 
         if (!skillAction.CanUseWithWeapon(GetCurrentWeaponType()))
         {
+            lastSkillResult = $"Skill failed: {skillAction.SkillActionId} weapon mismatch.";
             return false;
         }
 
-        if (nextUseTimes.TryGetValue(skillAction.SkillActionId, out float nextUseTime) && Time.time < nextUseTime)
+        if (!IsSkillReady(skillAction.SkillActionId))
+        {
+            lastSkillResult = $"Skill failed: {skillAction.SkillActionId} cooldown.";
+            return false;
+        }
+
+        float cooldownSeconds = cooldownOverride > 0f
+            ? cooldownOverride
+            : skillAction.CooldownSeconds;
+
+        nextUseTimes[skillAction.SkillActionId] = Time.time + Mathf.Max(0f, cooldownSeconds);
+        ExecuteSkill(skillAction, target);
+        return true;
+    }
+
+    /// <summary>
+    /// 외부 AI가 스킬을 고르기 전에 쿨타임만 확인할 수 있게 해주는 조회 함수입니다.
+    /// </summary>
+    public bool IsSkillReady(string skillActionId)
+    {
+        return !nextUseTimes.TryGetValue(skillActionId, out float nextUseTime)
+            || Time.time >= nextUseTime;
+    }
+
+    /// <summary>
+    /// Keeps enemy navigation from overwriting charge-up or dash movement for a short skill window.
+    /// skillControlsVelocity should be true only while this system is directly setting Rigidbody2D.linearVelocity.
+    /// </summary>
+    public void BlockNavigationForSkill(float seconds, bool skillControlsVelocity)
+    {
+        float duration = Mathf.Max(0f, seconds);
+
+        if (duration <= 0f)
+        {
+            return;
+        }
+
+        navigationBlockEndTime = Mathf.Max(navigationBlockEndTime, Time.time + duration);
+        skillMovementControlsVelocity = skillControlsVelocity;
+
+        if (!skillControlsVelocity && body != null)
+        {
+            Vector2 velocity = body.linearVelocity;
+            velocity.x = 0f;
+            body.linearVelocity = velocity;
+        }
+    }
+
+    public void ReleaseNavigationBlock()
+    {
+        navigationBlockEndTime = 0f;
+        skillMovementControlsVelocity = false;
+    }
+
+    /// <summary>
+    /// 로컬 목록, 직접 연결된 데이터베이스, GameManager 데이터베이스 순서로 스킬 데이터를 찾습니다.
+    /// </summary>
+    public bool TryGetSkillAction(string skillActionId, out HWJ_SkillActionDataSO skillAction)
+    {
+        skillAction = null;
+
+        if (string.IsNullOrEmpty(skillActionId))
         {
             return false;
         }
 
-        nextUseTimes[skillAction.SkillActionId] = Time.time + skillAction.CooldownSeconds;
-        ExecuteSkill(skillAction);
-        return true;
+        if (localSkillActions != null)
+        {
+            for (int i = 0; i < localSkillActions.Length; i++)
+            {
+                if (localSkillActions[i] != null && localSkillActions[i].SkillActionId == skillActionId)
+                {
+                    skillAction = localSkillActions[i];
+                    return true;
+                }
+            }
+        }
+
+        if (database != null && database.TryGetSkillAction(skillActionId, out skillAction))
+        {
+            return true;
+        }
+
+        return HWJ_GameAccess.TryGetSkillAction(skillActionId, out skillAction);
     }
 
-    private void ExecuteSkill(HWJ_SkillActionDataSO skillAction)
+    private void ExecuteSkill(HWJ_SkillActionDataSO skillAction, Transform target)
     {
-        PlaySkillMotion(skillAction);
+        if (skillAction == null)
+        {
+            return;
+        }
 
         if (skillAction.ActionEffectPrefab != null)
         {
             SpawnPooled(skillAction.ActionEffectPrefab);
         }
 
-        if (skillAction.ProjectilePrefab != null)
+        switch (skillAction.ActionType)
         {
-            SpawnPooled(skillAction.ProjectilePrefab);
+            case HWJ_SkillActionType.Projectile:
+                ExecuteProjectileSkill(skillAction, target);
+                break;
+            case HWJ_SkillActionType.Dash:
+                ExecuteDashSkill(skillAction, target);
+                break;
+            case HWJ_SkillActionType.Melee:
+            case HWJ_SkillActionType.Area:
+                ExecuteAreaDamage(skillAction, true);
+                break;
+            case HWJ_SkillActionType.Buff:
+                PlaySkillMotion(skillAction);
+                lastSkillResult = $"Used buff skill {skillAction.SkillActionId}.";
+                break;
+            default:
+                PlaySkillMotion(skillAction);
+                lastSkillResult = $"Used skill {skillAction.SkillActionId}.";
+                break;
+        }
+    }
+
+    private void ExecuteProjectileSkill(HWJ_SkillActionDataSO skillAction, Transform target)
+    {
+        if (projectileRoutine != null)
+        {
+            StopCoroutine(projectileRoutine);
         }
 
-        float baseDamage = combatSystem != null ? combatSystem.GetOutgoingDamage() : 0f;
-        float finalDamage = baseDamage * skillAction.DamageMultiplier;
+        projectileRoutine = StartCoroutine(ProjectileSkillRoutine(skillAction, target));
+    }
 
-        // 실제 히트박스나 투사체 시스템은 finalDamage를 받아 타겟에게 전달하도록 확장합니다.
-        _ = finalDamage;
+    private IEnumerator ProjectileSkillRoutine(HWJ_SkillActionDataSO skillAction, Transform target)
+    {
+        PlaySkillMotion(skillAction);
+        float chargeSeconds = Mathf.Max(0f, skillAction.DurationSeconds);
+
+        if (chargeSeconds > 0f)
+        {
+            BlockNavigationForSkill(chargeSeconds + 0.05f, false);
+            yield return new WaitForSeconds(chargeSeconds);
+        }
+
+        FireProjectile(skillAction, ResolveSkillDirection(target));
+        projectileRoutine = null;
+    }
+
+    private void FireProjectile(HWJ_SkillActionDataSO skillAction, Vector2 direction)
+    {
+        if (skillAction.ProjectilePrefab != null)
+        {
+            GameObject projectile = SpawnPooled(skillAction.ProjectilePrefab);
+            SetupProjectile(projectile, skillAction, direction);
+            lastSkillResult = $"Fired pooled projectile skill {skillAction.SkillActionId}.";
+            return;
+        }
+
+        // 임시 투사체 프리팹이 없을 때도 데이터 테스트가 가능하도록 범위 판정을 사용합니다.
+        GameObject fallbackProjectile = CreateFallbackProjectileObject(skillAction, direction);
+        SetupProjectile(fallbackProjectile, skillAction, direction);
+        lastSkillResult = $"Fired fallback projectile skill {skillAction.SkillActionId}.";
+    }
+
+    private void ExecuteDashSkill(HWJ_SkillActionDataSO skillAction, Transform target)
+    {
+        PlaySkillMotion(skillAction);
+
+        if (movementRoutine != null)
+        {
+            StopCoroutine(movementRoutine);
+        }
+
+        movementRoutine = StartCoroutine(DashSkillRoutine(skillAction, target));
+    }
+
+    private IEnumerator DashSkillRoutine(HWJ_SkillActionDataSO skillAction, Transform target)
+    {
+        float moveDistance = Mathf.Max(0f, skillAction.MoveDistance);
+        float moveSpeed = Mathf.Max(MinimumDashSpeed, skillAction.MoveSpeed);
+
+        if (moveDistance <= 0f || moveSpeed <= 0f)
+        {
+            ExecuteAreaDamage(skillAction, false);
+            movementRoutine = null;
+            yield break;
+        }
+
+        Vector2 direction = ResolveSkillDirection(target);
+        float duration = Mathf.Max(0.01f, moveDistance / moveSpeed);
+        float endTime = Time.time + duration;
+        float movedDistance = 0f;
+        bool hasDamagedDuringDash = false;
+
+        BlockNavigationForSkill(duration + 0.05f, true);
+
+        while (Time.time < endTime && movedDistance < moveDistance)
+        {
+            float step = moveSpeed * Time.deltaTime;
+            movedDistance += step;
+            MoveOwnerByVelocity(direction, moveSpeed);
+
+            if (!hasDamagedDuringDash)
+            {
+                hasDamagedDuringDash = TryExecuteDashContactDamage(skillAction);
+            }
+
+            yield return null;
+        }
+
+        if (body != null)
+        {
+            body.linearVelocity = Vector2.zero;
+        }
+
+        if (!hasDamagedDuringDash)
+        {
+            ExecuteAreaDamage(skillAction, false);
+        }
+
+        ReleaseNavigationBlock();
+        movementRoutine = null;
+    }
+
+    private void SetupProjectile(GameObject projectile, HWJ_SkillActionDataSO skillAction, Vector2 direction)
+    {
+        if (projectile == null)
+        {
+            ExecuteAreaDamage(skillAction, false);
+            return;
+        }
+
+        HWJ_RuntimeSkillProjectile runtimeProjectile = projectile.GetComponent<HWJ_RuntimeSkillProjectile>();
+
+        if (runtimeProjectile == null)
+        {
+            runtimeProjectile = projectile.AddComponent<HWJ_RuntimeSkillProjectile>();
+        }
+
+        float distance = Mathf.Max(MinimumProjectileDistance, skillAction.Range, skillAction.MoveDistance);
+        float speed = skillAction.MoveSpeed > 0f ? skillAction.MoveSpeed : DefaultProjectileSpeed;
+        float hitHeight = Mathf.Max(0.25f, skillAction.HitRange);
+
+        runtimeProjectile.Initialize(
+            transform,
+            combatExecutionSystem,
+            skillAction,
+            direction,
+            distance,
+            speed,
+            hitHeight);
+    }
+
+    private GameObject CreateFallbackProjectileObject(HWJ_SkillActionDataSO skillAction, Vector2 direction)
+    {
+        GameObject projectile = new GameObject($"HWJ_RuntimeProjectile_{skillAction.SkillActionId}");
+        projectile.transform.position = transform.position;
+
+        // Temporary visual so the sword wave works before a real projectile sprite prefab is added.
+        LineRenderer lineRenderer = projectile.AddComponent<LineRenderer>();
+        lineRenderer.useWorldSpace = false;
+        lineRenderer.positionCount = 2;
+        lineRenderer.widthMultiplier = Mathf.Max(0.08f, skillAction.HitRange * 0.08f);
+        lineRenderer.startColor = new Color(0.35f, 0.85f, 1f, 0.95f);
+        lineRenderer.endColor = new Color(1f, 1f, 1f, 0.95f);
+        lineRenderer.material = GetRuntimeLineMaterial();
+        lineRenderer.sortingOrder = 110;
+        lineRenderer.SetPosition(0, new Vector3(-0.15f * direction.x, -0.5f, 0f));
+        lineRenderer.SetPosition(1, new Vector3(0.15f * direction.x, 0.5f, 0f));
+
+        return projectile;
+    }
+
+    private bool TryExecuteDashContactDamage(HWJ_SkillActionDataSO skillAction)
+    {
+        if (combatExecutionSystem == null)
+        {
+            return false;
+        }
+
+        float range = Mathf.Max(0.1f, skillAction.HitRange > 0f ? skillAction.HitRange : skillAction.Range);
+        bool damaged = combatExecutionSystem.TryExecuteAreaAttack(
+            range,
+            skillAction.DamageMultiplier,
+            skillAction.MotionKey,
+            false);
+
+        if (damaged)
+        {
+            lastDamageApplied = combatExecutionSystem.LastDamageApplied;
+            lastSkillResult = combatExecutionSystem.LastExecutionResult;
+        }
+
+        return damaged;
+    }
+
+    private void ExecuteAreaDamage(HWJ_SkillActionDataSO skillAction, bool playMotion)
+    {
+        if (combatExecutionSystem == null)
+        {
+            PlaySkillMotion(skillAction);
+            lastSkillResult = $"Skill {skillAction.SkillActionId} failed: missing combat execution system.";
+            return;
+        }
+
+        if (playMotion && skillAction.HasMotionSequence)
+        {
+            PlaySkillMotion(skillAction);
+        }
+
+        bool shouldCombatPlayMotion = playMotion && !skillAction.HasMotionSequence;
+        int hitCount = Mathf.Max(1, skillAction.HitCount);
+
+        if (hitCount > 1)
+        {
+            StartCoroutine(RepeatedAreaDamageRoutine(skillAction, hitCount, shouldCombatPlayMotion));
+            lastSkillResult = $"Skill {skillAction.SkillActionId} started {hitCount} hits.";
+            return;
+        }
+
+        ExecuteSingleAreaDamage(skillAction, shouldCombatPlayMotion);
+    }
+
+    private IEnumerator RepeatedAreaDamageRoutine(
+        HWJ_SkillActionDataSO skillAction,
+        int hitCount,
+        bool playFirstHitMotion)
+    {
+        float interval = Mathf.Max(0.01f, skillAction.HitIntervalSeconds);
+
+        for (int i = 0; i < hitCount; i++)
+        {
+            ExecuteSingleAreaDamage(skillAction, playFirstHitMotion && i == 0);
+
+            if (i < hitCount - 1)
+            {
+                yield return new WaitForSeconds(interval);
+            }
+        }
+    }
+
+    private void ExecuteSingleAreaDamage(HWJ_SkillActionDataSO skillAction, bool playMotion)
+    {
+        float range = Mathf.Max(0.1f, skillAction.HitRange > 0f ? skillAction.HitRange : skillAction.Range);
+        bool damaged = combatExecutionSystem.TryExecuteAreaAttack(
+            range,
+            skillAction.DamageMultiplier,
+            skillAction.MotionKey,
+            playMotion);
+
+        lastDamageApplied = combatExecutionSystem.LastDamageApplied;
+        lastSkillResult = damaged
+            ? combatExecutionSystem.LastExecutionResult
+            : $"Skill {skillAction.SkillActionId}: {combatExecutionSystem.LastExecutionResult}";
     }
 
     private void PlaySkillMotion(HWJ_SkillActionDataSO skillAction)
     {
         if (motionSystem == null || skillAction == null)
         {
+            return;
+        }
+
+        if (skillAction.HasMotionSequence)
+        {
+            if (motionRoutine != null)
+            {
+                StopCoroutine(motionRoutine);
+            }
+
+            motionRoutine = StartCoroutine(MotionSequenceRoutine(skillAction));
             return;
         }
 
@@ -127,38 +518,104 @@ public class HWJ_SkillActionSystem : MonoBehaviour
         }
     }
 
+    private IEnumerator MotionSequenceRoutine(HWJ_SkillActionDataSO skillAction)
+    {
+        string[] motionKeys = skillAction.MotionSequenceKeys;
+        float interval = Mathf.Max(0.01f, skillAction.MotionStepIntervalSeconds);
+
+        for (int i = 0; i < motionKeys.Length; i++)
+        {
+            if (!string.IsNullOrEmpty(motionKeys[i]))
+            {
+                motionSystem.PlayMotionKey(motionKeys[i]);
+            }
+
+            if (i < motionKeys.Length - 1)
+            {
+                yield return new WaitForSeconds(interval);
+            }
+        }
+
+        motionRoutine = null;
+    }
+
     private GameObject SpawnPooled(GameObject prefab)
     {
+        if (prefab == null)
+        {
+            return null;
+        }
+
         if (objectPool != null)
         {
             return objectPool.Spawn(prefab, transform.position, transform.rotation);
         }
 
-        return HWJ_GameAccess.Spawn(prefab, transform.position, transform.rotation);
+        GameObject spawned = HWJ_GameAccess.Spawn(prefab, transform.position, transform.rotation);
+        return spawned != null ? spawned : Instantiate(prefab, transform.position, transform.rotation);
     }
 
-    private bool TryGetSkillAction(string skillActionId, out HWJ_SkillActionDataSO skillAction)
+    private Vector2 ResolveSkillDirection(Transform target)
     {
-        skillAction = null;
-
-        if (localSkillActions != null)
+        if (target != null)
         {
-            for (int i = 0; i < localSkillActions.Length; i++)
-            {
-                if (localSkillActions[i] != null && localSkillActions[i].SkillActionId == skillActionId)
-                {
-                    skillAction = localSkillActions[i];
-                    return true;
-                }
-            }
+            float xDirection = Mathf.Sign(target.position.x - transform.position.x);
+            return new Vector2(xDirection == 0f ? GetFacingDirection() : xDirection, 0f);
         }
 
-        if (database != null && database.TryGetSkillAction(skillActionId, out skillAction))
+        return new Vector2(GetFacingDirection(), 0f);
+    }
+
+    private float GetFacingDirection()
+    {
+        float facing = Mathf.Sign(transform.localScale.x);
+        return facing == 0f ? 1f : facing;
+    }
+
+    private void MoveOwner(Vector2 delta)
+    {
+        if (body != null)
         {
-            return true;
+            body.MovePosition(body.position + delta);
+            return;
         }
 
-        return HWJ_GameAccess.TryGetSkillAction(skillActionId, out skillAction);
+        transform.position += (Vector3)delta;
+    }
+
+    private void MoveOwnerByVelocity(Vector2 direction, float speed)
+    {
+        if (body != null)
+        {
+            body.linearVelocity = direction * speed;
+            return;
+        }
+
+        transform.position += (Vector3)(direction * speed * Time.deltaTime);
+    }
+
+    private static Material GetRuntimeLineMaterial()
+    {
+        Shader shader = Shader.Find("Sprites/Default");
+
+        if (shader == null)
+        {
+            shader = Shader.Find("Universal Render Pipeline/Unlit");
+        }
+
+        return shader != null ? new Material(shader) : null;
+    }
+
+    private bool IsSkillEntryWeaponMatched(HWJ_SkillEntryData skillEntry)
+    {
+        if (skillEntry == null)
+        {
+            return false;
+        }
+
+        HWJ_WeaponType currentWeaponType = GetCurrentWeaponType();
+        return skillEntry.requiredWeaponType == HWJ_WeaponType.None
+            || skillEntry.requiredWeaponType == currentWeaponType;
     }
 
     private HWJ_WeaponType GetCurrentWeaponType()
@@ -169,5 +626,143 @@ public class HWJ_SkillActionSystem : MonoBehaviour
         }
 
         return dataResolver != null ? dataResolver.WeaponType : HWJ_WeaponType.None;
+    }
+
+    private void CacheReferences()
+    {
+        if (dataResolver == null)
+        {
+            dataResolver = GetComponent<HWJ_RootObjectDataResolver>();
+        }
+
+        if (combatSystem == null)
+        {
+            combatSystem = GetComponent<HWJ_CombatSystem>();
+        }
+
+        if (combatExecutionSystem == null)
+        {
+            combatExecutionSystem = GetComponent<HWJ_CombatExecutionSystem>();
+        }
+
+        if (possessionSystem == null)
+        {
+            possessionSystem = GetComponent<HWJ_PossessionSystem>();
+        }
+
+        if (motionSystem == null)
+        {
+            motionSystem = GetComponent<HWJ_CharacterMotionSystem>();
+        }
+
+        if (body == null)
+        {
+            body = GetComponent<Rigidbody2D>();
+        }
+    }
+}
+
+internal class HWJ_RuntimeSkillProjectile : MonoBehaviour
+{
+    private readonly Collider2D[] hits = new Collider2D[8];
+
+    private Transform owner;
+    private HWJ_CombatExecutionSystem combatExecutionSystem;
+    private HWJ_SkillActionDataSO skillAction;
+    private Vector2 direction;
+    private float maxDistance;
+    private float speed;
+    private float hitHeight;
+    private float traveledDistance;
+
+    public void Initialize(
+        Transform owner,
+        HWJ_CombatExecutionSystem combatExecutionSystem,
+        HWJ_SkillActionDataSO skillAction,
+        Vector2 direction,
+        float maxDistance,
+        float speed,
+        float hitHeight)
+    {
+        this.owner = owner;
+        this.combatExecutionSystem = combatExecutionSystem;
+        this.skillAction = skillAction;
+        this.direction = direction.sqrMagnitude > 0.0001f ? direction.normalized : Vector2.right;
+        this.maxDistance = Mathf.Max(0.1f, maxDistance);
+        this.speed = Mathf.Max(0.1f, speed);
+        this.hitHeight = Mathf.Max(0.25f, hitHeight);
+        traveledDistance = 0f;
+
+        transform.position = owner != null ? owner.position : transform.position;
+        transform.right = this.direction;
+        gameObject.SetActive(true);
+    }
+
+    private void Update()
+    {
+        float step = speed * Time.deltaTime;
+        transform.position += (Vector3)(direction * step);
+        traveledDistance += step;
+
+        if (TryHitTarget() || traveledDistance >= maxDistance)
+        {
+            DespawnOrDestroy();
+        }
+    }
+
+    private bool TryHitTarget()
+    {
+        if (combatExecutionSystem == null || skillAction == null)
+        {
+            return false;
+        }
+
+        ContactFilter2D filter = new ContactFilter2D();
+        filter.SetLayerMask(Physics2D.AllLayers);
+        filter.useTriggers = Physics2D.queriesHitTriggers;
+
+        Vector2 hitBoxSize = new Vector2(0.8f, hitHeight);
+        int hitCount = Physics2D.OverlapBox(transform.position, hitBoxSize, 0f, filter, hits);
+
+        for (int i = 0; i < hitCount; i++)
+        {
+            Collider2D hit = hits[i];
+
+            if (hit == null || owner != null && hit.transform.IsChildOf(owner))
+            {
+                continue;
+            }
+
+            HWJ_RootObjectDataResolver targetResolver = hit.GetComponentInParent<HWJ_RootObjectDataResolver>();
+
+            if (targetResolver == null)
+            {
+                continue;
+            }
+
+            if (combatExecutionSystem.TryExecuteAttackTo(
+                targetResolver,
+                skillAction.DamageMultiplier,
+                skillAction.MotionKey,
+                false))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void DespawnOrDestroy()
+    {
+        HWJ_PoolableObject poolableObject = GetComponent<HWJ_PoolableObject>();
+
+        if (poolableObject != null && poolableObject.PrefabKey != null)
+        {
+            poolableObject.ReturnToPool();
+            return;
+        }
+
+        Destroy(gameObject);
     }
 }

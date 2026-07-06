@@ -147,7 +147,8 @@ public class HWJ_InteractionSystem : MonoBehaviour
     {
         float range = GetInteractionRange();
         int layerMask = interactionTargetLayer.value != 0 ? interactionTargetLayer.value : Physics2D.AllLayers;
-        int hitCount = Physics2D.OverlapCircleNonAlloc(transform.position, range, interactionHits, layerMask);
+        ContactFilter2D filter = CreateOverlapFilter(layerMask);
+        int hitCount = Physics2D.OverlapCircle(transform.position, range, filter, interactionHits);
         GameObject bestTarget = null;
         float bestDistance = float.MaxValue;
 
@@ -178,7 +179,8 @@ public class HWJ_InteractionSystem : MonoBehaviour
     {
         float range = GetInteractionRange();
         int layerMask = interactionTargetLayer.value != 0 ? interactionTargetLayer.value : Physics2D.AllLayers;
-        int hitCount = Physics2D.OverlapCircleNonAlloc(transform.position, range, interactionHits, layerMask);
+        ContactFilter2D filter = CreateOverlapFilter(layerMask);
+        int hitCount = Physics2D.OverlapCircle(transform.position, range, filter, interactionHits);
 
         for (int i = 0; i < hitCount; i++)
         {
@@ -197,6 +199,14 @@ public class HWJ_InteractionSystem : MonoBehaviour
         }
 
         return false;
+    }
+
+    private static ContactFilter2D CreateOverlapFilter(int layerMask)
+    {
+        ContactFilter2D filter = new ContactFilter2D();
+        filter.SetLayerMask(layerMask);
+        filter.useTriggers = Physics2D.queriesHitTriggers;
+        return filter;
     }
 
     private bool TryPossessNearby()

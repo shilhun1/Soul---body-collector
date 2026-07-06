@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5886d2e199e90b44e8180bfd0e5de850, type: 3}
-  m_Name: HWJ_EnemyCorpse_Spear_RootObjectData
+  m_Name: HWJ_EnemyNoCorpse_Lance_RootObjectData
   m_EditorClassIdentifier: Assembly-CSharp::HWJ_RootObjectDataSO
   identity:
-    objectId: enemy_corpse_spear
-    displayName: Spear Corpse Enemy
+    objectId: enemy_nocorpse_lance
+    displayName: Lance No-Corpse Enemy
     objectType: 1
     faction: 3
     weaponType: 0
@@ -54,4 +54,4 @@ MonoBehaviour:
     skillPointReward: 0
     dropsStatOrb: 0
     statOrbId: ""
-  selectedTypeData: {fileID: 11400000, guid: aa000000000000000000000000000002, type: 2}
+  selectedTypeData: {fileID: 11400000, guid: bb000000000000000000000000000002, type: 2}

@@ -44,6 +44,7 @@ public class HWJ_CharacterMotionSystem : MonoBehaviour
 
     [Header("Facing")]
     [SerializeField] private bool flipSpriteByMoveDirection = true;
+    [SerializeField] private bool useInitialSpriteFlipAsRightFacing = true;
     [SerializeField] private bool flipTransformScaleWhenNoSpriteRenderer;
     [SerializeField] private float moveThreshold = 0.05f;
     [SerializeField] private float facingThreshold = 0.01f;
@@ -56,10 +57,15 @@ public class HWJ_CharacterMotionSystem : MonoBehaviour
     private int lastAttackMotionFrame = -1;
     private int lastHitMotionFrame = -1;
     private int lastDeadMotionFrame = -1;
+    private bool initialSpriteFlipX;
+    private bool hasInitialSpriteFlipX;
+    private float initialScaleXSign = 1f;
+    private bool hasInitialScaleXSign;
 
     private void Awake()
     {
         CacheReferences();
+        RefreshFacingBaseline();
         previousRuntimeState = runtimeStatus != null ? runtimeStatus.CurrentState : HWJ_RuntimeState.None;
         ApplyMotionProfile(true);
     }
@@ -168,6 +174,38 @@ public class HWJ_CharacterMotionSystem : MonoBehaviour
         return SetAnimatorTrigger(motionKey);
     }
 
+    /// <summary>
+    /// Stores the current renderer flip as the visual state used when this character faces right.
+    /// Use this after swapping a sprite, because some sprites are imported facing left and are corrected in the prefab with flipX.
+    /// </summary>
+    public void RefreshFacingBaseline()
+    {
+        if (spriteRenderer == null)
+        {
+            spriteRenderer = GetComponentInChildren<SpriteRenderer>();
+        }
+
+        if (spriteRenderer != null)
+        {
+            initialSpriteFlipX = spriteRenderer.flipX;
+            hasInitialSpriteFlipX = true;
+        }
+
+        float scaleSign = Mathf.Sign(transform.localScale.x);
+        initialScaleXSign = scaleSign == 0f ? 1f : scaleSign;
+        hasInitialScaleXSign = true;
+    }
+
+    public void FaceDirection(float directionX)
+    {
+        if (Mathf.Abs(directionX) <= facingThreshold)
+        {
+            return;
+        }
+
+        ApplyFacing(directionX < 0f);
+    }
+
     private void CacheReferences()
     {
         if (animator == null)
@@ -208,6 +246,19 @@ public class HWJ_CharacterMotionSystem : MonoBehaviour
         if (possessionSystem == null)
         {
             possessionSystem = GetComponent<HWJ_PossessionSystem>();
+        }
+
+        if (!hasInitialSpriteFlipX && spriteRenderer != null)
+        {
+            initialSpriteFlipX = spriteRenderer.flipX;
+            hasInitialSpriteFlipX = true;
+        }
+
+        if (!hasInitialScaleXSign)
+        {
+            float scaleSign = Mathf.Sign(transform.localScale.x);
+            initialScaleXSign = scaleSign == 0f ? 1f : scaleSign;
+            hasInitialScaleXSign = true;
         }
     }
 
@@ -354,11 +405,22 @@ public class HWJ_CharacterMotionSystem : MonoBehaviour
             return;
         }
 
-        bool faceLeft = velocity.x < 0f;
+        ApplyFacing(velocity.x < 0f);
+    }
 
+    private void ApplyFacing(bool faceLeft)
+    {
         if (spriteRenderer != null && flipSpriteByMoveDirection)
         {
-            spriteRenderer.flipX = faceLeft;
+            if (!hasInitialSpriteFlipX)
+            {
+                initialSpriteFlipX = spriteRenderer.flipX;
+                hasInitialSpriteFlipX = true;
+            }
+
+            spriteRenderer.flipX = useInitialSpriteFlipAsRightFacing
+                ? faceLeft ? !initialSpriteFlipX : initialSpriteFlipX
+                : faceLeft;
             return;
         }
 
@@ -369,7 +431,8 @@ public class HWJ_CharacterMotionSystem : MonoBehaviour
 
         Vector3 scale = transform.localScale;
         float absoluteX = Mathf.Abs(scale.x);
-        scale.x = faceLeft ? -absoluteX : absoluteX;
+        float rightFacingSign = hasInitialScaleXSign ? initialScaleXSign : 1f;
+        scale.x = absoluteX * (faceLeft ? -rightFacingSign : rightFacingSign);
         transform.localScale = scale;
     }
 

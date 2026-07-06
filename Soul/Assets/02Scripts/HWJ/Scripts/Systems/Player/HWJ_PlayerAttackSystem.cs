@@ -17,6 +17,7 @@ public class HWJ_PlayerAttackSystem : MonoBehaviour
     [SerializeField] private HWJ_CharacterMotionSystem motionSystem;
     [SerializeField] private LayerMask attackTargetLayer;
     [SerializeField] private float minimumAttackRange = 2f;
+    [SerializeField] private int possessedSkillSlotCount = 3;
     [SerializeField] private string lastAttackResult;
     [SerializeField] private float lastDamageApplied;
 
@@ -37,6 +38,11 @@ public class HWJ_PlayerAttackSystem : MonoBehaviour
         if (skillActionSystem == null)
         {
             skillActionSystem = GetComponent<HWJ_SkillActionSystem>();
+
+            if (skillActionSystem == null)
+            {
+                skillActionSystem = gameObject.AddComponent<HWJ_SkillActionSystem>();
+            }
         }
 
         if (soulSystem == null)
@@ -81,6 +87,8 @@ public class HWJ_PlayerAttackSystem : MonoBehaviour
         {
             TryBasicAttack();
         }
+
+        TryPossessedSkillSlotInputs();
     }
 
     /// <summary>
@@ -130,6 +138,51 @@ public class HWJ_PlayerAttackSystem : MonoBehaviour
         return ApplyBasicAttackDamage(playerData);
     }
 
+    /// <summary>
+    /// 빙의 상태에서 숫자키 1/2/3으로 몬스터의 스킬 목록을 직접 실행합니다.
+    /// 스킬 자체 쿨타임은 SkillActionSystem이 관리하므로 여기서는 입력과 상태 조건만 확인합니다.
+    /// </summary>
+    public bool TryPossessedSkillSlot(int slotIndex)
+    {
+        if (dataResolver == null || !dataResolver.TryGetTypeData(out HWJ_PlayerTypeDataSO playerData))
+        {
+            lastAttackResult = "Missing player type data.";
+            return false;
+        }
+
+        if (!CanAttack(playerData))
+        {
+            lastAttackResult = "Current soul state cannot use possessed skill.";
+            return false;
+        }
+
+        if (runtimeStatus != null && runtimeStatus.IsDead)
+        {
+            lastAttackResult = "Cannot use possessed skill while dead.";
+            return false;
+        }
+
+        if (possessionSystem == null
+            || !possessionSystem.TryGetPossessedSkillIdAt(slotIndex, out string skillActionId))
+        {
+            lastAttackResult = $"Missing possessed skill slot {slotIndex + 1}.";
+            return false;
+        }
+
+        if (skillActionSystem == null || !skillActionSystem.TryUseSkill(skillActionId))
+        {
+            lastAttackResult = skillActionSystem != null
+                ? skillActionSystem.LastSkillResult
+                : "Missing skill action system.";
+            return false;
+        }
+
+        runtimeStatus?.SetState(HWJ_RuntimeState.Attack);
+        lastDamageApplied = skillActionSystem.LastDamageApplied;
+        lastAttackResult = skillActionSystem.LastSkillResult;
+        return true;
+    }
+
     private bool ApplyBasicAttackDamage(HWJ_PlayerTypeDataSO playerData)
     {
         if (playerData.Attack == null)
@@ -175,6 +228,25 @@ public class HWJ_PlayerAttackSystem : MonoBehaviour
         return soulSystem.CurrentState == HWJ_SoulRuntimeState.Soul
             ? playerData.State.canAttackOnSoulState
             : playerData.State.canAttackOnBodyState;
+    }
+
+    private void TryPossessedSkillSlotInputs()
+    {
+        if (playerInput == null || possessionSystem == null || !possessionSystem.HasActivePossessedBody)
+        {
+            return;
+        }
+
+        int slotCount = Mathf.Max(0, possessedSkillSlotCount);
+
+        for (int i = 0; i < slotCount; i++)
+        {
+            if (playerInput.WasSkillSlotPressedThisFrame(i))
+            {
+                TryPossessedSkillSlot(i);
+                return;
+            }
+        }
     }
 
     private string GetBasicAttackSkillActionId(HWJ_PlayerTypeDataSO playerData)

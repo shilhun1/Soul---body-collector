@@ -8,6 +8,8 @@ public class HWJ_EnemyNavigationSystem : MonoBehaviour
 {
     [SerializeField] private HWJ_RootObjectDataResolver dataResolver;
     [SerializeField] private HWJ_RuntimeStatusSystem runtimeStatus;
+    [SerializeField] private HWJ_SkillActionSystem skillActionSystem;
+    [SerializeField] private HWJ_CharacterMotionSystem motionSystem;
     [SerializeField] private Rigidbody2D body;
     [SerializeField] private Transform target;
     [SerializeField] private bool autoFindPlayerTarget = true;
@@ -37,10 +39,30 @@ public class HWJ_EnemyNavigationSystem : MonoBehaviour
         {
             body = GetComponent<Rigidbody2D>();
         }
+
+        if (skillActionSystem == null)
+        {
+            skillActionSystem = GetComponent<HWJ_SkillActionSystem>();
+        }
+
+        if (motionSystem == null)
+        {
+            motionSystem = GetComponent<HWJ_CharacterMotionSystem>();
+        }
     }
 
     private void Update()
     {
+        if (skillActionSystem == null)
+        {
+            skillActionSystem = GetComponent<HWJ_SkillActionSystem>();
+        }
+
+        if (motionSystem == null)
+        {
+            motionSystem = GetComponent<HWJ_CharacterMotionSystem>();
+        }
+
         if (target == null && autoFindPlayerTarget && Time.time >= nextTargetSearchTime)
         {
             target = FindPlayerTarget();
@@ -66,6 +88,18 @@ public class HWJ_EnemyNavigationSystem : MonoBehaviour
             && enemyData.State.stopWhenHit
             && Time.time < hitPauseEndTime)
         {
+            return;
+        }
+
+        FaceTarget();
+
+        if (skillActionSystem != null && skillActionSystem.IsNavigationBlocked)
+        {
+            if (skillActionSystem.ShouldStopNavigationMovement)
+            {
+                StopHorizontalMovement();
+            }
+
             return;
         }
 
@@ -127,6 +161,16 @@ public class HWJ_EnemyNavigationSystem : MonoBehaviour
     public void SetTarget(Transform target)
     {
         this.target = target;
+    }
+
+    private void FaceTarget()
+    {
+        if (target == null || motionSystem == null)
+        {
+            return;
+        }
+
+        motionSystem.FaceDirection(target.position.x - transform.position.x);
     }
 
     private void MoveTowardTarget(float moveSpeed)

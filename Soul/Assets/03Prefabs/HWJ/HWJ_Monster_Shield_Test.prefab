@@ -81,9 +81,9 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 21300000, guid: 2cf0e0567acab9b4ca64681e1b9012ca, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 6f44494caffe6b44fa0d4b1a5c7e2491, type: 3}
   m_Color: {r: 0.7686275, g: 0.7686275, b: 0.7686275, a: 1}
-  m_FlipX: 1
+  m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
   m_Size: {x: 5.12, y: 5.12}
@@ -111,7 +111,7 @@ GameObject:
   - component: {fileID: 5365972228040405121}
   - component: {fileID: 4221194034140466573}
   m_Layer: 0
-  m_Name: HWJ_Monster_Sword_Test
+  m_Name: HWJ_Monster_Shield_Test
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -218,7 +218,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f32f827d95cc9f74ba04b1c551f6aee7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HWJ_RootObjectDataResolver
-  rootObjectData: {fileID: 11400000, guid: cc000000000000000000000000000001, type: 2}
+  rootObjectData: {fileID: 11400000, guid: cc000000000000000000000000000004, type: 2}
 --- !u!114 &7841503725217704761
 MonoBehaviour:
   m_ObjectHideFlags: 0

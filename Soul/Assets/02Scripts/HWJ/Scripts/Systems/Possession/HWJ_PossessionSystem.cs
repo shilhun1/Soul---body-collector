@@ -28,6 +28,7 @@ public class HWJ_PossessionSystem : MonoBehaviour
     private Animator ownerAnimator;
     private RuntimeAnimatorController ownerOriginalAnimatorController;
     private bool hasOwnerAnimatorCache;
+    private HWJ_CharacterMotionSystem ownerMotionSystem;
 
     public bool HasActivePossessedBody => possessedBodyResolver != null
         && (soulSystem == null || soulSystem.CurrentState == HWJ_SoulRuntimeState.Body);
@@ -283,15 +284,24 @@ public class HWJ_PossessionSystem : MonoBehaviour
     /// </summary>
     public bool TryGetPrimaryPossessedSkillId(out string skillId)
     {
+        return TryGetPossessedSkillIdAt(0, out skillId);
+    }
+
+    /// <summary>
+    /// 현재 빙의한 몬스터의 스킬 목록에서 슬롯 번호에 맞는 스킬 ID를 가져옵니다.
+    /// PlayerAttackSystem은 숫자키 1/2/3 입력을 이 메서드와 연결해 빙의 스킬을 실행합니다.
+    /// </summary>
+    public bool TryGetPossessedSkillIdAt(int slotIndex, out string skillId)
+    {
         skillId = null;
 
-        if (!TryGetPossessedSkillSet(out HWJ_SkillSetData skillSet) || skillSet.skills == null)
+        if (slotIndex < 0 || !TryGetPossessedSkillSet(out HWJ_SkillSetData skillSet) || skillSet.skills == null)
         {
             return false;
         }
 
         HWJ_WeaponType weaponType = CurrentWeaponType;
-        string firstMatchedSkillId = null;
+        int matchedSlotIndex = 0;
 
         for (int i = 0; i < skillSet.skills.Length; i++)
         {
@@ -310,20 +320,21 @@ public class HWJ_PossessionSystem : MonoBehaviour
                 continue;
             }
 
-            if (string.IsNullOrEmpty(firstMatchedSkillId))
+            if (!skill.startsUnlocked)
             {
-                firstMatchedSkillId = skill.skillId;
+                continue;
             }
 
-            if (skill.startsUnlocked)
+            if (matchedSlotIndex == slotIndex)
             {
                 skillId = skill.skillId;
                 return true;
             }
+
+            matchedSlotIndex++;
         }
 
-        skillId = firstMatchedSkillId;
-        return !string.IsNullOrEmpty(skillId);
+        return false;
     }
 
     /// <summary>
@@ -511,6 +522,11 @@ public class HWJ_PossessionSystem : MonoBehaviour
             ownerOriginalAnimatorController = ownerAnimator.runtimeAnimatorController;
             hasOwnerAnimatorCache = true;
         }
+
+        if (ownerMotionSystem == null)
+        {
+            ownerMotionSystem = GetComponent<HWJ_CharacterMotionSystem>();
+        }
     }
 
     private void ApplyPossessedBodyVisual(GameObject possessedBody)
@@ -530,6 +546,7 @@ public class HWJ_PossessionSystem : MonoBehaviour
             ownerSpriteRenderer.color = possessedRenderer.color;
             ownerSpriteRenderer.flipX = possessedRenderer.flipX;
             ownerSpriteRenderer.flipY = possessedRenderer.flipY;
+            ownerMotionSystem?.RefreshFacingBaseline();
         }
 
         Animator possessedAnimator = possessedBody.GetComponentInChildren<Animator>();
@@ -548,6 +565,7 @@ public class HWJ_PossessionSystem : MonoBehaviour
             ownerSpriteRenderer.color = ownerOriginalColor;
             ownerSpriteRenderer.flipX = ownerOriginalFlipX;
             ownerSpriteRenderer.flipY = ownerOriginalFlipY;
+            ownerMotionSystem?.RefreshFacingBaseline();
         }
 
         if (ownerAnimator != null && hasOwnerAnimatorCache)

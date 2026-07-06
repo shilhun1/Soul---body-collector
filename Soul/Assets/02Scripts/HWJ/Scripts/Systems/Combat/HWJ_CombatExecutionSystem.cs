@@ -64,7 +64,11 @@ public class HWJ_CombatExecutionSystem : MonoBehaviour
         return TryExecuteAreaAttack(attackRange, damageMultiplier, motionKey);
     }
 
-    public bool TryExecuteAreaAttack(float attackRange, float attackDamageMultiplier, string attackMotionKey = null)
+    public bool TryExecuteAreaAttack(
+        float attackRange,
+        float attackDamageMultiplier,
+        string attackMotionKey = null,
+        bool shouldPlayMotion = true)
     {
         lastDamageApplied = 0f;
 
@@ -80,7 +84,7 @@ public class HWJ_CombatExecutionSystem : MonoBehaviour
             return false;
         }
 
-        if (playMotionOnExecute)
+        if (playMotionOnExecute && shouldPlayMotion)
         {
             PlayAttackMotion(attackMotionKey);
         }
@@ -88,7 +92,8 @@ public class HWJ_CombatExecutionSystem : MonoBehaviour
         Vector2 center = GetAttackCenter();
         float range = Mathf.Max(0.1f, attackRange);
         int layerMask = targetLayer.value != 0 ? targetLayer.value : Physics2D.AllLayers;
-        int hitCount = Physics2D.OverlapCircleNonAlloc(center, range, hits, layerMask);
+        ContactFilter2D filter = CreateOverlapFilter(layerMask);
+        int hitCount = Physics2D.OverlapCircle(center, range, filter, hits);
 
         for (int i = 0; i < hitCount; i++)
         {
@@ -126,7 +131,8 @@ public class HWJ_CombatExecutionSystem : MonoBehaviour
     public bool TryExecuteAttackTo(
         HWJ_RootObjectDataResolver targetResolver,
         float attackDamageMultiplier,
-        string attackMotionKey = null)
+        string attackMotionKey = null,
+        bool shouldPlayMotion = true)
     {
         lastDamageApplied = 0f;
 
@@ -142,7 +148,7 @@ public class HWJ_CombatExecutionSystem : MonoBehaviour
             return false;
         }
 
-        if (playMotionOnExecute)
+        if (playMotionOnExecute && shouldPlayMotion)
         {
             PlayAttackMotion(attackMotionKey);
         }
@@ -224,6 +230,14 @@ public class HWJ_CombatExecutionSystem : MonoBehaviour
             default:
                 return false;
         }
+    }
+
+    private static ContactFilter2D CreateOverlapFilter(int layerMask)
+    {
+        ContactFilter2D filter = new ContactFilter2D();
+        filter.SetLayerMask(layerMask);
+        filter.useTriggers = Physics2D.queriesHitTriggers;
+        return filter;
     }
 
     private void ApplyDefaultTargetFilter()
