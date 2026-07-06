@@ -18,6 +18,8 @@ public class HWJ_EnemyNavigationSystem : MonoBehaviour
     [SerializeField] private float targetSearchIntervalSeconds = 0.5f;
 
     private float nextTargetSearchTime;
+    private float hitPauseEndTime;
+    private HWJ_RuntimeState previousRuntimeState = HWJ_RuntimeState.None;
 
     private void Awake()
     {
@@ -57,6 +59,16 @@ public class HWJ_EnemyNavigationSystem : MonoBehaviour
             return;
         }
 
+        UpdateHitPause(enemyData);
+
+        if (runtimeStatus != null
+            && runtimeStatus.CurrentState == HWJ_RuntimeState.Hit
+            && enemyData.State.stopWhenHit
+            && Time.time < hitPauseEndTime)
+        {
+            return;
+        }
+
         if (chaseOnlyBodyState && !CanChaseTargetState())
         {
             SetIdle();
@@ -86,6 +98,26 @@ public class HWJ_EnemyNavigationSystem : MonoBehaviour
         {
             runtimeStatus.SetState(distance <= enemyData.State.attackRange ? HWJ_RuntimeState.Attack : HWJ_RuntimeState.Move);
         }
+    }
+
+    private void UpdateHitPause(HWJ_EnemyTypeDataSO enemyData)
+    {
+        if (runtimeStatus == null)
+        {
+            return;
+        }
+
+        HWJ_RuntimeState currentState = runtimeStatus.CurrentState;
+
+        if (currentState == HWJ_RuntimeState.Hit && previousRuntimeState != HWJ_RuntimeState.Hit)
+        {
+            float pauseSeconds = enemyData != null && enemyData.State.returnToIdleDelaySeconds > 0f
+                ? enemyData.State.returnToIdleDelaySeconds
+                : 0.2f;
+            hitPauseEndTime = Time.time + pauseSeconds;
+        }
+
+        previousRuntimeState = currentState;
     }
 
     /// <summary>

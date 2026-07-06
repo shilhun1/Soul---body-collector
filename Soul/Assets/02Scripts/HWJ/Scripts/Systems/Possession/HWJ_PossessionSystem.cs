@@ -9,10 +9,13 @@ public class HWJ_PossessionSystem : MonoBehaviour
     [SerializeField] private HWJ_RootObjectDataResolver ownerDataResolver;
     [SerializeField] private HWJ_SoulSystem soulSystem;
     [SerializeField] private HWJ_RuntimeStatusSystem runtimeStatus;
+    [SerializeField] private HWJ_PlayerInputSystem playerInput;
     [SerializeField] private HWJ_RootObjectDataResolver possessedBodyResolver;
     [SerializeField] private bool moveOwnerToPossessedBody = true;
     [SerializeField] private bool copyPossessedBodyVisual = true;
     [SerializeField] private bool consumePossessedCorpse = true;
+    [SerializeField] private bool deactivateConsumedCorpse = true;
+    [SerializeField] private bool allowManualSoulExit = true;
     [SerializeField] private string lastPossessionResult;
 
     private HWJ_PossessionData activePossessionBodyData;
@@ -51,7 +54,20 @@ public class HWJ_PossessionSystem : MonoBehaviour
             runtimeStatus = GetComponent<HWJ_RuntimeStatusSystem>();
         }
 
+        if (playerInput == null)
+        {
+            playerInput = GetComponent<HWJ_PlayerInputSystem>();
+        }
+
         CacheOwnerVisual();
+    }
+
+    private void Update()
+    {
+        if (playerInput != null && playerInput.ExitPossessionPressedThisFrame)
+        {
+            TryExitPossessedBodyToSoul();
+        }
     }
 
     /// <summary>
@@ -63,6 +79,12 @@ public class HWJ_PossessionSystem : MonoBehaviour
         if (targetDataResolver == null)
         {
             lastPossessionResult = "Possession failed: missing target.";
+            return false;
+        }
+
+        if (IsConsumedPossessionBody(targetDataResolver))
+        {
+            lastPossessionResult = "Possession failed: target body was already consumed.";
             return false;
         }
 
@@ -93,6 +115,12 @@ public class HWJ_PossessionSystem : MonoBehaviour
             return false;
         }
 
+        if (IsEnemyOrBoss(targetDataResolver) && !IsDefeatedTarget(targetDataResolver))
+        {
+            lastPossessionResult = "Possession failed: target monster is still alive.";
+            return false;
+        }
+
         if (!IsDefeatedIfRequired(targetDataResolver, possessionBody))
         {
             lastPossessionResult = "Possession failed: target is not defeated.";
@@ -114,8 +142,15 @@ public class HWJ_PossessionSystem : MonoBehaviour
             return false;
         }
 
+        if (IsEnemyOrBoss(targetDataResolver) && !IsDefeatedTarget(targetDataResolver))
+        {
+            lastPossessionResult = "Possession failed: target monster is still alive.";
+            return false;
+        }
+
         TryGetPossessionBodyData(targetDataResolver, out activePossessionBodyData);
         possessedBodyResolver = targetDataResolver;
+        MarkPossessionBodyConsumed(targetDataResolver);
 
         if (activePossessionBodyData == null || activePossessionBodyData.transfersControlToBody)
         {
@@ -132,6 +167,18 @@ public class HWJ_PossessionSystem : MonoBehaviour
         }
 
         lastPossessionResult = $"Possessed {targetDataResolver.name}.";
+        return true;
+    }
+
+    public bool TryExitPossessedBodyToSoul()
+    {
+        if (!CanExitPossessedBodyToSoul())
+        {
+            return false;
+        }
+
+        lastPossessionResult = "Exited possessed body to Soul state.";
+        soulSystem.EnterSoulState(false);
         return true;
     }
 
@@ -317,6 +364,83 @@ public class HWJ_PossessionSystem : MonoBehaviour
             && activePossessionBodyData.loadsBodyStatsToPlayer;
     }
 
+    private bool IsConsumedPossessionBody(HWJ_RootObjectDataResolver targetDataResolver)
+    {
+        if (targetDataResolver == null)
+        {
+            return false;
+        }
+
+        HWJ_PossessionBodyState bodyState = targetDataResolver.GetComponent<HWJ_PossessionBodyState>();
+        return bodyState != null && bodyState.IsConsumed;
+    }
+
+    private void MarkPossessionBodyConsumed(HWJ_RootObjectDataResolver targetDataResolver)
+    {
+        if (targetDataResolver == null)
+        {
+            return;
+        }
+
+        HWJ_PossessionBodyState bodyState = targetDataResolver.GetComponent<HWJ_PossessionBodyState>();
+
+        if (bodyState == null)
+        {
+            bodyState = targetDataResolver.gameObject.AddComponent<HWJ_PossessionBodyState>();
+        }
+
+        bodyState.MarkConsumed();
+    }
+
+    private bool CanExitPossessedBodyToSoul()
+    {
+        if (!allowManualSoulExit)
+        {
+            lastPossessionResult = "Exit possession failed: manual soul exit is disabled.";
+            return false;
+        }
+
+        if (!HasActivePossessedBody)
+        {
+            lastPossessionResult = "Exit possession failed: no active possessed body.";
+            return false;
+        }
+
+        if (soulSystem == null || soulSystem.CurrentState != HWJ_SoulRuntimeState.Body)
+        {
+            lastPossessionResult = "Exit possession failed: player is not in Body state.";
+            return false;
+        }
+
+        if (runtimeStatus != null && runtimeStatus.IsDead)
+        {
+            lastPossessionResult = "Exit possession failed: player is dead.";
+            return false;
+        }
+
+        return true;
+    }
+
+    private bool IsEnemyOrBoss(HWJ_RootObjectDataResolver targetDataResolver)
+    {
+        return targetDataResolver != null
+            && (targetDataResolver.ObjectType == HWJ_ObjectType.Enemy
+                || targetDataResolver.ObjectType == HWJ_ObjectType.Boss);
+    }
+
+    private bool IsDefeatedTarget(HWJ_RootObjectDataResolver targetDataResolver)
+    {
+        if (targetDataResolver == null)
+        {
+            return false;
+        }
+
+        HWJ_RuntimeStatusSystem targetStatus = targetDataResolver.GetComponent<HWJ_RuntimeStatusSystem>();
+        return targetStatus != null
+            && (targetStatus.CurrentState == HWJ_RuntimeState.Dead
+                || (targetStatus.UsesHp && targetStatus.CurrentHp <= 0f));
+    }
+
     private bool IsDefeatedIfRequired(
         HWJ_RootObjectDataResolver targetDataResolver,
         HWJ_PossessionData possessionBody)
@@ -487,6 +611,11 @@ public class HWJ_PossessionSystem : MonoBehaviour
             body.linearVelocity = Vector2.zero;
             body.angularVelocity = 0f;
             body.simulated = false;
+        }
+
+        if (deactivateConsumedCorpse)
+        {
+            possessedBody.SetActive(false);
         }
     }
 }

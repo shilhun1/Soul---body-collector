@@ -13,13 +13,14 @@ public class HWJ_PlayerAttackSystem : MonoBehaviour
     [SerializeField] private HWJ_PossessionSystem possessionSystem;
     [SerializeField] private HWJ_PlayerInputSystem playerInput;
     [SerializeField] private HWJ_CombatSystem combatSystem;
+    [SerializeField] private HWJ_CombatExecutionSystem combatExecutionSystem;
+    [SerializeField] private HWJ_CharacterMotionSystem motionSystem;
     [SerializeField] private LayerMask attackTargetLayer;
     [SerializeField] private float minimumAttackRange = 2f;
     [SerializeField] private string lastAttackResult;
     [SerializeField] private float lastDamageApplied;
 
     private float nextAttackTime;
-    private readonly Collider2D[] attackHits = new Collider2D[16];
 
     private void Awake()
     {
@@ -56,6 +57,16 @@ public class HWJ_PlayerAttackSystem : MonoBehaviour
         if (combatSystem == null)
         {
             combatSystem = GetComponent<HWJ_CombatSystem>();
+        }
+
+        if (combatExecutionSystem == null)
+        {
+            combatExecutionSystem = GetComponent<HWJ_CombatExecutionSystem>();
+        }
+
+        if (motionSystem == null)
+        {
+            motionSystem = GetComponent<HWJ_CharacterMotionSystem>();
         }
     }
 
@@ -127,61 +138,26 @@ public class HWJ_PlayerAttackSystem : MonoBehaviour
             return false;
         }
 
-        float range = Mathf.Max(minimumAttackRange, playerData.Attack.attackRange);
-        int layerMask = attackTargetLayer.value != 0 ? attackTargetLayer.value : Physics2D.AllLayers;
-        int hitCount = Physics2D.OverlapCircleNonAlloc(transform.position, range, attackHits, layerMask);
-        float outgoingDamage = combatSystem != null
-            ? combatSystem.GetOutgoingDamage()
-            : runtimeStatus != null ? runtimeStatus.AttackPower : 1f;
-        outgoingDamage = Mathf.Max(1f, outgoingDamage);
-
-        lastAttackResult = $"Attack checked {hitCount} colliders.";
         lastDamageApplied = 0f;
 
-        for (int i = 0; i < hitCount; i++)
+        if (combatExecutionSystem == null)
         {
-            Collider2D hit = attackHits[i];
-
-            if (hit == null || hit.transform.IsChildOf(transform))
-            {
-                continue;
-            }
-
-            HWJ_RootObjectDataResolver targetResolver = hit.GetComponentInParent<HWJ_RootObjectDataResolver>();
-
-            if (!CanDamageTarget(targetResolver))
-            {
-                continue;
-            }
-
-            HWJ_RuntimeStatusSystem targetStatus = targetResolver.GetComponent<HWJ_RuntimeStatusSystem>();
-
-            if (targetStatus == null || targetStatus.IsDead)
-            {
-                continue;
-            }
-
-            HWJ_CombatSystem targetCombat = targetResolver.GetComponent<HWJ_CombatSystem>();
-            float finalDamage = targetCombat != null ? targetCombat.GetReceivedDamage(outgoingDamage) : outgoingDamage;
-            targetStatus.ApplyDamage(finalDamage);
-            lastDamageApplied = finalDamage;
-            lastAttackResult = $"Damaged {targetResolver.name}.";
-            return true;
-        }
-
-        lastAttackResult = "No damageable enemy in attack range.";
-        return false;
-    }
-
-    private bool CanDamageTarget(HWJ_RootObjectDataResolver targetResolver)
-    {
-        if (targetResolver == null || targetResolver == dataResolver)
-        {
+            motionSystem?.PlayAttack(null);
+            lastAttackResult = "Attack failed: missing combat execution system.";
             return false;
         }
 
-        HWJ_ObjectType targetType = targetResolver.ObjectType;
-        return targetType == HWJ_ObjectType.Enemy || targetType == HWJ_ObjectType.Boss;
+        float range = Mathf.Max(minimumAttackRange, playerData.Attack.attackRange);
+        bool attacked = combatExecutionSystem.TryExecuteAreaAttack(range);
+        lastDamageApplied = combatExecutionSystem.LastDamageApplied;
+        lastAttackResult = combatExecutionSystem.LastExecutionResult;
+
+        if (attacked)
+        {
+            return true;
+        }
+
+        return false;
     }
 
     private bool CanAttack(HWJ_PlayerTypeDataSO playerData)

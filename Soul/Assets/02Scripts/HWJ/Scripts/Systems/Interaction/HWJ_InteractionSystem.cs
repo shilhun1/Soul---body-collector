@@ -17,6 +17,8 @@ public class HWJ_InteractionSystem : MonoBehaviour
     private GameObject currentTarget;
     private readonly Collider2D[] interactionHits = new Collider2D[16];
 
+    public string LastInteractionResult => lastInteractionResult;
+
     private void Awake()
     {
         if (dataResolver == null)
@@ -70,6 +72,11 @@ public class HWJ_InteractionSystem : MonoBehaviour
             return false;
         }
 
+        if (IsSoulState() && TryPossessNearby())
+        {
+            return true;
+        }
+
         if (TryInteractWith(currentTarget))
         {
             return true;
@@ -111,7 +118,10 @@ public class HWJ_InteractionSystem : MonoBehaviour
 
         HWJ_RootObjectDataResolver targetResolver = targetObject.GetComponent<HWJ_RootObjectDataResolver>();
 
-        if (possessionSystem != null && targetResolver != null && possessionSystem.TryPossess(targetResolver))
+        if (possessionSystem != null
+            && targetResolver != null
+            && possessionSystem.CanPossess(targetResolver)
+            && possessionSystem.TryPossess(targetResolver))
         {
             lastInteractionResult = $"Possessed {targetObject.name}.";
             return true;
@@ -189,6 +199,77 @@ public class HWJ_InteractionSystem : MonoBehaviour
         return false;
     }
 
+    private bool TryPossessNearby()
+    {
+        if (possessionSystem == null)
+        {
+            return false;
+        }
+
+        HWJ_RootObjectDataResolver targetResolver = FindBestPossessionTarget();
+
+        if (targetResolver == null)
+        {
+            return false;
+        }
+
+        if (!possessionSystem.TryPossess(targetResolver))
+        {
+            return false;
+        }
+
+        currentTarget = targetResolver.gameObject;
+        lastInteractionResult = $"Possessed {targetResolver.name}.";
+        return true;
+    }
+
+    private HWJ_RootObjectDataResolver FindBestPossessionTarget()
+    {
+        if (possessionSystem == null)
+        {
+            return null;
+        }
+
+        float range = GetInteractionRange();
+        float bestDistance = float.MaxValue;
+        HWJ_RootObjectDataResolver bestTarget = null;
+        HWJ_RootObjectDataResolver[] resolvers = FindObjectsByType<HWJ_RootObjectDataResolver>(
+            FindObjectsInactive.Exclude,
+            FindObjectsSortMode.None);
+
+        for (int i = 0; i < resolvers.Length; i++)
+        {
+            HWJ_RootObjectDataResolver resolver = resolvers[i];
+
+            if (resolver == null || resolver == dataResolver)
+            {
+                continue;
+            }
+
+            if (resolver.ObjectType != HWJ_ObjectType.Enemy && resolver.ObjectType != HWJ_ObjectType.Boss)
+            {
+                continue;
+            }
+
+            float distance = Vector2.Distance(transform.position, resolver.transform.position);
+
+            if (distance > range || distance >= bestDistance)
+            {
+                continue;
+            }
+
+            if (!possessionSystem.CanPossess(resolver))
+            {
+                continue;
+            }
+
+            bestTarget = resolver;
+            bestDistance = distance;
+        }
+
+        return bestTarget;
+    }
+
     private GameObject ResolveInteractionTarget(GameObject target)
     {
         if (target == null)
@@ -221,5 +302,10 @@ public class HWJ_InteractionSystem : MonoBehaviour
         }
 
         return Mathf.Max(1.5f, range);
+    }
+
+    private bool IsSoulState()
+    {
+        return soulSystem != null && soulSystem.CurrentState == HWJ_SoulRuntimeState.Soul;
     }
 }

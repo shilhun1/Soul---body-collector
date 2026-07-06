@@ -18,9 +18,12 @@ MonoBehaviour:
     spawnPointId: enemy_01
     spawnPointType: 1
     rootObjectData: {fileID: 11400000, guid: cc000000000000000000000000000003, type: 2}
-    prefabOverride: {fileID: 0}
+    prefabOverride: {fileID: 3576862325422680928, guid: d5bf07532af8bbc45a0f20ef875ee17a, type: 3}
     spawnCount: 2
     spawnDelaySeconds: 0
+    useSequentialSpawnWhenMultiple: 1
+    waitUntilCurrentSpawnedMonstersDefeated: 1
+    nextSpawnMaxWaitSeconds: 5
     spawnOffset: {x: 0, y: 0}
     randomizePoint: 0
     spawnOnStart: 1

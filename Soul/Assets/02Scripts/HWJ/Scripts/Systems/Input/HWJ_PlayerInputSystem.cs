@@ -13,6 +13,7 @@ public class HWJ_PlayerInputSystem : MonoBehaviour
     [SerializeField] private InputActionReference dashAction;
     [SerializeField] private InputActionReference attackAction;
     [SerializeField] private InputActionReference interactAction;
+    [SerializeField] private InputActionReference exitPossessionAction;
 #endif
 
     public Vector2 MoveInput
@@ -80,6 +81,19 @@ public class HWJ_PlayerInputSystem : MonoBehaviour
         }
     }
 
+    public bool ExitPossessionPressedThisFrame
+    {
+        get
+        {
+#if ENABLE_INPUT_SYSTEM
+            return WasPressedThisFrame(exitPossessionAction, "ExitPossession")
+                || WasKeyboardPressedThisFrame(Key.Q);
+#else
+            return Input.GetKeyDown(KeyCode.Q);
+#endif
+        }
+    }
+
 #if !ENABLE_INPUT_SYSTEM
     private static Vector2 ReadLegacyArrowMove()
     {
@@ -117,6 +131,7 @@ public class HWJ_PlayerInputSystem : MonoBehaviour
         EnableAction(dashAction);
         EnableAction(attackAction);
         EnableAction(interactAction);
+        EnableAction(exitPossessionAction);
     }
 
     private void OnDisable()
@@ -126,6 +141,7 @@ public class HWJ_PlayerInputSystem : MonoBehaviour
         DisableAction(dashAction);
         DisableAction(attackAction);
         DisableAction(interactAction);
+        DisableAction(exitPossessionAction);
     }
 
     private static void EnableAction(InputActionReference actionReference)
@@ -214,6 +230,8 @@ public class HWJ_PlayerInputSystem : MonoBehaviour
                 return Keyboard.current.leftShiftKey.wasPressedThisFrame;
             case Key.E:
                 return Keyboard.current.eKey.wasPressedThisFrame;
+            case Key.Q:
+                return Keyboard.current.qKey.wasPressedThisFrame;
             default:
                 return false;
         }

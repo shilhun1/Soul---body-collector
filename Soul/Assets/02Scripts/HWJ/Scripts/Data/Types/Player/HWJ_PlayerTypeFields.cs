@@ -15,6 +15,8 @@ public class HWJ_ControlData
     public float dashSpeed = 15f;
     public float dashDuration = 0.2f;
     public float dashCooldown = 1f;
+    public int maxDashCount = 2;
+    public float dashStepCooldown = 0.15f;
     public bool canAirDash = true;
     public float fallGravityMultiplier = 1.5f;
     public float dashInvincibleSeconds = 0.16f;

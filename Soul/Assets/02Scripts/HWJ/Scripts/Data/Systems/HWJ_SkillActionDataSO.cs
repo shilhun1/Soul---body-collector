@@ -14,6 +14,7 @@ public class HWJ_SkillActionDataSO : ScriptableObject
     [SerializeField] private float range;
     [SerializeField] private float durationSeconds;
     [SerializeField] private float cooldownSeconds;
+    [SerializeField] private string motionKey;
     [SerializeField] private GameObject projectilePrefab;
     [SerializeField] private GameObject actionEffectPrefab;
 
@@ -24,6 +25,7 @@ public class HWJ_SkillActionDataSO : ScriptableObject
     public float Range => range;
     public float DurationSeconds => durationSeconds;
     public float CooldownSeconds => cooldownSeconds;
+    public string MotionKey => motionKey;
     public GameObject ProjectilePrefab => projectilePrefab;
     public GameObject ActionEffectPrefab => actionEffectPrefab;
 

@@ -10,6 +10,7 @@ public class HWJ_SkillActionSystem : MonoBehaviour
     [SerializeField] private HWJ_RootObjectDataResolver dataResolver;
     [SerializeField] private HWJ_CombatSystem combatSystem;
     [SerializeField] private HWJ_PossessionSystem possessionSystem;
+    [SerializeField] private HWJ_CharacterMotionSystem motionSystem;
     [SerializeField] private HWJ_ObjectPoolSystem objectPool;
     [SerializeField] private HWJ_GameplayDatabaseSO database;
     [SerializeField] private HWJ_SkillActionDataSO[] localSkillActions;
@@ -31,6 +32,11 @@ public class HWJ_SkillActionSystem : MonoBehaviour
         if (possessionSystem == null)
         {
             possessionSystem = GetComponent<HWJ_PossessionSystem>();
+        }
+
+        if (motionSystem == null)
+        {
+            motionSystem = GetComponent<HWJ_CharacterMotionSystem>();
         }
     }
 
@@ -76,6 +82,8 @@ public class HWJ_SkillActionSystem : MonoBehaviour
 
     private void ExecuteSkill(HWJ_SkillActionDataSO skillAction)
     {
+        PlaySkillMotion(skillAction);
+
         if (skillAction.ActionEffectPrefab != null)
         {
             SpawnPooled(skillAction.ActionEffectPrefab);
@@ -91,6 +99,32 @@ public class HWJ_SkillActionSystem : MonoBehaviour
 
         // 실제 히트박스나 투사체 시스템은 finalDamage를 받아 타겟에게 전달하도록 확장합니다.
         _ = finalDamage;
+    }
+
+    private void PlaySkillMotion(HWJ_SkillActionDataSO skillAction)
+    {
+        if (motionSystem == null || skillAction == null)
+        {
+            return;
+        }
+
+        if (!string.IsNullOrEmpty(skillAction.MotionKey))
+        {
+            motionSystem.PlayMotionKey(skillAction.MotionKey);
+            return;
+        }
+
+        switch (skillAction.ActionType)
+        {
+            case HWJ_SkillActionType.Melee:
+            case HWJ_SkillActionType.Projectile:
+            case HWJ_SkillActionType.Area:
+                motionSystem.PlayAttack(null);
+                break;
+            case HWJ_SkillActionType.Dash:
+                motionSystem.PlayDash();
+                break;
+        }
     }
 
     private GameObject SpawnPooled(GameObject prefab)
