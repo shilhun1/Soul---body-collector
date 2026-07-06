@@ -1,0 +1,90 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 700f8c7e5cef5f44497b9f40acbf00de, type: 3}
+  m_Name: HWJ_PlayerTypeData
+  m_EditorClassIdentifier: Assembly-CSharp::HWJ_PlayerTypeDataSO
+  objectType: 0
+  typeId: player_default
+  displayName: Player
+  defaultWeaponType: 0
+  description: Player type data with control, skill, growth, soul, possession, and body decay settings.
+  control:
+    acceleration: 0
+    deceleration: 0
+    normalJump:
+      jumpPower: 12
+      jumpBufferTime: 0.15
+    doubleJump:
+      canDoubleJump: 1
+      maxDoubleJumpCount: 1
+      jumpPower: 11
+    dashDistance: 9
+    dashSpeed: 15
+    dashDuration: 0.2
+    dashCooldown: 1
+    canAirDash: 1
+    fallGravityMultiplier: 1.5
+    dashInvincibleSeconds: 0.16
+    dashRecoverySeconds: 0
+    canFreeFly: 0
+  attack:
+    attackInputId: Fire1
+    attackRange: 1.5
+    attackIntervalSeconds: 0.3
+    comboResetSeconds: 0.8
+    basicAttackSkillActionId: ""
+  state:
+    startState: 1
+    canMoveOnBodyState: 1
+    canAttackOnBodyState: 1
+    canMoveOnSoulState: 1
+    canAttackOnSoulState: 0
+  camera:
+    followSpeed: 8
+    lookAheadDistance: 1.5
+    verticalOffset: 1
+    clampToBounds: 0
+    minBounds: {x: 0, y: 0}
+    maxBounds: {x: 0, y: 0}
+  skillSet:
+    skills: []
+  growth:
+    startLevel: 1
+    maxLevel: 0
+    startSkillPoint: 0
+    skillTreeId: ""
+    experienceToLevelUp: []
+  soulState:
+    possessionDeadlineSeconds: 10
+    soulMoveSpeed: 6
+    isInvincible: 0
+    canPassThroughWalls: 1
+    canFreeFly: 1
+    hasHp: 1
+    blocksControlOnDeadline: 1
+  possession:
+    canPossess: 1
+    canBePossessed: 0
+    possessableHeartEffectPrefab: {fileID: 0}
+    heartSocketName: ""
+    possessionInputId: 
+    possessionRange: 2.5
+    requiresDefeatedState: 1
+    transfersControlToBody: 1
+    loadsBodyStatsToPlayer: 1
+  bodyDecay:
+    maxDecayValue: 120
+    decayTickSeconds: 0.5
+    decayAmountPerTick: 1
+    hitDecayPenalty: 10
+    startDecayOnEnterBody: 1
+    enterSoulStateWhenEmpty: 1
