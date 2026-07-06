@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: ad53a9b68b50b8d46aa10b1b346afb72
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 338336
+  packageName: Skill Tree Maker Importer
+  packageVersion: 1.0
+  assetPath: Assets/Smiling Eclipse/Skill Tree Maker Importer/Scripts/Node/SkillNodeVisual.cs
+  uploadId: 800890

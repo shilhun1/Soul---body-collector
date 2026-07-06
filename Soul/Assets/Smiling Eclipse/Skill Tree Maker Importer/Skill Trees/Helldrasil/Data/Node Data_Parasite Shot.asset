@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e491448eae275db449cdef0a265bfeca, type: 3}
+  m_Name: Node Data_Parasite Shot
+  m_EditorClassIdentifier: Assembly-CSharp::SmilingEclipse.STMImporter.SkillNodeData
+  skillName: Parasite Shot
+  description: Click to edit skill description.
+  icon: {fileID: 21300000, guid: 1725220ad396d06488bf1ac7d73094b2, type: 3}
+  position: {x: 3012, y: 617}
+  cost: 10
+  costCoeficient: 5
+  startLevel: 0
+  maxLevel: 5
+  nodeIndex: 56
+  childNodes:
+  - {fileID: 11400000, guid: f95383870ef0ba942b7f6847e3edc2ea, type: 2}
+  parentNodes:
+  - {fileID: 11400000, guid: 2fc6755890c16c649b117c89e0153de3, type: 2}
