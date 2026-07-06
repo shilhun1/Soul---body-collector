@@ -17,6 +17,10 @@ public class HSH_BarUI : MonoBehaviour
     [Header("Level UI (For Exp Type)")]
     public HSH_LEVELTEXTUI levelTextUI;
 
+    [Header("Game Over UI")]
+    public HSH_GameOverUI gameOverUI; // 체력이 다 까졌을 때 띄울 창
+
+
     [Header("Stats")]
     public float currentValue = 100f;
     public float maxValue = 100f;
@@ -52,8 +56,8 @@ public class HSH_BarUI : MonoBehaviour
         // 임의의 키 (스페이스바)를 누르면 HP가 줄어들게 테스트 기능 구현 (새로운 Input System 적용)
         if (UnityEngine.InputSystem.Keyboard.current != null && UnityEngine.InputSystem.Keyboard.current.spaceKey.wasPressedThisFrame)
         {
-            IncreaseValue(21f);
-            // DecreaseValue(20f);
+            // IncreaseValue(21f);
+            DecreaseValue(20f);
         }
     }
 
@@ -101,6 +105,17 @@ public class HSH_BarUI : MonoBehaviour
             
             UpdateColor();
             Debug.Log("HP가 모두 닳아서 GhostHP 타입으로 변경되었습니다!");
+        }
+        else if (currentType == BarType.GhostHP && currentValue <= 0)
+        {
+            currentValue = 0;
+            Debug.Log("GhostHP가 모두 닳았습니다! 게임 오버!");
+            
+            if (gameOverUI != null)
+            {
+                Debug.Log("1111111");
+                gameOverUI.ShowGameOver();
+            }
         }
         else if (currentType == BarType.Exp && currentValue >= maxValue)
         {
