@@ -113,7 +113,7 @@ public class HSH_BarUI : MonoBehaviour
             
             if (gameOverUI != null)
             {
-                Debug.Log("1111111");
+                
                 gameOverUI.ShowGameOver();
             }
         }

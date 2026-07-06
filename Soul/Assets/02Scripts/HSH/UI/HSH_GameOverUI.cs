@@ -21,10 +21,10 @@ public class HSH_GameOverUI : MonoBehaviour
     /// </summary>
     public void ShowGameOver()
     {
-        Debug.Log("22222222");
+        
         if (gameOverPanel != null)
         {
-            Debug.Log("33333333");
+
             gameOverPanel.SetActive(true);
         }
         
@@ -43,6 +43,19 @@ public class HSH_GameOverUI : MonoBehaviour
         
         // 현재 활성화된 씬을 처음부터 다시 로드
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+
+    /// <summary>
+    /// 지정한 씬으로 이동하는 버튼 함수입니다.
+    /// OnClick 이벤트에 연결 후, 빈칸(String)에 이동할 씬 이름을 직접 적어주세요.
+    /// </summary>
+    public void GoToTestScene(string targetSceneName)
+    {
+        // 멈췄던 시간을 다시 흐르게 되돌림
+        Time.timeScale = 1f;
+        
+        // OnClick 칸에 직접 적은 씬 이름으로 이동
+        SceneManager.LoadScene(targetSceneName);
     }
 
     /// <summary>
