@@ -1,0 +1,53 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 62b1072cf898fa14b8272b23fb396e5a, type: 3}
+  m_Name: HWJ_EnemyNoCorpse_Shield_TypeData
+  m_EditorClassIdentifier: Assembly-CSharp::HWJ_EnemyTypeDataSO
+  objectType: 1
+  typeId: enemy_nocorpse_shield
+  displayName: Shield No-Corpse Enemy
+  defaultWeaponType: 0
+  description: Enemy that uses a shield but does not leave a possessable body.
+  role:
+    weaponType: 7
+    isElite: 0
+    leavesCorpseOnDeath: 0
+    isPossessableBody: 0
+    guaranteesStatOrb: 0
+  tracking:
+    trackingRange: 0
+    loseTargetRange: 0
+  ai:
+    aiProfileId: ""
+    decisionIntervalSeconds: 0
+    behaviorTreeId: ""
+  navigation:
+    stoppingDistance: 0
+    pathRefreshSeconds: 0
+    canUsePlatformDrop: 0
+  state:
+    startState: 1
+    attackRange: 1
+    returnToIdleDelaySeconds: 1
+    stopWhenHit: 1
+  skillCycle:
+    skills: []
+  possessionBody:
+    canPossess: 0
+    canBePossessed: 0
+    possessableHeartEffectPrefab: {fileID: 0}
+    heartSocketName: ""
+    possessionInputId: ""
+    possessionRange: 0
+    requiresDefeatedState: 1
+    transfersControlToBody: 1
+    loadsBodyStatsToPlayer: 1
