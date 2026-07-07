@@ -11,5 +11,11 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/01Scenes/HSH_MAPTEST.unity
     guid: 9a070b7b4b857ae4dbaed04d1219f02e
+  - enabled: 1
+    path: Assets/01Scenes/HSH_1-1.unity
+    guid: e6cba81080660ba4f87eb9ae2ff6a6d0
+  - enabled: 1
+    path: Assets/01Scenes/HSH_1-2.unity
+    guid: 169d949c2c90b6148a9e24e234967c67
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0

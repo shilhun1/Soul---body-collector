@@ -30,7 +30,7 @@ public class HSH_BarUI : MonoBehaviour
     public Color ghostHpColor = new Color(0.6f, 0f, 1f); // 보라색
     public Color expColor = Color.yellow;
 
-    private HWJ_RuntimeStatusSystem statusSystem;
+    [SerializeField] private HWJ_RuntimeStatusSystem statusSystem;
 
     private void Start()
     {
@@ -65,12 +65,19 @@ public class HSH_BarUI : MonoBehaviour
 
     private void Update()
     {
-        // // 임의의 키 (스페이스바)를 누르면 HP가 줄어들게 테스트 기능 구현 (새로운 Input System 적용)
-        // if (UnityEngine.InputSystem.Keyboard.current != null && UnityEngine.InputSystem.Keyboard.current.spaceKey.wasPressedThisFrame)
-        // {
-        //     // IncreaseValue(21f);
-        //     DecreaseValue(20f);
-        // }
+
+        // 플레이어 태그를 찾아서 자동으로 statusSystem을 연결합니다.
+        if (statusSystem == null)
+        {
+            GameObject player = GameObject.FindGameObjectWithTag("Player");
+            if (player != null)
+            {
+                statusSystem = player.GetComponent<HWJ_RuntimeStatusSystem>();
+            }
+        }
+        // 씬 이동이나 다른 스크립트에서 체력을 변경했을 때도 실시간으로 반영되도록 Update에서 값을 확인합니다.
+        CheckState();
+        UpdateSlider();
     }
 
     // 나중에 외부에서 값을 받아올 때 사용하는 함수
@@ -115,38 +122,48 @@ public class HSH_BarUI : MonoBehaviour
         UpdateSlider();
     }
 
+    private bool hasTriggeredGameOver = false;
+
     // HP가 다 달게된다면(0 이하) GhostHP로 변경하거나, Exp가 꽉 차면 레벨업
     private void CheckState()
     {
+        // 1. 현재 연동된 데이터(체력/경험치)를 가져옵니다.
         if (statusSystem != null)
         {
-            currentValue = statusSystem.CurrentHp;
-            maxValue = statusSystem.MaxHp;
+            if (currentType == BarType.HP || currentType == BarType.GhostHP)
+            {
+                currentValue = statusSystem.CurrentHp;
+                maxValue = statusSystem.MaxHp;
+            }
+            // TODO: 나중에 경험치(Exp) 시스템이 추가된다면 이 곳 주석을 해제하고 연동하세요.
+            // else if (currentType == BarType.Exp)
+            // {
+            //     currentValue = ExpSystem.CurrentExp;
+            //     maxValue = ExpSystem.MaxExp;
+            // }
         }
         
-        if (currentType == BarType.HP && currentValue <= 0)
+        // 2. 값에 따른 상태 변화(게임오버, 레벨업 등)를 처리합니다.
+        if (currentType == BarType.HP && currentValue <= 0 && maxValue > 0)
         {
-            currentValue = 0;
             currentType = BarType.GhostHP;
-            
-            // 고스트 체력으로 변환 시 테스트를 위해 체력을 다시 채워줌 (필요 시 수정 가능)
-            currentValue = maxValue; 
-            
             UpdateColor();
             Debug.Log("HP가 모두 닳아서 GhostHP 타입으로 변경되었습니다!");
         }
-        else if (currentType == BarType.GhostHP && currentValue <= 0)
+        else if (currentType == BarType.GhostHP && currentValue <= 0 && maxValue > 0)
         {
-            currentValue = 0;
-            Debug.Log("GhostHP가 모두 닳았습니다! 게임 오버!");
-            
-            if (gameOverUI != null)
+            if (!hasTriggeredGameOver)
             {
+                hasTriggeredGameOver = true;
+                Debug.Log("GhostHP가 모두 닳았습니다! 게임 오버!");
                 
-                gameOverUI.ShowGameOver();
+                if (gameOverUI != null)
+                {
+                    gameOverUI.ShowGameOver();
+                }
             }
         }
-        else if (currentType == BarType.Exp && currentValue >= maxValue)
+        else if (currentType == BarType.Exp && currentValue >= maxValue && maxValue > 0)
         {
             // 경험치가 가득 찼으므로 레벨업!
             if (levelTextUI != null)

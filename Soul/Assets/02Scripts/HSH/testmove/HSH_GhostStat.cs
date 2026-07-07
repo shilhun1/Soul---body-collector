@@ -3,7 +3,7 @@ using UnityEngine;
 public class HSH_GhostStat : MonoBehaviour
 {
     [Header("Ghost Base Stats")]
-    public StatData baseStats; // 인스펙터에서 설정할 기본 고스트 스탯
+    public HWJ_StatData baseStats; // 인스펙터에서 설정할 기본 고스트 스탯
     
     [Header("Ghost Specific Settings")]
     public float ghostTimeLimit = 10f; // 영혼 상태 유지 시간
@@ -17,7 +17,7 @@ public class HSH_GhostStat : MonoBehaviour
 
     private int originalHp;
 
-    public StatData CurrentStats { get; private set; }
+    public HWJ_StatData CurrentStats { get; private set; }
 
     void Awake()
     {
@@ -82,14 +82,14 @@ public class HSH_GhostStat : MonoBehaviour
         else
         {
             // baseStats가 설정되지 않았을 경우의 기본값
-            CurrentStats = new StatData();
+            CurrentStats = new HWJ_StatData();
             CurrentStats.moveSpeed = 5f;
             CurrentStats.maxHp = 1;
         }
     }
 
     // 스탯 조정 기능 (아이템, 능력치 증가 등에 활용)
-    public void AddStatBonus(StatData bonus)
+    public void AddStatBonus(HWJ_StatData bonus)
     {
         if (bonus != null && CurrentStats != null)
         {
@@ -98,7 +98,7 @@ public class HSH_GhostStat : MonoBehaviour
     }
 
     // 플레이어 스탯 등 다른 StatData를 통째로 덮어씌울 때 활용
-    public void SetStats(StatData newStats)
+    public void SetStats(HWJ_StatData newStats)
     {
         if (newStats != null)
         {
