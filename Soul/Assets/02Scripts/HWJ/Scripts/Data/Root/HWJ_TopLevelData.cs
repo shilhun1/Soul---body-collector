@@ -28,6 +28,7 @@ public class HWJ_StatusData
     public float attackPower;
     public float defense;
     public float attackSpeed = 1f;
+    public float bodyWeight = 1f;
 }
 
 /// <summary>
@@ -57,6 +58,8 @@ public class HWJ_DamageData
     public float criticalMultiplier = 1.5f;
     public float knockbackPower;
     public float hitStunSeconds;
+    public float hitStopSeconds;
+    public float sameTargetHitCooldownSeconds = 0.08f;
 }
 
 /// <summary>
@@ -71,6 +74,12 @@ public class HWJ_ReceivedDamageData
     public bool isInvincible;
     public bool ignoreTrapDamage;
     public bool ignoreEnemyDamage;
+    public float hitStunSeconds = 0.18f;
+    public float hitReactionImmuneSeconds;
+    public float knockbackWeightMultiplier = 1f;
+    public bool hasSuperArmor;
+    public bool ignoreHitStun;
+    public bool ignoreKnockback;
 }
 
 /// <summary>

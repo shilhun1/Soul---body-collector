@@ -33,8 +33,13 @@ public class HWJ_TrackingData
 public class HWJ_AIData
 {
     public string aiProfileId;
-    public float decisionIntervalSeconds;
+    public float decisionIntervalSeconds = 0.1f;
     public string behaviorTreeId;
+    public float idleSeconds = 0.2f;
+    public float detectSeconds = 0.15f;
+    public float attackPrepareSeconds = 0.25f;
+    public float attackRecoverySeconds = 0.35f;
+    public float repathSeconds = 0.15f;
 }
 
 /// <summary>
@@ -47,6 +52,10 @@ public class HWJ_NavigationData
     public float stoppingDistance;
     public float pathRefreshSeconds;
     public bool canUsePlatformDrop;
+    public bool avoidLedges = true;
+    public float ledgeCheckForwardDistance = 0.45f;
+    public float ledgeCheckDownDistance = 1.2f;
+    public float wallCheckDistance = 0.15f;
 }
 
 /// <summary>
@@ -60,4 +69,6 @@ public class HWJ_EnemyStateData
     public float attackRange;
     public float returnToIdleDelaySeconds = 1f;
     public bool stopWhenHit = true;
+    public bool hasSuperArmor;
+    public bool immuneToHitStun;
 }

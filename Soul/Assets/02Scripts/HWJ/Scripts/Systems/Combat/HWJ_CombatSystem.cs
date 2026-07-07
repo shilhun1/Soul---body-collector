@@ -11,6 +11,7 @@ public class HWJ_CombatSystem : MonoBehaviour
     [SerializeField] private HWJ_RootObjectDataResolver dataResolver;
     [SerializeField] private HWJ_PossessionSystem possessionSystem;
     [SerializeField] private HWJ_RuntimeStatusSystem runtimeStatus;
+    [SerializeField] private HWJ_BossBrainSystem bossBrain;
 
     private void Awake()
     {
@@ -27,6 +28,11 @@ public class HWJ_CombatSystem : MonoBehaviour
         if (runtimeStatus == null)
         {
             runtimeStatus = GetComponent<HWJ_RuntimeStatusSystem>();
+        }
+
+        if (bossBrain == null)
+        {
+            bossBrain = GetComponent<HWJ_BossBrainSystem>();
         }
     }
 
@@ -72,7 +78,7 @@ public class HWJ_CombatSystem : MonoBehaviour
 
         if (receivedDamage == null)
         {
-            return incomingDamage;
+            return ApplyReceivedDamageModifiers(incomingDamage);
         }
 
         if (receivedDamage.isInvincible)
@@ -90,7 +96,8 @@ public class HWJ_CombatSystem : MonoBehaviour
         HWJ_StatusData status = GetStatusData();
         float defense = status != null ? status.defense : 0f;
         float reducedDamage = Mathf.Max(0f, incomingDamage - defense);
-        return reducedDamage * receivedDamage.damageMultiplier;
+        float finalDamage = reducedDamage * receivedDamage.damageMultiplier;
+        return ApplyReceivedDamageModifiers(finalDamage);
     }
 
     public bool TryDealDamageTo(HWJ_RootObjectDataResolver targetResolver, out float finalDamage)
@@ -115,6 +122,11 @@ public class HWJ_CombatSystem : MonoBehaviour
         HWJ_DamageData damageData = GetDamageData();
         float outgoingDamage = Mathf.Max(0f, GetOutgoingDamage(damageMultiplier));
 
+        if (targetStatus != null && !targetStatus.CanReceiveHitFrom(this))
+        {
+            return false;
+        }
+
         finalDamage = targetCombat != null
             ? targetCombat.GetReceivedDamage(outgoingDamage, dataResolver != null ? dataResolver.ObjectType : HWJ_ObjectType.Player)
             : outgoingDamage;
@@ -124,8 +136,8 @@ public class HWJ_CombatSystem : MonoBehaviour
             return false;
         }
 
-        targetStatus.ApplyDamage(finalDamage);
         ApplyKnockback(targetResolver, damageData);
+        targetStatus.ApplyDamage(finalDamage, this, damageData);
         return true;
     }
 
@@ -154,6 +166,12 @@ public class HWJ_CombatSystem : MonoBehaviour
         }
 
         HWJ_KnockbackSystem knockbackSystem = targetResolver.GetComponent<HWJ_KnockbackSystem>();
+        HWJ_RuntimeStatusSystem targetStatus = targetResolver.GetComponent<HWJ_RuntimeStatusSystem>();
+
+        if (targetStatus != null && targetStatus.ShouldIgnoreKnockback)
+        {
+            return;
+        }
 
         if (knockbackSystem == null)
         {
@@ -172,7 +190,20 @@ public class HWJ_CombatSystem : MonoBehaviour
         float duration = damageData.hitStunSeconds > 0f
             ? damageData.hitStunSeconds
             : DefaultKnockbackDuration;
-        knockbackSystem.PlayKnockback(direction, damageData.knockbackPower, duration);
+        float scaledPower = targetStatus != null
+            ? damageData.knockbackPower * targetStatus.KnockbackScale
+            : damageData.knockbackPower;
+        knockbackSystem.PlayKnockback(direction, scaledPower, duration);
+    }
+
+    private float ApplyReceivedDamageModifiers(float damage)
+    {
+        if (bossBrain != null)
+        {
+            damage *= bossBrain.ReceivedDamageMultiplier;
+        }
+
+        return damage;
     }
 
     private HWJ_StatusData GetStatusData()

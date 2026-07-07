@@ -42,6 +42,30 @@ public class HWJ_PlayerInputSystem : MonoBehaviour
         }
     }
 
+    public bool JumpHeld
+    {
+        get
+        {
+#if ENABLE_INPUT_SYSTEM
+            return IsPressed(jumpAction, "Jump") || IsKeyboardPressed(Key.Space);
+#else
+            return Input.GetKey(KeyCode.Space);
+#endif
+        }
+    }
+
+    public bool DownHeld
+    {
+        get
+        {
+#if ENABLE_INPUT_SYSTEM
+            return IsKeyboardPressed(Key.DownArrow);
+#else
+            return Input.GetKey(KeyCode.DownArrow);
+#endif
+        }
+    }
+
     public bool DashPressedThisFrame
     {
         get
@@ -204,6 +228,12 @@ public class HWJ_PlayerInputSystem : MonoBehaviour
             && actionReference.action.WasPressedThisFrame();
     }
 
+    private static bool IsPressed(InputActionReference actionReference, string expectedActionName)
+    {
+        return IsExpectedAction(actionReference, expectedActionName)
+            && actionReference.action.IsPressed();
+    }
+
     private static bool IsExpectedAction(InputActionReference actionReference, string expectedActionName)
     {
         return actionReference != null
@@ -260,6 +290,32 @@ public class HWJ_PlayerInputSystem : MonoBehaviour
                 return Keyboard.current.eKey.wasPressedThisFrame;
             case Key.Q:
                 return Keyboard.current.qKey.wasPressedThisFrame;
+            case Key.DownArrow:
+                return Keyboard.current.downArrowKey.wasPressedThisFrame;
+            default:
+                return false;
+        }
+    }
+
+    private static bool IsKeyboardPressed(Key key)
+    {
+        if (Keyboard.current == null)
+        {
+            return false;
+        }
+
+        switch (key)
+        {
+            case Key.Space:
+                return Keyboard.current.spaceKey.isPressed;
+            case Key.LeftShift:
+                return Keyboard.current.leftShiftKey.isPressed;
+            case Key.E:
+                return Keyboard.current.eKey.isPressed;
+            case Key.Q:
+                return Keyboard.current.qKey.isPressed;
+            case Key.DownArrow:
+                return Keyboard.current.downArrowKey.isPressed;
             default:
                 return false;
         }

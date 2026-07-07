@@ -41,18 +41,46 @@ public class HWJ_BossPatternSystem : MonoBehaviour
     /// </summary>
     public bool TryUseAvailablePattern()
     {
+        return TryUseAvailablePattern(null);
+    }
+
+    public bool TryUseAvailablePattern(Transform target)
+    {
         if (!TrySelectPattern(out HWJ_BossPatternDataSO pattern))
         {
             return false;
         }
 
-        nextUseTimes[pattern.PatternId] = Time.time + pattern.CooldownSeconds;
+        return ExecutePattern(pattern, target);
+    }
+
+    public bool TryUsePhaseChangedPattern(Transform target)
+    {
+        if (!TrySelectPattern(HWJ_BossPatternTrigger.PhaseChanged, out HWJ_BossPatternDataSO pattern))
+        {
+            return false;
+        }
+
+        return ExecutePattern(pattern, target);
+    }
+
+    private bool ExecutePattern(HWJ_BossPatternDataSO pattern, Transform target)
+    {
+        if (pattern == null)
+        {
+            return false;
+        }
+
+        if (!string.IsNullOrEmpty(pattern.PatternId))
+        {
+            nextUseTimes[pattern.PatternId] = Time.time + pattern.CooldownSeconds;
+        }
 
         if (pattern.SkillActions != null && skillActionSystem != null)
         {
             for (int i = 0; i < pattern.SkillActions.Length; i++)
             {
-                skillActionSystem.TryUseSkill(pattern.SkillActions[i]);
+                skillActionSystem.TryUseSkill(pattern.SkillActions[i], target);
             }
         }
 
@@ -60,6 +88,11 @@ public class HWJ_BossPatternSystem : MonoBehaviour
     }
 
     private bool TrySelectPattern(out HWJ_BossPatternDataSO selectedPattern)
+    {
+        return TrySelectPattern(null, out selectedPattern);
+    }
+
+    private bool TrySelectPattern(HWJ_BossPatternTrigger? requiredTrigger, out HWJ_BossPatternDataSO selectedPattern)
     {
         selectedPattern = null;
 
@@ -79,7 +112,21 @@ public class HWJ_BossPatternSystem : MonoBehaviour
                 continue;
             }
 
-            if (nextUseTimes.TryGetValue(pattern.PatternId, out float nextUseTime) && Time.time < nextUseTime)
+            if (requiredTrigger.HasValue)
+            {
+                if (pattern.Trigger != requiredTrigger.Value)
+                {
+                    continue;
+                }
+            }
+            else if (pattern.Trigger == HWJ_BossPatternTrigger.PhaseChanged)
+            {
+                continue;
+            }
+
+            if (!string.IsNullOrEmpty(pattern.PatternId)
+                && nextUseTimes.TryGetValue(pattern.PatternId, out float nextUseTime)
+                && Time.time < nextUseTime)
             {
                 continue;
             }

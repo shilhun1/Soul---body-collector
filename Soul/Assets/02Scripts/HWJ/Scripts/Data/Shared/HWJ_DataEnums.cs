@@ -130,3 +130,27 @@ public enum HWJ_BossPatternTrigger
     Timed,
     PhaseChanged
 }
+
+public enum HWJ_BossFSMState
+{
+    Inactive,
+    Idle,
+    Chase,
+    Attack,
+    PhaseTransition,
+    Groggy,
+    Dead
+}
+
+public enum HWJ_MonsterAIState
+{
+    Idle,
+    Detect,
+    Approach,
+    AttackPrepare,
+    Attack,
+    Recovery,
+    Repath,
+    HitStun,
+    Dead
+}

@@ -1,9 +1,13 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
 /// PlayerTypeDataSO.Control과 RootObjectDataSO.Status를 사용해 플레이어 이동을 처리하는 기본 시스템입니다.
 /// 실제 입력 시스템을 바꿔도 이 컴포넌트는 데이터만 읽도록 유지하고, 입력 값만 외부에서 주입하는 방식으로 확장할 수 있습니다.
 /// </summary>
+[RequireComponent(typeof(Rigidbody2D))]
+[RequireComponent(typeof(HWJ_RuntimeStatusSystem))]
+[RequireComponent(typeof(HWJ_PlayerInputSystem))]
 public class HWJ_PlayerMovementSystem : MonoBehaviour
 {
     [SerializeField] private HWJ_RootObjectDataResolver dataResolver;
@@ -11,6 +15,8 @@ public class HWJ_PlayerMovementSystem : MonoBehaviour
     [SerializeField] private HWJ_SoulSystem soulSystem;
     [SerializeField] private HWJ_PlayerInputSystem playerInput;
     [SerializeField] private HWJ_CharacterMotionSystem motionSystem;
+    [SerializeField] private HWJ_SkillActionSystem skillActionSystem;
+    [SerializeField] private HWJ_PlayerAttackSystem playerAttackSystem;
     [SerializeField] private Rigidbody2D body;
 
     [Header("Ground Check")]
@@ -31,17 +37,43 @@ public class HWJ_PlayerMovementSystem : MonoBehaviour
     private int usedDashCount;
     private float dashEndTime;
     private float nextDashTime;
+    private float lastGroundedTime;
+    private float lastJumpPressedTime;
     private float nextEnemyCollisionRefreshTime;
     private Vector2 moveInput;
     private float originalGravityScale;
     private bool hasOriginalGravityScale;
     private bool isGravitySuppressed;
+    private bool jumpCutApplied;
     private Collider2D[] ownedColliders;
     private bool[] originalColliderTriggerStates;
+    private readonly Collider2D[] groundHits = new Collider2D[8];
+    private int groundHitCount;
+    private readonly List<HWJ_TemporaryIgnoredCollider> ignoredPlatformColliders =
+        new List<HWJ_TemporaryIgnoredCollider>();
 
     public bool IsGrounded => isGrounded;
 
     private void Awake()
+    {
+        AutoWireReferences();
+        CacheOriginalGravityScale();
+        CacheOwnedColliders();
+        lastJumpPressedTime = -999f;
+        lastGroundedTime = -999f;
+    }
+
+    private void Reset()
+    {
+        AutoWireReferences();
+    }
+
+    private void OnValidate()
+    {
+        AutoWireReferences();
+    }
+
+    private void AutoWireReferences()
     {
         if (dataResolver == null)
         {
@@ -68,13 +100,20 @@ public class HWJ_PlayerMovementSystem : MonoBehaviour
             motionSystem = GetComponent<HWJ_CharacterMotionSystem>();
         }
 
+        if (skillActionSystem == null)
+        {
+            skillActionSystem = GetComponent<HWJ_SkillActionSystem>();
+        }
+
+        if (playerAttackSystem == null)
+        {
+            playerAttackSystem = GetComponent<HWJ_PlayerAttackSystem>();
+        }
+
         if (body == null)
         {
             body = GetComponent<Rigidbody2D>();
         }
-
-        CacheOriginalGravityScale();
-        CacheOwnedColliders();
     }
 
     private void Update()
@@ -82,6 +121,7 @@ public class HWJ_PlayerMovementSystem : MonoBehaviour
         moveInput = playerInput != null ? playerInput.MoveInput : Vector2.zero;
         UpdateSoulCollisionMode();
         UpdateEnemyCollisionIgnores();
+        UpdateTemporaryPlatformIgnores();
         bool canUseBodyActions = CanUseBodyActions();
 
         if (canUseBodyActions)
@@ -97,7 +137,20 @@ public class HWJ_PlayerMovementSystem : MonoBehaviour
 
         if (canUseBodyActions && playerInput != null && playerInput.JumpPressedThisFrame)
         {
-            TryJump();
+            if (IsDropInputHeld())
+            {
+                lastJumpPressedTime = -999f;
+                TryDropThroughPlatform();
+                return;
+            }
+
+            lastJumpPressedTime = Time.time;
+        }
+
+        if (canUseBodyActions)
+        {
+            TryBufferedJump();
+            ApplyVariableJumpCut();
         }
 
         if (canUseBodyActions && playerInput != null && playerInput.DashPressedThisFrame)
@@ -110,6 +163,7 @@ public class HWJ_PlayerMovementSystem : MonoBehaviour
     {
         UpdateSoulCollisionMode();
         UpdateEnemyCollisionIgnores();
+        UpdateTemporaryPlatformIgnores();
 
         if (body == null || dataResolver == null || !dataResolver.TryGetTypeData(out HWJ_PlayerTypeDataSO playerData))
         {
@@ -130,6 +184,7 @@ public class HWJ_PlayerMovementSystem : MonoBehaviour
             case HWJ_SoulRuntimeState.Body:
                 SetGravitySuppressed(Time.time < dashEndTime);
                 MoveBody(playerData);
+                ApplyBodyGravityTuning(playerData);
                 break;
             case HWJ_SoulRuntimeState.BodyToSoul:
                 StopMovement(true);
@@ -175,6 +230,11 @@ public class HWJ_PlayerMovementSystem : MonoBehaviour
             usedDoubleJumpCount = 0;
             usedDashCount = 0;
         }
+
+        if (isGrounded)
+        {
+            lastGroundedTime = Time.time;
+        }
     }
 
     private void OnDisable()
@@ -192,12 +252,11 @@ public class HWJ_PlayerMovementSystem : MonoBehaviour
             useTriggers = false
         };
 
-        Collider2D[] hits = new Collider2D[8];
-        int hitCount = Physics2D.OverlapBox(checkCenter, groundCheckSize, 0f, filter, hits);
+        groundHitCount = Physics2D.OverlapBox(checkCenter, groundCheckSize, 0f, filter, groundHits);
 
-        for (int i = 0; i < hitCount; i++)
+        for (int i = 0; i < groundHitCount; i++)
         {
-            Collider2D hit = hits[i];
+            Collider2D hit = groundHits[i];
 
             if (hit == null || IsOwnCollider(hit) || IsEnemyOrBossCollider(hit))
             {
@@ -234,9 +293,26 @@ public class HWJ_PlayerMovementSystem : MonoBehaviour
             return;
         }
 
+        if (runtimeStatus != null && !runtimeStatus.CanMove)
+        {
+            StopHorizontalMovement();
+            return;
+        }
+
         float moveSpeed = runtimeStatus != null ? runtimeStatus.MoveSpeed : dataResolver.Status.moveSpeed;
         Vector2 velocity = body.linearVelocity;
-        velocity.x = moveInput.x * moveSpeed;
+        float targetSpeed = moveInput.x * moveSpeed;
+        float acceleration = Mathf.Abs(targetSpeed) > 0.01f
+            ? isGrounded ? playerData.Control.acceleration : playerData.Control.airAcceleration
+            : isGrounded ? playerData.Control.deceleration : playerData.Control.airDeceleration;
+
+        velocity.x = Mathf.MoveTowards(velocity.x, targetSpeed, Mathf.Max(0f, acceleration) * Time.fixedDeltaTime);
+
+        if (IsWallAhead(Mathf.Sign(velocity.x), playerData.Control))
+        {
+            velocity.x = 0f;
+        }
+
         body.linearVelocity = velocity;
 
         if (runtimeStatus != null)
@@ -261,30 +337,53 @@ public class HWJ_PlayerMovementSystem : MonoBehaviour
         }
     }
 
-    private void TryJump()
+    private void TryBufferedJump()
+    {
+        if (dataResolver == null || !dataResolver.TryGetTypeData(out HWJ_PlayerTypeDataSO playerData))
+        {
+            return;
+        }
+
+        float bufferTime = playerData.Control.normalJump != null
+            ? Mathf.Max(0f, playerData.Control.normalJump.jumpBufferTime)
+            : 0f;
+
+        if (Time.time > lastJumpPressedTime + bufferTime)
+        {
+            return;
+        }
+
+        if (TryJump())
+        {
+            lastJumpPressedTime = -999f;
+        }
+    }
+
+    private bool TryJump()
     {
         if (body == null || dataResolver == null || !dataResolver.TryGetTypeData(out HWJ_PlayerTypeDataSO playerData))
         {
-            return;
+            return false;
         }
 
-        if (!CanUseBodyActions())
+        if (!CanUseBodyActions() || runtimeStatus != null && !runtimeStatus.CanMove)
         {
-            return;
+            return false;
         }
 
-        if (isGrounded)
+        if (isGrounded || Time.time <= lastGroundedTime + Mathf.Max(0f, playerData.Control.coyoteTimeSeconds))
         {
             ExecuteNormalJump(playerData.Control.normalJump);
-            return;
+            return true;
         }
 
         if (!CanDoubleJump(playerData.Control.doubleJump))
         {
-            return;
+            return false;
         }
 
         ExecuteDoubleJump(playerData.Control.doubleJump);
+        return true;
     }
 
     private void ExecuteNormalJump(HWJ_NormalJumpData jumpData)
@@ -298,6 +397,7 @@ public class HWJ_PlayerMovementSystem : MonoBehaviour
         velocity.y = jumpData.jumpPower;
         body.linearVelocity = velocity;
         isGrounded = false;
+        jumpCutApplied = false;
         motionSystem?.PlayJump();
     }
 
@@ -312,6 +412,7 @@ public class HWJ_PlayerMovementSystem : MonoBehaviour
         velocity.y = jumpData.jumpPower;
         body.linearVelocity = velocity;
         usedDoubleJumpCount++;
+        jumpCutApplied = false;
         motionSystem?.PlayDoubleJump();
     }
 
@@ -334,6 +435,11 @@ public class HWJ_PlayerMovementSystem : MonoBehaviour
             return;
         }
 
+        if (runtimeStatus != null && !runtimeStatus.CanDash)
+        {
+            return;
+        }
+
         if (Time.time < nextDashTime)
         {
             return;
@@ -352,6 +458,8 @@ public class HWJ_PlayerMovementSystem : MonoBehaviour
         }
 
         float direction = Mathf.Abs(moveInput.x) > 0.01f ? Mathf.Sign(moveInput.x) : Mathf.Sign(transform.localScale.x);
+        skillActionSystem?.CancelCurrentAction();
+        playerAttackSystem?.CancelCurrentAttack();
         body.linearVelocity = new Vector2(direction * playerData.Control.dashSpeed, 0f);
         SetGravitySuppressed(true);
         float dashDuration = playerData.Control.dashDuration > 0f
@@ -365,6 +473,8 @@ public class HWJ_PlayerMovementSystem : MonoBehaviour
             : playerData.Control.dashStepCooldown;
         nextDashTime = Time.time + Mathf.Max(0f, nextDashDelay);
         motionSystem?.PlayDash();
+        runtimeStatus?.LockAttack(dashDuration + Mathf.Max(0f, playerData.Control.dashRecoverySeconds));
+        runtimeStatus?.GrantInvincibility(playerData.Control.dashInvincibleSeconds);
     }
 
     private void ResetDashCountWhenReady()
@@ -375,6 +485,232 @@ public class HWJ_PlayerMovementSystem : MonoBehaviour
         }
 
         usedDashCount = 0;
+    }
+
+    private void ApplyVariableJumpCut()
+    {
+        if (body == null || playerInput == null || playerInput.JumpHeld || jumpCutApplied)
+        {
+            return;
+        }
+
+        if (body.linearVelocity.y <= 0.01f
+            || dataResolver == null
+            || !dataResolver.TryGetTypeData(out HWJ_PlayerTypeDataSO playerData))
+        {
+            return;
+        }
+
+        Vector2 velocity = body.linearVelocity;
+        float cutMultiplier = playerData.Control.jumpCutMultiplier > 0f
+            ? Mathf.Clamp(playerData.Control.jumpCutMultiplier, 0.55f, 1f)
+            : 0.65f;
+        velocity.y *= cutMultiplier;
+        body.linearVelocity = velocity;
+        jumpCutApplied = true;
+    }
+
+    private void ApplyBodyGravityTuning(HWJ_PlayerTypeDataSO playerData)
+    {
+        if (body == null || playerData == null || Time.time < dashEndTime || isGravitySuppressed)
+        {
+            return;
+        }
+
+        CacheOriginalGravityScale();
+
+        if (body.linearVelocity.y < -0.01f)
+        {
+            body.gravityScale = originalGravityScale * Mathf.Max(1f, playerData.Control.fallGravityMultiplier);
+        }
+        else
+        {
+            body.gravityScale = originalGravityScale;
+        }
+
+        if (playerData.Control.maxFallSpeed > 0f && body.linearVelocity.y < -playerData.Control.maxFallSpeed)
+        {
+            Vector2 velocity = body.linearVelocity;
+            velocity.y = -playerData.Control.maxFallSpeed;
+            body.linearVelocity = velocity;
+        }
+    }
+
+    private bool TryDropThroughPlatform()
+    {
+        if (!isGrounded || !IsDropInputHeld())
+        {
+            return false;
+        }
+
+        if (dataResolver == null || !dataResolver.TryGetTypeData(out HWJ_PlayerTypeDataSO playerData))
+        {
+            return false;
+        }
+
+        bool dropped = false;
+        float ignoreSeconds = Mathf.Max(0.05f, playerData.Control.dropThroughSeconds);
+
+        for (int i = 0; i < groundHitCount; i++)
+        {
+            Collider2D platformCollider = groundHits[i];
+
+            if (platformCollider == null || !IsOneWayPlatform(platformCollider))
+            {
+                continue;
+            }
+
+            IgnorePlatformTemporarily(platformCollider, ignoreSeconds);
+            dropped = true;
+        }
+
+        if (!dropped)
+        {
+            dropped = TryDropThroughPlatformBelow(ignoreSeconds);
+        }
+
+        if (!dropped)
+        {
+            return false;
+        }
+
+        isGrounded = false;
+        lastGroundedTime = -999f;
+
+        if (body != null)
+        {
+            Vector2 velocity = body.linearVelocity;
+            velocity.y = Mathf.Min(velocity.y, -2f);
+            body.linearVelocity = velocity;
+        }
+
+        motionSystem?.PlayDropJump();
+        return true;
+    }
+
+    private bool TryDropThroughPlatformBelow(float ignoreSeconds)
+    {
+        Vector2 checkCenter = (Vector2)transform.position + groundCheckOffset;
+        ContactFilter2D filter = new ContactFilter2D
+        {
+            useLayerMask = groundLayer.value != 0,
+            layerMask = groundLayer,
+            useTriggers = false
+        };
+
+        Collider2D[] hits = new Collider2D[8];
+        int hitCount = Physics2D.OverlapBox(checkCenter, groundCheckSize * 1.6f, 0f, filter, hits);
+        bool dropped = false;
+
+        for (int i = 0; i < hitCount; i++)
+        {
+            Collider2D platformCollider = hits[i];
+
+            if (platformCollider == null || !IsOneWayPlatform(platformCollider))
+            {
+                continue;
+            }
+
+            IgnorePlatformTemporarily(platformCollider, ignoreSeconds);
+            dropped = true;
+        }
+
+        return dropped;
+    }
+
+    private bool IsDropInputHeld()
+    {
+        return moveInput.y < -0.5f || playerInput != null && playerInput.DownHeld;
+    }
+
+    private void IgnorePlatformTemporarily(Collider2D platformCollider, float seconds)
+    {
+        if (platformCollider == null)
+        {
+            return;
+        }
+
+        if (ownedColliders == null || ownedColliders.Length == 0)
+        {
+            CacheOwnedColliders();
+        }
+
+        for (int i = 0; i < ownedColliders.Length; i++)
+        {
+            Collider2D ownedCollider = ownedColliders[i];
+
+            if (ownedCollider == null)
+            {
+                continue;
+            }
+
+            Physics2D.IgnoreCollision(ownedCollider, platformCollider, true);
+            ignoredPlatformColliders.Add(new HWJ_TemporaryIgnoredCollider(
+                ownedCollider,
+                platformCollider,
+                Time.time + seconds));
+        }
+    }
+
+    private void UpdateTemporaryPlatformIgnores()
+    {
+        for (int i = ignoredPlatformColliders.Count - 1; i >= 0; i--)
+        {
+            HWJ_TemporaryIgnoredCollider ignored = ignoredPlatformColliders[i];
+
+            if (Time.time < ignored.endTime)
+            {
+                continue;
+            }
+
+            if (ignored.ownerCollider != null && ignored.platformCollider != null)
+            {
+                Physics2D.IgnoreCollision(ignored.ownerCollider, ignored.platformCollider, false);
+            }
+
+            ignoredPlatformColliders.RemoveAt(i);
+        }
+    }
+
+    private bool IsOneWayPlatform(Collider2D platformCollider)
+    {
+        return platformCollider != null
+            && (platformCollider.GetComponentInParent<HWJ_OneWayPlatformSystem>() != null
+                || platformCollider.GetComponent<PlatformEffector2D>() != null
+                || platformCollider.usedByEffector);
+    }
+
+    private bool IsWallAhead(float directionX, HWJ_ControlData controlData)
+    {
+        if (body == null
+            || Mathf.Abs(directionX) <= 0.01f
+            || controlData == null
+            || controlData.wallCheckDistance <= 0f
+            || groundLayer.value == 0)
+        {
+            return false;
+        }
+
+        int layerMask = groundLayer.value;
+        Vector2 origin = transform.position;
+        Vector2 direction = Vector2.right * Mathf.Sign(directionX);
+        float distance = controlData.wallCheckDistance;
+
+        return Physics2D.Raycast(origin + Vector2.up * 0.35f, direction, distance, layerMask)
+            || Physics2D.Raycast(origin, direction, distance, layerMask)
+            || Physics2D.Raycast(origin + Vector2.down * 0.35f, direction, distance, layerMask);
+    }
+
+    private void StopHorizontalMovement()
+    {
+        if (body == null)
+        {
+            return;
+        }
+
+        Vector2 velocity = body.linearVelocity;
+        velocity.x = 0f;
+        body.linearVelocity = velocity;
     }
 
     private void StopMovement(bool suppressGravity = false)
@@ -550,5 +886,19 @@ public class HWJ_PlayerMovementSystem : MonoBehaviour
         Gizmos.color = isGrounded ? Color.green : Color.red;
         Vector3 checkCenter = transform.position + (Vector3)groundCheckOffset;
         Gizmos.DrawWireCube(checkCenter, groundCheckSize);
+    }
+
+    private readonly struct HWJ_TemporaryIgnoredCollider
+    {
+        public readonly Collider2D ownerCollider;
+        public readonly Collider2D platformCollider;
+        public readonly float endTime;
+
+        public HWJ_TemporaryIgnoredCollider(Collider2D ownerCollider, Collider2D platformCollider, float endTime)
+        {
+            this.ownerCollider = ownerCollider;
+            this.platformCollider = platformCollider;
+            this.endTime = endTime;
+        }
     }
 }

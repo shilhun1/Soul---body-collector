@@ -18,10 +18,27 @@ MonoBehaviour:
   defaultWeaponType: 0
   description: Boss type data with rank, phases, transform, AI, and skill cycle.
   bossRank: 0
+  fsm:
+    autoStartWhenPlayerEntersRoom: 1
+    useBossRoomBounds: 1
+    bossRoomOffset: {x: 0, y: 0}
+    bossRoomSize: {x: 28, y: 14}
+    attackStartRange: 5
+    optimalAttackDistance: 3.5
+    chaseMoveSpeedMultiplier: 1
+    phaseTransitionSeconds: 1.5
+    superArmorDuringAttack: 1
+    superArmorDuringPhaseTransition: 1
+    groggyHitCountThreshold: 5
+    groggyHitWindowSeconds: 3
+    groggyDurationSeconds: 2.5
+    groggyDamageMultiplier: 1.5
+    knockbackOnGroggyEnd: 1
+    groggyEndKnockbackPower: 8
   ai:
-    aiProfileId: ""
+    aiProfileId:
     decisionIntervalSeconds: 0
-    behaviorTreeId: ""
+    behaviorTreeId:
   navigation:
     stoppingDistance: 0
     pathRefreshSeconds: 0
@@ -32,14 +49,13 @@ MonoBehaviour:
   phaseTransform:
     canTransform: 0
     transformHpRatio: 0.5
-    transformedModelId: ""
-    transformAnimationId: ""
+    transformedModelId:
+    transformAnimationId:
   possessionBody:
     canPossess: 0
     canBePossessed: 0
     possessableHeartEffectPrefab: {fileID: 0}
-    heartSocketName: ""
-    possessionInputId: ""
+    heartSocketName:
     possessionRange: 0
     requiresDefeatedState: 1
     transfersControlToBody: 1

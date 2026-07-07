@@ -11,6 +11,7 @@ public class HWJ_EnemyAttackSystem : MonoBehaviour
     [SerializeField] private HWJ_RuntimeStatusSystem runtimeStatus;
     [SerializeField] private HWJ_CombatExecutionSystem combatExecutionSystem;
     [SerializeField] private HWJ_SkillActionSystem skillActionSystem;
+    [SerializeField] private HWJ_MonsterAISystem monsterAI;
     [SerializeField] private Transform target;
     [SerializeField] private bool autoFindPlayerTarget = true;
     [SerializeField] private bool attackOnlyBodyState = true;
@@ -40,6 +41,16 @@ public class HWJ_EnemyAttackSystem : MonoBehaviour
 
     private void Update()
     {
+        if (monsterAI == null)
+        {
+            monsterAI = GetComponent<HWJ_MonsterAISystem>();
+        }
+
+        if (monsterAI != null && monsterAI.DrivesBehavior)
+        {
+            return;
+        }
+
         if (target == null && autoFindPlayerTarget && Time.time >= nextTargetSearchTime)
         {
             target = FindPlayerTarget();
@@ -68,6 +79,12 @@ public class HWJ_EnemyAttackSystem : MonoBehaviour
         if (runtimeStatus != null && runtimeStatus.CurrentState == HWJ_RuntimeState.Hit)
         {
             lastAttackResult = "Attack failed: enemy is hit.";
+            return false;
+        }
+
+        if (runtimeStatus != null && !runtimeStatus.CanAttack)
+        {
+            lastAttackResult = "Attack failed: action locked.";
             return false;
         }
 
@@ -555,6 +572,11 @@ public class HWJ_EnemyAttackSystem : MonoBehaviour
             {
                 skillActionSystem = gameObject.AddComponent<HWJ_SkillActionSystem>();
             }
+        }
+
+        if (monsterAI == null)
+        {
+            monsterAI = GetComponent<HWJ_MonsterAISystem>();
         }
     }
 
