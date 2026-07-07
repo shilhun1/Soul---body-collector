@@ -1876,6 +1876,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HSH_SceneMove
   targetSceneName: HSH_MAPTEST
+  targetSpawnID: 
 --- !u!70 &2146348944
 CapsuleCollider2D:
   m_ObjectHideFlags: 0
