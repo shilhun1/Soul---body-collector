@@ -30,12 +30,24 @@ public class HSH_BarUI : MonoBehaviour
     public Color ghostHpColor = new Color(0.6f, 0f, 1f); // 보라색
     public Color expColor = Color.yellow;
 
+    private HWJ_RuntimeStatusSystem statusSystem;
+
     private void Start()
     {
         // 만약 인스펙터에서 슬라이더를 넣지 않았다면, 자신에게 붙어있는 Slider 컴포넌트를 가져옴
         if (barSlider == null)
         {
             barSlider = GetComponent<Slider>();
+        }
+
+        // 플레이어 태그를 찾아서 자동으로 statusSystem을 연결합니다.
+        if (statusSystem == null)
+        {
+            GameObject player = GameObject.FindGameObjectWithTag("Player");
+            if (player != null)
+            {
+                statusSystem = player.GetComponent<HWJ_RuntimeStatusSystem>();
+            }
         }
         
         UpdateColor();
@@ -53,12 +65,12 @@ public class HSH_BarUI : MonoBehaviour
 
     private void Update()
     {
-        // 임의의 키 (스페이스바)를 누르면 HP가 줄어들게 테스트 기능 구현 (새로운 Input System 적용)
-        if (UnityEngine.InputSystem.Keyboard.current != null && UnityEngine.InputSystem.Keyboard.current.spaceKey.wasPressedThisFrame)
-        {
-            // IncreaseValue(21f);
-            DecreaseValue(20f);
-        }
+        // // 임의의 키 (스페이스바)를 누르면 HP가 줄어들게 테스트 기능 구현 (새로운 Input System 적용)
+        // if (UnityEngine.InputSystem.Keyboard.current != null && UnityEngine.InputSystem.Keyboard.current.spaceKey.wasPressedThisFrame)
+        // {
+        //     // IncreaseValue(21f);
+        //     DecreaseValue(20f);
+        // }
     }
 
     // 나중에 외부에서 값을 받아올 때 사용하는 함수
@@ -86,8 +98,19 @@ public class HSH_BarUI : MonoBehaviour
     // 값 감소
     public void DecreaseValue(float amount)
     {
-        currentValue -= amount;
+        if (statusSystem != null)
+        {
+            if(currentType == BarType.HP){
+                statusSystem.ApplyDamage(amount);
+            }
+            
+        }
+        else
+        {
+            currentValue -= amount;
+        }
         
+
         CheckState();
         UpdateSlider();
     }
@@ -95,6 +118,12 @@ public class HSH_BarUI : MonoBehaviour
     // HP가 다 달게된다면(0 이하) GhostHP로 변경하거나, Exp가 꽉 차면 레벨업
     private void CheckState()
     {
+        if (statusSystem != null)
+        {
+            currentValue = statusSystem.CurrentHp;
+            maxValue = statusSystem.MaxHp;
+        }
+        
         if (currentType == BarType.HP && currentValue <= 0)
         {
             currentValue = 0;

@@ -7,7 +7,8 @@ public class HSH_GhostMove : MonoBehaviour
 
     private Rigidbody2D rb;
     private Collider2D[] colliders;
-    private CharacterBase characterBase;
+    private HWJ_RuntimeStatusSystem statusSystem;
+
     private HSH_GhostStat ghostStat;
     
     private float originalGravity;
@@ -16,7 +17,8 @@ public class HSH_GhostMove : MonoBehaviour
     {
         rb = GetComponent<Rigidbody2D>();
         colliders = GetComponents<Collider2D>();
-        characterBase = GetComponent<CharacterBase>();
+        statusSystem = GetComponent<HWJ_RuntimeStatusSystem>();
+
         ghostStat = GetComponent<HSH_GhostStat>();
 
         if (rb != null)
@@ -102,9 +104,9 @@ public class HSH_GhostMove : MonoBehaviour
         {
             speed = ghostStat.CurrentStats.moveSpeed;
         }
-        else if (characterBase != null && characterBase.currentStats != null)
+        else if (statusSystem != null)
         {
-            speed = characterBase.currentStats.moveSpeed; // HSH_GhostStat이 없으면 기존 CharacterBase 스탯 사용
+            speed = statusSystem.MoveSpeed; // HSH_GhostStat이 없으면 기존 StatusSystem 스탯 사용
         }
 
         // 이동속도가 0이거나 너무 낮으면 임의로 5f 지정

@@ -32,12 +32,7 @@ public class HSH_WindTrap : MonoBehaviour
 
     private void ApplyDamage(GameObject player)
     {
-        CharacterBase cb = player.GetComponent<CharacterBase>();
-        if (cb != null)
-        {
-            cb.currentHp -= (int)damage;
-            if (cb.currentHp < 0) cb.currentHp = 0;
-        }
+
 
         HSH_BarUI[] barUIs = FindObjectsOfType<HSH_BarUI>(true);
         bool isDamaged = false;

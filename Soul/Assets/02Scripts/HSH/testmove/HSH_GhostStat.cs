@@ -13,7 +13,8 @@ public class HSH_GhostStat : MonoBehaviour
     public float currentGhostTime = 0f;
     private bool isTimerRunning = false;
     private HSH_GhostMove ghostMove;
-    private CharacterBase characterBase;
+    private HWJ_RuntimeStatusSystem statusSystem;
+
     private int originalHp;
 
     public StatData CurrentStats { get; private set; }
@@ -22,7 +23,7 @@ public class HSH_GhostStat : MonoBehaviour
     {
         InitializeStats();
         ghostMove = GetComponent<HSH_GhostMove>();
-        characterBase = GetComponent<CharacterBase>();
+        statusSystem = GetComponent<HWJ_RuntimeStatusSystem>();
     }
 
     void Update()
@@ -30,11 +31,11 @@ public class HSH_GhostStat : MonoBehaviour
         if (!isTimerRunning) return;
 
         // 무적 판정: 체력을 깎이지 않게 최대치로 유지 (완전 무적)
-        if (characterBase != null && characterBase.currentStats != null)
+        if (statusSystem != null)
         {
-            if (characterBase.currentHp < characterBase.currentStats.maxHp)
+            if (statusSystem.CurrentHp < statusSystem.MaxHp)
             {
-                characterBase.currentHp = characterBase.currentStats.maxHp;
+                statusSystem.Heal(statusSystem.MaxHp - statusSystem.CurrentHp);
             }
         }
 
@@ -51,13 +52,10 @@ public class HSH_GhostStat : MonoBehaviour
         currentGhostTime = 0f;
         isTimerRunning = true;
         
-        if (characterBase != null)
+        if (statusSystem != null)
         {
-            originalHp = characterBase.currentHp;
-            if (characterBase.currentStats != null)
-            {
-                characterBase.currentHp = characterBase.currentStats.maxHp;
-            }
+            originalHp = (int)statusSystem.CurrentHp;
+            statusSystem.Heal(statusSystem.MaxHp - statusSystem.CurrentHp);
         }
     }
 
@@ -65,9 +63,12 @@ public class HSH_GhostStat : MonoBehaviour
     {
         isTimerRunning = false;
         
-        if (characterBase != null)
+        if (statusSystem != null)
         {
-            characterBase.currentHp = originalHp;
+            if (statusSystem.CurrentHp > originalHp)
+            {
+                statusSystem.ApplyDamage(statusSystem.CurrentHp - originalHp);
+            }
         }
     }
 
@@ -111,12 +112,11 @@ public class HSH_GhostStat : MonoBehaviour
         if (dieOnTimeout)
         {
             Debug.Log("영혼 상태 유지 시간 만료: 게임 오버");
-            CharacterBase cb = GetComponent<CharacterBase>();
+            HWJ_RuntimeStatusSystem status = GetComponent<HWJ_RuntimeStatusSystem>();
             
-            if (cb != null)
+            if (status != null)
             {
-                cb.currentHp = 0;
-                cb.Die();
+                status.ApplyDamage(status.CurrentHp);
             }
             else
             {

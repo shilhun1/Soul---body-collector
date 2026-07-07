@@ -107,13 +107,7 @@ public class HSH_SpikeTrap : MonoBehaviour
 
     private void ApplyDamage(GameObject player)
     {
-        // 1. 실제 플레이어의 CharacterBase 체력도 깎습니다.
-        CharacterBase cb = player.GetComponent<CharacterBase>();
-        if (cb != null)
-        {
-            cb.currentHp -= (int)damage;
-            if (cb.currentHp < 0) cb.currentHp = 0;
-        }
+
 
         // 2. UI 체력바도 깎습니다.
         HSH_BarUI[] barUIs = FindObjectsOfType<HSH_BarUI>(true);
