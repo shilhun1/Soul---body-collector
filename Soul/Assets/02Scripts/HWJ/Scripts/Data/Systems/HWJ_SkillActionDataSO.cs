@@ -12,8 +12,16 @@ public class HWJ_SkillActionDataSO : ScriptableObject
     [SerializeField] private HWJ_WeaponType requiredWeaponType;
     [SerializeField] private float damageMultiplier = 1f;
     [SerializeField] private float range;
+    [SerializeField] private float hitRange;
     [SerializeField] private float durationSeconds;
     [SerializeField] private float cooldownSeconds;
+    [SerializeField] private float moveDistance;
+    [SerializeField] private float moveSpeed;
+    [SerializeField] private int hitCount = 1;
+    [SerializeField] private float hitIntervalSeconds;
+    [SerializeField] private string motionKey;
+    [SerializeField] private string[] motionSequenceKeys;
+    [SerializeField] private float motionStepIntervalSeconds = 0.12f;
     [SerializeField] private GameObject projectilePrefab;
     [SerializeField] private GameObject actionEffectPrefab;
 
@@ -22,10 +30,19 @@ public class HWJ_SkillActionDataSO : ScriptableObject
     public HWJ_WeaponType RequiredWeaponType => requiredWeaponType;
     public float DamageMultiplier => damageMultiplier;
     public float Range => range;
+    public float HitRange => hitRange;
     public float DurationSeconds => durationSeconds;
     public float CooldownSeconds => cooldownSeconds;
+    public float MoveDistance => moveDistance;
+    public float MoveSpeed => moveSpeed;
+    public int HitCount => hitCount;
+    public float HitIntervalSeconds => hitIntervalSeconds;
+    public string MotionKey => motionKey;
+    public string[] MotionSequenceKeys => motionSequenceKeys;
+    public float MotionStepIntervalSeconds => motionStepIntervalSeconds;
     public GameObject ProjectilePrefab => projectilePrefab;
     public GameObject ActionEffectPrefab => actionEffectPrefab;
+    public bool HasMotionSequence => motionSequenceKeys != null && motionSequenceKeys.Length > 0;
 
     /// <summary>
     /// 현재 무기로 이 스킬을 사용할 수 있는지 확인합니다.

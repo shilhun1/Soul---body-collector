@@ -10,13 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 62b1072cf898fa14b8272b23fb396e5a, type: 3}
-  m_Name: HWJ_EnemyNoCorpse_Spear_TypeData
+  m_Name: HWJ_EnemyNoCorpse_Lance_TypeData
   m_EditorClassIdentifier: Assembly-CSharp::HWJ_EnemyTypeDataSO
   objectType: 1
-  typeId: enemy_nocorpse_spear
-  displayName: Spear No-Corpse Enemy
+  typeId: enemy_nocorpse_lance
+  displayName: Lance No-Corpse Enemy
   defaultWeaponType: 0
-  description: Enemy that uses a spear but does not leave a possessable body.
+  description: Enemy that uses a lance but does not leave a possessable body.
   role:
     weaponType: 4
     isElite: 0
@@ -40,7 +40,28 @@ MonoBehaviour:
     returnToIdleDelaySeconds: 1
     stopWhenHit: 1
   skillCycle:
-    skills: []
+    skills:
+    - skillId: lance_charge_thrust
+      requiredWeaponType: 4
+      unlockLevel: 1
+      requiredSkillPoint: 0
+      startsUnlocked: 1
+      cooldownSeconds: 2
+      useIntervalSeconds: 0.9
+    - skillId: lance_thrust_combo
+      requiredWeaponType: 4
+      unlockLevel: 1
+      requiredSkillPoint: 0
+      startsUnlocked: 1
+      cooldownSeconds: 2.4
+      useIntervalSeconds: 0.9
+    - skillId: lance_finisher_thrust
+      requiredWeaponType: 4
+      unlockLevel: 1
+      requiredSkillPoint: 0
+      startsUnlocked: 1
+      cooldownSeconds: 3
+      useIntervalSeconds: 1
   possessionBody:
     canPossess: 0
     canBePossessed: 0

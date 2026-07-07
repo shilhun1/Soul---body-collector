@@ -8,6 +8,8 @@ public class HWJ_EnemyNavigationSystem : MonoBehaviour
 {
     [SerializeField] private HWJ_RootObjectDataResolver dataResolver;
     [SerializeField] private HWJ_RuntimeStatusSystem runtimeStatus;
+    [SerializeField] private HWJ_SkillActionSystem skillActionSystem;
+    [SerializeField] private HWJ_CharacterMotionSystem motionSystem;
     [SerializeField] private Rigidbody2D body;
     [SerializeField] private Transform target;
     [SerializeField] private bool autoFindPlayerTarget = true;
@@ -18,6 +20,8 @@ public class HWJ_EnemyNavigationSystem : MonoBehaviour
     [SerializeField] private float targetSearchIntervalSeconds = 0.5f;
 
     private float nextTargetSearchTime;
+    private float hitPauseEndTime;
+    private HWJ_RuntimeState previousRuntimeState = HWJ_RuntimeState.None;
 
     private void Awake()
     {
@@ -35,10 +39,30 @@ public class HWJ_EnemyNavigationSystem : MonoBehaviour
         {
             body = GetComponent<Rigidbody2D>();
         }
+
+        if (skillActionSystem == null)
+        {
+            skillActionSystem = GetComponent<HWJ_SkillActionSystem>();
+        }
+
+        if (motionSystem == null)
+        {
+            motionSystem = GetComponent<HWJ_CharacterMotionSystem>();
+        }
     }
 
     private void Update()
     {
+        if (skillActionSystem == null)
+        {
+            skillActionSystem = GetComponent<HWJ_SkillActionSystem>();
+        }
+
+        if (motionSystem == null)
+        {
+            motionSystem = GetComponent<HWJ_CharacterMotionSystem>();
+        }
+
         if (target == null && autoFindPlayerTarget && Time.time >= nextTargetSearchTime)
         {
             target = FindPlayerTarget();
@@ -54,6 +78,28 @@ public class HWJ_EnemyNavigationSystem : MonoBehaviour
         if (runtimeStatus != null && runtimeStatus.IsDead)
         {
             StopHorizontalMovement();
+            return;
+        }
+
+        UpdateHitPause(enemyData);
+
+        if (runtimeStatus != null
+            && runtimeStatus.CurrentState == HWJ_RuntimeState.Hit
+            && enemyData.State.stopWhenHit
+            && Time.time < hitPauseEndTime)
+        {
+            return;
+        }
+
+        FaceTarget();
+
+        if (skillActionSystem != null && skillActionSystem.IsNavigationBlocked)
+        {
+            if (skillActionSystem.ShouldStopNavigationMovement)
+            {
+                StopHorizontalMovement();
+            }
+
             return;
         }
 
@@ -88,6 +134,26 @@ public class HWJ_EnemyNavigationSystem : MonoBehaviour
         }
     }
 
+    private void UpdateHitPause(HWJ_EnemyTypeDataSO enemyData)
+    {
+        if (runtimeStatus == null)
+        {
+            return;
+        }
+
+        HWJ_RuntimeState currentState = runtimeStatus.CurrentState;
+
+        if (currentState == HWJ_RuntimeState.Hit && previousRuntimeState != HWJ_RuntimeState.Hit)
+        {
+            float pauseSeconds = enemyData != null && enemyData.State.returnToIdleDelaySeconds > 0f
+                ? enemyData.State.returnToIdleDelaySeconds
+                : 0.2f;
+            hitPauseEndTime = Time.time + pauseSeconds;
+        }
+
+        previousRuntimeState = currentState;
+    }
+
     /// <summary>
     /// 추적할 대상을 외부에서 지정합니다.
     /// 감지 시스템이나 스테이지 매니저가 플레이어 Transform을 넘겨줄 때 사용합니다.
@@ -95,6 +161,16 @@ public class HWJ_EnemyNavigationSystem : MonoBehaviour
     public void SetTarget(Transform target)
     {
         this.target = target;
+    }
+
+    private void FaceTarget()
+    {
+        if (target == null || motionSystem == null)
+        {
+            return;
+        }
+
+        motionSystem.FaceDirection(target.position.x - transform.position.x);
     }
 
     private void MoveTowardTarget(float moveSpeed)

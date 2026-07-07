@@ -13,13 +13,15 @@ public class HWJ_PlayerAttackSystem : MonoBehaviour
     [SerializeField] private HWJ_PossessionSystem possessionSystem;
     [SerializeField] private HWJ_PlayerInputSystem playerInput;
     [SerializeField] private HWJ_CombatSystem combatSystem;
+    [SerializeField] private HWJ_CombatExecutionSystem combatExecutionSystem;
+    [SerializeField] private HWJ_CharacterMotionSystem motionSystem;
     [SerializeField] private LayerMask attackTargetLayer;
     [SerializeField] private float minimumAttackRange = 2f;
+    [SerializeField] private int possessedSkillSlotCount = 3;
     [SerializeField] private string lastAttackResult;
     [SerializeField] private float lastDamageApplied;
 
     private float nextAttackTime;
-    private readonly Collider2D[] attackHits = new Collider2D[16];
 
     private void Awake()
     {
@@ -36,6 +38,11 @@ public class HWJ_PlayerAttackSystem : MonoBehaviour
         if (skillActionSystem == null)
         {
             skillActionSystem = GetComponent<HWJ_SkillActionSystem>();
+
+            if (skillActionSystem == null)
+            {
+                skillActionSystem = gameObject.AddComponent<HWJ_SkillActionSystem>();
+            }
         }
 
         if (soulSystem == null)
@@ -57,6 +64,16 @@ public class HWJ_PlayerAttackSystem : MonoBehaviour
         {
             combatSystem = GetComponent<HWJ_CombatSystem>();
         }
+
+        if (combatExecutionSystem == null)
+        {
+            combatExecutionSystem = GetComponent<HWJ_CombatExecutionSystem>();
+        }
+
+        if (motionSystem == null)
+        {
+            motionSystem = GetComponent<HWJ_CharacterMotionSystem>();
+        }
     }
 
     private void Update()
@@ -70,6 +87,8 @@ public class HWJ_PlayerAttackSystem : MonoBehaviour
         {
             TryBasicAttack();
         }
+
+        TryPossessedSkillSlotInputs();
     }
 
     /// <summary>
@@ -119,6 +138,51 @@ public class HWJ_PlayerAttackSystem : MonoBehaviour
         return ApplyBasicAttackDamage(playerData);
     }
 
+    /// <summary>
+    /// 빙의 상태에서 숫자키 1/2/3으로 몬스터의 스킬 목록을 직접 실행합니다.
+    /// 스킬 자체 쿨타임은 SkillActionSystem이 관리하므로 여기서는 입력과 상태 조건만 확인합니다.
+    /// </summary>
+    public bool TryPossessedSkillSlot(int slotIndex)
+    {
+        if (dataResolver == null || !dataResolver.TryGetTypeData(out HWJ_PlayerTypeDataSO playerData))
+        {
+            lastAttackResult = "Missing player type data.";
+            return false;
+        }
+
+        if (!CanAttack(playerData))
+        {
+            lastAttackResult = "Current soul state cannot use possessed skill.";
+            return false;
+        }
+
+        if (runtimeStatus != null && runtimeStatus.IsDead)
+        {
+            lastAttackResult = "Cannot use possessed skill while dead.";
+            return false;
+        }
+
+        if (possessionSystem == null
+            || !possessionSystem.TryGetPossessedSkillIdAt(slotIndex, out string skillActionId))
+        {
+            lastAttackResult = $"Missing possessed skill slot {slotIndex + 1}.";
+            return false;
+        }
+
+        if (skillActionSystem == null || !skillActionSystem.TryUseSkill(skillActionId))
+        {
+            lastAttackResult = skillActionSystem != null
+                ? skillActionSystem.LastSkillResult
+                : "Missing skill action system.";
+            return false;
+        }
+
+        runtimeStatus?.SetState(HWJ_RuntimeState.Attack);
+        lastDamageApplied = skillActionSystem.LastDamageApplied;
+        lastAttackResult = skillActionSystem.LastSkillResult;
+        return true;
+    }
+
     private bool ApplyBasicAttackDamage(HWJ_PlayerTypeDataSO playerData)
     {
         if (playerData.Attack == null)
@@ -127,61 +191,26 @@ public class HWJ_PlayerAttackSystem : MonoBehaviour
             return false;
         }
 
-        float range = Mathf.Max(minimumAttackRange, playerData.Attack.attackRange);
-        int layerMask = attackTargetLayer.value != 0 ? attackTargetLayer.value : Physics2D.AllLayers;
-        int hitCount = Physics2D.OverlapCircleNonAlloc(transform.position, range, attackHits, layerMask);
-        float outgoingDamage = combatSystem != null
-            ? combatSystem.GetOutgoingDamage()
-            : runtimeStatus != null ? runtimeStatus.AttackPower : 1f;
-        outgoingDamage = Mathf.Max(1f, outgoingDamage);
-
-        lastAttackResult = $"Attack checked {hitCount} colliders.";
         lastDamageApplied = 0f;
 
-        for (int i = 0; i < hitCount; i++)
+        if (combatExecutionSystem == null)
         {
-            Collider2D hit = attackHits[i];
-
-            if (hit == null || hit.transform.IsChildOf(transform))
-            {
-                continue;
-            }
-
-            HWJ_RootObjectDataResolver targetResolver = hit.GetComponentInParent<HWJ_RootObjectDataResolver>();
-
-            if (!CanDamageTarget(targetResolver))
-            {
-                continue;
-            }
-
-            HWJ_RuntimeStatusSystem targetStatus = targetResolver.GetComponent<HWJ_RuntimeStatusSystem>();
-
-            if (targetStatus == null || targetStatus.IsDead)
-            {
-                continue;
-            }
-
-            HWJ_CombatSystem targetCombat = targetResolver.GetComponent<HWJ_CombatSystem>();
-            float finalDamage = targetCombat != null ? targetCombat.GetReceivedDamage(outgoingDamage) : outgoingDamage;
-            targetStatus.ApplyDamage(finalDamage);
-            lastDamageApplied = finalDamage;
-            lastAttackResult = $"Damaged {targetResolver.name}.";
-            return true;
-        }
-
-        lastAttackResult = "No damageable enemy in attack range.";
-        return false;
-    }
-
-    private bool CanDamageTarget(HWJ_RootObjectDataResolver targetResolver)
-    {
-        if (targetResolver == null || targetResolver == dataResolver)
-        {
+            motionSystem?.PlayAttack(null);
+            lastAttackResult = "Attack failed: missing combat execution system.";
             return false;
         }
 
-        HWJ_ObjectType targetType = targetResolver.ObjectType;
-        return targetType == HWJ_ObjectType.Enemy || targetType == HWJ_ObjectType.Boss;
+        float range = Mathf.Max(minimumAttackRange, playerData.Attack.attackRange);
+        bool attacked = combatExecutionSystem.TryExecuteAreaAttack(range);
+        lastDamageApplied = combatExecutionSystem.LastDamageApplied;
+        lastAttackResult = combatExecutionSystem.LastExecutionResult;
+
+        if (attacked)
+        {
+            return true;
+        }
+
+        return false;
     }
 
     private bool CanAttack(HWJ_PlayerTypeDataSO playerData)
@@ -199,6 +228,25 @@ public class HWJ_PlayerAttackSystem : MonoBehaviour
         return soulSystem.CurrentState == HWJ_SoulRuntimeState.Soul
             ? playerData.State.canAttackOnSoulState
             : playerData.State.canAttackOnBodyState;
+    }
+
+    private void TryPossessedSkillSlotInputs()
+    {
+        if (playerInput == null || possessionSystem == null || !possessionSystem.HasActivePossessedBody)
+        {
+            return;
+        }
+
+        int slotCount = Mathf.Max(0, possessedSkillSlotCount);
+
+        for (int i = 0; i < slotCount; i++)
+        {
+            if (playerInput.WasSkillSlotPressedThisFrame(i))
+            {
+                TryPossessedSkillSlot(i);
+                return;
+            }
+        }
     }
 
     private string GetBasicAttackSkillActionId(HWJ_PlayerTypeDataSO playerData)

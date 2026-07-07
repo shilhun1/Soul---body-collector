@@ -9,6 +9,7 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
     [SerializeField] private HWJ_RootObjectDataResolver dataResolver;
     [SerializeField] private HWJ_PossessionSystem possessionSystem;
     [SerializeField] private HWJ_SoulSystem soulSystem;
+    [SerializeField] private HWJ_CharacterMotionSystem motionSystem;
     [SerializeField] private HWJ_RuntimeState currentState = HWJ_RuntimeState.Idle;
     [SerializeField] private float currentHp;
     [SerializeField] private float soulHp;
@@ -52,6 +53,11 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
             soulSystem = GetComponent<HWJ_SoulSystem>();
         }
 
+        if (motionSystem == null)
+        {
+            motionSystem = GetComponent<HWJ_CharacterMotionSystem>();
+        }
+
         soulHp = SoulMaxHp;
         possessedBodyHp = MaxHp;
         currentHp = GetStoredHpForActiveState();
@@ -87,6 +93,7 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
         else
         {
             SetState(HWJ_RuntimeState.Hit);
+            motionSystem?.PlayHit();
         }
     }
 
@@ -231,6 +238,7 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
         if (soulSystem == null)
         {
             SetState(HWJ_RuntimeState.Dead);
+            motionSystem?.PlayDead();
             return;
         }
 
@@ -247,5 +255,6 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
         }
 
         SetState(HWJ_RuntimeState.Dead);
+        motionSystem?.PlayDead();
     }
 }

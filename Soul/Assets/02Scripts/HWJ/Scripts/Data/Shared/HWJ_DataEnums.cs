@@ -44,7 +44,7 @@ public enum HWJ_WeaponType
     GreatSword,
     DualSword,
     Sword,
-    Spear,
+    Lance,
     Bow,
     Axe,
     Shield,

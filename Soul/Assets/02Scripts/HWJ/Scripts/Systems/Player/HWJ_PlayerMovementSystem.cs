@@ -10,6 +10,7 @@ public class HWJ_PlayerMovementSystem : MonoBehaviour
     [SerializeField] private HWJ_RuntimeStatusSystem runtimeStatus;
     [SerializeField] private HWJ_SoulSystem soulSystem;
     [SerializeField] private HWJ_PlayerInputSystem playerInput;
+    [SerializeField] private HWJ_CharacterMotionSystem motionSystem;
     [SerializeField] private Rigidbody2D body;
 
     [Header("Ground Check")]
@@ -22,9 +23,15 @@ public class HWJ_PlayerMovementSystem : MonoBehaviour
     [SerializeField] private bool phaseThroughCollidersInSoul = true;
     [SerializeField] private bool isSoulCollisionMode;
 
+    [Header("Enemy Collision")]
+    [SerializeField] private bool ignoreEnemyBodyCollision = true;
+    [SerializeField] private float enemyCollisionRefreshSeconds = 0.25f;
+
     private int usedDoubleJumpCount;
+    private int usedDashCount;
     private float dashEndTime;
     private float nextDashTime;
+    private float nextEnemyCollisionRefreshTime;
     private Vector2 moveInput;
     private float originalGravityScale;
     private bool hasOriginalGravityScale;
@@ -56,6 +63,11 @@ public class HWJ_PlayerMovementSystem : MonoBehaviour
             playerInput = GetComponent<HWJ_PlayerInputSystem>();
         }
 
+        if (motionSystem == null)
+        {
+            motionSystem = GetComponent<HWJ_CharacterMotionSystem>();
+        }
+
         if (body == null)
         {
             body = GetComponent<Rigidbody2D>();
@@ -69,6 +81,7 @@ public class HWJ_PlayerMovementSystem : MonoBehaviour
     {
         moveInput = playerInput != null ? playerInput.MoveInput : Vector2.zero;
         UpdateSoulCollisionMode();
+        UpdateEnemyCollisionIgnores();
         bool canUseBodyActions = CanUseBodyActions();
 
         if (canUseBodyActions)
@@ -79,6 +92,7 @@ public class HWJ_PlayerMovementSystem : MonoBehaviour
         if (canUseBodyActions && isGrounded)
         {
             usedDoubleJumpCount = 0;
+            ResetDashCountWhenReady();
         }
 
         if (canUseBodyActions && playerInput != null && playerInput.JumpPressedThisFrame)
@@ -95,6 +109,7 @@ public class HWJ_PlayerMovementSystem : MonoBehaviour
     private void FixedUpdate()
     {
         UpdateSoulCollisionMode();
+        UpdateEnemyCollisionIgnores();
 
         if (body == null || dataResolver == null || !dataResolver.TryGetTypeData(out HWJ_PlayerTypeDataSO playerData))
         {
@@ -113,7 +128,7 @@ public class HWJ_PlayerMovementSystem : MonoBehaviour
         switch (soulSystem.CurrentState)
         {
             case HWJ_SoulRuntimeState.Body:
-                SetGravitySuppressed(false);
+                SetGravitySuppressed(Time.time < dashEndTime);
                 MoveBody(playerData);
                 break;
             case HWJ_SoulRuntimeState.BodyToSoul:
@@ -158,6 +173,7 @@ public class HWJ_PlayerMovementSystem : MonoBehaviour
         if (isGrounded && !wasGrounded)
         {
             usedDoubleJumpCount = 0;
+            usedDashCount = 0;
         }
     }
 
@@ -183,7 +199,7 @@ public class HWJ_PlayerMovementSystem : MonoBehaviour
         {
             Collider2D hit = hits[i];
 
-            if (hit == null || IsOwnCollider(hit))
+            if (hit == null || IsOwnCollider(hit) || IsEnemyOrBossCollider(hit))
             {
                 continue;
             }
@@ -197,6 +213,18 @@ public class HWJ_PlayerMovementSystem : MonoBehaviour
     private bool IsOwnCollider(Collider2D hit)
     {
         return hit.attachedRigidbody == body || hit.transform.IsChildOf(transform);
+    }
+
+    private bool IsEnemyOrBossCollider(Collider2D hit)
+    {
+        if (hit == null)
+        {
+            return false;
+        }
+
+        HWJ_RootObjectDataResolver resolver = hit.GetComponentInParent<HWJ_RootObjectDataResolver>();
+        return resolver != null
+            && (resolver.ObjectType == HWJ_ObjectType.Enemy || resolver.ObjectType == HWJ_ObjectType.Boss);
     }
 
     private void MoveBody(HWJ_PlayerTypeDataSO playerData)
@@ -270,6 +298,7 @@ public class HWJ_PlayerMovementSystem : MonoBehaviour
         velocity.y = jumpData.jumpPower;
         body.linearVelocity = velocity;
         isGrounded = false;
+        motionSystem?.PlayJump();
     }
 
     private void ExecuteDoubleJump(HWJ_DoubleJumpData jumpData)
@@ -283,6 +312,7 @@ public class HWJ_PlayerMovementSystem : MonoBehaviour
         velocity.y = jumpData.jumpPower;
         body.linearVelocity = velocity;
         usedDoubleJumpCount++;
+        motionSystem?.PlayDoubleJump();
     }
 
     private bool CanDoubleJump(HWJ_DoubleJumpData jumpData)
@@ -309,6 +339,13 @@ public class HWJ_PlayerMovementSystem : MonoBehaviour
             return;
         }
 
+        int maxDashCount = Mathf.Max(1, playerData.Control.maxDashCount);
+
+        if (usedDashCount >= maxDashCount)
+        {
+            return;
+        }
+
         if (!isGrounded && !playerData.Control.canAirDash)
         {
             return;
@@ -316,12 +353,28 @@ public class HWJ_PlayerMovementSystem : MonoBehaviour
 
         float direction = Mathf.Abs(moveInput.x) > 0.01f ? Mathf.Sign(moveInput.x) : Mathf.Sign(transform.localScale.x);
         body.linearVelocity = new Vector2(direction * playerData.Control.dashSpeed, 0f);
+        SetGravitySuppressed(true);
         float dashDuration = playerData.Control.dashDuration > 0f
             ? playerData.Control.dashDuration
             : playerData.Control.dashDistance / Mathf.Max(0.01f, playerData.Control.dashSpeed);
 
         dashEndTime = Time.time + dashDuration;
-        nextDashTime = Time.time + playerData.Control.dashCooldown;
+        usedDashCount++;
+        float nextDashDelay = usedDashCount >= maxDashCount
+            ? playerData.Control.dashCooldown
+            : playerData.Control.dashStepCooldown;
+        nextDashTime = Time.time + Mathf.Max(0f, nextDashDelay);
+        motionSystem?.PlayDash();
+    }
+
+    private void ResetDashCountWhenReady()
+    {
+        if (Time.time < dashEndTime || Time.time < nextDashTime)
+        {
+            return;
+        }
+
+        usedDashCount = 0;
     }
 
     private void StopMovement(bool suppressGravity = false)
@@ -384,6 +437,71 @@ public class HWJ_PlayerMovementSystem : MonoBehaviour
         for (int i = 0; i < ownedColliders.Length; i++)
         {
             originalColliderTriggerStates[i] = ownedColliders[i] != null && ownedColliders[i].isTrigger;
+        }
+    }
+
+    private void UpdateEnemyCollisionIgnores()
+    {
+        if (!ignoreEnemyBodyCollision || Time.time < nextEnemyCollisionRefreshTime)
+        {
+            return;
+        }
+
+        nextEnemyCollisionRefreshTime = Time.time + Mathf.Max(0.02f, enemyCollisionRefreshSeconds);
+
+        if (ownedColliders == null || ownedColliders.Length == 0)
+        {
+            CacheOwnedColliders();
+        }
+
+        HWJ_RootObjectDataResolver[] resolvers = FindObjectsByType<HWJ_RootObjectDataResolver>(
+            FindObjectsInactive.Exclude,
+            FindObjectsSortMode.None);
+
+        for (int i = 0; i < resolvers.Length; i++)
+        {
+            HWJ_RootObjectDataResolver resolver = resolvers[i];
+
+            if (resolver == null
+                || resolver == dataResolver
+                || (resolver.ObjectType != HWJ_ObjectType.Enemy && resolver.ObjectType != HWJ_ObjectType.Boss))
+            {
+                continue;
+            }
+
+            IgnoreCollisionWithResolver(resolver);
+        }
+    }
+
+    private void IgnoreCollisionWithResolver(HWJ_RootObjectDataResolver resolver)
+    {
+        if (resolver == null || ownedColliders == null)
+        {
+            return;
+        }
+
+        Collider2D[] targetColliders = resolver.GetComponentsInChildren<Collider2D>();
+
+        for (int i = 0; i < ownedColliders.Length; i++)
+        {
+            Collider2D ownedCollider = ownedColliders[i];
+
+            if (ownedCollider == null)
+            {
+                continue;
+            }
+
+            for (int j = 0; j < targetColliders.Length; j++)
+            {
+                Collider2D targetCollider = targetColliders[j];
+
+                if (targetCollider == null || targetCollider == ownedCollider)
+                {
+                    continue;
+                }
+
+                Physics2D.IgnoreCollision(ownedCollider, targetCollider, true);
+            }
         }
     }
 
