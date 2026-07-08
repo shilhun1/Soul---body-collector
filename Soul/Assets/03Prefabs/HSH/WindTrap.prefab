@@ -109,6 +109,10 @@ MonoBehaviour:
   windSpeed: 5
   windLifeTime: 5
   windDirection: {x: -1, y: 0}
+  isSpawner: 1
+  windPrefab: {fileID: 0}
+  fireInterval: 2
+  detectDistance: 15
 --- !u!61 &2464667397903888713
 BoxCollider2D:
   m_ObjectHideFlags: 0
