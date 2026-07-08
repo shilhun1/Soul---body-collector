@@ -942,7 +942,7 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 5134198603967721769, guid: 91ff14a40a15ce94886bd916cb6162fa, type: 3}
   m_PrefabInstance: {fileID: 882108689}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 621302860}
+  m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c151a82ea01085347b2deb833cfae2d0, type: 3}
@@ -1369,26 +1369,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3300848981017519991, guid: 4ad199e7efbe0ac4ab04c10debd10ac1, type: 3}
   m_PrefabInstance: {fileID: 93510673}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &621302860 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 5933823600460501314, guid: 91ff14a40a15ce94886bd916cb6162fa, type: 3}
-  m_PrefabInstance: {fileID: 882108689}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &621302861
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 621302860}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c9efa8fe615107847923637237cb22ce, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::HSH_CameraViewer
-  captureCamera: {fileID: 0}
-  viewSize: {x: 320, y: 180}
-  padding: {x: 20, y: -20}
 --- !u!4 &624422500 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 269572086994366749, guid: 11aa11b4e8a4e584484790da651f1022, type: 3}
@@ -2144,10 +2124,7 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 3451591900561950130, guid: 91ff14a40a15ce94886bd916cb6162fa, type: 3}
       insertIndex: -1
       addedObject: {fileID: 146243348}
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 5933823600460501314, guid: 91ff14a40a15ce94886bd916cb6162fa, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 621302861}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 91ff14a40a15ce94886bd916cb6162fa, type: 3}
 --- !u!4 &890786939 stripped
 Transform:

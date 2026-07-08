@@ -1594,11 +1594,11 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 269572086994366749, guid: 11aa11b4e8a4e584484790da651f1022, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 21.45
+      value: 21.26
       objectReference: {fileID: 0}
     - target: {fileID: 269572086994366749, guid: 11aa11b4e8a4e584484790da651f1022, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -3.27
+      value: -3.46
       objectReference: {fileID: 0}
     - target: {fileID: 269572086994366749, guid: 11aa11b4e8a4e584484790da651f1022, type: 3}
       propertyPath: m_LocalPosition.z
@@ -1636,6 +1636,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: WindTrap
       objectReference: {fileID: 0}
+    - target: {fileID: 6775197164208875304, guid: 11aa11b4e8a4e584484790da651f1022, type: 3}
+      propertyPath: windPrefab
+      value: 
+      objectReference: {fileID: 4610896521491279453, guid: 6337c1f1b4a067247b74c2ba4db8c915, type: 3}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

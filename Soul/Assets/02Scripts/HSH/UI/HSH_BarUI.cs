@@ -111,6 +111,9 @@ public class HSH_BarUI : MonoBehaviour
             if(currentType == BarType.HP){
                 statusSystem.ApplyDamage(amount);
             }
+            if(currentType == BarType.GhostHP){
+                statusSystem.ApplyDamage(amount);
+            }
             
         }
         else
@@ -155,9 +158,13 @@ public class HSH_BarUI : MonoBehaviour
         else if(currentType == BarType.GhostHP && currentValue <= 0 && temp == true){
             
             currentValue = 100;
-            statusSystem.Heal(100);
-
+            if (statusSystem != null)
+            {
+                statusSystem.Heal(100);
+            }
+            Debug.Log("temp  true");
             temp = false;
+            Debug.Log("temp  false");
             
         }
         else if (currentType == BarType.GhostHP && currentValue <= 0 && maxValue > 0)
