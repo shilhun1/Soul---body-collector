@@ -22,6 +22,9 @@ public class HSH_trap : MonoBehaviour
     public float windSpeed = 5f; // 바람 이동 속도
     public float windLifeTime = 5f; // 생성 후 스스로 사라지는 시간
     public Vector2 windDirection = Vector2.left; // 바람이 부는 방향 (-1, 0 이면 왼쪽)
+    public float windDetectDistance = 15f; // 바람 감지 거리
+
+    private bool isWindActivated = false; // 바람 함정 발동 여부
 
     private void Start()
     {
@@ -36,8 +39,7 @@ public class HSH_trap : MonoBehaviour
         }
         else if (trapType == TrapType.WindX)
         {
-            // 바람 함정은 맵 밖으로 영원히 날아가는 것을 방지하기 위해 일정 시간 뒤 폭파시킵니다.
-            Destroy(gameObject, windLifeTime);
+            // 시작 시에는 삭제하지 않고, 발동될 때 삭제 예약을 합니다.
         }
     }
 
@@ -45,8 +47,27 @@ public class HSH_trap : MonoBehaviour
     {
         if (trapType == TrapType.WindX)
         {
-            // 바람 함정일 경우 매 프레임 지정된 방향(주로 X축)으로 날아갑니다.
-            transform.Translate(windDirection.normalized * windSpeed * Time.deltaTime);
+            if (!isWindActivated)
+            {
+                // 발동 전: 설정된 방향으로 Ray를 쏴서 플레이어 감지
+                RaycastHit2D[] hits = Physics2D.RaycastAll(transform.position, windDirection, windDetectDistance);
+
+                foreach (var hit in hits)
+                {
+                    if (hit.collider.CompareTag("Player"))
+                    {
+                        isWindActivated = true;
+                        // 발동된 시점부터 일정 시간 뒤 폭파시킵니다.
+                        Destroy(gameObject, windLifeTime);
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                // 바람 함정일 경우 매 프레임 지정된 방향(주로 X축)으로 날아갑니다.
+                transform.Translate(windDirection.normalized * windSpeed * Time.deltaTime);
+            }
         }
     }
 
@@ -107,6 +128,16 @@ public class HSH_trap : MonoBehaviour
         else
         {
             Debug.LogWarning("[함정] 씬에 HSH_BarUI가 없어서 데미지가 안 들어갑니다.");
+        }
+    }
+
+    private void OnDrawGizmos()
+    {
+        if (trapType == TrapType.WindX)
+        {
+            // 게임 실행 전에도 씬 뷰에서 감지 거리를 빨간 선으로 항시 확인할 수 있습니다.
+            Gizmos.color = Color.red;
+            Gizmos.DrawRay(transform.position, windDirection.normalized * windDetectDistance);
         }
     }
 }

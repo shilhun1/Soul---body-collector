@@ -31,6 +31,7 @@ public class HSH_BarUI : MonoBehaviour
     public Color expColor = Color.yellow;
 
     [SerializeField] private HWJ_RuntimeStatusSystem statusSystem;
+    private bool temp = true;
 
     private void Start()
     {
@@ -134,6 +135,7 @@ public class HSH_BarUI : MonoBehaviour
             {
                 currentValue = statusSystem.CurrentHp;
                 maxValue = statusSystem.MaxHp;
+                
             }
             // TODO: 나중에 경험치(Exp) 시스템이 추가된다면 이 곳 주석을 해제하고 연동하세요.
             // else if (currentType == BarType.Exp)
@@ -150,8 +152,17 @@ public class HSH_BarUI : MonoBehaviour
             UpdateColor();
             Debug.Log("HP가 모두 닳아서 GhostHP 타입으로 변경되었습니다!");
         }
+        else if(currentType == BarType.GhostHP && currentValue <= 0 && temp == true){
+            
+            currentValue = 100;
+            statusSystem.Heal(100);
+
+            temp = false;
+            
+        }
         else if (currentType == BarType.GhostHP && currentValue <= 0 && maxValue > 0)
         {
+            
             if (!hasTriggeredGameOver)
             {
                 hasTriggeredGameOver = true;
