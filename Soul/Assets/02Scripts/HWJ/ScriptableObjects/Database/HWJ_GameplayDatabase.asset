@@ -23,6 +23,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: dd000000000000000000000000000003, type: 2}
   - {fileID: 11400000, guid: dd000000000000000000000000000004, type: 2}
   - {fileID: 11400000, guid: dd000000000000000000000000000005, type: 2}
+  - {fileID: 11400000, guid: b1f0a5c00123456789abcdef00000001, type: 2}
   objectPoolData: {fileID: 0}
   spawnTables: []
   statOrbs: []
@@ -37,6 +38,11 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 457efcc5bac94880998e13e03598925f, type: 2}
   - {fileID: 11400000, guid: 865e14be67024091941d0d1c7b1918d6, type: 2}
   - {fileID: 11400000, guid: 5f49bad13cdb468eb1628b795442af64, type: 2}
-  bossPatterns: []
+  bossPatterns:
+  - {fileID: 11400000, guid: 5df2a78a508e4727a39aacd980dd1105, type: 2}
+  - {fileID: 11400000, guid: 4a03edc3fa9f4886a3cc244588bb1104, type: 2}
+  - {fileID: 11400000, guid: 1b7d52e2b65c4e6db7f0c2f52dcf1101, type: 2}
+  - {fileID: 11400000, guid: 2d8a75951d154ed6a87dc8cf25ca1102, type: 2}
+  - {fileID: 11400000, guid: 3c64f0e7a8a44ab2bb2f903da3ef1103, type: 2}
   healthBars: []
   gameOverWindows: []

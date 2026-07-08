@@ -15,6 +15,12 @@ public class HWJ_SkillActionDataSO : ScriptableObject
     [SerializeField] private float hitRange;
     [SerializeField] private float durationSeconds;
     [SerializeField] private float cooldownSeconds;
+    [SerializeField] private float hitStartSeconds = 0.08f;
+    [SerializeField] private float hitActiveSeconds = 0.08f;
+    [SerializeField] private float recoverySeconds = 0.18f;
+    [SerializeField] private float movementLockSeconds = 0.18f;
+    [SerializeField] private float dashCancelStartSeconds = 0.12f;
+    [SerializeField] private bool canDashCancel = true;
     [SerializeField] private float moveDistance;
     [SerializeField] private float moveSpeed;
     [SerializeField] private int hitCount = 1;
@@ -33,6 +39,12 @@ public class HWJ_SkillActionDataSO : ScriptableObject
     public float HitRange => hitRange;
     public float DurationSeconds => durationSeconds;
     public float CooldownSeconds => cooldownSeconds;
+    public float HitStartSeconds => hitStartSeconds;
+    public float HitActiveSeconds => hitActiveSeconds;
+    public float RecoverySeconds => recoverySeconds;
+    public float MovementLockSeconds => movementLockSeconds;
+    public float DashCancelStartSeconds => dashCancelStartSeconds;
+    public bool CanDashCancel => canDashCancel;
     public float MoveDistance => moveDistance;
     public float MoveSpeed => moveSpeed;
     public int HitCount => hitCount;

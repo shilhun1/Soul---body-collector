@@ -11,6 +11,7 @@ public class HWJ_EnemyAttackSystem : MonoBehaviour
     [SerializeField] private HWJ_RuntimeStatusSystem runtimeStatus;
     [SerializeField] private HWJ_CombatExecutionSystem combatExecutionSystem;
     [SerializeField] private HWJ_SkillActionSystem skillActionSystem;
+    [SerializeField] private HWJ_MonsterAISystem monsterAI;
     [SerializeField] private Transform target;
     [SerializeField] private bool autoFindPlayerTarget = true;
     [SerializeField] private bool attackOnlyBodyState = true;
@@ -40,6 +41,16 @@ public class HWJ_EnemyAttackSystem : MonoBehaviour
 
     private void Update()
     {
+        if (monsterAI == null)
+        {
+            monsterAI = GetComponent<HWJ_MonsterAISystem>();
+        }
+
+        if (monsterAI != null && monsterAI.DrivesBehavior)
+        {
+            return;
+        }
+
         if (target == null && autoFindPlayerTarget && Time.time >= nextTargetSearchTime)
         {
             target = FindPlayerTarget();
@@ -68,6 +79,12 @@ public class HWJ_EnemyAttackSystem : MonoBehaviour
         if (runtimeStatus != null && runtimeStatus.CurrentState == HWJ_RuntimeState.Hit)
         {
             lastAttackResult = "Attack failed: enemy is hit.";
+            return false;
+        }
+
+        if (runtimeStatus != null && !runtimeStatus.CanAttack)
+        {
+            lastAttackResult = "Attack failed: action locked.";
             return false;
         }
 
@@ -556,6 +573,11 @@ public class HWJ_EnemyAttackSystem : MonoBehaviour
                 skillActionSystem = gameObject.AddComponent<HWJ_SkillActionSystem>();
             }
         }
+
+        if (monsterAI == null)
+        {
+            monsterAI = GetComponent<HWJ_MonsterAISystem>();
+        }
     }
 
     private void OnDrawGizmosSelected()
@@ -618,6 +640,22 @@ internal class HWJ_SkillWarningIndicator : MonoBehaviour
         return indicator;
     }
 
+    public static HWJ_SkillWarningIndicator ShowRectangle(
+        Vector3 center,
+        Vector2 size,
+        float durationSeconds,
+        Color warningColor,
+        float lineWidth)
+    {
+        GameObject indicatorObject = new GameObject(WarningObjectName);
+        indicatorObject.transform.position = center;
+
+        HWJ_SkillWarningIndicator indicator = indicatorObject.AddComponent<HWJ_SkillWarningIndicator>();
+        indicator.Initialize(durationSeconds, warningColor, lineWidth);
+        indicator.DrawRectangle(size);
+        return indicator;
+    }
+
     public static HWJ_SkillWarningIndicator ShowForwardArc(
         Vector3 center,
         float direction,
@@ -676,6 +714,19 @@ internal class HWJ_SkillWarningIndicator : MonoBehaviour
         lineRenderer.endColor = warningColor;
         lineRenderer.material = GetSharedLineMaterial();
         lineRenderer.sortingOrder = 100;
+    }
+
+    private void DrawRectangle(Vector2 size)
+    {
+        float halfWidth = Mathf.Max(0.1f, size.x * 0.5f);
+        float halfHeight = Mathf.Max(0.1f, size.y * 0.5f);
+
+        lineRenderer.loop = true;
+        lineRenderer.positionCount = 4;
+        lineRenderer.SetPosition(0, new Vector3(-halfWidth, -halfHeight, 0f));
+        lineRenderer.SetPosition(1, new Vector3(-halfWidth, halfHeight, 0f));
+        lineRenderer.SetPosition(2, new Vector3(halfWidth, halfHeight, 0f));
+        lineRenderer.SetPosition(3, new Vector3(halfWidth, -halfHeight, 0f));
     }
 
     private void DrawCircle(float radius)

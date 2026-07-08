@@ -7,8 +7,13 @@ using System;
 [Serializable]
 public class HWJ_ControlData
 {
-    public float acceleration;
-    public float deceleration;
+    public float acceleration = 70f;
+    public float deceleration = 80f;
+    public float airAcceleration = 45f;
+    public float airDeceleration = 35f;
+    public float coyoteTimeSeconds = 0.1f;
+    public float maxFallSpeed = 24f;
+    public float jumpCutMultiplier = 0.65f;
     public HWJ_NormalJumpData normalJump = new HWJ_NormalJumpData();
     public HWJ_DoubleJumpData doubleJump = new HWJ_DoubleJumpData();
     public float dashDistance = 9f;
@@ -21,6 +26,9 @@ public class HWJ_ControlData
     public float fallGravityMultiplier = 1.5f;
     public float dashInvincibleSeconds = 0.16f;
     public float dashRecoverySeconds;
+    public float dropThroughSeconds = 0.25f;
+    public float wallCheckDistance = 0.08f;
+    public float cornerNudgeDistance = 0.08f;
     public bool canFreeFly;
 }
 
@@ -50,6 +58,12 @@ public class HWJ_PlayerAttackData
     public float attackIntervalSeconds = 0.3f;
     public float comboResetSeconds = 0.8f;
     public string basicAttackSkillActionId;
+    public float hitStartSeconds = 0.08f;
+    public float hitActiveSeconds = 0.08f;
+    public float recoverySeconds = 0.18f;
+    public float movementLockSeconds = 0.18f;
+    public float dashCancelStartSeconds = 0.12f;
+    public bool canDashCancel = true;
 }
 
 /// <summary>

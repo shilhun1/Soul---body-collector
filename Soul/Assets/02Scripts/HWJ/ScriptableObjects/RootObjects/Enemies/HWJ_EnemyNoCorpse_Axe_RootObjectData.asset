@@ -36,7 +36,7 @@ MonoBehaviour:
     baseDamage: 5
     criticalChance: 0
     criticalMultiplier: 1.5
-    knockbackPower: 0
+    knockbackPower: 7
     hitStunSeconds: 0
   receivedDamage:
     damageMultiplier: 1

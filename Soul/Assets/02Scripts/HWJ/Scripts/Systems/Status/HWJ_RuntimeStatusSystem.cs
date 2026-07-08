@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -9,12 +10,21 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
     [SerializeField] private HWJ_RootObjectDataResolver dataResolver;
     [SerializeField] private HWJ_PossessionSystem possessionSystem;
     [SerializeField] private HWJ_SoulSystem soulSystem;
+    [SerializeField] private HWJ_BodyDecaySystem bodyDecaySystem;
     [SerializeField] private HWJ_CharacterMotionSystem motionSystem;
+    [SerializeField] private HWJ_BossBrainSystem bossBrain;
     [SerializeField] private HWJ_RuntimeState currentState = HWJ_RuntimeState.Idle;
     [SerializeField] private float currentHp;
     [SerializeField] private float soulHp;
     [SerializeField] private float possessedBodyHp;
+    [SerializeField] private float moveLockEndTime;
+    [SerializeField] private float attackLockEndTime;
+    [SerializeField] private float dashLockEndTime;
+    [SerializeField] private float hitStunEndTime;
+    [SerializeField] private float invincibleEndTime;
+    [SerializeField] private float hitReactionImmuneEndTime;
 
+    private readonly Dictionary<int, float> nextDamageTimesBySource = new Dictionary<int, float>();
     private float maxHpBonus;
     private float moveSpeedBonus;
     private float attackPowerBonus;
@@ -32,6 +42,15 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
     public float Defense => GetBaseStatusValue(status => status.defense) + defenseBonus;
     public float AttackSpeed => GetBaseStatusValue(status => status.attackSpeed) + attackSpeedBonus;
     public bool UsesHp => MaxHp > 0f;
+    public bool IsHitStunned => Time.time < hitStunEndTime;
+    public bool IsTemporarilyInvincible => Time.time < invincibleEndTime;
+    public bool IsHitReactionImmune => Time.time < hitReactionImmuneEndTime;
+    public bool HasSuperArmor => HasDataSuperArmor() || (bossBrain != null && bossBrain.HasSuperArmor);
+    public bool ShouldIgnoreKnockback => HasSuperArmor || IsHitReactionImmune || ShouldDataIgnoreKnockback();
+    public bool CanMove => !IsDead && Time.time >= moveLockEndTime && !IsHitStunned;
+    public bool CanAttack => !IsDead && Time.time >= attackLockEndTime && !IsHitStunned;
+    public bool CanDash => !IsDead && Time.time >= dashLockEndTime && !IsHitStunned;
+    public float KnockbackScale => 1f / Mathf.Max(0.01f, GetKnockbackWeight());
     public bool IsDead => currentState == HWJ_RuntimeState.Dead
         || (soulSystem != null && soulSystem.CurrentState == HWJ_SoulRuntimeState.Dead)
         || (soulSystem == null && UsesHp && currentHp <= 0f);
@@ -53,9 +72,19 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
             soulSystem = GetComponent<HWJ_SoulSystem>();
         }
 
+        if (bodyDecaySystem == null)
+        {
+            bodyDecaySystem = GetComponent<HWJ_BodyDecaySystem>();
+        }
+
         if (motionSystem == null)
         {
             motionSystem = GetComponent<HWJ_CharacterMotionSystem>();
+        }
+
+        if (bossBrain == null)
+        {
+            bossBrain = GetComponent<HWJ_BossBrainSystem>();
         }
 
         soulHp = SoulMaxHp;
@@ -72,19 +101,88 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
         currentState = state;
     }
 
+    public void LockMovement(float seconds)
+    {
+        moveLockEndTime = Mathf.Max(moveLockEndTime, Time.time + Mathf.Max(0f, seconds));
+    }
+
+    public void LockAttack(float seconds)
+    {
+        attackLockEndTime = Mathf.Max(attackLockEndTime, Time.time + Mathf.Max(0f, seconds));
+    }
+
+    public void LockDash(float seconds)
+    {
+        dashLockEndTime = Mathf.Max(dashLockEndTime, Time.time + Mathf.Max(0f, seconds));
+    }
+
+    public void LockControl(float seconds)
+    {
+        LockMovement(seconds);
+        LockAttack(seconds);
+        LockDash(seconds);
+    }
+
+    public void BeginTimedAttackAction(
+        float totalSeconds,
+        float movementLockSeconds,
+        float dashCancelStartSeconds,
+        bool canDashCancel)
+    {
+        float total = Mathf.Max(0f, totalSeconds);
+        LockAttack(total);
+        LockMovement(movementLockSeconds > 0f ? movementLockSeconds : total);
+        LockDash(canDashCancel ? Mathf.Max(0f, dashCancelStartSeconds) : total);
+    }
+
+    public void CancelAttackAction()
+    {
+        attackLockEndTime = Mathf.Min(attackLockEndTime, Time.time);
+    }
+
+    public void GrantInvincibility(float seconds)
+    {
+        invincibleEndTime = Mathf.Max(invincibleEndTime, Time.time + Mathf.Max(0f, seconds));
+    }
+
+    public bool CanReceiveHitFrom(Component source)
+    {
+        if (IsDead || IsTemporarilyInvincible || IsDataInvincible())
+        {
+            return false;
+        }
+
+        int sourceId = source != null ? source.GetInstanceID() : 0;
+        return sourceId == 0
+            || !nextDamageTimesBySource.TryGetValue(sourceId, out float nextDamageTime)
+            || Time.time >= nextDamageTime;
+    }
+
     /// <summary>
     /// 피해를 적용합니다.
     /// 플레이어는 빙의 상태 HP가 0이면 영혼 상태가 되고, 영혼 상태 HP가 0이면 게임오버 상태가 됩니다.
     /// </summary>
     public void ApplyDamage(float damage)
     {
-        if (IsDead)
+        ApplyDamage(damage, null, null);
+    }
+
+    public void ApplyDamage(float damage, Component source, HWJ_DamageData sourceDamage)
+    {
+        if (IsDead || damage <= 0f || !CanReceiveHitFrom(source))
         {
+            return;
+        }
+
+        if (TryApplyPossessedBodyDecayDamage(damage, source, sourceDamage))
+        {
+            SavePlayerRuntimeSnapshotIfOwner();
             return;
         }
 
         currentHp = Mathf.Max(0f, currentHp - damage);
         CacheCurrentHpForActiveState();
+        ApplyPostHitTimers(source, sourceDamage);
 
         if (currentHp <= 0f)
         {
@@ -92,9 +190,10 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
         }
         else
         {
-            SetState(HWJ_RuntimeState.Hit);
-            motionSystem?.PlayHit();
+            ApplyHitReaction(damage, sourceDamage);
         }
+
+        SavePlayerRuntimeSnapshotIfOwner();
     }
 
     /// <summary>
@@ -135,6 +234,30 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
         float soulMaxHp = SoulMaxHp;
         soulHp = refillToMax ? soulMaxHp : Mathf.Min(soulHp, soulMaxHp);
         currentHp = soulHp;
+    }
+
+    public void RestoreHpSnapshot(float restoredCurrentHp, float restoredSoulHp, float restoredPossessedBodyHp)
+    {
+        float bodyMaxHp = Mathf.Max(0f, MaxHp);
+        float soulMaxHp = Mathf.Max(0f, SoulMaxHp);
+
+        soulHp = soulMaxHp > 0f ? Mathf.Clamp(restoredSoulHp, 0f, soulMaxHp) : 0f;
+        possessedBodyHp = bodyMaxHp > 0f ? Mathf.Clamp(restoredPossessedBodyHp, 0f, bodyMaxHp) : 0f;
+
+        if (soulSystem == null)
+        {
+            currentHp = bodyMaxHp > 0f ? Mathf.Clamp(restoredCurrentHp, 0f, bodyMaxHp) : 0f;
+            return;
+        }
+
+        if (soulSystem.CurrentState == HWJ_SoulRuntimeState.Soul)
+        {
+            currentHp = soulHp;
+            return;
+        }
+
+        currentHp = bodyMaxHp > 0f ? Mathf.Clamp(restoredCurrentHp, 0f, bodyMaxHp) : 0f;
+        possessedBodyHp = currentHp;
     }
 
     /// <summary>
@@ -208,6 +331,124 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
         return selector(dataResolver.Status);
     }
 
+    private HWJ_ReceivedDamageData GetReceivedDamageData()
+    {
+        if (possessionSystem != null
+            && possessionSystem.TryGetPossessedReceivedDamage(out HWJ_ReceivedDamageData possessedReceivedDamage))
+        {
+            return possessedReceivedDamage;
+        }
+
+        return dataResolver != null ? dataResolver.ReceivedDamage : null;
+    }
+
+    private bool IsDataInvincible()
+    {
+        HWJ_ReceivedDamageData receivedDamage = GetReceivedDamageData();
+        return receivedDamage != null && receivedDamage.isInvincible;
+    }
+
+    private bool HasDataSuperArmor()
+    {
+        HWJ_ReceivedDamageData receivedDamage = GetReceivedDamageData();
+
+        if (receivedDamage != null && receivedDamage.hasSuperArmor)
+        {
+            return true;
+        }
+
+        return dataResolver != null
+            && dataResolver.TryGetTypeData(out HWJ_EnemyTypeDataSO enemyData)
+            && enemyData.State != null
+            && enemyData.State.hasSuperArmor;
+    }
+
+    private bool ShouldDataIgnoreKnockback()
+    {
+        HWJ_ReceivedDamageData receivedDamage = GetReceivedDamageData();
+        return receivedDamage != null && receivedDamage.ignoreKnockback;
+    }
+
+    private float GetKnockbackWeight()
+    {
+        HWJ_StatusData status = GetStatusDataForWeight();
+        HWJ_ReceivedDamageData receivedDamage = GetReceivedDamageData();
+        float bodyWeight = status != null && status.bodyWeight > 0f ? status.bodyWeight : 1f;
+        float reactionWeight = receivedDamage != null && receivedDamage.knockbackWeightMultiplier > 0f
+            ? receivedDamage.knockbackWeightMultiplier
+            : 1f;
+        return bodyWeight * reactionWeight;
+    }
+
+    private HWJ_StatusData GetStatusDataForWeight()
+    {
+        if (possessionSystem != null && possessionSystem.TryGetPossessedStatus(out HWJ_StatusData possessedStatus))
+        {
+            return possessedStatus;
+        }
+
+        return dataResolver != null ? dataResolver.Status : null;
+    }
+
+    private float GetHitStunSeconds(HWJ_DamageData sourceDamage)
+    {
+        if (IsHitReactionImmune)
+        {
+            return 0f;
+        }
+
+        HWJ_ReceivedDamageData receivedDamage = GetReceivedDamageData();
+
+        if (receivedDamage != null && receivedDamage.ignoreHitStun)
+        {
+            return 0f;
+        }
+
+        if (dataResolver != null
+            && dataResolver.TryGetTypeData(out HWJ_EnemyTypeDataSO enemyData)
+            && enemyData.State != null
+            && enemyData.State.immuneToHitStun)
+        {
+            return 0f;
+        }
+
+        if (sourceDamage != null && sourceDamage.hitStunSeconds > 0f)
+        {
+            return sourceDamage.hitStunSeconds;
+        }
+
+        return receivedDamage != null ? Mathf.Max(0f, receivedDamage.hitStunSeconds) : 0f;
+    }
+
+    private void ApplyPostHitTimers(Component source, HWJ_DamageData sourceDamage)
+    {
+        HWJ_ReceivedDamageData receivedDamage = GetReceivedDamageData();
+
+        if (receivedDamage != null)
+        {
+            GrantInvincibility(receivedDamage.invincibleSecondsAfterHit);
+            hitReactionImmuneEndTime = Mathf.Max(
+                hitReactionImmuneEndTime,
+                Time.time + Mathf.Max(0f, receivedDamage.hitReactionImmuneSeconds));
+        }
+
+        int sourceId = source != null ? source.GetInstanceID() : 0;
+
+        if (sourceId == 0)
+        {
+            return;
+        }
+
+        float cooldownSeconds = sourceDamage != null
+            ? Mathf.Max(0f, sourceDamage.sameTargetHitCooldownSeconds)
+            : 0f;
+
+        if (cooldownSeconds > 0f)
+        {
+            nextDamageTimesBySource[sourceId] = Time.time + cooldownSeconds;
+        }
+    }
+
     private float GetOwnerBaseStatusValue(System.Func<HWJ_StatusData, float> selector)
     {
         if (dataResolver == null || dataResolver.Status == null)
@@ -231,6 +472,57 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
         }
 
         return soulHp;
+    }
+
+    private bool TryApplyPossessedBodyDecayDamage(float damage, Component source, HWJ_DamageData sourceDamage)
+    {
+        if (soulSystem == null
+            || soulSystem.CurrentState != HWJ_SoulRuntimeState.Body
+            || possessionSystem == null
+            || !possessionSystem.HasActivePossessedBody
+            || bodyDecaySystem == null)
+        {
+            return false;
+        }
+
+        ApplyPostHitTimers(source, sourceDamage);
+        bodyDecaySystem.ApplyHitDecayPenalty(damage);
+
+        if (soulSystem.CurrentState == HWJ_SoulRuntimeState.Body)
+        {
+            ApplyHitReaction(damage, sourceDamage);
+        }
+
+        return true;
+    }
+
+    private void ApplyHitReaction(float damage, HWJ_DamageData sourceDamage)
+    {
+        bossBrain?.NotifyDamageTaken(damage);
+
+        if (HasSuperArmor)
+        {
+            return;
+        }
+
+        float hitStunSeconds = GetHitStunSeconds(sourceDamage);
+
+        if (hitStunSeconds > 0f)
+        {
+            hitStunEndTime = Mathf.Max(hitStunEndTime, Time.time + hitStunSeconds);
+            LockControl(hitStunSeconds);
+        }
+
+        SetState(HWJ_RuntimeState.Hit);
+        motionSystem?.PlayHit();
+    }
+
+    private void SavePlayerRuntimeSnapshotIfOwner()
+    {
+        if (HWJ_GameAccess.HasManager && HWJ_GameAccess.Manager.PlayerStatus == this)
+        {
+            HWJ_GameAccess.Manager.SavePlayerRuntimeSnapshot();
+        }
     }
 
     private void HandleEmptyHp()

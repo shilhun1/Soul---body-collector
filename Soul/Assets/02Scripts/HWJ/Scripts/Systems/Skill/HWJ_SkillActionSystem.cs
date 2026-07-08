@@ -13,6 +13,7 @@ public class HWJ_SkillActionSystem : MonoBehaviour
     private const float MinimumDashSpeed = 15f;
 
     [SerializeField] private HWJ_RootObjectDataResolver dataResolver;
+    [SerializeField] private HWJ_RuntimeStatusSystem runtimeStatus;
     [SerializeField] private HWJ_CombatSystem combatSystem;
     [SerializeField] private HWJ_CombatExecutionSystem combatExecutionSystem;
     [SerializeField] private HWJ_PossessionSystem possessionSystem;
@@ -28,6 +29,7 @@ public class HWJ_SkillActionSystem : MonoBehaviour
     private Coroutine movementRoutine;
     private Coroutine motionRoutine;
     private Coroutine projectileRoutine;
+    private Coroutine actionRoutine;
     private float navigationBlockEndTime;
     private bool skillMovementControlsVelocity;
 
@@ -121,6 +123,14 @@ public class HWJ_SkillActionSystem : MonoBehaviour
             return false;
         }
 
+        if (runtimeStatus != null
+            && skillAction.ActionType != HWJ_SkillActionType.Dash
+            && (!runtimeStatus.CanAttack || runtimeStatus.IsHitStunned))
+        {
+            lastSkillResult = $"Skill failed: {skillAction.SkillActionId} action locked.";
+            return false;
+        }
+
         if (!skillAction.CanUseWithWeapon(GetCurrentWeaponType()))
         {
             lastSkillResult = $"Skill failed: {skillAction.SkillActionId} weapon mismatch.";
@@ -137,7 +147,11 @@ public class HWJ_SkillActionSystem : MonoBehaviour
             ? cooldownOverride
             : skillAction.CooldownSeconds;
 
-        nextUseTimes[skillAction.SkillActionId] = Time.time + Mathf.Max(0f, cooldownSeconds);
+        if (!string.IsNullOrEmpty(skillAction.SkillActionId))
+        {
+            nextUseTimes[skillAction.SkillActionId] = Time.time + Mathf.Max(0f, cooldownSeconds);
+        }
+
         ExecuteSkill(skillAction, target);
         return true;
     }
@@ -147,6 +161,11 @@ public class HWJ_SkillActionSystem : MonoBehaviour
     /// </summary>
     public bool IsSkillReady(string skillActionId)
     {
+        if (string.IsNullOrEmpty(skillActionId))
+        {
+            return true;
+        }
+
         return !nextUseTimes.TryGetValue(skillActionId, out float nextUseTime)
             || Time.time >= nextUseTime;
     }
@@ -179,6 +198,24 @@ public class HWJ_SkillActionSystem : MonoBehaviour
     {
         navigationBlockEndTime = 0f;
         skillMovementControlsVelocity = false;
+    }
+
+    public void CancelCurrentAction()
+    {
+        if (actionRoutine != null)
+        {
+            StopCoroutine(actionRoutine);
+            actionRoutine = null;
+        }
+
+        if (projectileRoutine != null)
+        {
+            StopCoroutine(projectileRoutine);
+            projectileRoutine = null;
+        }
+
+        runtimeStatus?.CancelAttackAction();
+        ReleaseNavigationBlock();
     }
 
     /// <summary>
@@ -430,40 +467,70 @@ public class HWJ_SkillActionSystem : MonoBehaviour
             return;
         }
 
-        if (playMotion && skillAction.HasMotionSequence)
+        if (actionRoutine != null)
+        {
+            StopCoroutine(actionRoutine);
+        }
+
+        actionRoutine = StartCoroutine(TimedAreaDamageRoutine(skillAction, playMotion));
+    }
+
+    private IEnumerator TimedAreaDamageRoutine(HWJ_SkillActionDataSO skillAction, bool playMotion)
+    {
+        float hitStart = Mathf.Max(0f, skillAction.HitStartSeconds);
+        float activeSeconds = Mathf.Max(0.01f, skillAction.HitActiveSeconds);
+        float recoverySeconds = Mathf.Max(0f, skillAction.RecoverySeconds);
+        float totalSeconds = Mathf.Max(skillAction.DurationSeconds, hitStart + activeSeconds + recoverySeconds);
+        float movementLockSeconds = skillAction.MovementLockSeconds > 0f
+            ? skillAction.MovementLockSeconds
+            : hitStart + activeSeconds;
+
+        runtimeStatus?.BeginTimedAttackAction(
+            totalSeconds,
+            movementLockSeconds,
+            skillAction.DashCancelStartSeconds,
+            skillAction.CanDashCancel);
+        BlockNavigationForSkill(movementLockSeconds, false);
+
+        if (playMotion)
         {
             PlaySkillMotion(skillAction);
         }
 
-        bool shouldCombatPlayMotion = playMotion && !skillAction.HasMotionSequence;
-        int hitCount = Mathf.Max(1, skillAction.HitCount);
-
-        if (hitCount > 1)
+        if (hitStart > 0f)
         {
-            StartCoroutine(RepeatedAreaDamageRoutine(skillAction, hitCount, shouldCombatPlayMotion));
-            lastSkillResult = $"Skill {skillAction.SkillActionId} started {hitCount} hits.";
-            return;
+            yield return new WaitForSeconds(hitStart);
         }
 
-        ExecuteSingleAreaDamage(skillAction, shouldCombatPlayMotion);
-    }
-
-    private IEnumerator RepeatedAreaDamageRoutine(
-        HWJ_SkillActionDataSO skillAction,
-        int hitCount,
-        bool playFirstHitMotion)
-    {
+        int hitCount = Mathf.Max(1, skillAction.HitCount);
         float interval = Mathf.Max(0.01f, skillAction.HitIntervalSeconds);
+        float activeEndTime = Time.time + activeSeconds;
 
         for (int i = 0; i < hitCount; i++)
         {
-            ExecuteSingleAreaDamage(skillAction, playFirstHitMotion && i == 0);
+            ExecuteSingleAreaDamage(skillAction, false);
 
-            if (i < hitCount - 1)
+            if (i >= hitCount - 1 || Time.time + interval > activeEndTime)
             {
-                yield return new WaitForSeconds(interval);
+                break;
             }
+
+            yield return new WaitForSeconds(interval);
         }
+
+        float remainingActiveSeconds = activeEndTime - Time.time;
+
+        if (remainingActiveSeconds > 0f)
+        {
+            yield return new WaitForSeconds(remainingActiveSeconds);
+        }
+
+        if (recoverySeconds > 0f)
+        {
+            yield return new WaitForSeconds(recoverySeconds);
+        }
+
+        actionRoutine = null;
     }
 
     private void ExecuteSingleAreaDamage(HWJ_SkillActionDataSO skillAction, bool playMotion)
@@ -633,6 +700,11 @@ public class HWJ_SkillActionSystem : MonoBehaviour
         if (dataResolver == null)
         {
             dataResolver = GetComponent<HWJ_RootObjectDataResolver>();
+        }
+
+        if (runtimeStatus == null)
+        {
+            runtimeStatus = GetComponent<HWJ_RuntimeStatusSystem>();
         }
 
         if (combatSystem == null)

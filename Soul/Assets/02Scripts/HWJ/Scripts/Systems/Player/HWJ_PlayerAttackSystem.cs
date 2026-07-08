@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 /// <summary>
@@ -22,6 +23,7 @@ public class HWJ_PlayerAttackSystem : MonoBehaviour
     [SerializeField] private float lastDamageApplied;
 
     private float nextAttackTime;
+    private Coroutine basicAttackRoutine;
 
     private void Awake()
     {
@@ -109,9 +111,15 @@ public class HWJ_PlayerAttackSystem : MonoBehaviour
             return false;
         }
 
+        if (runtimeStatus != null && !runtimeStatus.CanAttack)
+        {
+            lastAttackResult = "Attack is locked.";
+            return false;
+        }
+
         if (!CanAttack(playerData))
         {
-            lastAttackResult = "Current soul state cannot attack.";
+            lastAttackResult = "Attack requires a possessed body.";
             return false;
         }
 
@@ -121,21 +129,31 @@ public class HWJ_PlayerAttackSystem : MonoBehaviour
             return false;
         }
 
-        nextAttackTime = Time.time + playerData.Attack.attackIntervalSeconds;
-
-        if (runtimeStatus != null)
-        {
-            runtimeStatus.SetState(HWJ_RuntimeState.Attack);
-        }
-
         string skillActionId = GetBasicAttackSkillActionId(playerData);
 
         if (skillActionSystem != null && !string.IsNullOrEmpty(skillActionId))
         {
-            return skillActionSystem.TryUseSkill(skillActionId);
+            if (!skillActionSystem.TryUseSkill(skillActionId))
+            {
+                lastAttackResult = skillActionSystem.LastSkillResult;
+                return false;
+            }
+
+            nextAttackTime = Time.time + playerData.Attack.attackIntervalSeconds;
+            runtimeStatus?.SetState(HWJ_RuntimeState.Attack);
+            lastDamageApplied = skillActionSystem.LastDamageApplied;
+            lastAttackResult = skillActionSystem.LastSkillResult;
+            return true;
         }
 
-        return ApplyBasicAttackDamage(playerData);
+        if (!ApplyBasicAttackDamage(playerData))
+        {
+            return false;
+        }
+
+        nextAttackTime = Time.time + playerData.Attack.attackIntervalSeconds;
+        runtimeStatus?.SetState(HWJ_RuntimeState.Attack);
+        return true;
     }
 
     /// <summary>
@@ -152,13 +170,19 @@ public class HWJ_PlayerAttackSystem : MonoBehaviour
 
         if (!CanAttack(playerData))
         {
-            lastAttackResult = "Current soul state cannot use possessed skill.";
+            lastAttackResult = "Possessed skill requires a possessed body.";
             return false;
         }
 
         if (runtimeStatus != null && runtimeStatus.IsDead)
         {
             lastAttackResult = "Cannot use possessed skill while dead.";
+            return false;
+        }
+
+        if (runtimeStatus != null && !runtimeStatus.CanAttack)
+        {
+            lastAttackResult = "Cannot use possessed skill while action locked.";
             return false;
         }
 
@@ -200,17 +224,68 @@ public class HWJ_PlayerAttackSystem : MonoBehaviour
             return false;
         }
 
-        float range = Mathf.Max(minimumAttackRange, playerData.Attack.attackRange);
-        bool attacked = combatExecutionSystem.TryExecuteAreaAttack(range);
+        if (basicAttackRoutine != null)
+        {
+            StopCoroutine(basicAttackRoutine);
+        }
+
+        basicAttackRoutine = StartCoroutine(TimedBasicAttackRoutine(playerData));
+        lastAttackResult = "Basic attack started.";
+        return true;
+    }
+
+    public void CancelCurrentAttack()
+    {
+        if (basicAttackRoutine != null)
+        {
+            StopCoroutine(basicAttackRoutine);
+            basicAttackRoutine = null;
+        }
+
+        runtimeStatus?.CancelAttackAction();
+    }
+
+    private IEnumerator TimedBasicAttackRoutine(HWJ_PlayerTypeDataSO playerData)
+    {
+        HWJ_PlayerAttackData attackData = playerData.Attack;
+        float hitStart = Mathf.Max(0f, attackData.hitStartSeconds);
+        float activeSeconds = Mathf.Max(0.01f, attackData.hitActiveSeconds);
+        float recoverySeconds = Mathf.Max(0f, attackData.recoverySeconds);
+        float totalSeconds = hitStart + activeSeconds + recoverySeconds;
+
+        runtimeStatus?.BeginTimedAttackAction(
+            totalSeconds,
+            attackData.movementLockSeconds,
+            attackData.dashCancelStartSeconds,
+            attackData.canDashCancel);
+        motionSystem?.PlayAttack(null);
+
+        if (hitStart > 0f)
+        {
+            yield return new WaitForSeconds(hitStart);
+        }
+
+        float range = Mathf.Max(minimumAttackRange, attackData.attackRange);
+        bool attacked = combatExecutionSystem.TryExecuteAreaAttack(range, 1f, null, false);
         lastDamageApplied = combatExecutionSystem.LastDamageApplied;
         lastAttackResult = combatExecutionSystem.LastExecutionResult;
 
-        if (attacked)
+        if (activeSeconds > 0f)
         {
-            return true;
+            yield return new WaitForSeconds(activeSeconds);
         }
 
-        return false;
+        if (recoverySeconds > 0f)
+        {
+            yield return new WaitForSeconds(recoverySeconds);
+        }
+
+        if (!attacked)
+        {
+            lastAttackResult = $"Basic attack missed: {combatExecutionSystem.LastExecutionResult}";
+        }
+
+        basicAttackRoutine = null;
     }
 
     private bool CanAttack(HWJ_PlayerTypeDataSO playerData)
@@ -220,14 +295,14 @@ public class HWJ_PlayerAttackSystem : MonoBehaviour
             return false;
         }
 
-        if (soulSystem == null)
+        if (soulSystem != null && soulSystem.CurrentState != HWJ_SoulRuntimeState.Body)
         {
-            return playerData.State.canAttackOnBodyState;
+            return false;
         }
 
-        return soulSystem.CurrentState == HWJ_SoulRuntimeState.Soul
-            ? playerData.State.canAttackOnSoulState
-            : playerData.State.canAttackOnBodyState;
+        return playerData.State.canAttackOnBodyState
+            && possessionSystem != null
+            && possessionSystem.HasActivePossessedBody;
     }
 
     private void TryPossessedSkillSlotInputs()
