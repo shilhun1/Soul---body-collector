@@ -19,12 +19,15 @@ public class HSH_trap : MonoBehaviour
     private Rigidbody2D rb;
 
     [Header("바람 함정(WindX) 전용 설정")]
+    public bool isWindSpawner = false; // 체크하면 제자리에서 바람을 주기적으로 발사함
+    public GameObject windPrefab; // 발사할 프리팹 (HSH_trap이 붙은 바람 프리팹)
+    public float windFireInterval = 2f; // 발사 간격(초)
     public float windSpeed = 5f; // 바람 이동 속도
     public float windLifeTime = 5f; // 생성 후 스스로 사라지는 시간
     public Vector2 windDirection = Vector2.left; // 바람이 부는 방향 (-1, 0 이면 왼쪽)
     public float windDetectDistance = 15f; // 바람 감지 거리
 
-    private bool isWindActivated = false; // 바람 함정 발동 여부
+    private float windFireTimer = 0f; // 바람 발사 타이머
 
     private void Start()
     {
@@ -39,7 +42,16 @@ public class HSH_trap : MonoBehaviour
         }
         else if (trapType == TrapType.WindX)
         {
-            // 시작 시에는 삭제하지 않고, 발동될 때 삭제 예약을 합니다.
+            if (!isWindSpawner)
+            {
+                // 투사체인 경우 시작 시 수명 카운트 시작
+                Destroy(gameObject, windLifeTime);
+            }
+            else
+            {
+                // 발사기인 경우 초기 타이머 셋업 (바로 쏘도록)
+                windFireTimer = windFireInterval;
+            }
         }
     }
 
@@ -47,25 +59,42 @@ public class HSH_trap : MonoBehaviour
     {
         if (trapType == TrapType.WindX)
         {
-            if (!isWindActivated)
+            if (isWindSpawner)
             {
-                // 발동 전: 설정된 방향으로 Ray를 쏴서 플레이어 감지
+                // 1. 플레이어 감지
+                bool isPlayerDetected = false;
                 RaycastHit2D[] hits = Physics2D.RaycastAll(transform.position, windDirection, windDetectDistance);
 
                 foreach (var hit in hits)
                 {
                     if (hit.collider.CompareTag("Player"))
                     {
-                        isWindActivated = true;
-                        // 발동된 시점부터 일정 시간 뒤 폭파시킵니다.
-                        Destroy(gameObject, windLifeTime);
+                        isPlayerDetected = true;
                         break;
                     }
+                }
+
+                // 2. 플레이어 감지 시 주기적으로 프리팹 발사
+                if (isPlayerDetected)
+                {
+                    windFireTimer += Time.deltaTime;
+                    if (windFireTimer >= windFireInterval)
+                    {
+                        windFireTimer = 0f;
+                        if (windPrefab != null)
+                        {
+                            Instantiate(windPrefab, transform.position, Quaternion.identity);
+                        }
+                    }
+                }
+                else
+                {
+                    windFireTimer = windFireInterval; // 범위 밖이면 즉시 쏠 수 있도록 충전
                 }
             }
             else
             {
-                // 바람 함정일 경우 매 프레임 지정된 방향(주로 X축)으로 날아갑니다.
+                // 투사체 모드: 매 프레임 날아감
                 transform.Translate(windDirection.normalized * windSpeed * Time.deltaTime);
             }
         }
