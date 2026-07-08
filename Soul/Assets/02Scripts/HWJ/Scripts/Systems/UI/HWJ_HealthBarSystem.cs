@@ -58,20 +58,33 @@ public class HWJ_HealthBarSystem : MonoBehaviour
 
     private float GetCurrentRatio()
     {
-        if (runtimeStatus != null && runtimeStatus.MaxHp > 0f)
+        if (soulSystem != null
+            && soulSystem.CurrentState == HWJ_SoulRuntimeState.Soul
+            && healthBarData != null
+            && healthBarData.ShowSoulTimer)
         {
-            return Mathf.Clamp01(runtimeStatus.CurrentHp / runtimeStatus.MaxHp);
+            return GetSoulTimerRatio();
         }
 
-        if (bodyDecaySystem != null && dataResolver != null && dataResolver.TryGetTypeData(out HWJ_PlayerTypeDataSO playerData))
+        if (soulSystem != null
+            && soulSystem.CurrentState == HWJ_SoulRuntimeState.Body
+            && bodyDecaySystem != null
+            && bodyDecaySystem.IsDecaying
+            && dataResolver != null
+            && dataResolver.TryGetTypeData(out HWJ_PlayerTypeDataSO playerData))
         {
+            if (playerData.BodyDecay == null)
+            {
+                return 0f;
+            }
+
             float maxDecay = playerData.BodyDecay.maxDecayValue;
             return maxDecay > 0f ? Mathf.Clamp01(bodyDecaySystem.CurrentDecayValue / maxDecay) : 0f;
         }
 
-        if (soulSystem != null && soulSystem.CurrentState == HWJ_SoulRuntimeState.Soul && healthBarData != null && healthBarData.ShowSoulTimer)
+        if (runtimeStatus != null && runtimeStatus.MaxHp > 0f)
         {
-            return GetSoulTimerRatio();
+            return Mathf.Clamp01(runtimeStatus.CurrentHp / runtimeStatus.MaxHp);
         }
 
         return 0f;

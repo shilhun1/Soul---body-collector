@@ -25,8 +25,12 @@ MonoBehaviour:
     bossRoomSize: {x: 28, y: 14}
     attackStartRange: 5
     optimalAttackDistance: 3.5
+    closeSkillRange: 4
     chaseMoveSpeedMultiplier: 1
+    phaseTwoHpRatio: 0.5
     phaseTransitionSeconds: 1.5
+    cameraFocusSeconds: 2
+    soulReturnCenterStoppingDistance: 0.2
     superArmorDuringAttack: 1
     superArmorDuringPhaseTransition: 1
     groggyHitCountThreshold: 5

@@ -131,6 +131,13 @@ public enum HWJ_BossPatternTrigger
     PhaseChanged
 }
 
+public enum HWJ_BossPatternRangeMode
+{
+    Any,
+    Close,
+    Far
+}
+
 public enum HWJ_BossFSMState
 {
     Inactive,

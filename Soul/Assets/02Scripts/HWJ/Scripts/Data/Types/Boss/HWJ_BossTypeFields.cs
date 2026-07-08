@@ -10,8 +10,12 @@ public class HWJ_BossFSMData
     public Vector2 bossRoomSize = new Vector2(28f, 14f);
     public float attackStartRange = 5f;
     public float optimalAttackDistance = 3.5f;
+    public float closeSkillRange = 4f;
     public float chaseMoveSpeedMultiplier = 1f;
+    public float phaseTwoHpRatio = 0.5f;
     public float phaseTransitionSeconds = 1.5f;
+    public float cameraFocusSeconds = 2f;
+    public float soulReturnCenterStoppingDistance = 0.2f;
     public bool superArmorDuringAttack = true;
     public bool superArmorDuringPhaseTransition = true;
     public int groggyHitCountThreshold = 5;

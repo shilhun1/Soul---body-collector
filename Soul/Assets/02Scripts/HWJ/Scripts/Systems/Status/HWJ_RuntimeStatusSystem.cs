@@ -10,6 +10,7 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
     [SerializeField] private HWJ_RootObjectDataResolver dataResolver;
     [SerializeField] private HWJ_PossessionSystem possessionSystem;
     [SerializeField] private HWJ_SoulSystem soulSystem;
+    [SerializeField] private HWJ_BodyDecaySystem bodyDecaySystem;
     [SerializeField] private HWJ_CharacterMotionSystem motionSystem;
     [SerializeField] private HWJ_BossBrainSystem bossBrain;
     [SerializeField] private HWJ_RuntimeState currentState = HWJ_RuntimeState.Idle;
@@ -69,6 +70,11 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
         if (soulSystem == null)
         {
             soulSystem = GetComponent<HWJ_SoulSystem>();
+        }
+
+        if (bodyDecaySystem == null)
+        {
+            bodyDecaySystem = GetComponent<HWJ_BodyDecaySystem>();
         }
 
         if (motionSystem == null)
@@ -168,6 +174,12 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
             return;
         }
 
+        if (TryApplyPossessedBodyDecayDamage(damage, source, sourceDamage))
+        {
+            SavePlayerRuntimeSnapshotIfOwner();
+            return;
+        }
+
         currentHp = Mathf.Max(0f, currentHp - damage);
         CacheCurrentHpForActiveState();
         ApplyPostHitTimers(source, sourceDamage);
@@ -178,24 +190,10 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
         }
         else
         {
-            bossBrain?.NotifyDamageTaken(damage);
-
-            if (HasSuperArmor)
-            {
-                return;
-            }
-
-            float hitStunSeconds = GetHitStunSeconds(sourceDamage);
-
-            if (hitStunSeconds > 0f)
-            {
-                hitStunEndTime = Mathf.Max(hitStunEndTime, Time.time + hitStunSeconds);
-                LockControl(hitStunSeconds);
-            }
-
-            SetState(HWJ_RuntimeState.Hit);
-            motionSystem?.PlayHit();
+            ApplyHitReaction(damage, sourceDamage);
         }
+
+        SavePlayerRuntimeSnapshotIfOwner();
     }
 
     /// <summary>
@@ -236,6 +234,30 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
         float soulMaxHp = SoulMaxHp;
         soulHp = refillToMax ? soulMaxHp : Mathf.Min(soulHp, soulMaxHp);
         currentHp = soulHp;
+    }
+
+    public void RestoreHpSnapshot(float restoredCurrentHp, float restoredSoulHp, float restoredPossessedBodyHp)
+    {
+        float bodyMaxHp = Mathf.Max(0f, MaxHp);
+        float soulMaxHp = Mathf.Max(0f, SoulMaxHp);
+
+        soulHp = soulMaxHp > 0f ? Mathf.Clamp(restoredSoulHp, 0f, soulMaxHp) : 0f;
+        possessedBodyHp = bodyMaxHp > 0f ? Mathf.Clamp(restoredPossessedBodyHp, 0f, bodyMaxHp) : 0f;
+
+        if (soulSystem == null)
+        {
+            currentHp = bodyMaxHp > 0f ? Mathf.Clamp(restoredCurrentHp, 0f, bodyMaxHp) : 0f;
+            return;
+        }
+
+        if (soulSystem.CurrentState == HWJ_SoulRuntimeState.Soul)
+        {
+            currentHp = soulHp;
+            return;
+        }
+
+        currentHp = bodyMaxHp > 0f ? Mathf.Clamp(restoredCurrentHp, 0f, bodyMaxHp) : 0f;
+        possessedBodyHp = currentHp;
     }
 
     /// <summary>
@@ -450,6 +472,57 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
         }
 
         return soulHp;
+    }
+
+    private bool TryApplyPossessedBodyDecayDamage(float damage, Component source, HWJ_DamageData sourceDamage)
+    {
+        if (soulSystem == null
+            || soulSystem.CurrentState != HWJ_SoulRuntimeState.Body
+            || possessionSystem == null
+            || !possessionSystem.HasActivePossessedBody
+            || bodyDecaySystem == null)
+        {
+            return false;
+        }
+
+        ApplyPostHitTimers(source, sourceDamage);
+        bodyDecaySystem.ApplyHitDecayPenalty(damage);
+
+        if (soulSystem.CurrentState == HWJ_SoulRuntimeState.Body)
+        {
+            ApplyHitReaction(damage, sourceDamage);
+        }
+
+        return true;
+    }
+
+    private void ApplyHitReaction(float damage, HWJ_DamageData sourceDamage)
+    {
+        bossBrain?.NotifyDamageTaken(damage);
+
+        if (HasSuperArmor)
+        {
+            return;
+        }
+
+        float hitStunSeconds = GetHitStunSeconds(sourceDamage);
+
+        if (hitStunSeconds > 0f)
+        {
+            hitStunEndTime = Mathf.Max(hitStunEndTime, Time.time + hitStunSeconds);
+            LockControl(hitStunSeconds);
+        }
+
+        SetState(HWJ_RuntimeState.Hit);
+        motionSystem?.PlayHit();
+    }
+
+    private void SavePlayerRuntimeSnapshotIfOwner()
+    {
+        if (HWJ_GameAccess.HasManager && HWJ_GameAccess.Manager.PlayerStatus == this)
+        {
+            HWJ_GameAccess.Manager.SavePlayerRuntimeSnapshot();
+        }
     }
 
     private void HandleEmptyHp()

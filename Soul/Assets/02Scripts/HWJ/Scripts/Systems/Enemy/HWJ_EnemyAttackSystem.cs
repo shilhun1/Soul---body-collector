@@ -640,6 +640,22 @@ internal class HWJ_SkillWarningIndicator : MonoBehaviour
         return indicator;
     }
 
+    public static HWJ_SkillWarningIndicator ShowRectangle(
+        Vector3 center,
+        Vector2 size,
+        float durationSeconds,
+        Color warningColor,
+        float lineWidth)
+    {
+        GameObject indicatorObject = new GameObject(WarningObjectName);
+        indicatorObject.transform.position = center;
+
+        HWJ_SkillWarningIndicator indicator = indicatorObject.AddComponent<HWJ_SkillWarningIndicator>();
+        indicator.Initialize(durationSeconds, warningColor, lineWidth);
+        indicator.DrawRectangle(size);
+        return indicator;
+    }
+
     public static HWJ_SkillWarningIndicator ShowForwardArc(
         Vector3 center,
         float direction,
@@ -698,6 +714,19 @@ internal class HWJ_SkillWarningIndicator : MonoBehaviour
         lineRenderer.endColor = warningColor;
         lineRenderer.material = GetSharedLineMaterial();
         lineRenderer.sortingOrder = 100;
+    }
+
+    private void DrawRectangle(Vector2 size)
+    {
+        float halfWidth = Mathf.Max(0.1f, size.x * 0.5f);
+        float halfHeight = Mathf.Max(0.1f, size.y * 0.5f);
+
+        lineRenderer.loop = true;
+        lineRenderer.positionCount = 4;
+        lineRenderer.SetPosition(0, new Vector3(-halfWidth, -halfHeight, 0f));
+        lineRenderer.SetPosition(1, new Vector3(-halfWidth, halfHeight, 0f));
+        lineRenderer.SetPosition(2, new Vector3(halfWidth, halfHeight, 0f));
+        lineRenderer.SetPosition(3, new Vector3(halfWidth, -halfHeight, 0f));
     }
 
     private void DrawCircle(float radius)

@@ -1,5 +1,9 @@
 using UnityEngine;
 
+#if ENABLE_INPUT_SYSTEM
+using UnityEngine.InputSystem;
+#endif
+
 /// <summary>
 /// HWJ 시스템들의 중심 접근점입니다.
 /// 데이터베이스, 오브젝트 풀, 스포너, 플레이어 상태처럼 여러 시스템이 공통으로 참조하는 요소를 한 곳에서 관리합니다.
@@ -19,6 +23,21 @@ public class HWJ_GameManager : MonoBehaviour
     [SerializeField] private HWJ_RuntimeStatusSystem playerStatus;
     [SerializeField] private HWJ_LevelUpSystem playerLevel;
     [SerializeField] private HWJ_SoulSystem playerSoul;
+    [SerializeField] private HWJ_BodyDecaySystem playerBodyDecay;
+
+    [Header("Player Runtime Persistence")]
+    [SerializeField] private bool preservePlayerRuntimeAcrossScenes = true;
+    [SerializeField] private bool hasPlayerRuntimeSnapshot;
+    [SerializeField] private float savedCurrentHp;
+    [SerializeField] private float savedSoulHp;
+    [SerializeField] private float savedPossessedBodyHp;
+    [SerializeField] private bool hasBodyDecaySnapshot;
+    [SerializeField] private float savedBodyDecayValue;
+
+    [Header("Pause")]
+    [SerializeField] private bool togglePauseWithEscape = true;
+    [SerializeField] private bool isPaused;
+    [SerializeField] private float timeScaleBeforePause = 1f;
 
     public HWJ_GameplayDatabaseSO Database => database;
     public HWJ_ObjectPoolSystem ObjectPool => objectPool;
@@ -27,6 +46,8 @@ public class HWJ_GameManager : MonoBehaviour
     public HWJ_RuntimeStatusSystem PlayerStatus => playerStatus;
     public HWJ_LevelUpSystem PlayerLevel => playerLevel;
     public HWJ_SoulSystem PlayerSoul => playerSoul;
+    public HWJ_BodyDecaySystem PlayerBodyDecay => playerBodyDecay;
+    public bool IsPaused => isPaused;
 
     private void Awake()
     {
@@ -50,6 +71,57 @@ public class HWJ_GameManager : MonoBehaviour
         {
             objectPool.Prewarm();
         }
+    }
+
+    private void Update()
+    {
+        if (togglePauseWithEscape && WasPausePressedThisFrame())
+        {
+            SetPaused(!isPaused);
+        }
+    }
+
+    private void LateUpdate()
+    {
+        SavePlayerRuntimeSnapshot();
+    }
+
+    public void SetPaused(bool paused)
+    {
+        if (isPaused == paused)
+        {
+            return;
+        }
+
+        isPaused = paused;
+
+        if (isPaused)
+        {
+            timeScaleBeforePause = Time.timeScale > 0f ? Time.timeScale : 1f;
+            Time.timeScale = 0f;
+            return;
+        }
+
+        Time.timeScale = timeScaleBeforePause > 0f ? timeScaleBeforePause : 1f;
+    }
+
+    private static bool WasPausePressedThisFrame()
+    {
+#if ENABLE_INPUT_SYSTEM
+        return Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame;
+#else
+        return Input.GetKeyDown(KeyCode.Escape);
+#endif
+    }
+
+    public void SavePlayerRuntimeSnapshot()
+    {
+        if (!preservePlayerRuntimeAcrossScenes)
+        {
+            return;
+        }
+
+        CapturePlayerRuntimeSnapshot();
     }
 
     /// <summary>
@@ -92,6 +164,11 @@ public class HWJ_GameManager : MonoBehaviour
     /// </summary>
     public void RegisterPlayer(HWJ_RootObjectDataResolver resolver)
     {
+        if (preservePlayerRuntimeAcrossScenes)
+        {
+            SavePlayerRuntimeSnapshot();
+        }
+
         playerResolver = resolver;
 
         if (resolver == null)
@@ -99,12 +176,57 @@ public class HWJ_GameManager : MonoBehaviour
             playerStatus = null;
             playerLevel = null;
             playerSoul = null;
+            playerBodyDecay = null;
             return;
         }
 
         playerStatus = resolver.GetComponent<HWJ_RuntimeStatusSystem>();
         playerLevel = resolver.GetComponent<HWJ_LevelUpSystem>();
         playerSoul = resolver.GetComponent<HWJ_SoulSystem>();
+        playerBodyDecay = resolver.GetComponent<HWJ_BodyDecaySystem>();
+
+        if (preservePlayerRuntimeAcrossScenes)
+        {
+            ApplyPlayerRuntimeSnapshot();
+        }
+    }
+
+    private void CapturePlayerRuntimeSnapshot()
+    {
+        if (playerStatus == null)
+        {
+            return;
+        }
+
+        playerStatus.CacheCurrentHpForActiveState();
+        savedCurrentHp = playerStatus.CurrentHp;
+        savedSoulHp = playerStatus.SoulHp;
+        savedPossessedBodyHp = playerStatus.PossessedBodyHp;
+        hasPlayerRuntimeSnapshot = true;
+
+        if (playerBodyDecay == null && playerResolver != null)
+        {
+            playerBodyDecay = playerResolver.GetComponent<HWJ_BodyDecaySystem>();
+        }
+
+        if (playerBodyDecay != null)
+        {
+            savedBodyDecayValue = playerBodyDecay.CurrentDecayValue;
+            hasBodyDecaySnapshot = true;
+        }
+    }
+
+    private void ApplyPlayerRuntimeSnapshot()
+    {
+        if (playerStatus != null && hasPlayerRuntimeSnapshot)
+        {
+            playerStatus.RestoreHpSnapshot(savedCurrentHp, savedSoulHp, savedPossessedBodyHp);
+        }
+
+        if (playerBodyDecay != null && hasBodyDecaySnapshot)
+        {
+            playerBodyDecay.RestoreDecaySnapshot(savedBodyDecayValue);
+        }
     }
 
     /// <summary>

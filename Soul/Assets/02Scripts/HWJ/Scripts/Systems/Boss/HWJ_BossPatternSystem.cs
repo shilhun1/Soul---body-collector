@@ -9,6 +9,7 @@ public class HWJ_BossPatternSystem : MonoBehaviour
 {
     [SerializeField] private HWJ_RuntimeStatusSystem runtimeStatus;
     [SerializeField] private HWJ_SkillActionSystem skillActionSystem;
+    [SerializeField] private HWJ_Stage1BossPatternSystem stageOnePatternSystem;
     [SerializeField] private HWJ_BossPatternDataSO[] patterns;
     [SerializeField] private bool autoUsePatterns;
 
@@ -24,6 +25,11 @@ public class HWJ_BossPatternSystem : MonoBehaviour
         if (skillActionSystem == null)
         {
             skillActionSystem = GetComponent<HWJ_SkillActionSystem>();
+        }
+
+        if (stageOnePatternSystem == null)
+        {
+            stageOnePatternSystem = GetComponent<HWJ_Stage1BossPatternSystem>();
         }
     }
 
@@ -54,9 +60,19 @@ public class HWJ_BossPatternSystem : MonoBehaviour
         return ExecutePattern(pattern, target);
     }
 
+    public bool TryUseAvailablePattern(Transform target, int phaseNumber, bool isCloseRange)
+    {
+        if (!TrySelectPattern(null, target, phaseNumber, true, isCloseRange, true, out HWJ_BossPatternDataSO pattern))
+        {
+            return false;
+        }
+
+        return ExecutePattern(pattern, target);
+    }
+
     public bool TryUsePhaseChangedPattern(Transform target)
     {
-        if (!TrySelectPattern(HWJ_BossPatternTrigger.PhaseChanged, out HWJ_BossPatternDataSO pattern))
+        if (!TrySelectPattern(HWJ_BossPatternTrigger.PhaseChanged, target, 1, false, false, false, out HWJ_BossPatternDataSO pattern))
         {
             return false;
         }
@@ -71,43 +87,89 @@ public class HWJ_BossPatternSystem : MonoBehaviour
             return false;
         }
 
-        if (!string.IsNullOrEmpty(pattern.PatternId))
+        bool executed = false;
+
+        if (pattern.UseStageOneSpecialExecution
+            && pattern.PatternNumber > 0
+            && stageOnePatternSystem != null)
         {
-            nextUseTimes[pattern.PatternId] = Time.time + pattern.CooldownSeconds;
+            executed = stageOnePatternSystem.TryExecutePattern(pattern.PatternNumber, target);
         }
 
-        if (pattern.SkillActions != null && skillActionSystem != null)
+        if (!executed && pattern.SkillActions != null && skillActionSystem != null)
         {
             for (int i = 0; i < pattern.SkillActions.Length; i++)
             {
-                skillActionSystem.TryUseSkill(pattern.SkillActions[i], target);
+                executed |= skillActionSystem.TryUseSkill(pattern.SkillActions[i], target);
             }
         }
 
-        return true;
+        if (executed)
+        {
+            string patternKey = GetPatternKey(pattern);
+
+            if (!string.IsNullOrEmpty(patternKey))
+            {
+                nextUseTimes[patternKey] = Time.time + pattern.EffectiveCooldownSeconds;
+            }
+        }
+
+        return executed;
     }
 
     private bool TrySelectPattern(out HWJ_BossPatternDataSO selectedPattern)
     {
-        return TrySelectPattern(null, out selectedPattern);
+        return TrySelectPattern(null, null, 1, false, false, false, out selectedPattern);
     }
 
     private bool TrySelectPattern(HWJ_BossPatternTrigger? requiredTrigger, out HWJ_BossPatternDataSO selectedPattern)
     {
+        return TrySelectPattern(requiredTrigger, null, 1, false, false, false, out selectedPattern);
+    }
+
+    private bool TrySelectPattern(
+        HWJ_BossPatternTrigger? requiredTrigger,
+        Transform target,
+        int phaseNumber,
+        bool usePhaseFilter,
+        bool isCloseRange,
+        bool useRangeFilter,
+        out HWJ_BossPatternDataSO selectedPattern)
+    {
         selectedPattern = null;
 
-        if (patterns == null || runtimeStatus == null || runtimeStatus.MaxHp <= 0f)
+        HWJ_BossPatternDataSO[] availablePatterns = GetAvailablePatterns();
+
+        if (availablePatterns == null || runtimeStatus == null || runtimeStatus.MaxHp <= 0f)
         {
             return false;
         }
 
         float hpRatio = runtimeStatus.CurrentHp / runtimeStatus.MaxHp;
 
-        for (int i = 0; i < patterns.Length; i++)
+        for (int i = 0; i < availablePatterns.Length; i++)
         {
-            HWJ_BossPatternDataSO pattern = patterns[i];
+            HWJ_BossPatternDataSO pattern = availablePatterns[i];
 
             if (pattern == null || !pattern.IsHpConditionMatched(hpRatio))
+            {
+                continue;
+            }
+
+            if (usePhaseFilter && !pattern.IsPhaseAllowed(phaseNumber))
+            {
+                continue;
+            }
+
+            if (useRangeFilter && !pattern.IsRangeMatched(isCloseRange))
+            {
+                continue;
+            }
+
+            if (pattern.UseStageOneSpecialExecution
+                && pattern.PatternNumber > 0
+                && stageOnePatternSystem != null
+                && !stageOnePatternSystem.CanUsePattern(pattern.PatternNumber, target))
             {
                 continue;
             }
@@ -124,8 +186,10 @@ public class HWJ_BossPatternSystem : MonoBehaviour
                 continue;
             }
 
-            if (!string.IsNullOrEmpty(pattern.PatternId)
-                && nextUseTimes.TryGetValue(pattern.PatternId, out float nextUseTime)
+            string patternKey = GetPatternKey(pattern);
+
+            if (!string.IsNullOrEmpty(patternKey)
+                && nextUseTimes.TryGetValue(patternKey, out float nextUseTime)
                 && Time.time < nextUseTime)
             {
                 continue;
@@ -136,5 +200,30 @@ public class HWJ_BossPatternSystem : MonoBehaviour
         }
 
         return false;
+    }
+
+    private HWJ_BossPatternDataSO[] GetAvailablePatterns()
+    {
+        if (patterns != null && patterns.Length > 0)
+        {
+            return patterns;
+        }
+
+        return HWJ_GameAccess.Database != null ? HWJ_GameAccess.Database.BossPatterns : null;
+    }
+
+    private static string GetPatternKey(HWJ_BossPatternDataSO pattern)
+    {
+        if (pattern == null)
+        {
+            return null;
+        }
+
+        if (!string.IsNullOrEmpty(pattern.PatternId))
+        {
+            return pattern.PatternId;
+        }
+
+        return pattern.PatternNumber > 0 ? $"Pattern_{pattern.PatternNumber}" : null;
     }
 }
