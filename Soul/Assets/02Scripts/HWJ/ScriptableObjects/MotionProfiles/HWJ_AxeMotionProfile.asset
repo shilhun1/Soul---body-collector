@@ -1,0 +1,82 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9439ef0c4074fcd978157833a6dcd67, type: 3}
+  m_Name: HWJ_AxeMotionProfile
+  m_EditorClassIdentifier: 
+  weaponType: 6
+  animatorController: {fileID: 0}
+  defaultAttackMotionKey: Axe_Swing
+  motions:
+  - motionKey: Axe_Swing
+    animatorTriggerName: Axe_Swing
+    animatorStateName: 
+    layerIndex: 0
+    transitionSeconds: 0.05
+    useTrigger: 1
+    useCrossFade: 0
+    resetTriggerBeforeSet: 1
+  - motionKey: Axe_BodyCharge
+    animatorTriggerName: Axe_BodyCharge
+    animatorStateName: 
+    layerIndex: 0
+    transitionSeconds: 0.05
+    useTrigger: 1
+    useCrossFade: 0
+    resetTriggerBeforeSet: 1
+  - motionKey: Axe_SpinCharge
+    animatorTriggerName: Axe_SpinCharge
+    animatorStateName: 
+    layerIndex: 0
+    transitionSeconds: 0.05
+    useTrigger: 1
+    useCrossFade: 0
+    resetTriggerBeforeSet: 1
+  - motionKey: Jump
+    animatorTriggerName: JumpTrigger
+    animatorStateName: 
+    layerIndex: 0
+    transitionSeconds: 0.05
+    useTrigger: 1
+    useCrossFade: 0
+    resetTriggerBeforeSet: 1
+  - motionKey: DoubleJump
+    animatorTriggerName: DoubleJumpTrigger
+    animatorStateName: 
+    layerIndex: 0
+    transitionSeconds: 0.05
+    useTrigger: 1
+    useCrossFade: 0
+    resetTriggerBeforeSet: 1
+  - motionKey: Dash
+    animatorTriggerName: DashTrigger
+    animatorStateName: 
+    layerIndex: 0
+    transitionSeconds: 0.05
+    useTrigger: 1
+    useCrossFade: 0
+    resetTriggerBeforeSet: 1
+  - motionKey: Hit
+    animatorTriggerName: HitTrigger
+    animatorStateName: 
+    layerIndex: 0
+    transitionSeconds: 0.05
+    useTrigger: 1
+    useCrossFade: 0
+    resetTriggerBeforeSet: 1
+  - motionKey: Dead
+    animatorTriggerName: DeadTrigger
+    animatorStateName: 
+    layerIndex: 0
+    transitionSeconds: 0.05
+    useTrigger: 1
+    useCrossFade: 0
+    resetTriggerBeforeSet: 1

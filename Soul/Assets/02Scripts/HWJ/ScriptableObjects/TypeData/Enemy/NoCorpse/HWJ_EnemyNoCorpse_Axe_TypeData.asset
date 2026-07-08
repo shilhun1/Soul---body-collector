@@ -40,7 +40,28 @@ MonoBehaviour:
     returnToIdleDelaySeconds: 1
     stopWhenHit: 1
   skillCycle:
-    skills: []
+    skills:
+    - skillId: axe_swing
+      requiredWeaponType: 6
+      unlockLevel: 1
+      requiredSkillPoint: 0
+      startsUnlocked: 1
+      cooldownSeconds: 1
+      useIntervalSeconds: 0.85
+    - skillId: axe_body_charge
+      requiredWeaponType: 6
+      unlockLevel: 1
+      requiredSkillPoint: 0
+      startsUnlocked: 1
+      cooldownSeconds: 2.2
+      useIntervalSeconds: 1
+    - skillId: axe_spin_charge
+      requiredWeaponType: 6
+      unlockLevel: 1
+      requiredSkillPoint: 0
+      startsUnlocked: 1
+      cooldownSeconds: 3.2
+      useIntervalSeconds: 1.2
   possessionBody:
     canPossess: 0
     canBePossessed: 0

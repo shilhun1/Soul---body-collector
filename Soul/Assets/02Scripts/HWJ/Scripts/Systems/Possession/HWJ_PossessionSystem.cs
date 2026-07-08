@@ -9,10 +9,13 @@ public class HWJ_PossessionSystem : MonoBehaviour
     [SerializeField] private HWJ_RootObjectDataResolver ownerDataResolver;
     [SerializeField] private HWJ_SoulSystem soulSystem;
     [SerializeField] private HWJ_RuntimeStatusSystem runtimeStatus;
+    [SerializeField] private HWJ_PlayerInputSystem playerInput;
     [SerializeField] private HWJ_RootObjectDataResolver possessedBodyResolver;
     [SerializeField] private bool moveOwnerToPossessedBody = true;
     [SerializeField] private bool copyPossessedBodyVisual = true;
     [SerializeField] private bool consumePossessedCorpse = true;
+    [SerializeField] private bool deactivateConsumedCorpse = true;
+    [SerializeField] private bool allowManualSoulExit = true;
     [SerializeField] private string lastPossessionResult;
 
     private HWJ_PossessionData activePossessionBodyData;
@@ -25,6 +28,7 @@ public class HWJ_PossessionSystem : MonoBehaviour
     private Animator ownerAnimator;
     private RuntimeAnimatorController ownerOriginalAnimatorController;
     private bool hasOwnerAnimatorCache;
+    private HWJ_CharacterMotionSystem ownerMotionSystem;
 
     public bool HasActivePossessedBody => possessedBodyResolver != null
         && (soulSystem == null || soulSystem.CurrentState == HWJ_SoulRuntimeState.Body);
@@ -51,7 +55,20 @@ public class HWJ_PossessionSystem : MonoBehaviour
             runtimeStatus = GetComponent<HWJ_RuntimeStatusSystem>();
         }
 
+        if (playerInput == null)
+        {
+            playerInput = GetComponent<HWJ_PlayerInputSystem>();
+        }
+
         CacheOwnerVisual();
+    }
+
+    private void Update()
+    {
+        if (playerInput != null && playerInput.ExitPossessionPressedThisFrame)
+        {
+            TryExitPossessedBodyToSoul();
+        }
     }
 
     /// <summary>
@@ -63,6 +80,12 @@ public class HWJ_PossessionSystem : MonoBehaviour
         if (targetDataResolver == null)
         {
             lastPossessionResult = "Possession failed: missing target.";
+            return false;
+        }
+
+        if (IsConsumedPossessionBody(targetDataResolver))
+        {
+            lastPossessionResult = "Possession failed: target body was already consumed.";
             return false;
         }
 
@@ -93,6 +116,12 @@ public class HWJ_PossessionSystem : MonoBehaviour
             return false;
         }
 
+        if (IsEnemyOrBoss(targetDataResolver) && !IsDefeatedTarget(targetDataResolver))
+        {
+            lastPossessionResult = "Possession failed: target monster is still alive.";
+            return false;
+        }
+
         if (!IsDefeatedIfRequired(targetDataResolver, possessionBody))
         {
             lastPossessionResult = "Possession failed: target is not defeated.";
@@ -114,8 +143,15 @@ public class HWJ_PossessionSystem : MonoBehaviour
             return false;
         }
 
+        if (IsEnemyOrBoss(targetDataResolver) && !IsDefeatedTarget(targetDataResolver))
+        {
+            lastPossessionResult = "Possession failed: target monster is still alive.";
+            return false;
+        }
+
         TryGetPossessionBodyData(targetDataResolver, out activePossessionBodyData);
         possessedBodyResolver = targetDataResolver;
+        MarkPossessionBodyConsumed(targetDataResolver);
 
         if (activePossessionBodyData == null || activePossessionBodyData.transfersControlToBody)
         {
@@ -132,6 +168,18 @@ public class HWJ_PossessionSystem : MonoBehaviour
         }
 
         lastPossessionResult = $"Possessed {targetDataResolver.name}.";
+        return true;
+    }
+
+    public bool TryExitPossessedBodyToSoul()
+    {
+        if (!CanExitPossessedBodyToSoul())
+        {
+            return false;
+        }
+
+        lastPossessionResult = "Exited possessed body to Soul state.";
+        soulSystem.EnterSoulState(false);
         return true;
     }
 
@@ -236,15 +284,24 @@ public class HWJ_PossessionSystem : MonoBehaviour
     /// </summary>
     public bool TryGetPrimaryPossessedSkillId(out string skillId)
     {
+        return TryGetPossessedSkillIdAt(0, out skillId);
+    }
+
+    /// <summary>
+    /// 현재 빙의한 몬스터의 스킬 목록에서 슬롯 번호에 맞는 스킬 ID를 가져옵니다.
+    /// PlayerAttackSystem은 숫자키 1/2/3 입력을 이 메서드와 연결해 빙의 스킬을 실행합니다.
+    /// </summary>
+    public bool TryGetPossessedSkillIdAt(int slotIndex, out string skillId)
+    {
         skillId = null;
 
-        if (!TryGetPossessedSkillSet(out HWJ_SkillSetData skillSet) || skillSet.skills == null)
+        if (slotIndex < 0 || !TryGetPossessedSkillSet(out HWJ_SkillSetData skillSet) || skillSet.skills == null)
         {
             return false;
         }
 
         HWJ_WeaponType weaponType = CurrentWeaponType;
-        string firstMatchedSkillId = null;
+        int matchedSlotIndex = 0;
 
         for (int i = 0; i < skillSet.skills.Length; i++)
         {
@@ -263,20 +320,21 @@ public class HWJ_PossessionSystem : MonoBehaviour
                 continue;
             }
 
-            if (string.IsNullOrEmpty(firstMatchedSkillId))
+            if (!skill.startsUnlocked)
             {
-                firstMatchedSkillId = skill.skillId;
+                continue;
             }
 
-            if (skill.startsUnlocked)
+            if (matchedSlotIndex == slotIndex)
             {
                 skillId = skill.skillId;
                 return true;
             }
+
+            matchedSlotIndex++;
         }
 
-        skillId = firstMatchedSkillId;
-        return !string.IsNullOrEmpty(skillId);
+        return false;
     }
 
     /// <summary>
@@ -315,6 +373,83 @@ public class HWJ_PossessionSystem : MonoBehaviour
         return HasActivePossessedBody
             && activePossessionBodyData != null
             && activePossessionBodyData.loadsBodyStatsToPlayer;
+    }
+
+    private bool IsConsumedPossessionBody(HWJ_RootObjectDataResolver targetDataResolver)
+    {
+        if (targetDataResolver == null)
+        {
+            return false;
+        }
+
+        HWJ_PossessionBodyState bodyState = targetDataResolver.GetComponent<HWJ_PossessionBodyState>();
+        return bodyState != null && bodyState.IsConsumed;
+    }
+
+    private void MarkPossessionBodyConsumed(HWJ_RootObjectDataResolver targetDataResolver)
+    {
+        if (targetDataResolver == null)
+        {
+            return;
+        }
+
+        HWJ_PossessionBodyState bodyState = targetDataResolver.GetComponent<HWJ_PossessionBodyState>();
+
+        if (bodyState == null)
+        {
+            bodyState = targetDataResolver.gameObject.AddComponent<HWJ_PossessionBodyState>();
+        }
+
+        bodyState.MarkConsumed();
+    }
+
+    private bool CanExitPossessedBodyToSoul()
+    {
+        if (!allowManualSoulExit)
+        {
+            lastPossessionResult = "Exit possession failed: manual soul exit is disabled.";
+            return false;
+        }
+
+        if (!HasActivePossessedBody)
+        {
+            lastPossessionResult = "Exit possession failed: no active possessed body.";
+            return false;
+        }
+
+        if (soulSystem == null || soulSystem.CurrentState != HWJ_SoulRuntimeState.Body)
+        {
+            lastPossessionResult = "Exit possession failed: player is not in Body state.";
+            return false;
+        }
+
+        if (runtimeStatus != null && runtimeStatus.IsDead)
+        {
+            lastPossessionResult = "Exit possession failed: player is dead.";
+            return false;
+        }
+
+        return true;
+    }
+
+    private bool IsEnemyOrBoss(HWJ_RootObjectDataResolver targetDataResolver)
+    {
+        return targetDataResolver != null
+            && (targetDataResolver.ObjectType == HWJ_ObjectType.Enemy
+                || targetDataResolver.ObjectType == HWJ_ObjectType.Boss);
+    }
+
+    private bool IsDefeatedTarget(HWJ_RootObjectDataResolver targetDataResolver)
+    {
+        if (targetDataResolver == null)
+        {
+            return false;
+        }
+
+        HWJ_RuntimeStatusSystem targetStatus = targetDataResolver.GetComponent<HWJ_RuntimeStatusSystem>();
+        return targetStatus != null
+            && (targetStatus.CurrentState == HWJ_RuntimeState.Dead
+                || (targetStatus.UsesHp && targetStatus.CurrentHp <= 0f));
     }
 
     private bool IsDefeatedIfRequired(
@@ -387,6 +522,11 @@ public class HWJ_PossessionSystem : MonoBehaviour
             ownerOriginalAnimatorController = ownerAnimator.runtimeAnimatorController;
             hasOwnerAnimatorCache = true;
         }
+
+        if (ownerMotionSystem == null)
+        {
+            ownerMotionSystem = GetComponent<HWJ_CharacterMotionSystem>();
+        }
     }
 
     private void ApplyPossessedBodyVisual(GameObject possessedBody)
@@ -406,6 +546,7 @@ public class HWJ_PossessionSystem : MonoBehaviour
             ownerSpriteRenderer.color = possessedRenderer.color;
             ownerSpriteRenderer.flipX = possessedRenderer.flipX;
             ownerSpriteRenderer.flipY = possessedRenderer.flipY;
+            ownerMotionSystem?.RefreshFacingBaseline();
         }
 
         Animator possessedAnimator = possessedBody.GetComponentInChildren<Animator>();
@@ -424,6 +565,7 @@ public class HWJ_PossessionSystem : MonoBehaviour
             ownerSpriteRenderer.color = ownerOriginalColor;
             ownerSpriteRenderer.flipX = ownerOriginalFlipX;
             ownerSpriteRenderer.flipY = ownerOriginalFlipY;
+            ownerMotionSystem?.RefreshFacingBaseline();
         }
 
         if (ownerAnimator != null && hasOwnerAnimatorCache)
@@ -487,6 +629,11 @@ public class HWJ_PossessionSystem : MonoBehaviour
             body.linearVelocity = Vector2.zero;
             body.angularVelocity = 0f;
             body.simulated = false;
+        }
+
+        if (deactivateConsumedCorpse)
+        {
+            possessedBody.SetActive(false);
         }
     }
 }

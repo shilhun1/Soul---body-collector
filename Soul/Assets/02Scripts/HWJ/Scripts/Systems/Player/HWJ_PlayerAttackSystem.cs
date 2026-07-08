@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 /// <summary>
@@ -13,13 +14,16 @@ public class HWJ_PlayerAttackSystem : MonoBehaviour
     [SerializeField] private HWJ_PossessionSystem possessionSystem;
     [SerializeField] private HWJ_PlayerInputSystem playerInput;
     [SerializeField] private HWJ_CombatSystem combatSystem;
+    [SerializeField] private HWJ_CombatExecutionSystem combatExecutionSystem;
+    [SerializeField] private HWJ_CharacterMotionSystem motionSystem;
     [SerializeField] private LayerMask attackTargetLayer;
     [SerializeField] private float minimumAttackRange = 2f;
+    [SerializeField] private int possessedSkillSlotCount = 3;
     [SerializeField] private string lastAttackResult;
     [SerializeField] private float lastDamageApplied;
 
     private float nextAttackTime;
-    private readonly Collider2D[] attackHits = new Collider2D[16];
+    private Coroutine basicAttackRoutine;
 
     private void Awake()
     {
@@ -36,6 +40,11 @@ public class HWJ_PlayerAttackSystem : MonoBehaviour
         if (skillActionSystem == null)
         {
             skillActionSystem = GetComponent<HWJ_SkillActionSystem>();
+
+            if (skillActionSystem == null)
+            {
+                skillActionSystem = gameObject.AddComponent<HWJ_SkillActionSystem>();
+            }
         }
 
         if (soulSystem == null)
@@ -57,6 +66,16 @@ public class HWJ_PlayerAttackSystem : MonoBehaviour
         {
             combatSystem = GetComponent<HWJ_CombatSystem>();
         }
+
+        if (combatExecutionSystem == null)
+        {
+            combatExecutionSystem = GetComponent<HWJ_CombatExecutionSystem>();
+        }
+
+        if (motionSystem == null)
+        {
+            motionSystem = GetComponent<HWJ_CharacterMotionSystem>();
+        }
     }
 
     private void Update()
@@ -70,6 +89,8 @@ public class HWJ_PlayerAttackSystem : MonoBehaviour
         {
             TryBasicAttack();
         }
+
+        TryPossessedSkillSlotInputs();
     }
 
     /// <summary>
@@ -90,9 +111,15 @@ public class HWJ_PlayerAttackSystem : MonoBehaviour
             return false;
         }
 
+        if (runtimeStatus != null && !runtimeStatus.CanAttack)
+        {
+            lastAttackResult = "Attack is locked.";
+            return false;
+        }
+
         if (!CanAttack(playerData))
         {
-            lastAttackResult = "Current soul state cannot attack.";
+            lastAttackResult = "Attack requires a possessed body.";
             return false;
         }
 
@@ -102,21 +129,82 @@ public class HWJ_PlayerAttackSystem : MonoBehaviour
             return false;
         }
 
-        nextAttackTime = Time.time + playerData.Attack.attackIntervalSeconds;
-
-        if (runtimeStatus != null)
-        {
-            runtimeStatus.SetState(HWJ_RuntimeState.Attack);
-        }
-
         string skillActionId = GetBasicAttackSkillActionId(playerData);
 
         if (skillActionSystem != null && !string.IsNullOrEmpty(skillActionId))
         {
-            return skillActionSystem.TryUseSkill(skillActionId);
+            if (!skillActionSystem.TryUseSkill(skillActionId))
+            {
+                lastAttackResult = skillActionSystem.LastSkillResult;
+                return false;
+            }
+
+            nextAttackTime = Time.time + playerData.Attack.attackIntervalSeconds;
+            runtimeStatus?.SetState(HWJ_RuntimeState.Attack);
+            lastDamageApplied = skillActionSystem.LastDamageApplied;
+            lastAttackResult = skillActionSystem.LastSkillResult;
+            return true;
         }
 
-        return ApplyBasicAttackDamage(playerData);
+        if (!ApplyBasicAttackDamage(playerData))
+        {
+            return false;
+        }
+
+        nextAttackTime = Time.time + playerData.Attack.attackIntervalSeconds;
+        runtimeStatus?.SetState(HWJ_RuntimeState.Attack);
+        return true;
+    }
+
+    /// <summary>
+    /// 빙의 상태에서 숫자키 1/2/3으로 몬스터의 스킬 목록을 직접 실행합니다.
+    /// 스킬 자체 쿨타임은 SkillActionSystem이 관리하므로 여기서는 입력과 상태 조건만 확인합니다.
+    /// </summary>
+    public bool TryPossessedSkillSlot(int slotIndex)
+    {
+        if (dataResolver == null || !dataResolver.TryGetTypeData(out HWJ_PlayerTypeDataSO playerData))
+        {
+            lastAttackResult = "Missing player type data.";
+            return false;
+        }
+
+        if (!CanAttack(playerData))
+        {
+            lastAttackResult = "Possessed skill requires a possessed body.";
+            return false;
+        }
+
+        if (runtimeStatus != null && runtimeStatus.IsDead)
+        {
+            lastAttackResult = "Cannot use possessed skill while dead.";
+            return false;
+        }
+
+        if (runtimeStatus != null && !runtimeStatus.CanAttack)
+        {
+            lastAttackResult = "Cannot use possessed skill while action locked.";
+            return false;
+        }
+
+        if (possessionSystem == null
+            || !possessionSystem.TryGetPossessedSkillIdAt(slotIndex, out string skillActionId))
+        {
+            lastAttackResult = $"Missing possessed skill slot {slotIndex + 1}.";
+            return false;
+        }
+
+        if (skillActionSystem == null || !skillActionSystem.TryUseSkill(skillActionId))
+        {
+            lastAttackResult = skillActionSystem != null
+                ? skillActionSystem.LastSkillResult
+                : "Missing skill action system.";
+            return false;
+        }
+
+        runtimeStatus?.SetState(HWJ_RuntimeState.Attack);
+        lastDamageApplied = skillActionSystem.LastDamageApplied;
+        lastAttackResult = skillActionSystem.LastSkillResult;
+        return true;
     }
 
     private bool ApplyBasicAttackDamage(HWJ_PlayerTypeDataSO playerData)
@@ -127,61 +215,77 @@ public class HWJ_PlayerAttackSystem : MonoBehaviour
             return false;
         }
 
-        float range = Mathf.Max(minimumAttackRange, playerData.Attack.attackRange);
-        int layerMask = attackTargetLayer.value != 0 ? attackTargetLayer.value : Physics2D.AllLayers;
-        int hitCount = Physics2D.OverlapCircleNonAlloc(transform.position, range, attackHits, layerMask);
-        float outgoingDamage = combatSystem != null
-            ? combatSystem.GetOutgoingDamage()
-            : runtimeStatus != null ? runtimeStatus.AttackPower : 1f;
-        outgoingDamage = Mathf.Max(1f, outgoingDamage);
-
-        lastAttackResult = $"Attack checked {hitCount} colliders.";
         lastDamageApplied = 0f;
 
-        for (int i = 0; i < hitCount; i++)
+        if (combatExecutionSystem == null)
         {
-            Collider2D hit = attackHits[i];
-
-            if (hit == null || hit.transform.IsChildOf(transform))
-            {
-                continue;
-            }
-
-            HWJ_RootObjectDataResolver targetResolver = hit.GetComponentInParent<HWJ_RootObjectDataResolver>();
-
-            if (!CanDamageTarget(targetResolver))
-            {
-                continue;
-            }
-
-            HWJ_RuntimeStatusSystem targetStatus = targetResolver.GetComponent<HWJ_RuntimeStatusSystem>();
-
-            if (targetStatus == null || targetStatus.IsDead)
-            {
-                continue;
-            }
-
-            HWJ_CombatSystem targetCombat = targetResolver.GetComponent<HWJ_CombatSystem>();
-            float finalDamage = targetCombat != null ? targetCombat.GetReceivedDamage(outgoingDamage) : outgoingDamage;
-            targetStatus.ApplyDamage(finalDamage);
-            lastDamageApplied = finalDamage;
-            lastAttackResult = $"Damaged {targetResolver.name}.";
-            return true;
-        }
-
-        lastAttackResult = "No damageable enemy in attack range.";
-        return false;
-    }
-
-    private bool CanDamageTarget(HWJ_RootObjectDataResolver targetResolver)
-    {
-        if (targetResolver == null || targetResolver == dataResolver)
-        {
+            motionSystem?.PlayAttack(null);
+            lastAttackResult = "Attack failed: missing combat execution system.";
             return false;
         }
 
-        HWJ_ObjectType targetType = targetResolver.ObjectType;
-        return targetType == HWJ_ObjectType.Enemy || targetType == HWJ_ObjectType.Boss;
+        if (basicAttackRoutine != null)
+        {
+            StopCoroutine(basicAttackRoutine);
+        }
+
+        basicAttackRoutine = StartCoroutine(TimedBasicAttackRoutine(playerData));
+        lastAttackResult = "Basic attack started.";
+        return true;
+    }
+
+    public void CancelCurrentAttack()
+    {
+        if (basicAttackRoutine != null)
+        {
+            StopCoroutine(basicAttackRoutine);
+            basicAttackRoutine = null;
+        }
+
+        runtimeStatus?.CancelAttackAction();
+    }
+
+    private IEnumerator TimedBasicAttackRoutine(HWJ_PlayerTypeDataSO playerData)
+    {
+        HWJ_PlayerAttackData attackData = playerData.Attack;
+        float hitStart = Mathf.Max(0f, attackData.hitStartSeconds);
+        float activeSeconds = Mathf.Max(0.01f, attackData.hitActiveSeconds);
+        float recoverySeconds = Mathf.Max(0f, attackData.recoverySeconds);
+        float totalSeconds = hitStart + activeSeconds + recoverySeconds;
+
+        runtimeStatus?.BeginTimedAttackAction(
+            totalSeconds,
+            attackData.movementLockSeconds,
+            attackData.dashCancelStartSeconds,
+            attackData.canDashCancel);
+        motionSystem?.PlayAttack(null);
+
+        if (hitStart > 0f)
+        {
+            yield return new WaitForSeconds(hitStart);
+        }
+
+        float range = Mathf.Max(minimumAttackRange, attackData.attackRange);
+        bool attacked = combatExecutionSystem.TryExecuteAreaAttack(range, 1f, null, false);
+        lastDamageApplied = combatExecutionSystem.LastDamageApplied;
+        lastAttackResult = combatExecutionSystem.LastExecutionResult;
+
+        if (activeSeconds > 0f)
+        {
+            yield return new WaitForSeconds(activeSeconds);
+        }
+
+        if (recoverySeconds > 0f)
+        {
+            yield return new WaitForSeconds(recoverySeconds);
+        }
+
+        if (!attacked)
+        {
+            lastAttackResult = $"Basic attack missed: {combatExecutionSystem.LastExecutionResult}";
+        }
+
+        basicAttackRoutine = null;
     }
 
     private bool CanAttack(HWJ_PlayerTypeDataSO playerData)
@@ -191,14 +295,33 @@ public class HWJ_PlayerAttackSystem : MonoBehaviour
             return false;
         }
 
-        if (soulSystem == null)
+        if (soulSystem != null && soulSystem.CurrentState != HWJ_SoulRuntimeState.Body)
         {
-            return playerData.State.canAttackOnBodyState;
+            return false;
         }
 
-        return soulSystem.CurrentState == HWJ_SoulRuntimeState.Soul
-            ? playerData.State.canAttackOnSoulState
-            : playerData.State.canAttackOnBodyState;
+        return playerData.State.canAttackOnBodyState
+            && possessionSystem != null
+            && possessionSystem.HasActivePossessedBody;
+    }
+
+    private void TryPossessedSkillSlotInputs()
+    {
+        if (playerInput == null || possessionSystem == null || !possessionSystem.HasActivePossessedBody)
+        {
+            return;
+        }
+
+        int slotCount = Mathf.Max(0, possessedSkillSlotCount);
+
+        for (int i = 0; i < slotCount; i++)
+        {
+            if (playerInput.WasSkillSlotPressedThisFrame(i))
+            {
+                TryPossessedSkillSlot(i);
+                return;
+            }
+        }
     }
 
     private string GetBasicAttackSkillActionId(HWJ_PlayerTypeDataSO playerData)

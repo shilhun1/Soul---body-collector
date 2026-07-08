@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -12,6 +13,11 @@ public class HWJ_SpawnerSystem : MonoBehaviour
     [SerializeField] private HWJ_ObjectPoolSystem objectPool;
     [SerializeField] private bool autoCollectSpawnPoints = true;
     [SerializeField] private bool spawnOnStart = true;
+    [SerializeField] private string lastSpawnResult;
+
+    private readonly List<HWJ_RuntimeStatusSystem> sequentialSpawnedMonsters = new List<HWJ_RuntimeStatusSystem>();
+
+    public string LastSpawnResult => lastSpawnResult;
 
     private void Awake()
     {
@@ -37,6 +43,7 @@ public class HWJ_SpawnerSystem : MonoBehaviour
     {
         if (spawnTable == null || spawnTable.Entries == null)
         {
+            SetLastSpawnResult("Spawn failed: missing spawn table or entries.", true);
             return;
         }
 
@@ -72,6 +79,7 @@ public class HWJ_SpawnerSystem : MonoBehaviour
 
         if (point == null)
         {
+            SetLastSpawnResult($"Spawn failed: missing spawn point for {entry.spawnId}.", true);
             return;
         }
 
@@ -86,14 +94,30 @@ public class HWJ_SpawnerSystem : MonoBehaviour
         }
 
         int count = Mathf.Max(1, entry.spawnCount);
+        bool useSequentialSpawn = ShouldUseSequentialSpawn(entry, count);
 
         for (int i = 0; i < count; i++)
         {
-            SpawnOne(entry, point);
+            GameObject instance = SpawnOne(entry, point);
+
+            if (instance == null)
+            {
+                yield break;
+            }
+
+            if (useSequentialSpawn)
+            {
+                TrackSequentialSpawnedMonster(instance);
+            }
+
+            if (useSequentialSpawn && i < count - 1)
+            {
+                yield return WaitForNextSequentialSpawn(entry);
+            }
         }
     }
 
-    private void SpawnOne(HWJ_SpawnEntryData entry, HWJ_SpawnPoint point)
+    private GameObject SpawnOne(HWJ_SpawnEntryData entry, HWJ_SpawnPoint point)
     {
         GameObject prefab = entry.prefabOverride;
 
@@ -104,7 +128,11 @@ public class HWJ_SpawnerSystem : MonoBehaviour
 
         if (prefab == null)
         {
-            return;
+            string rootName = entry.rootObjectData != null ? entry.rootObjectData.name : "None";
+            SetLastSpawnResult(
+                $"Spawn failed: {entry.spawnId} has no Prefab Override and RootObjectData {rootName} has no Model Prefab.",
+                true);
+            return null;
         }
 
         Vector3 spawnPosition = point.Position + (Vector3)entry.spawnOffset;
@@ -113,7 +141,8 @@ public class HWJ_SpawnerSystem : MonoBehaviour
 
         if (instance == null)
         {
-            return;
+            SetLastSpawnResult($"Spawn failed: prefab spawn returned null for {entry.spawnId}.", true);
+            return null;
         }
 
         HWJ_RootObjectDataResolver resolver = instance.GetComponent<HWJ_RootObjectDataResolver>();
@@ -130,6 +159,104 @@ public class HWJ_SpawnerSystem : MonoBehaviour
         }
 
         WireSpawnedObject(instance);
+        SetLastSpawnResult($"Spawned {instance.name} from {entry.spawnId}.", false);
+        return instance;
+    }
+
+    private void SetLastSpawnResult(string message, bool warning)
+    {
+        lastSpawnResult = message;
+
+        if (warning)
+        {
+            Debug.LogWarning(message, this);
+        }
+    }
+
+    private bool ShouldUseSequentialSpawn(HWJ_SpawnEntryData entry, int count)
+    {
+        if (entry == null || count <= 1 || !entry.useSequentialSpawnWhenMultiple)
+        {
+            return false;
+        }
+
+        if (entry.spawnPointType == HWJ_SpawnPointType.Enemy || entry.spawnPointType == HWJ_SpawnPointType.Boss)
+        {
+            return true;
+        }
+
+        if (entry.rootObjectData == null)
+        {
+            return false;
+        }
+
+        return entry.rootObjectData.ObjectType == HWJ_ObjectType.Enemy
+            || entry.rootObjectData.ObjectType == HWJ_ObjectType.Boss;
+    }
+
+    private void TrackSequentialSpawnedMonster(GameObject instance)
+    {
+        if (instance == null)
+        {
+            return;
+        }
+
+        HWJ_RootObjectDataResolver resolver = instance.GetComponent<HWJ_RootObjectDataResolver>();
+
+        if (resolver == null
+            || (resolver.ObjectType != HWJ_ObjectType.Enemy && resolver.ObjectType != HWJ_ObjectType.Boss))
+        {
+            return;
+        }
+
+        HWJ_RuntimeStatusSystem runtimeStatus = instance.GetComponent<HWJ_RuntimeStatusSystem>();
+
+        if (runtimeStatus != null && !sequentialSpawnedMonsters.Contains(runtimeStatus))
+        {
+            sequentialSpawnedMonsters.Add(runtimeStatus);
+        }
+    }
+
+    private IEnumerator WaitForNextSequentialSpawn(HWJ_SpawnEntryData entry)
+    {
+        float elapsedSeconds = 0f;
+        float maxWaitSeconds = Mathf.Max(0f, entry.nextSpawnMaxWaitSeconds);
+        bool hasTimeout = maxWaitSeconds > 0f;
+
+        if (!entry.waitUntilCurrentSpawnedMonstersDefeated && !hasTimeout)
+        {
+            yield break;
+        }
+
+        while (true)
+        {
+            bool defeatedConditionMet = entry.waitUntilCurrentSpawnedMonstersDefeated
+                && AreAllSequentialSpawnedMonstersDefeated();
+            bool timeoutConditionMet = hasTimeout && elapsedSeconds >= maxWaitSeconds;
+
+            if (defeatedConditionMet || timeoutConditionMet)
+            {
+                yield break;
+            }
+
+            elapsedSeconds += Time.deltaTime;
+            yield return null;
+        }
+    }
+
+    private bool AreAllSequentialSpawnedMonstersDefeated()
+    {
+        for (int i = sequentialSpawnedMonsters.Count - 1; i >= 0; i--)
+        {
+            HWJ_RuntimeStatusSystem runtimeStatus = sequentialSpawnedMonsters[i];
+
+            if (runtimeStatus == null || !runtimeStatus.gameObject.activeInHierarchy || runtimeStatus.IsDead)
+            {
+                sequentialSpawnedMonsters.RemoveAt(i);
+            }
+        }
+
+        return sequentialSpawnedMonsters.Count == 0;
     }
 
     private GameObject SpawnPrefab(GameObject prefab, Vector3 position, Quaternion rotation, Transform parent)
@@ -167,6 +294,13 @@ public class HWJ_SpawnerSystem : MonoBehaviour
         if (instance == null)
         {
             return;
+        }
+
+        HWJ_PossessionBodyState possessionBodyState = instance.GetComponent<HWJ_PossessionBodyState>();
+
+        if (possessionBodyState != null)
+        {
+            possessionBodyState.ResetConsumed();
         }
 
         HWJ_RuntimeStatusSystem runtimeStatus = instance.GetComponent<HWJ_RuntimeStatusSystem>();

@@ -10,6 +10,9 @@ public class HWJ_BossTypeDataSO : HWJ_ObjectTypeDataSO
     [Header("Boss")]
     [SerializeField] private HWJ_BossRank bossRank;
 
+    [Header("Common FSM")]
+    [SerializeField] private HWJ_BossFSMData fsm = new HWJ_BossFSMData();
+
     [Header("AI")]
     [SerializeField] private HWJ_AIData ai = new HWJ_AIData();
     [SerializeField] private HWJ_NavigationData navigation = new HWJ_NavigationData();
@@ -25,6 +28,7 @@ public class HWJ_BossTypeDataSO : HWJ_ObjectTypeDataSO
     [SerializeField] private HWJ_PossessionData possessionBody = new HWJ_PossessionData();
 
     public HWJ_BossRank BossRank => bossRank;
+    public HWJ_BossFSMData FSM => fsm;
     public HWJ_AIData AI => ai;
     public HWJ_NavigationData Navigation => navigation;
     public HWJ_SkillSetData SkillCycle => skillCycle;

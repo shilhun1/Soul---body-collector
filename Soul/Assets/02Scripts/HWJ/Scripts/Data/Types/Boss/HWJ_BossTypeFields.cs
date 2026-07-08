@@ -1,4 +1,30 @@
 using System;
+using UnityEngine;
+
+[Serializable]
+public class HWJ_BossFSMData
+{
+    public bool autoStartWhenPlayerEntersRoom = true;
+    public bool useBossRoomBounds = true;
+    public Vector2 bossRoomOffset;
+    public Vector2 bossRoomSize = new Vector2(28f, 14f);
+    public float attackStartRange = 5f;
+    public float optimalAttackDistance = 3.5f;
+    public float closeSkillRange = 4f;
+    public float chaseMoveSpeedMultiplier = 1f;
+    public float phaseTwoHpRatio = 0.5f;
+    public float phaseTransitionSeconds = 1.5f;
+    public float cameraFocusSeconds = 2f;
+    public float soulReturnCenterStoppingDistance = 0.2f;
+    public bool superArmorDuringAttack = true;
+    public bool superArmorDuringPhaseTransition = true;
+    public int groggyHitCountThreshold = 5;
+    public float groggyHitWindowSeconds = 3f;
+    public float groggyDurationSeconds = 2.5f;
+    public float groggyDamageMultiplier = 1.5f;
+    public bool knockbackOnGroggyEnd = true;
+    public float groggyEndKnockbackPower = 8f;
+}
 
 /// <summary>
 /// 보스의 HP 비율별 페이즈 데이터를 관리합니다.
