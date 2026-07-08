@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HWJ_SpawnTableDataSO
   tableId: 
   entries:
-  - spawnId: enemy_Sword
-    spawnPointId: enemy_Sword
+  - spawnId: enemy_Sword1
+    spawnPointId: enemy_Sword1
     spawnPointType: 1
     rootObjectData: {fileID: 11400000, guid: cc000000000000000000000000000001, type: 2}
     prefabOverride: {fileID: 3576862325422680928, guid: d5bf07532af8bbc45a0f20ef875ee17a, type: 3}
@@ -27,8 +27,21 @@ MonoBehaviour:
     spawnOffset: {x: 0, y: 0}
     randomizePoint: 0
     spawnOnStart: 1
-  - spawnId: enemy_Axe
-    spawnPointId: enemy_Axe
+  - spawnId: enemy_Sword2
+    spawnPointId: enemy_Sword2
+    spawnPointType: 1
+    rootObjectData: {fileID: 11400000, guid: cc000000000000000000000000000001, type: 2}
+    prefabOverride: {fileID: 3576862325422680928, guid: d5bf07532af8bbc45a0f20ef875ee17a, type: 3}
+    spawnCount: 1
+    spawnDelaySeconds: 0
+    useSequentialSpawnWhenMultiple: 1
+    waitUntilCurrentSpawnedMonstersDefeated: 1
+    nextSpawnMaxWaitSeconds: 5
+    spawnOffset: {x: 0, y: 0}
+    randomizePoint: 0
+    spawnOnStart: 1
+  - spawnId: enemy_Axe1
+    spawnPointId: enemy_Axe1
     spawnPointType: 1
     rootObjectData: {fileID: 11400000, guid: cc000000000000000000000000000003, type: 2}
     prefabOverride: {fileID: 3576862325422680928, guid: f3be394d9fe9a654c972f7282987f973, type: 3}
@@ -40,37 +53,11 @@ MonoBehaviour:
     spawnOffset: {x: 0, y: 0}
     randomizePoint: 0
     spawnOnStart: 1
-  - spawnId: enemy_Bow
-    spawnPointId: enemy_Bow
+  - spawnId: enemy_Lance1
+    spawnPointId: enemy_Lance1
     spawnPointType: 1
-    rootObjectData: {fileID: 11400000, guid: cc000000000000000000000000000005, type: 2}
-    prefabOverride: {fileID: 3576862325422680928, guid: 63bca773b812f4e4091ce7ef09775955, type: 3}
-    spawnCount: 1
-    spawnDelaySeconds: 0
-    useSequentialSpawnWhenMultiple: 1
-    waitUntilCurrentSpawnedMonstersDefeated: 1
-    nextSpawnMaxWaitSeconds: 5
-    spawnOffset: {x: 0, y: 0}
-    randomizePoint: 0
-    spawnOnStart: 1
-  - spawnId: enemy_Shield
-    spawnPointId: enemy_Shield
-    spawnPointType: 1
-    rootObjectData: {fileID: 11400000, guid: cc000000000000000000000000000004, type: 2}
-    prefabOverride: {fileID: 3576862325422680928, guid: a59df2ced68ffef41899d729c2e94a7d, type: 3}
-    spawnCount: 1
-    spawnDelaySeconds: 0
-    useSequentialSpawnWhenMultiple: 1
-    waitUntilCurrentSpawnedMonstersDefeated: 1
-    nextSpawnMaxWaitSeconds: 5
-    spawnOffset: {x: 0, y: 0}
-    randomizePoint: 0
-    spawnOnStart: 1
-  - spawnId: enemy_Lance
-    spawnPointId: enemy_Lance
-    spawnPointType: 1
-    rootObjectData: {fileID: 11400000, guid: cc000000000000000000000000000002, type: 2}
-    prefabOverride: {fileID: 3576862325422680928, guid: b5b460fd804c27741882ca7cb73f719c, type: 3}
+    rootObjectData: {fileID: 11400000, guid: cc000000000000000000000000000003, type: 2}
+    prefabOverride: {fileID: 3576862325422680928, guid: f3be394d9fe9a654c972f7282987f973, type: 3}
     spawnCount: 1
     spawnDelaySeconds: 0
     useSequentialSpawnWhenMultiple: 1

@@ -208,7 +208,7 @@ Transform:
   m_GameObject: {fileID: 28251091}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1.0662184, y: -1.6984165, z: -10}
+  m_LocalPosition: {x: 20.78, y: -2.75, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -258,7 +258,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 68304901c1e34bab9fe237dca468b858, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HWJ_SpawnPoint
-  pointId: enemy_Sword
+  pointId: enemy_Sword2
   spawnPointType: 1
   spawnParent: {fileID: 0}
   gizmoRadius: 0.35
@@ -360,7 +360,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 269572086994366749, guid: 11aa11b4e8a4e584484790da651f1022, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 2.917409
+      value: 2.25
       objectReference: {fileID: 0}
     - target: {fileID: 269572086994366749, guid: 11aa11b4e8a4e584484790da651f1022, type: 3}
       propertyPath: m_LocalPosition.z
@@ -399,8 +399,20 @@ PrefabInstance:
       value: WindTrap
       objectReference: {fileID: 0}
     - target: {fileID: 6775197164208875304, guid: 11aa11b4e8a4e584484790da651f1022, type: 3}
+      propertyPath: isSpawner
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6775197164208875304, guid: 11aa11b4e8a4e584484790da651f1022, type: 3}
       propertyPath: windSpeed
       value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 6775197164208875304, guid: 11aa11b4e8a4e584484790da651f1022, type: 3}
+      propertyPath: windPrefab
+      value: 
+      objectReference: {fileID: 4610896521491279453, guid: a4dff9f471fc5b4409e6d9336c900a19, type: 3}
+    - target: {fileID: 6775197164208875304, guid: 11aa11b4e8a4e584484790da651f1022, type: 3}
+      propertyPath: fireInterval
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 6775197164208875304, guid: 11aa11b4e8a4e584484790da651f1022, type: 3}
       propertyPath: detectDistance
@@ -445,7 +457,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 269572086994366749, guid: 11aa11b4e8a4e584484790da651f1022, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -6.1
+      value: -6.52
       objectReference: {fileID: 0}
     - target: {fileID: 269572086994366749, guid: 11aa11b4e8a4e584484790da651f1022, type: 3}
       propertyPath: m_LocalPosition.z
@@ -484,8 +496,20 @@ PrefabInstance:
       value: WindTrap (1)
       objectReference: {fileID: 0}
     - target: {fileID: 6775197164208875304, guid: 11aa11b4e8a4e584484790da651f1022, type: 3}
+      propertyPath: isSpawner
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6775197164208875304, guid: 11aa11b4e8a4e584484790da651f1022, type: 3}
       propertyPath: windSpeed
       value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 6775197164208875304, guid: 11aa11b4e8a4e584484790da651f1022, type: 3}
+      propertyPath: windPrefab
+      value: 
+      objectReference: {fileID: 4610896521491279453, guid: a4dff9f471fc5b4409e6d9336c900a19, type: 3}
+    - target: {fileID: 6775197164208875304, guid: 11aa11b4e8a4e584484790da651f1022, type: 3}
+      propertyPath: fireInterval
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 6775197164208875304, guid: 11aa11b4e8a4e584484790da651f1022, type: 3}
       propertyPath: detectDistance
@@ -544,7 +568,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 68304901c1e34bab9fe237dca468b858, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HWJ_SpawnPoint
-  pointId: enemy_Lance
+  pointId: enemy_Lance1
   spawnPointType: 1
   spawnParent: {fileID: 0}
   gizmoRadius: 0.35
@@ -664,7 +688,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 68304901c1e34bab9fe237dca468b858, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HWJ_SpawnPoint
-  pointId: enemy_Sword
+  pointId: enemy_Sword1
   spawnPointType: 1
   spawnParent: {fileID: 0}
   gizmoRadius: 0.35
@@ -845,11 +869,11 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 2165432693614228781, guid: 426d71b60b22cec489b7ac44e1345dff, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 1.0662184
+      value: 20.78
       objectReference: {fileID: 0}
     - target: {fileID: 2165432693614228781, guid: 426d71b60b22cec489b7ac44e1345dff, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -3.2184165
+      value: -4.27
       objectReference: {fileID: 0}
     - target: {fileID: 2165432693614228781, guid: 426d71b60b22cec489b7ac44e1345dff, type: 3}
       propertyPath: m_LocalPosition.z
@@ -1040,7 +1064,7 @@ Transform:
   m_GameObject: {fileID: 1153284958}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1.0662184, y: -1.6984165, z: -10}
+  m_LocalPosition: {x: 20.78, y: -2.75, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -4622,8 +4646,20 @@ PrefabInstance:
       value: WindTrap (2)
       objectReference: {fileID: 0}
     - target: {fileID: 6775197164208875304, guid: 11aa11b4e8a4e584484790da651f1022, type: 3}
+      propertyPath: isSpawner
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6775197164208875304, guid: 11aa11b4e8a4e584484790da651f1022, type: 3}
       propertyPath: windSpeed
       value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 6775197164208875304, guid: 11aa11b4e8a4e584484790da651f1022, type: 3}
+      propertyPath: windPrefab
+      value: 
+      objectReference: {fileID: 4610896521491279453, guid: 6337c1f1b4a067247b74c2ba4db8c915, type: 3}
+    - target: {fileID: 6775197164208875304, guid: 11aa11b4e8a4e584484790da651f1022, type: 3}
+      propertyPath: fireInterval
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 6775197164208875304, guid: 11aa11b4e8a4e584484790da651f1022, type: 3}
       propertyPath: detectDistance
@@ -4671,6 +4707,17 @@ MonoBehaviour:
   playerStatus: {fileID: 0}
   playerLevel: {fileID: 0}
   playerSoul: {fileID: 0}
+  playerBodyDecay: {fileID: 0}
+  preservePlayerRuntimeAcrossScenes: 1
+  hasPlayerRuntimeSnapshot: 0
+  savedCurrentHp: 0
+  savedSoulHp: 0
+  savedPossessedBodyHp: 0
+  hasBodyDecaySnapshot: 0
+  savedBodyDecayValue: 0
+  togglePauseWithEscape: 1
+  isPaused: 0
+  timeScaleBeforePause: 1
 --- !u!4 &1302680965
 Transform:
   m_ObjectHideFlags: 0
@@ -4715,7 +4762,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a98db9e131bb430c98af03cd24647bcf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HWJ_SpawnerSystem
-  spawnTable: {fileID: 11400000, guid: 4e0ff589d78eae543abdc6bac899313d, type: 2}
+  spawnTable: {fileID: 11400000, guid: 7e692861e96ddd44eafd5369d318dea4, type: 2}
   spawnPoints:
   - {fileID: 844838626}
   - {fileID: 104934259}
@@ -5194,7 +5241,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 68304901c1e34bab9fe237dca468b858, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HWJ_SpawnPoint
-  pointId: enemy_Axe
+  pointId: enemy_Axe1
   spawnPointType: 1
   spawnParent: {fileID: 0}
   gizmoRadius: 0.35
