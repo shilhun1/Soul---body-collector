@@ -40,7 +40,28 @@ MonoBehaviour:
     returnToIdleDelaySeconds: 1
     stopWhenHit: 1
   skillCycle:
-    skills: []
+    skills:
+    - skillId: sword_diagonal_slash
+      requiredWeaponType: 3
+      unlockLevel: 1
+      requiredSkillPoint: 0
+      startsUnlocked: 1
+      cooldownSeconds: 0.6
+      useIntervalSeconds: 0.65
+    - skillId: sword_up_diagonal_slash
+      requiredWeaponType: 3
+      unlockLevel: 1
+      requiredSkillPoint: 0
+      startsUnlocked: 1
+      cooldownSeconds: 0.8
+      useIntervalSeconds: 0.8
+    - skillId: sword_wave
+      requiredWeaponType: 3
+      unlockLevel: 1
+      requiredSkillPoint: 0
+      startsUnlocked: 1
+      cooldownSeconds: 2.5
+      useIntervalSeconds: 1
   possessionBody:
     canPossess: 0
     canBePossessed: 1
