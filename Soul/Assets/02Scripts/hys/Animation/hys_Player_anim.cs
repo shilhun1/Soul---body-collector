@@ -18,6 +18,7 @@ public class hys_Player_anim : MonoBehaviour
     [SerializeField] private string isGroundedParameter = "IsGrounded";
     [SerializeField] private string jumpTrigger = "Jump";
     [SerializeField] private string attackTrigger = "Attack";
+    [SerializeField] private string hitTrigger = "Hit";
     [SerializeField] private string deathTrigger = "Death";
 
     [Header("Direction")]
@@ -35,6 +36,7 @@ public class hys_Player_anim : MonoBehaviour
     private int isGroundedHash;
     private int jumpHash;
     private int attackHash;
+    private int hitHash;
     private int deathHash;
 
     private bool IsMoving => Mathf.Abs(GetMoveVelocity().x) > moveThreshold;
@@ -127,6 +129,10 @@ public class hys_Player_anim : MonoBehaviour
                 animator.SetBool(isGroundedHash, isGrounded);
                 animator.SetTrigger(deathHash);
             }
+            else if (playerState.CurrentState == hys_PlayerState.Hit)
+            {
+                animator.SetTrigger(hitHash);
+            }
         }
     }
 
@@ -139,6 +145,7 @@ public class hys_Player_anim : MonoBehaviour
         isGroundedHash = Animator.StringToHash(isGroundedParameter);
         jumpHash = Animator.StringToHash(jumpTrigger);
         attackHash = Animator.StringToHash(attackTrigger);
+        hitHash = Animator.StringToHash(hitTrigger);
         deathHash = Animator.StringToHash(deathTrigger);
     }
 }
