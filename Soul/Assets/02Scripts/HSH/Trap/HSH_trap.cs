@@ -146,8 +146,6 @@ public class HSH_trap : MonoBehaviour
     /// </summary>
     private void ApplyDamage()
     {
-        // 아까 만들어둔 HSH_BarUI를 찾아서 데미지 수치만큼 체력을 깎습니다.
-        // 체력이 0이 되면 HSH_BarUI에서 알아서 게임오버 창을 띄워줄 것입니다!
         HSH_BarUI barUI = FindAnyObjectByType<HSH_BarUI>();
         if (barUI != null)
         {

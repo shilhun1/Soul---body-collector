@@ -63,8 +63,12 @@ public class HSH_EnemyHPUI : MonoBehaviour
                 hpSlider.value = currentHp / maxHp;
             }
 
-            // 체력에 따른 숨김 처리 로직
-            if (currentHp <= 0)
+            // 체력 및 빙의 상태에 따른 숨김 처리 로직
+            if (statusSystem.CurrentState == HWJ_RuntimeState.Possessed)
+            {
+                spawnedUI.SetActive(false); // 빙의 중이면 체력바 숨김
+            }
+            else if (currentHp <= 0)
             {
                 spawnedUI.SetActive(false); // 죽으면 숨김
             }
@@ -89,6 +93,15 @@ public class HSH_EnemyHPUI : MonoBehaviour
             
             // 변환된 스크린 좌표를 UI의 위치로 지정합니다.
             spawnedUI.transform.position = screenPos;
+        }
+    }
+
+    private void OnDisable()
+    {
+        // 적 오브젝트가 비활성화되면(예: 빙의되어 몸이 숨겨짐) UI도 숨김
+        if (spawnedUI != null)
+        {
+            spawnedUI.SetActive(false);
         }
     }
 

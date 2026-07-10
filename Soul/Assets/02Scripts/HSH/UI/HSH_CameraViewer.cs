@@ -37,6 +37,21 @@ public class HSH_CameraViewer : MonoBehaviour
         renderTexture = new RenderTexture(Mathf.RoundToInt(viewSize.x), Mathf.RoundToInt(viewSize.y), 16);
         captureCamera.targetTexture = renderTexture;
 
+        CreateUI();
+    }
+
+    private void Update()
+    {
+        // 씬이 이동되어 캔버스와 함께 UI가 파괴되었다면 다시 생성합니다.
+        if (rawImageObj == null)
+        {
+            targetCanvas = null; // 이전 씬의 캔버스가 파괴되었을 수 있으므로 초기화
+            CreateUI();
+        }
+    }
+
+    private void CreateUI()
+    {
         // 2. 화면에 띄울 UI Canvas 가져오기
         if (targetCanvas == null)
         {
@@ -45,8 +60,7 @@ public class HSH_CameraViewer : MonoBehaviour
 
         if (targetCanvas == null)
         {
-            Debug.LogError("[HSH_CameraViewer] 씬에 Canvas가 없어서 화면을 띄울 수 없습니다. 캔버스를 만들어주세요!");
-            return;
+            return; // 캔버스가 아직 없다면 다음 프레임에 다시 시도
         }
 
         // 3. RawImage 생성하여 오른쪽 위에 배치

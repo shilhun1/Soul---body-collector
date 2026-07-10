@@ -73,10 +73,8 @@ public class HSH_FallingTrap : MonoBehaviour
 
     private void ApplyDamage(GameObject player)
     {
-
-
-        // 2. UI 체력바도 깎습니다.
-        HSH_BarUI[] barUIs = FindObjectsByType<HSH_BarUI>(FindObjectsInactive.Include, FindObjectsSortMode.None); // 꺼져있는 UI도 찾음
+        // 2. UI 체력바를 깎습니다.
+        HSH_BarUI[] barUIs = FindObjectsByType<HSH_BarUI>(FindObjectsInactive.Include, FindObjectsSortMode.None);
         bool isDamaged = false;
 
         foreach (var barUI in barUIs)
@@ -90,7 +88,7 @@ public class HSH_FallingTrap : MonoBehaviour
 
         if (isDamaged)
         {
-            Debug.Log($"[FallingTrap] 플레이어가 낙석에 맞았습니다! 데미지: {damage}");
+            Debug.Log($"[FallingTrap] 낙석이 플레이어를 깔아뭉갰습니다! 데미지: {damage}");
         }
     }
 

@@ -107,8 +107,6 @@ public class HSH_SpikeTrap : MonoBehaviour
 
     private void ApplyDamage(GameObject player)
     {
-
-
         // 2. UI 체력바도 깎습니다.
         HSH_BarUI[] barUIs = FindObjectsByType<HSH_BarUI>(FindObjectsInactive.Include, FindObjectsSortMode.None);
         bool isDamaged = false;
