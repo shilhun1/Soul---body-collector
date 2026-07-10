@@ -6,6 +6,7 @@ public class HWJ_BodyDecaySystem : MonoBehaviour
 {
     [SerializeField] private HWJ_RootObjectDataResolver dataResolver;
     [SerializeField] private HWJ_SoulSystem soulSystem;
+    [SerializeField] private HWJ_PossessionSystem possessionSystem;
     [SerializeField] private float currentDecayValue;
     [SerializeField] private bool resetDecayWhenEnterBody = true;
     [SerializeField] private bool isDecaying;
@@ -14,6 +15,7 @@ public class HWJ_BodyDecaySystem : MonoBehaviour
     private float decayTimer;
     private bool hasInitializedDecay;
     private HWJ_SoulRuntimeState previousSoulState;
+    private HWJ_RootObjectDataResolver previousPossessedBodyResolver;
 
     public float CurrentDecayValue => currentDecayValue;
     public bool IsDecaying => isDecaying;
@@ -47,19 +49,31 @@ public class HWJ_BodyDecaySystem : MonoBehaviour
         }
 
         HWJ_SoulRuntimeState currentSoulState = soulSystem.CurrentState;
+        HWJ_RootObjectDataResolver currentPossessedBodyResolver = possessionSystem != null
+            ? possessionSystem.PossessedBodyResolver
+            : null;
 
         if (currentSoulState == HWJ_SoulRuntimeState.Body
-            && previousSoulState != HWJ_SoulRuntimeState.Body
+            && (previousSoulState != HWJ_SoulRuntimeState.Body
+                || previousPossessedBodyResolver != currentPossessedBodyResolver)
+            && currentPossessedBodyResolver != null
             && resetDecayWhenEnterBody)
         {
             ResetDecay();
         }
 
         previousSoulState = currentSoulState;
+        previousPossessedBodyResolver = currentPossessedBodyResolver;
 
         if (currentSoulState != HWJ_SoulRuntimeState.Body)
         {
             StopDecay($"Soul state is {currentSoulState}.");
+            return;
+        }
+
+        if (possessionSystem == null || !possessionSystem.HasActivePossessedBody)
+        {
+            StopDecay("Body decay waits for an active possessed corpse.");
             return;
         }
 
@@ -100,6 +114,7 @@ public class HWJ_BodyDecaySystem : MonoBehaviour
         decayTimer = 0f;
         currentDecayValue -= bodyDecay.decayAmountPerTick;
         TryEnterSoulStateWhenDecayEmpty(bodyDecay);
+        SavePlayerRuntimeSnapshotIfOwner();
     }
 
     public void ResetDecay()
@@ -112,9 +127,36 @@ public class HWJ_BodyDecaySystem : MonoBehaviour
         }
     }
 
-    public void ApplyHitDecayPenalty()
+    public void RestoreDecaySnapshot(float restoredDecayValue)
     {
         ResolveReferences();
+
+        if (!TryGetBodyDecayData(out HWJ_BodyDecayData bodyDecay))
+        {
+            return;
+        }
+
+        currentDecayValue = Mathf.Clamp(restoredDecayValue, 0f, Mathf.Max(0f, bodyDecay.maxDecayValue));
+        decayTimer = 0f;
+        hasInitializedDecay = true;
+    }
+
+    public void ApplyHitDecayPenalty()
+    {
+        ApplyHitDecayPenalty(0f);
+    }
+
+    public void ApplyHitDecayPenalty(float incomingDamage)
+    {
+        ResolveReferences();
+
+        if (soulSystem == null
+            || soulSystem.CurrentState != HWJ_SoulRuntimeState.Body
+            || possessionSystem == null
+            || !possessionSystem.HasActivePossessedBody)
+        {
+            return;
+        }
 
         if (!TryGetBodyDecayData(out HWJ_BodyDecayData bodyDecay))
         {
@@ -126,8 +168,10 @@ public class HWJ_BodyDecaySystem : MonoBehaviour
             SetDecayToMax(bodyDecay);
         }
 
-        currentDecayValue -= bodyDecay.hitDecayPenalty;
+        float decayPenalty = Mathf.Max(bodyDecay.hitDecayPenalty, incomingDamage);
+        currentDecayValue -= decayPenalty;
         TryEnterSoulStateWhenDecayEmpty(bodyDecay);
+        SavePlayerRuntimeSnapshotIfOwner();
     }
 
     private void ResolveReferences()
@@ -140,6 +184,11 @@ public class HWJ_BodyDecaySystem : MonoBehaviour
         if (soulSystem == null)
         {
             soulSystem = GetComponent<HWJ_SoulSystem>();
+        }
+
+        if (possessionSystem == null)
+        {
+            possessionSystem = GetComponent<HWJ_PossessionSystem>();
         }
     }
 
@@ -194,5 +243,13 @@ public class HWJ_BodyDecaySystem : MonoBehaviour
 
         runtimeStateMessage = "Body decay reached zero. Entering soul state.";
         soulSystem.EnterSoulState();
+    }
+
+    private void SavePlayerRuntimeSnapshotIfOwner()
+    {
+        if (HWJ_GameAccess.HasManager && HWJ_GameAccess.Manager.PlayerBodyDecay == this)
+        {
+            HWJ_GameAccess.Manager.SavePlayerRuntimeSnapshot();
+        }
     }
 }

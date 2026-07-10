@@ -15,6 +15,9 @@ public class HWJ_SpawnEntryData
     public GameObject prefabOverride;
     public int spawnCount = 1;
     public float spawnDelaySeconds;
+    public bool useSequentialSpawnWhenMultiple = true;
+    public bool waitUntilCurrentSpawnedMonstersDefeated = true;
+    public float nextSpawnMaxWaitSeconds = 5f;
     public Vector2 spawnOffset;
     public bool randomizePoint;
     public bool spawnOnStart = true;

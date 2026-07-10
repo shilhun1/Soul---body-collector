@@ -16,10 +16,16 @@ MonoBehaviour:
   typeId: player_default
   displayName: Player
   defaultWeaponType: 0
-  description: Player type data with control, skill, growth, soul, possession, and body decay settings.
+  description: Player type data with control, skill, growth, soul, possession, and
+    body decay settings.
   control:
-    acceleration: 0
-    deceleration: 0
+    acceleration: 70
+    deceleration: 80
+    airAcceleration: 45
+    airDeceleration: 35
+    coyoteTimeSeconds: 0.1
+    maxFallSpeed: 24
+    jumpCutMultiplier: 0.75
     normalJump:
       jumpPower: 12
       jumpBufferTime: 0.15
@@ -31,17 +37,27 @@ MonoBehaviour:
     dashSpeed: 15
     dashDuration: 0.2
     dashCooldown: 1
+    maxDashCount: 2
+    dashStepCooldown: 0.15
     canAirDash: 1
-    fallGravityMultiplier: 1.5
+    fallGravityMultiplier: 1.2
     dashInvincibleSeconds: 0.16
     dashRecoverySeconds: 0
+    dropThroughSeconds: 0.25
+    wallCheckDistance: 0.08
+    cornerNudgeDistance: 0.08
     canFreeFly: 0
   attack:
-    attackInputId: Fire1
-    attackRange: 1.5
-    attackIntervalSeconds: 0.3
+    attackRange: 2
+    attackIntervalSeconds: 0.35
     comboResetSeconds: 0.8
-    basicAttackSkillActionId: ""
+    basicAttackSkillActionId: 
+    hitStartSeconds: 0.12
+    hitActiveSeconds: 0.08
+    recoverySeconds: 0.22
+    movementLockSeconds: 0.22
+    dashCancelStartSeconds: 0.12
+    canDashCancel: 1
   state:
     startState: 1
     canMoveOnBodyState: 1
@@ -61,8 +77,8 @@ MonoBehaviour:
     startLevel: 1
     maxLevel: 0
     startSkillPoint: 0
-    skillTreeId: ""
-    experienceToLevelUp: []
+    skillTreeId: 
+    experienceToLevelUp: 
   soulState:
     possessionDeadlineSeconds: 10
     soulMoveSpeed: 6
@@ -75,8 +91,7 @@ MonoBehaviour:
     canPossess: 1
     canBePossessed: 0
     possessableHeartEffectPrefab: {fileID: 0}
-    heartSocketName: ""
-    possessionInputId: 
+    heartSocketName: 
     possessionRange: 2.5
     requiresDefeatedState: 1
     transfersControlToBody: 1

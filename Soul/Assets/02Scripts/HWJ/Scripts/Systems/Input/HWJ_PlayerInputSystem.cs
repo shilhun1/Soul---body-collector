@@ -13,6 +13,7 @@ public class HWJ_PlayerInputSystem : MonoBehaviour
     [SerializeField] private InputActionReference dashAction;
     [SerializeField] private InputActionReference attackAction;
     [SerializeField] private InputActionReference interactAction;
+    [SerializeField] private InputActionReference exitPossessionAction;
 #endif
 
     public Vector2 MoveInput
@@ -37,6 +38,30 @@ public class HWJ_PlayerInputSystem : MonoBehaviour
                 || WasKeyboardPressedThisFrame(Key.Space);
 #else
             return Input.GetKeyDown(KeyCode.Space);
+#endif
+        }
+    }
+
+    public bool JumpHeld
+    {
+        get
+        {
+#if ENABLE_INPUT_SYSTEM
+            return IsPressed(jumpAction, "Jump") || IsKeyboardPressed(Key.Space);
+#else
+            return Input.GetKey(KeyCode.Space);
+#endif
+        }
+    }
+
+    public bool DownHeld
+    {
+        get
+        {
+#if ENABLE_INPUT_SYSTEM
+            return IsKeyboardPressed(Key.DownArrow);
+#else
+            return Input.GetKey(KeyCode.DownArrow);
 #endif
         }
     }
@@ -80,6 +105,32 @@ public class HWJ_PlayerInputSystem : MonoBehaviour
         }
     }
 
+    public bool ExitPossessionPressedThisFrame
+    {
+        get
+        {
+#if ENABLE_INPUT_SYSTEM
+            return WasPressedThisFrame(exitPossessionAction, "ExitPossession")
+                || WasKeyboardPressedThisFrame(Key.Q);
+#else
+            return Input.GetKeyDown(KeyCode.Q);
+#endif
+        }
+    }
+
+    /// <summary>
+    /// 빙의한 몬스터의 스킬 슬롯 입력을 읽습니다.
+    /// slotIndex는 0부터 시작하며, 기본 키보드 입력은 1/2/3 숫자키입니다.
+    /// </summary>
+    public bool WasSkillSlotPressedThisFrame(int slotIndex)
+    {
+#if ENABLE_INPUT_SYSTEM
+        return WasKeyboardSkillSlotPressedThisFrame(slotIndex);
+#else
+        return WasLegacySkillSlotPressedThisFrame(slotIndex);
+#endif
+    }
+
 #if !ENABLE_INPUT_SYSTEM
     private static Vector2 ReadLegacyArrowMove()
     {
@@ -107,6 +158,21 @@ public class HWJ_PlayerInputSystem : MonoBehaviour
 
         return move;
     }
+
+    private static bool WasLegacySkillSlotPressedThisFrame(int slotIndex)
+    {
+        switch (slotIndex)
+        {
+            case 0:
+                return Input.GetKeyDown(KeyCode.Alpha1);
+            case 1:
+                return Input.GetKeyDown(KeyCode.Alpha2);
+            case 2:
+                return Input.GetKeyDown(KeyCode.Alpha3);
+            default:
+                return false;
+        }
+    }
 #endif
 
 #if ENABLE_INPUT_SYSTEM
@@ -117,6 +183,7 @@ public class HWJ_PlayerInputSystem : MonoBehaviour
         EnableAction(dashAction);
         EnableAction(attackAction);
         EnableAction(interactAction);
+        EnableAction(exitPossessionAction);
     }
 
     private void OnDisable()
@@ -126,6 +193,7 @@ public class HWJ_PlayerInputSystem : MonoBehaviour
         DisableAction(dashAction);
         DisableAction(attackAction);
         DisableAction(interactAction);
+        DisableAction(exitPossessionAction);
     }
 
     private static void EnableAction(InputActionReference actionReference)
@@ -158,6 +226,12 @@ public class HWJ_PlayerInputSystem : MonoBehaviour
     {
         return IsExpectedAction(actionReference, expectedActionName)
             && actionReference.action.WasPressedThisFrame();
+    }
+
+    private static bool IsPressed(InputActionReference actionReference, string expectedActionName)
+    {
+        return IsExpectedAction(actionReference, expectedActionName)
+            && actionReference.action.IsPressed();
     }
 
     private static bool IsExpectedAction(InputActionReference actionReference, string expectedActionName)
@@ -214,6 +288,57 @@ public class HWJ_PlayerInputSystem : MonoBehaviour
                 return Keyboard.current.leftShiftKey.wasPressedThisFrame;
             case Key.E:
                 return Keyboard.current.eKey.wasPressedThisFrame;
+            case Key.Q:
+                return Keyboard.current.qKey.wasPressedThisFrame;
+            case Key.DownArrow:
+                return Keyboard.current.downArrowKey.wasPressedThisFrame;
+            default:
+                return false;
+        }
+    }
+
+    private static bool IsKeyboardPressed(Key key)
+    {
+        if (Keyboard.current == null)
+        {
+            return false;
+        }
+
+        switch (key)
+        {
+            case Key.Space:
+                return Keyboard.current.spaceKey.isPressed;
+            case Key.LeftShift:
+                return Keyboard.current.leftShiftKey.isPressed;
+            case Key.E:
+                return Keyboard.current.eKey.isPressed;
+            case Key.Q:
+                return Keyboard.current.qKey.isPressed;
+            case Key.DownArrow:
+                return Keyboard.current.downArrowKey.isPressed;
+            default:
+                return false;
+        }
+    }
+
+    private static bool WasKeyboardSkillSlotPressedThisFrame(int slotIndex)
+    {
+        if (Keyboard.current == null)
+        {
+            return false;
+        }
+
+        switch (slotIndex)
+        {
+            case 0:
+                return Keyboard.current.digit1Key.wasPressedThisFrame
+                    || Keyboard.current.numpad1Key.wasPressedThisFrame;
+            case 1:
+                return Keyboard.current.digit2Key.wasPressedThisFrame
+                    || Keyboard.current.numpad2Key.wasPressedThisFrame;
+            case 2:
+                return Keyboard.current.digit3Key.wasPressedThisFrame
+                    || Keyboard.current.numpad3Key.wasPressedThisFrame;
             default:
                 return false;
         }
