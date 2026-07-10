@@ -22,6 +22,9 @@ public class HWJ_MonsterAISystem : MonoBehaviour
     [SerializeField] private float fallbackTrackingRange = 8f;
     [SerializeField] private float fallbackAttackRange = 1.2f;
     [SerializeField] private float targetSearchIntervalSeconds = 0.5f;
+    [SerializeField] private bool useGameplayTargetRule = true;
+    [SerializeField] private HWJ_GameplayRuleSO targetDetectRule;
+    [SerializeField] private string targetDetectRuleId = "monster_detect_player_body";
     [SerializeField] private HWJ_MonsterAIState currentState = HWJ_MonsterAIState.Idle;
 
     public HWJ_EnemyTypeDataSO EnemyData { get; private set; }
@@ -473,6 +476,27 @@ public class HWJ_MonsterAISystem : MonoBehaviour
             return true;
         }
 
+        if (useGameplayTargetRule && IsTargetRuleAvailable(out HWJ_GameplayRuleSO rule))
+        {
+            HWJ_RootObjectDataResolver targetResolver = target.GetComponent<HWJ_RootObjectDataResolver>();
+
+            if (targetResolver == null)
+            {
+                targetResolver = target.GetComponentInParent<HWJ_RootObjectDataResolver>();
+            }
+
+            HWJ_GameplayContext context = HWJ_GameplayContext
+                .Create(dataResolver, targetResolver)
+                .WithSource(this);
+
+            if (targetResolver != null)
+            {
+                context.WithTarget(targetResolver);
+            }
+
+            return rule.IsSatisfied(context);
+        }
+
         HWJ_SoulSystem targetSoul = target.GetComponent<HWJ_SoulSystem>();
 
         if (targetSoul == null)
@@ -481,6 +505,19 @@ public class HWJ_MonsterAISystem : MonoBehaviour
         }
 
         return targetSoul == null || targetSoul.CurrentState == HWJ_SoulRuntimeState.Body;
+    }
+
+    private bool IsTargetRuleAvailable(out HWJ_GameplayRuleSO rule)
+    {
+        rule = targetDetectRule;
+
+        if (rule != null)
+        {
+            return true;
+        }
+
+        return !string.IsNullOrEmpty(targetDetectRuleId)
+            && HWJ_GameAccess.TryGetGameplayRule(targetDetectRuleId, out rule);
     }
 
     private Transform FindPlayerTarget()

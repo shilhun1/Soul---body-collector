@@ -60,6 +60,6 @@ MonoBehaviour:
   reward:
     experienceReward: 100
     skillPointReward: 1
-    dropsStatOrb: 0
-    statOrbId: ""
+    dropsStatOrb: 1
+    statOrbId: stat_max_hp_small
   selectedTypeData: {fileID: 11400000, guid: 08cab276e1ae49b4b174663c05c9ee5b, type: 2}

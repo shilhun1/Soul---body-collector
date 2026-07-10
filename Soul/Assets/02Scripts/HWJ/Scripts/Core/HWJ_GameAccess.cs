@@ -51,6 +51,12 @@ public static class HWJ_GameAccess
         return HasManager && Manager.TryGetStatOrb(orbId, out statOrbData);
     }
 
+    public static bool TryGetLevelTable(string tableId, out HWJ_LevelUpDataSO levelTable)
+    {
+        levelTable = null;
+        return HasManager && Manager.TryGetLevelTable(tableId, out levelTable);
+    }
+
     /// <summary>
     /// 공통 데이터베이스에서 스킬 행동 데이터를 조회합니다.
     /// </summary>
@@ -58,5 +64,11 @@ public static class HWJ_GameAccess
     {
         skillActionData = null;
         return HasManager && Manager.TryGetSkillAction(skillActionId, out skillActionData);
+    }
+
+    public static bool TryGetGameplayRule(string ruleId, out HWJ_GameplayRuleSO gameplayRule)
+    {
+        gameplayRule = null;
+        return HasManager && Manager.TryGetGameplayRule(ruleId, out gameplayRule);
     }
 }

@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f5a664a943b92bd48a1c2c1c50f522e3, type: 3}
+  m_Name: HWJ_Condition_SourceObject_Player
+  m_EditorClassIdentifier: Assembly-CSharp::HWJ_ObjectTypeConditionSO
+  conditionId: source_object_player
+  description: Source object type must be Player.
+  invertResult: 0
+  passWhenContextMissing: 0
+  actor: 0
+  requiredObjectType: 0
+  treatBossAsEnemy: 0

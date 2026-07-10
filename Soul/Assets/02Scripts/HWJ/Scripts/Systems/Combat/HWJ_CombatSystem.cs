@@ -12,6 +12,13 @@ public class HWJ_CombatSystem : MonoBehaviour
     [SerializeField] private HWJ_PossessionSystem possessionSystem;
     [SerializeField] private HWJ_RuntimeStatusSystem runtimeStatus;
     [SerializeField] private HWJ_BossBrainSystem bossBrain;
+    [SerializeField] private bool useGameplayDamageRules = true;
+    [SerializeField] private HWJ_GameplayRuleSO commonDamageRule;
+    [SerializeField] private string commonDamageRuleId = "damage_can_apply_common";
+    [SerializeField] private HWJ_GameplayRuleSO playerDamageToEnemyRule;
+    [SerializeField] private string playerDamageToEnemyRuleId = "player_damage_to_enemy";
+    [SerializeField] private bool grantKillRewards = true;
+    [SerializeField] private string lastRewardResult;
 
     private void Awake()
     {
@@ -122,6 +129,11 @@ public class HWJ_CombatSystem : MonoBehaviour
         HWJ_DamageData damageData = GetDamageData();
         float outgoingDamage = Mathf.Max(0f, GetOutgoingDamage(damageMultiplier));
 
+        if (!IsDamageRuleSatisfied(targetResolver, damageData, damageMultiplier))
+        {
+            return false;
+        }
+
         if (targetStatus != null && !targetStatus.CanReceiveHitFrom(this))
         {
             return false;
@@ -136,8 +148,10 @@ public class HWJ_CombatSystem : MonoBehaviour
             return false;
         }
 
+        bool wasTargetDead = targetStatus != null && targetStatus.IsDead;
         ApplyKnockback(targetResolver, damageData);
         targetStatus.ApplyDamage(finalDamage, this, damageData);
+        TryGrantKillReward(targetResolver, targetStatus, wasTargetDead);
         return true;
     }
 
@@ -156,6 +170,82 @@ public class HWJ_CombatSystem : MonoBehaviour
         }
 
         return runtimeStatus == null || !runtimeStatus.IsDead;
+    }
+
+    private bool IsDamageRuleSatisfied(
+        HWJ_RootObjectDataResolver targetResolver,
+        HWJ_DamageData damageData,
+        float damageMultiplier)
+    {
+        if (!useGameplayDamageRules)
+        {
+            return true;
+        }
+
+        HWJ_GameplayRuleSO rule = ResolveDamageRule(targetResolver);
+
+        if (rule == null)
+        {
+            return true;
+        }
+
+        HWJ_GameplayContext context = HWJ_GameplayContext
+            .Create(dataResolver, targetResolver)
+            .WithSource(this)
+            .WithTarget(targetResolver)
+            .WithDamage(damageData, damageMultiplier)
+            .WithHitConfirmed(true);
+
+        return rule.IsSatisfied(context);
+    }
+
+    private HWJ_GameplayRuleSO ResolveDamageRule(HWJ_RootObjectDataResolver targetResolver)
+    {
+        bool usePlayerEnemyRule = dataResolver != null
+            && dataResolver.ObjectType == HWJ_ObjectType.Player
+            && targetResolver != null
+            && (targetResolver.ObjectType == HWJ_ObjectType.Enemy || targetResolver.ObjectType == HWJ_ObjectType.Boss);
+
+        if (usePlayerEnemyRule)
+        {
+            if (playerDamageToEnemyRule != null)
+            {
+                return playerDamageToEnemyRule;
+            }
+
+            if (!string.IsNullOrEmpty(playerDamageToEnemyRuleId)
+                && HWJ_GameAccess.TryGetGameplayRule(playerDamageToEnemyRuleId, out HWJ_GameplayRuleSO resolvedPlayerRule))
+            {
+                return resolvedPlayerRule;
+            }
+        }
+
+        if (commonDamageRule != null)
+        {
+            return commonDamageRule;
+        }
+
+        return !string.IsNullOrEmpty(commonDamageRuleId)
+            && HWJ_GameAccess.TryGetGameplayRule(commonDamageRuleId, out HWJ_GameplayRuleSO resolvedCommonRule)
+            ? resolvedCommonRule
+            : null;
+    }
+
+    private void TryGrantKillReward(
+        HWJ_RootObjectDataResolver targetResolver,
+        HWJ_RuntimeStatusSystem targetStatus,
+        bool wasTargetDead)
+    {
+        if (!grantKillRewards || targetResolver == null || targetStatus == null || wasTargetDead || !targetStatus.IsDead)
+        {
+            return;
+        }
+
+        HWJ_RewardUtility.TryGrantKillReward(
+            targetResolver,
+            dataResolver,
+            targetResolver.transform.position,
+            out lastRewardResult);
     }
 
     private void ApplyKnockback(HWJ_RootObjectDataResolver targetResolver, HWJ_DamageData damageData)
