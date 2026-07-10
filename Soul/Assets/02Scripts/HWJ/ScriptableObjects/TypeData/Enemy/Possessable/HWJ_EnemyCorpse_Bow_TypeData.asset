@@ -40,7 +40,28 @@ MonoBehaviour:
     returnToIdleDelaySeconds: 1
     stopWhenHit: 1
   skillCycle:
-    skills: []
+    skills:
+    - skillId: bow_air_arrow_shot
+      requiredWeaponType: 5
+      unlockLevel: 1
+      requiredSkillPoint: 0
+      startsUnlocked: 1
+      cooldownSeconds: 1.8
+      useIntervalSeconds: 0.9
+    - skillId: bow_rapid_shot
+      requiredWeaponType: 5
+      unlockLevel: 1
+      requiredSkillPoint: 0
+      startsUnlocked: 1
+      cooldownSeconds: 2.3
+      useIntervalSeconds: 1
+    - skillId: bow_low_charge_shot
+      requiredWeaponType: 5
+      unlockLevel: 1
+      requiredSkillPoint: 0
+      startsUnlocked: 1
+      cooldownSeconds: 3
+      useIntervalSeconds: 1.2
   possessionBody:
     canPossess: 0
     canBePossessed: 1

@@ -20,6 +20,10 @@ public class HWJ_GameplayDatabaseSO : ScriptableObject
     [SerializeField] private HWJ_HealthBarDataSO[] healthBars;
     [SerializeField] private HWJ_GameOverDataSO[] gameOverWindows;
 
+    [Header("Condition And Rule Data")]
+    [SerializeField] private HWJ_GameplayConditionSO[] conditions;
+    [SerializeField] private HWJ_GameplayRuleSO[] gameplayRules;
+
     public HWJ_RootObjectDataSO[] RootObjects => rootObjects;
     public HWJ_ObjectPoolDataSO ObjectPoolData => objectPoolData;
     public HWJ_SpawnTableDataSO[] SpawnTables => spawnTables;
@@ -29,6 +33,8 @@ public class HWJ_GameplayDatabaseSO : ScriptableObject
     public HWJ_BossPatternDataSO[] BossPatterns => bossPatterns;
     public HWJ_HealthBarDataSO[] HealthBars => healthBars;
     public HWJ_GameOverDataSO[] GameOverWindows => gameOverWindows;
+    public HWJ_GameplayConditionSO[] Conditions => conditions;
+    public HWJ_GameplayRuleSO[] GameplayRules => gameplayRules;
 
     /// <summary>
     /// RootObjectData의 Identity.objectId로 오브젝트 데이터를 찾습니다.
@@ -123,6 +129,69 @@ public class HWJ_GameplayDatabaseSO : ScriptableObject
             if (skillActions[i] != null && skillActions[i].SkillActionId == skillActionId)
             {
                 skillAction = skillActions[i];
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public bool TryGetLevelTable(string tableId, out HWJ_LevelUpDataSO levelTable)
+    {
+        levelTable = null;
+
+        if (levelTables == null)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < levelTables.Length; i++)
+        {
+            if (levelTables[i] != null && levelTables[i].TableId == tableId)
+            {
+                levelTable = levelTables[i];
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public bool TryGetCondition(string conditionId, out HWJ_GameplayConditionSO condition)
+    {
+        condition = null;
+
+        if (conditions == null)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < conditions.Length; i++)
+        {
+            if (conditions[i] != null && conditions[i].ConditionId == conditionId)
+            {
+                condition = conditions[i];
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public bool TryGetGameplayRule(string ruleId, out HWJ_GameplayRuleSO rule)
+    {
+        rule = null;
+
+        if (gameplayRules == null)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < gameplayRules.Length; i++)
+        {
+            if (gameplayRules[i] != null && gameplayRules[i].RuleId == ruleId)
+            {
+                rule = gameplayRules[i];
                 return true;
             }
         }

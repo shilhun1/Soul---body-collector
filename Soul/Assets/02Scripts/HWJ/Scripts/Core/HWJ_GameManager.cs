@@ -24,6 +24,7 @@ public class HWJ_GameManager : MonoBehaviour
     [SerializeField] private HWJ_LevelUpSystem playerLevel;
     [SerializeField] private HWJ_SoulSystem playerSoul;
     [SerializeField] private HWJ_BodyDecaySystem playerBodyDecay;
+    [SerializeField] private HWJ_PossessionSystem playerPossession;
 
     [Header("Player Runtime Persistence")]
     [SerializeField] private bool preservePlayerRuntimeAcrossScenes = true;
@@ -33,6 +34,20 @@ public class HWJ_GameManager : MonoBehaviour
     [SerializeField] private float savedPossessedBodyHp;
     [SerializeField] private bool hasBodyDecaySnapshot;
     [SerializeField] private float savedBodyDecayValue;
+    [SerializeField] private bool hasPlayerGrowthSnapshot;
+    [SerializeField] private int savedLevel;
+    [SerializeField] private int savedExperience;
+    [SerializeField] private int savedSkillPoint;
+    [SerializeField] private bool hasPlayerPossessionSnapshot;
+    [SerializeField] private bool savedHasActivePossessedBody;
+    [SerializeField] private string savedPossessedRootObjectId;
+    [SerializeField] private HWJ_RootObjectDataSO savedPossessedRootObjectData;
+    [SerializeField] private bool savedHasPossessedVisualSnapshot;
+    [SerializeField] private Sprite savedPossessedVisualSprite;
+    [SerializeField] private Color savedPossessedVisualColor = Color.white;
+    [SerializeField] private bool savedPossessedVisualFlipX;
+    [SerializeField] private bool savedPossessedVisualFlipY;
+    [SerializeField] private RuntimeAnimatorController savedPossessedAnimatorController;
 
     [Header("Pause")]
     [SerializeField] private bool togglePauseWithEscape = true;
@@ -47,6 +62,7 @@ public class HWJ_GameManager : MonoBehaviour
     public HWJ_LevelUpSystem PlayerLevel => playerLevel;
     public HWJ_SoulSystem PlayerSoul => playerSoul;
     public HWJ_BodyDecaySystem PlayerBodyDecay => playerBodyDecay;
+    public HWJ_PossessionSystem PlayerPossession => playerPossession;
     public bool IsPaused => isPaused;
 
     private void Awake()
@@ -177,6 +193,7 @@ public class HWJ_GameManager : MonoBehaviour
             playerLevel = null;
             playerSoul = null;
             playerBodyDecay = null;
+            playerPossession = null;
             return;
         }
 
@@ -184,6 +201,7 @@ public class HWJ_GameManager : MonoBehaviour
         playerLevel = resolver.GetComponent<HWJ_LevelUpSystem>();
         playerSoul = resolver.GetComponent<HWJ_SoulSystem>();
         playerBodyDecay = resolver.GetComponent<HWJ_BodyDecaySystem>();
+        playerPossession = resolver.GetComponent<HWJ_PossessionSystem>();
 
         if (preservePlayerRuntimeAcrossScenes)
         {
@@ -214,10 +232,32 @@ public class HWJ_GameManager : MonoBehaviour
             savedBodyDecayValue = playerBodyDecay.CurrentDecayValue;
             hasBodyDecaySnapshot = true;
         }
+
+        if (playerPossession == null && playerResolver != null)
+        {
+            playerPossession = playerResolver.GetComponent<HWJ_PossessionSystem>();
+        }
+
+        CapturePlayerPossessionSnapshot();
+
+        if (playerLevel == null && playerResolver != null)
+        {
+            playerLevel = playerResolver.GetComponent<HWJ_LevelUpSystem>();
+        }
+
+        if (playerLevel != null)
+        {
+            savedLevel = playerLevel.CurrentLevel;
+            savedExperience = playerLevel.CurrentExperience;
+            savedSkillPoint = playerLevel.SkillPoint;
+            hasPlayerGrowthSnapshot = true;
+        }
     }
 
     private void ApplyPlayerRuntimeSnapshot()
     {
+        ApplyPlayerPossessionSnapshot();
+
         if (playerStatus != null && hasPlayerRuntimeSnapshot)
         {
             playerStatus.RestoreHpSnapshot(savedCurrentHp, savedSoulHp, savedPossessedBodyHp);
@@ -227,6 +267,82 @@ public class HWJ_GameManager : MonoBehaviour
         {
             playerBodyDecay.RestoreDecaySnapshot(savedBodyDecayValue);
         }
+
+        if (playerLevel != null && hasPlayerGrowthSnapshot)
+        {
+            playerLevel.RestoreProgress(savedLevel, savedExperience, savedSkillPoint);
+        }
+    }
+
+    private void CapturePlayerPossessionSnapshot()
+    {
+        if (playerPossession == null)
+        {
+            return;
+        }
+
+        hasPlayerPossessionSnapshot = true;
+        savedHasActivePossessedBody = playerPossession.TryGetPossessedRootObjectId(out savedPossessedRootObjectId);
+
+        if (!savedHasActivePossessedBody)
+        {
+            savedPossessedRootObjectId = null;
+            savedPossessedRootObjectData = null;
+            savedHasPossessedVisualSnapshot = false;
+            savedPossessedVisualSprite = null;
+            savedPossessedAnimatorController = null;
+            return;
+        }
+
+        savedPossessedRootObjectData = playerPossession.PossessedBodyResolver != null
+            ? playerPossession.PossessedBodyResolver.RootObjectData
+            : null;
+
+        savedHasPossessedVisualSnapshot = playerPossession.TryGetPossessedVisualSnapshot(
+            out savedPossessedVisualSprite,
+            out savedPossessedVisualColor,
+            out savedPossessedVisualFlipX,
+            out savedPossessedVisualFlipY,
+            out savedPossessedAnimatorController);
+    }
+
+    private void ApplyPlayerPossessionSnapshot()
+    {
+        if (!hasPlayerPossessionSnapshot || playerPossession == null)
+        {
+            return;
+        }
+
+        if (!savedHasActivePossessedBody)
+        {
+            playerPossession.ClearPossessedBody(false, false, false);
+            return;
+        }
+
+        HWJ_RootObjectDataSO rootObjectData = savedPossessedRootObjectData;
+
+        if (rootObjectData == null
+            && !string.IsNullOrEmpty(savedPossessedRootObjectId))
+        {
+            TryGetRootObject(savedPossessedRootObjectId, out rootObjectData);
+        }
+
+        if (rootObjectData == null)
+        {
+            return;
+        }
+
+        playerPossession.RestorePossessedBody(
+            rootObjectData,
+            savedPossessedVisualSprite,
+            savedPossessedVisualColor,
+            savedPossessedVisualFlipX,
+            savedPossessedVisualFlipY,
+            savedPossessedAnimatorController,
+            savedHasPossessedVisualSnapshot,
+            false,
+            false,
+            false);
     }
 
     /// <summary>
@@ -287,6 +403,12 @@ public class HWJ_GameManager : MonoBehaviour
         return database != null && database.TryGetStatOrb(orbId, out statOrbData);
     }
 
+    public bool TryGetLevelTable(string tableId, out HWJ_LevelUpDataSO levelTable)
+    {
+        levelTable = null;
+        return database != null && database.TryGetLevelTable(tableId, out levelTable);
+    }
+
     /// <summary>
     /// 스킬 행동 ID로 데이터베이스에서 스킬 행동 데이터를 찾습니다.
     /// 플레이어, 적, 보스 스킬 시스템이 같은 조회 경로를 사용할 수 있습니다.
@@ -295,5 +417,11 @@ public class HWJ_GameManager : MonoBehaviour
     {
         skillActionData = null;
         return database != null && database.TryGetSkillAction(skillActionId, out skillActionData);
+    }
+
+    public bool TryGetGameplayRule(string ruleId, out HWJ_GameplayRuleSO gameplayRule)
+    {
+        gameplayRule = null;
+        return database != null && database.TryGetGameplayRule(ruleId, out gameplayRule);
     }
 }

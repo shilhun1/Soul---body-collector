@@ -80,6 +80,8 @@ MonoBehaviour:
     skillTreeId: 
     experienceToLevelUp: 
   soulState:
+    startAsSoul: 1
+    startSoulDeadlineImmediately: 1
     possessionDeadlineSeconds: 10
     soulMoveSpeed: 6
     isInvincible: 0

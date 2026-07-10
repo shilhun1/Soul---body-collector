@@ -52,6 +52,6 @@ MonoBehaviour:
   reward:
     experienceReward: 10
     skillPointReward: 0
-    dropsStatOrb: 0
-    statOrbId: ""
+    dropsStatOrb: 1
+    statOrbId: stat_move_speed_small
   selectedTypeData: {fileID: 11400000, guid: bb000000000000000000000000000002, type: 2}

@@ -40,7 +40,28 @@ MonoBehaviour:
     returnToIdleDelaySeconds: 1
     stopWhenHit: 1
   skillCycle:
-    skills: []
+    skills:
+    - skillId: shield_charge
+      requiredWeaponType: 7
+      unlockLevel: 1
+      requiredSkillPoint: 0
+      startsUnlocked: 1
+      cooldownSeconds: 2.4
+      useIntervalSeconds: 1
+    - skillId: shield_slam
+      requiredWeaponType: 7
+      unlockLevel: 1
+      requiredSkillPoint: 0
+      startsUnlocked: 1
+      cooldownSeconds: 2.8
+      useIntervalSeconds: 1.1
+    - skillId: shield_diagonal_knockback
+      requiredWeaponType: 7
+      unlockLevel: 1
+      requiredSkillPoint: 0
+      startsUnlocked: 1
+      cooldownSeconds: 2.1
+      useIntervalSeconds: 0.9
   possessionBody:
     canPossess: 0
     canBePossessed: 1

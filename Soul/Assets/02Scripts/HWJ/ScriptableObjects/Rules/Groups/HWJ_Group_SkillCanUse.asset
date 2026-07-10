@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f32a93c4e6cec4148a5985e98aeb4c09, type: 3}
+  m_Name: HWJ_Group_SkillCanUse
+  m_EditorClassIdentifier: Assembly-CSharp::HWJ_ConditionGroupSO
+  conditionId: group_skill_can_use
+  description: Skill can be used when skill data exists, source can attack, weapon matches, and cooldown is ready.
+  invertResult: 0
+  passWhenContextMissing: 0
+  groupMode: 0
+  passWhenEmpty: 0
+  conditions:
+  - {fileID: 11400000, guid: aa00000100000000000000000000000f, type: 2}
+  - {fileID: 11400000, guid: aa000001000000000000000000000010, type: 2}
+  - {fileID: 11400000, guid: aa000001000000000000000000000011, type: 2}
+  - {fileID: 11400000, guid: aa000001000000000000000000000012, type: 2}

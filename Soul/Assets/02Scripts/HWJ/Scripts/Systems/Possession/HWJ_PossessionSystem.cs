@@ -11,11 +11,15 @@ public class HWJ_PossessionSystem : MonoBehaviour
     [SerializeField] private HWJ_RuntimeStatusSystem runtimeStatus;
     [SerializeField] private HWJ_PlayerInputSystem playerInput;
     [SerializeField] private HWJ_RootObjectDataResolver possessedBodyResolver;
+    [SerializeField] private HWJ_RootObjectDataResolver runtimePossessedBodyResolver;
     [SerializeField] private bool moveOwnerToPossessedBody = true;
     [SerializeField] private bool copyPossessedBodyVisual = true;
     [SerializeField] private bool consumePossessedCorpse = true;
     [SerializeField] private bool deactivateConsumedCorpse = true;
     [SerializeField] private bool allowManualSoulExit = true;
+    [SerializeField] private bool useGameplayPossessionRule = true;
+    [SerializeField] private HWJ_GameplayRuleSO possessionRule;
+    [SerializeField] private string possessionRuleId = "possession_can_start";
     [SerializeField] private string lastPossessionResult;
 
     private HWJ_PossessionData activePossessionBodyData;
@@ -89,6 +93,12 @@ public class HWJ_PossessionSystem : MonoBehaviour
             return false;
         }
 
+        if (!IsPossessionRuleSatisfied(targetDataResolver))
+        {
+            lastPossessionResult = "Possession failed: gameplay rule rejected target.";
+            return false;
+        }
+
         if (soulSystem != null && soulSystem.CurrentState != HWJ_SoulRuntimeState.Soul)
         {
             lastPossessionResult = "Possession failed: player is not in Soul state.";
@@ -132,6 +142,35 @@ public class HWJ_PossessionSystem : MonoBehaviour
         return true;
     }
 
+    private bool IsPossessionRuleSatisfied(HWJ_RootObjectDataResolver targetDataResolver)
+    {
+        if (!useGameplayPossessionRule)
+        {
+            return true;
+        }
+
+        HWJ_GameplayRuleSO rule = possessionRule;
+
+        if (rule == null
+            && !string.IsNullOrEmpty(possessionRuleId)
+            && HWJ_GameAccess.TryGetGameplayRule(possessionRuleId, out HWJ_GameplayRuleSO resolvedRule))
+        {
+            rule = resolvedRule;
+        }
+
+        if (rule == null)
+        {
+            return true;
+        }
+
+        HWJ_GameplayContext context = HWJ_GameplayContext
+            .Create(ownerDataResolver, targetDataResolver)
+            .WithSource(this)
+            .WithTarget(targetDataResolver);
+
+        return rule.IsSatisfied(context);
+    }
+
     /// <summary>
     /// 빙의 가능하면 대상 시체를 현재 육신으로 등록하고 플레이어를 육신 상태로 전환합니다.
     /// 등록된 육신의 무기, 스탯, 스킬은 RuntimeStatus/Combat/SkillActionSystem에서 읽어 사용합니다.
@@ -168,6 +207,79 @@ public class HWJ_PossessionSystem : MonoBehaviour
         }
 
         lastPossessionResult = $"Possessed {targetDataResolver.name}.";
+        SavePlayerRuntimeSnapshotIfOwner();
+        return true;
+    }
+
+    public bool RestorePossessedBody(
+        HWJ_RootObjectDataSO rootObjectData,
+        Sprite visualSprite,
+        Color visualColor,
+        bool visualFlipX,
+        bool visualFlipY,
+        RuntimeAnimatorController animatorController,
+        bool hasVisualSnapshot,
+        bool refreshStatus = true,
+        bool refillToMax = false,
+        bool saveSnapshot = true)
+    {
+        CacheOwnerVisual();
+
+        if (rootObjectData == null)
+        {
+            lastPossessionResult = "Restore possession failed: missing root object data.";
+            return false;
+        }
+
+        HWJ_RootObjectDataResolver restoredResolver = GetOrCreateRuntimePossessedBodyResolver();
+
+        if (restoredResolver == null)
+        {
+            lastPossessionResult = "Restore possession failed: missing runtime resolver.";
+            return false;
+        }
+
+        restoredResolver.SetRootObjectData(rootObjectData);
+
+        if (!TryGetPossessionBodyData(restoredResolver, out activePossessionBodyData))
+        {
+            possessedBodyResolver = null;
+            activePossessionBodyData = null;
+            lastPossessionResult = $"Restore possession failed: {rootObjectData.name} has no body data.";
+            return false;
+        }
+
+        possessedBodyResolver = restoredResolver;
+        soulSystem?.EnterBodyState();
+
+        if (hasVisualSnapshot)
+        {
+            ApplyPossessedBodyVisualSnapshot(
+                visualSprite,
+                visualColor,
+                visualFlipX,
+                visualFlipY,
+                animatorController);
+        }
+        else
+        {
+            ApplyPossessedBodyModelData(rootObjectData);
+        }
+
+        if (refreshStatus
+            && activePossessionBodyData != null
+            && activePossessionBodyData.loadsBodyStatsToPlayer
+            && runtimeStatus != null)
+        {
+            runtimeStatus.RefreshCurrentHpFromData(refillToMax);
+        }
+
+        lastPossessionResult = $"Restored possessed body from {rootObjectData.name}.";
+        if (saveSnapshot)
+        {
+            SavePlayerRuntimeSnapshotIfOwner();
+        }
+
         return true;
     }
 
@@ -187,7 +299,7 @@ public class HWJ_PossessionSystem : MonoBehaviour
     /// 현재 빙의 중인 육신을 해제합니다.
     /// 다시 유령 상태로 돌아가거나 육신이 소멸될 때 호출합니다.
     /// </summary>
-    public void ClearPossessedBody(bool refreshStatus = true, bool refillToMax = false)
+    public void ClearPossessedBody(bool refreshStatus = true, bool refillToMax = false, bool saveSnapshot = true)
     {
         possessedBodyResolver = null;
         activePossessionBodyData = null;
@@ -197,6 +309,68 @@ public class HWJ_PossessionSystem : MonoBehaviour
         {
             runtimeStatus?.RefreshCurrentHpFromData(refillToMax);
         }
+
+        if (saveSnapshot)
+        {
+            SavePlayerRuntimeSnapshotIfOwner();
+        }
+    }
+
+    public bool TryGetPossessedRootObjectId(out string rootObjectId)
+    {
+        rootObjectId = null;
+
+        if (!HasActivePossessedBody
+            || possessedBodyResolver == null
+            || possessedBodyResolver.RootObjectData == null
+            || possessedBodyResolver.RootObjectData.Identity == null
+            || string.IsNullOrEmpty(possessedBodyResolver.RootObjectData.Identity.objectId))
+        {
+            return false;
+        }
+
+        rootObjectId = possessedBodyResolver.RootObjectData.Identity.objectId;
+        return true;
+    }
+
+    public bool TryGetPossessedVisualSnapshot(
+        out Sprite sprite,
+        out Color color,
+        out bool flipX,
+        out bool flipY,
+        out RuntimeAnimatorController animatorController)
+    {
+        CacheOwnerVisual();
+
+        sprite = null;
+        color = Color.white;
+        flipX = false;
+        flipY = false;
+        animatorController = null;
+
+        if (!HasActivePossessedBody)
+        {
+            return false;
+        }
+
+        bool hasVisual = false;
+
+        if (ownerSpriteRenderer != null)
+        {
+            sprite = ownerSpriteRenderer.sprite;
+            color = ownerSpriteRenderer.color;
+            flipX = ownerSpriteRenderer.flipX;
+            flipY = ownerSpriteRenderer.flipY;
+            hasVisual = sprite != null;
+        }
+
+        if (ownerAnimator != null)
+        {
+            animatorController = ownerAnimator.runtimeAnimatorController;
+            hasVisual = hasVisual || animatorController != null;
+        }
+
+        return hasVisual;
     }
 
     /// <summary>
@@ -375,6 +549,14 @@ public class HWJ_PossessionSystem : MonoBehaviour
             && activePossessionBodyData.loadsBodyStatsToPlayer;
     }
 
+    private void SavePlayerRuntimeSnapshotIfOwner()
+    {
+        if (HWJ_GameAccess.HasManager && HWJ_GameAccess.Manager.PlayerPossession == this)
+        {
+            HWJ_GameAccess.Manager.SavePlayerRuntimeSnapshot();
+        }
+    }
+
     private bool IsConsumedPossessionBody(HWJ_RootObjectDataResolver targetDataResolver)
     {
         if (targetDataResolver == null)
@@ -529,6 +711,31 @@ public class HWJ_PossessionSystem : MonoBehaviour
         }
     }
 
+    private HWJ_RootObjectDataResolver GetOrCreateRuntimePossessedBodyResolver()
+    {
+        if (runtimePossessedBodyResolver != null)
+        {
+            return runtimePossessedBodyResolver;
+        }
+
+        Transform runtimeBodyTransform = transform.Find("HWJ_RuntimePossessedBodyData");
+
+        if (runtimeBodyTransform != null)
+        {
+            runtimePossessedBodyResolver = runtimeBodyTransform.GetComponent<HWJ_RootObjectDataResolver>();
+        }
+
+        if (runtimePossessedBodyResolver == null)
+        {
+            GameObject runtimeBody = new GameObject("HWJ_RuntimePossessedBodyData");
+            runtimeBody.transform.SetParent(transform, false);
+            runtimePossessedBodyResolver = runtimeBody.AddComponent<HWJ_RootObjectDataResolver>();
+            runtimeBody.SetActive(false);
+        }
+
+        return runtimePossessedBodyResolver;
+    }
+
     private void ApplyPossessedBodyVisual(GameObject possessedBody)
     {
         CacheOwnerVisual();
@@ -554,6 +761,48 @@ public class HWJ_PossessionSystem : MonoBehaviour
         if (ownerAnimator != null && possessedAnimator != null)
         {
             ownerAnimator.runtimeAnimatorController = possessedAnimator.runtimeAnimatorController;
+        }
+    }
+
+    private void ApplyPossessedBodyVisualSnapshot(
+        Sprite sprite,
+        Color color,
+        bool flipX,
+        bool flipY,
+        RuntimeAnimatorController animatorController)
+    {
+        CacheOwnerVisual();
+
+        if (ownerSpriteRenderer != null && sprite != null)
+        {
+            ownerSpriteRenderer.sprite = sprite;
+            ownerSpriteRenderer.color = color;
+            ownerSpriteRenderer.flipX = flipX;
+            ownerSpriteRenderer.flipY = flipY;
+            ownerMotionSystem?.RefreshFacingBaseline();
+        }
+
+        if (ownerAnimator != null && animatorController != null)
+        {
+            ownerAnimator.runtimeAnimatorController = animatorController;
+        }
+    }
+
+    private void ApplyPossessedBodyModelData(HWJ_RootObjectDataSO rootObjectData)
+    {
+        if (rootObjectData == null || rootObjectData.Model == null)
+        {
+            return;
+        }
+
+        if (rootObjectData.Model.modelPrefab != null)
+        {
+            ApplyPossessedBodyVisual(rootObjectData.Model.modelPrefab);
+        }
+
+        if (ownerAnimator != null && rootObjectData.Model.animatorController != null)
+        {
+            ownerAnimator.runtimeAnimatorController = rootObjectData.Model.animatorController;
         }
     }
 

@@ -102,6 +102,8 @@ public class HWJ_PlayerCameraData
 [Serializable]
 public class HWJ_SoulStateData
 {
+    public bool startAsSoul = true;
+    public bool startSoulDeadlineImmediately = true;
     public float possessionDeadlineSeconds = 10f;
     public float soulMoveSpeed = 6f;
     public bool isInvincible;
