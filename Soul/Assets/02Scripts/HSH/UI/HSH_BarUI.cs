@@ -178,6 +178,7 @@ public class HSH_BarUI : MonoBehaviour
                 if (gameOverUI != null)
                 {
                     gameOverUI.ShowGameOver();
+      
                 }
             }
         }

@@ -110,6 +110,7 @@ GameObject:
   - component: {fileID: 8267704180947712405}
   - component: {fileID: 5365972228040405121}
   - component: {fileID: 4221194034140466573}
+  - component: {fileID: -170167039591480944}
   m_Layer: 0
   m_Name: HWJ_Monster_Shield_Test
   m_TagString: Untagged
@@ -234,11 +235,19 @@ MonoBehaviour:
   dataResolver: {fileID: 0}
   possessionSystem: {fileID: 0}
   soulSystem: {fileID: 0}
+  bodyDecaySystem: {fileID: 0}
   motionSystem: {fileID: 0}
+  bossBrain: {fileID: 0}
   currentState: 1
   currentHp: 0
   soulHp: 0
   possessedBodyHp: 0
+  moveLockEndTime: 0
+  attackLockEndTime: 0
+  dashLockEndTime: 0
+  hitStunEndTime: 0
+  invincibleEndTime: 0
+  hitReactionImmuneEndTime: 0
 --- !u!114 &2999992658229160508
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -285,6 +294,7 @@ MonoBehaviour:
   dataResolver: {fileID: 0}
   possessionSystem: {fileID: 0}
   runtimeStatus: {fileID: 0}
+  bossBrain: {fileID: 0}
 --- !u!114 &6556585155606281372
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -298,6 +308,23 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HWJ_MonsterAISystem
   dataResolver: {fileID: 0}
+  runtimeStatus: {fileID: 0}
+  enemyAttackSystem: {fileID: 0}
+  motionSystem: {fileID: 0}
+  knockbackSystem: {fileID: 0}
+  body: {fileID: 0}
+  target: {fileID: 0}
+  driveBehavior: 1
+  autoFindPlayerTarget: 1
+  targetOnlyBodyState: 1
+  horizontalMoveOnly: 1
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 0
+  fallbackTrackingRange: 8
+  fallbackAttackRange: 1.2
+  targetSearchIntervalSeconds: 0.5
+  currentState: 0
 --- !u!114 &8267704180947712405
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -313,14 +340,20 @@ MonoBehaviour:
   dataResolver: {fileID: 0}
   runtimeStatus: {fileID: 0}
   skillActionSystem: {fileID: 0}
+  motionSystem: {fileID: 0}
+  monsterAI: {fileID: 0}
   body: {fileID: 0}
   target: {fileID: 0}
   autoFindPlayerTarget: 1
   chaseOnlyBodyState: 1
+  faceOnlyBodyState: 1
   horizontalMoveOnly: 1
   fallbackTrackingRange: 8
   fallbackStoppingDistance: 1
   targetSearchIntervalSeconds: 0.5
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 0
 --- !u!114 &5365972228040405121
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -337,6 +370,7 @@ MonoBehaviour:
   runtimeStatus: {fileID: 0}
   combatExecutionSystem: {fileID: 0}
   skillActionSystem: {fileID: 0}
+  monsterAI: {fileID: 0}
   target: {fileID: 0}
   autoFindPlayerTarget: 1
   attackOnlyBodyState: 1
@@ -390,6 +424,22 @@ MonoBehaviour:
   hitTriggerParameter: HitTrigger
   deadTriggerParameter: DeadTrigger
   flipSpriteByMoveDirection: 1
+  useInitialSpriteFlipAsRightFacing: 1
   flipTransformScaleWhenNoSpriteRenderer: 0
   moveThreshold: 0.05
   facingThreshold: 0.01
+--- !u!114 &-170167039591480944
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3576862325422680928}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e19944b14ed0b574db7a7e93e2c4116a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HSH_EnemyHPUI
+  hpUIPrefab: {fileID: 3115449831899788220, guid: 2a221ec2050558e4893966450dbe3185, type: 3}
+  uiOffset: {x: 0, y: -1, z: 0}
+  hideWhenFull: 0
