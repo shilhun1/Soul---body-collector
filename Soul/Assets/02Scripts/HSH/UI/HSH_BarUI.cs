@@ -31,6 +31,7 @@ public class HSH_BarUI : MonoBehaviour
     public Color expColor = Color.yellow;
 
     [SerializeField] private HWJ_RuntimeStatusSystem statusSystem;
+    private HWJ_SoulSystem soulSystem;
     private bool temp = true;
 
     private void Start()
@@ -48,6 +49,7 @@ public class HSH_BarUI : MonoBehaviour
             if (player != null)
             {
                 statusSystem = player.GetComponent<HWJ_RuntimeStatusSystem>();
+                soulSystem = player.GetComponent<HWJ_SoulSystem>();
             }
         }
         
@@ -74,8 +76,31 @@ public class HSH_BarUI : MonoBehaviour
             if (player != null)
             {
                 statusSystem = player.GetComponent<HWJ_RuntimeStatusSystem>();
+                soulSystem = player.GetComponent<HWJ_SoulSystem>();
             }
         }
+
+        // 플레이어의 Soul 상태에 맞춰 체력바 타입 자동 변경 (경험치 바는 제외)
+        if (soulSystem != null && currentType != BarType.Exp)
+        {
+            if (soulSystem.CurrentState == HWJ_SoulRuntimeState.Soul)
+            {
+                if (currentType != BarType.GhostHP)
+                {
+                    currentType = BarType.GhostHP;
+                    UpdateColor();
+                }
+            }
+            else // 영혼 상태가 아닐 때 (기본 몸 또는 빙의 중일 때)
+            {
+                if (currentType == BarType.GhostHP)
+                {
+                    currentType = BarType.HP;
+                    UpdateColor();
+                }
+            }
+        }
+
         // 씬 이동이나 다른 스크립트에서 체력을 변경했을 때도 실시간으로 반영되도록 Update에서 값을 확인합니다.
         CheckState();
         UpdateSlider();
@@ -108,13 +133,33 @@ public class HSH_BarUI : MonoBehaviour
     {
         if (statusSystem != null)
         {
-            if(currentType == BarType.HP){
+            if (currentType == BarType.HP)
+            {
                 statusSystem.ApplyDamage(amount);
             }
-            if(currentType == BarType.GhostHP){
-                statusSystem.ApplyDamage(amount);
+            else if (currentType == BarType.GhostHP)
+            {
+                if (soulSystem != null)
+                {
+                    // HWJ 스크립트를 수정할 수 없으므로 리플렉션으로 타이머를 깎습니다.
+                    var field = typeof(HWJ_SoulSystem).GetField("soulDeadlineTimer", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                    if (field != null)
+                    {
+                        float currentTimer = (float)field.GetValue(soulSystem);
+                        float newTimer = currentTimer - amount;
+
+                        if (newTimer <= 0f)
+                        {
+                            field.SetValue(soulSystem, 0f);
+                            soulSystem.EnterDeadState();
+                        }
+                        else
+                        {
+                            field.SetValue(soulSystem, newTimer);
+                        }
+                    }
+                }
             }
-            
         }
         else
         {
@@ -131,21 +176,71 @@ public class HSH_BarUI : MonoBehaviour
     // HP가 다 달게된다면(0 이하) GhostHP로 변경하거나, Exp가 꽉 차면 레벨업
     private void CheckState()
     {
-        // 1. 현재 연동된 데이터(체력/경험치)를 가져옵니다.
+        // 1. 현재 연동된 데이터(체력/경험치/영혼시간)를 가져옵니다.
         if (statusSystem != null)
         {
-            if (currentType == BarType.HP || currentType == BarType.GhostHP)
+            if (currentType == BarType.HP)
             {
-                currentValue = statusSystem.CurrentHp;
-                maxValue = statusSystem.MaxHp;
-                
+                if (HWJ_GameAccess.HasManager)
+                {
+                    // 게임 매니저에서 savedBodyDecayValue를 가져와서 UI의 현재 체력으로 반영합니다.
+                    var decayField = typeof(HWJ_GameManager).GetField("savedBodyDecayValue", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                    if (decayField != null)
+                    {
+                        currentValue = (float)decayField.GetValue(HWJ_GameAccess.Manager);
+                    }
+                    else
+                    {
+                        currentValue = statusSystem.CurrentHp;
+                    }
+
+                    // 최대 체력(MaxHp) 대신 최대 부패 수치(maxDecayValue)를 가져옵니다.
+                    if (soulSystem != null)
+                    {
+                        var resolverField = typeof(HWJ_SoulSystem).GetField("dataResolver", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                        if (resolverField != null)
+                        {
+                            var resolver = (HWJ_RootObjectDataResolver)resolverField.GetValue(soulSystem);
+                            if (resolver != null && resolver.TryGetTypeData(out HWJ_PlayerTypeDataSO playerData) && playerData.BodyDecay != null)
+                            {
+                                maxValue = playerData.BodyDecay.maxDecayValue;
+                            }
+                            else
+                            {
+                                maxValue = statusSystem.MaxHp;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        maxValue = statusSystem.MaxHp;
+                    }
+                }
+                else
+                {
+                    currentValue = statusSystem.CurrentHp;
+                    maxValue = statusSystem.MaxHp;
+                }
             }
-            // TODO: 나중에 경험치(Exp) 시스템이 추가된다면 이 곳 주석을 해제하고 연동하세요.
-            // else if (currentType == BarType.Exp)
-            // {
-            //     currentValue = ExpSystem.CurrentExp;
-            //     maxValue = ExpSystem.MaxExp;
-            // }
+            else if (currentType == BarType.GhostHP)
+            {
+                if (soulSystem != null)
+                {
+                    currentValue = soulSystem.SoulDeadlineTimer;
+                    maxValue = 10f; // 기본값
+                    
+                    // HWJ 코드를 수정할 수 없으므로 리플렉션으로 dataResolver에 접근하여 최대 시간을 가져옵니다.
+                    var resolverField = typeof(HWJ_SoulSystem).GetField("dataResolver", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                    if (resolverField != null)
+                    {
+                        var resolver = (HWJ_RootObjectDataResolver)resolverField.GetValue(soulSystem);
+                        if (resolver != null && resolver.TryGetTypeData(out HWJ_PlayerTypeDataSO playerData))
+                        {
+                            maxValue = playerData.SoulState.possessionDeadlineSeconds;
+                        }
+                    }
+                }
+            }
         }
         
         // 2. 값에 따른 상태 변화(게임오버, 레벨업 등)를 처리합니다.
@@ -178,6 +273,7 @@ public class HSH_BarUI : MonoBehaviour
                 if (gameOverUI != null)
                 {
                     gameOverUI.ShowGameOver();
+      
                 }
             }
         }

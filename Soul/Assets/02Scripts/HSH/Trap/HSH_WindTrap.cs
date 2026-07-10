@@ -92,7 +92,7 @@ public class HSH_WindTrap : MonoBehaviour
 
     private void ApplyDamage(GameObject player)
     {
-        HSH_BarUI[] barUIs = FindObjectsOfType<HSH_BarUI>(true);
+        HSH_BarUI[] barUIs = FindObjectsByType<HSH_BarUI>(FindObjectsInactive.Include, FindObjectsSortMode.None);
         bool isDamaged = false;
 
         foreach (var barUI in barUIs)
@@ -106,7 +106,7 @@ public class HSH_WindTrap : MonoBehaviour
 
         if (isDamaged)
         {
-            Debug.Log($"[WindTrap] 플레이어가 바람에 맞았습니다! 데미지: {damage}");
+            Debug.Log($"[WindTrap] 돌풍이 플레이어를 강타했습니다! 데미지: {damage}");
         }
     }
 
