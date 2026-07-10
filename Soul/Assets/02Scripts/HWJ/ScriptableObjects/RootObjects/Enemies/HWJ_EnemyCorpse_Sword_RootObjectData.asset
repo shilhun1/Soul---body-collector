@@ -52,6 +52,6 @@ MonoBehaviour:
   reward:
     experienceReward: 10
     skillPointReward: 0
-    dropsStatOrb: 0
-    statOrbId: ""
+    dropsStatOrb: 1
+    statOrbId: stat_attack_power_small
   selectedTypeData: {fileID: 11400000, guid: aa000000000000000000000000000001, type: 2}

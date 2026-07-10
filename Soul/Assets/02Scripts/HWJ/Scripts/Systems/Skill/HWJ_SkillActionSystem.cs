@@ -22,6 +22,9 @@ public class HWJ_SkillActionSystem : MonoBehaviour
     [SerializeField] private HWJ_GameplayDatabaseSO database;
     [SerializeField] private Rigidbody2D body;
     [SerializeField] private HWJ_SkillActionDataSO[] localSkillActions;
+    [SerializeField] private bool useGameplaySkillRule = true;
+    [SerializeField] private HWJ_GameplayRuleSO skillUseRule;
+    [SerializeField] private string skillUseRuleId = "skill_can_use";
     [SerializeField] private string lastSkillResult;
     [SerializeField] private float lastDamageApplied;
 
@@ -123,6 +126,12 @@ public class HWJ_SkillActionSystem : MonoBehaviour
             return false;
         }
 
+        if (skillAction.ActionType != HWJ_SkillActionType.Dash && !IsSkillRuleSatisfied(skillAction))
+        {
+            lastSkillResult = $"Skill failed: {skillAction.SkillActionId} gameplay rule.";
+            return false;
+        }
+
         if (runtimeStatus != null
             && skillAction.ActionType != HWJ_SkillActionType.Dash
             && (!runtimeStatus.CanAttack || runtimeStatus.IsHitStunned))
@@ -154,6 +163,35 @@ public class HWJ_SkillActionSystem : MonoBehaviour
 
         ExecuteSkill(skillAction, target);
         return true;
+    }
+
+    private bool IsSkillRuleSatisfied(HWJ_SkillActionDataSO skillAction)
+    {
+        if (!useGameplaySkillRule)
+        {
+            return true;
+        }
+
+        HWJ_GameplayRuleSO rule = skillUseRule;
+
+        if (rule == null
+            && !string.IsNullOrEmpty(skillUseRuleId)
+            && HWJ_GameAccess.TryGetGameplayRule(skillUseRuleId, out HWJ_GameplayRuleSO resolvedRule))
+        {
+            rule = resolvedRule;
+        }
+
+        if (rule == null)
+        {
+            return true;
+        }
+
+        HWJ_GameplayContext context = HWJ_GameplayContext
+            .Create(dataResolver, null)
+            .WithSource(this)
+            .WithSkill(skillAction);
+
+        return rule.IsSatisfied(context);
     }
 
     /// <summary>
@@ -300,13 +338,30 @@ public class HWJ_SkillActionSystem : MonoBehaviour
         PlaySkillMotion(skillAction);
         float chargeSeconds = Mathf.Max(0f, skillAction.DurationSeconds);
 
+        int projectileCount = Mathf.Max(1, skillAction.HitCount);
+        float shotIntervalSeconds = Mathf.Max(0f, skillAction.HitIntervalSeconds);
+        float totalNavigationBlockSeconds = chargeSeconds + shotIntervalSeconds * Mathf.Max(0, projectileCount - 1);
+
+        if (totalNavigationBlockSeconds > 0f)
+        {
+            BlockNavigationForSkill(totalNavigationBlockSeconds + 0.05f, false);
+        }
+
         if (chargeSeconds > 0f)
         {
-            BlockNavigationForSkill(chargeSeconds + 0.05f, false);
             yield return new WaitForSeconds(chargeSeconds);
         }
 
-        FireProjectile(skillAction, ResolveSkillDirection(target));
+        for (int i = 0; i < projectileCount; i++)
+        {
+            FireProjectile(skillAction, ResolveSkillDirection(target));
+
+            if (i < projectileCount - 1 && shotIntervalSeconds > 0f)
+            {
+                yield return new WaitForSeconds(shotIntervalSeconds);
+            }
+        }
+
         projectileRoutine = null;
     }
 

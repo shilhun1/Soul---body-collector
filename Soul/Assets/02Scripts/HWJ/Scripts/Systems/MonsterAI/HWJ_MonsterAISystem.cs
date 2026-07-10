@@ -9,6 +9,7 @@ public class HWJ_MonsterAISystem : MonoBehaviour
     [SerializeField] private HWJ_RootObjectDataResolver dataResolver;
     [SerializeField] private HWJ_RuntimeStatusSystem runtimeStatus;
     [SerializeField] private HWJ_EnemyAttackSystem enemyAttackSystem;
+    [SerializeField] private HWJ_SkillActionSystem skillActionSystem;
     [SerializeField] private HWJ_CharacterMotionSystem motionSystem;
     [SerializeField] private HWJ_KnockbackSystem knockbackSystem;
     [SerializeField] private Rigidbody2D body;
@@ -21,6 +22,9 @@ public class HWJ_MonsterAISystem : MonoBehaviour
     [SerializeField] private float fallbackTrackingRange = 8f;
     [SerializeField] private float fallbackAttackRange = 1.2f;
     [SerializeField] private float targetSearchIntervalSeconds = 0.5f;
+    [SerializeField] private bool useGameplayTargetRule = true;
+    [SerializeField] private HWJ_GameplayRuleSO targetDetectRule;
+    [SerializeField] private string targetDetectRuleId = "monster_detect_player_body";
     [SerializeField] private HWJ_MonsterAIState currentState = HWJ_MonsterAIState.Idle;
 
     public HWJ_EnemyTypeDataSO EnemyData { get; private set; }
@@ -64,6 +68,11 @@ public class HWJ_MonsterAISystem : MonoBehaviour
         {
             SetAIState(HWJ_MonsterAIState.HitStun);
             StopHorizontalMovementIfNotKnockedBack();
+            return;
+        }
+
+        if (HandleSkillNavigationBlock())
+        {
             return;
         }
 
@@ -296,10 +305,48 @@ public class HWJ_MonsterAISystem : MonoBehaviour
 
     private bool IsTargetInAttackRange()
     {
+        float attackRange = GetSkillAwareAttackRange();
+        return GetTargetDistance() <= attackRange;
+    }
+
+    private float GetSkillAwareAttackRange()
+    {
         float attackRange = EnemyData.State.attackRange > 0f
             ? EnemyData.State.attackRange
             : fallbackAttackRange;
-        return GetTargetDistance() <= attackRange;
+
+        if (skillActionSystem == null || EnemyData.SkillCycle == null || EnemyData.SkillCycle.skills == null)
+        {
+            return attackRange;
+        }
+
+        for (int i = 0; i < EnemyData.SkillCycle.skills.Length; i++)
+        {
+            HWJ_SkillEntryData skillEntry = EnemyData.SkillCycle.skills[i];
+
+            if (!CanUseSkillEntryForRange(skillEntry)
+                || !skillActionSystem.TryGetSkillAction(skillEntry.skillId, out HWJ_SkillActionDataSO skillAction))
+            {
+                continue;
+            }
+
+            float skillRange = skillAction.Range > 0f ? skillAction.Range : skillAction.HitRange;
+            attackRange = Mathf.Max(attackRange, skillRange);
+        }
+
+        return attackRange;
+    }
+
+    private bool CanUseSkillEntryForRange(HWJ_SkillEntryData skillEntry)
+    {
+        if (skillEntry == null || string.IsNullOrEmpty(skillEntry.skillId) || !skillEntry.startsUnlocked)
+        {
+            return false;
+        }
+
+        HWJ_WeaponType weaponType = dataResolver != null ? dataResolver.WeaponType : HWJ_WeaponType.None;
+        return skillEntry.requiredWeaponType == HWJ_WeaponType.None
+            || skillEntry.requiredWeaponType == weaponType;
     }
 
     private float GetTargetDistance()
@@ -405,11 +452,49 @@ public class HWJ_MonsterAISystem : MonoBehaviour
         StopHorizontalMovement();
     }
 
+    private bool HandleSkillNavigationBlock()
+    {
+        if (skillActionSystem == null || !skillActionSystem.IsNavigationBlocked)
+        {
+            return false;
+        }
+
+        runtimeStatus?.SetState(HWJ_RuntimeState.Attack);
+
+        if (skillActionSystem.ShouldStopNavigationMovement)
+        {
+            StopHorizontalMovementIfNotKnockedBack();
+        }
+
+        return true;
+    }
+
     private bool CanUseTargetState()
     {
         if (!targetOnlyBodyState || target == null)
         {
             return true;
+        }
+
+        if (useGameplayTargetRule && IsTargetRuleAvailable(out HWJ_GameplayRuleSO rule))
+        {
+            HWJ_RootObjectDataResolver targetResolver = target.GetComponent<HWJ_RootObjectDataResolver>();
+
+            if (targetResolver == null)
+            {
+                targetResolver = target.GetComponentInParent<HWJ_RootObjectDataResolver>();
+            }
+
+            HWJ_GameplayContext context = HWJ_GameplayContext
+                .Create(dataResolver, targetResolver)
+                .WithSource(this);
+
+            if (targetResolver != null)
+            {
+                context.WithTarget(targetResolver);
+            }
+
+            return rule.IsSatisfied(context);
         }
 
         HWJ_SoulSystem targetSoul = target.GetComponent<HWJ_SoulSystem>();
@@ -420,6 +505,19 @@ public class HWJ_MonsterAISystem : MonoBehaviour
         }
 
         return targetSoul == null || targetSoul.CurrentState == HWJ_SoulRuntimeState.Body;
+    }
+
+    private bool IsTargetRuleAvailable(out HWJ_GameplayRuleSO rule)
+    {
+        rule = targetDetectRule;
+
+        if (rule != null)
+        {
+            return true;
+        }
+
+        return !string.IsNullOrEmpty(targetDetectRuleId)
+            && HWJ_GameAccess.TryGetGameplayRule(targetDetectRuleId, out rule);
     }
 
     private Transform FindPlayerTarget()
@@ -459,6 +557,11 @@ public class HWJ_MonsterAISystem : MonoBehaviour
         if (enemyAttackSystem == null)
         {
             enemyAttackSystem = GetComponent<HWJ_EnemyAttackSystem>();
+        }
+
+        if (skillActionSystem == null)
+        {
+            skillActionSystem = GetComponent<HWJ_SkillActionSystem>();
         }
 
         if (motionSystem == null)

@@ -139,6 +139,10 @@ public class HWJ_BodyDecaySystem : MonoBehaviour
         currentDecayValue = Mathf.Clamp(restoredDecayValue, 0f, Mathf.Max(0f, bodyDecay.maxDecayValue));
         decayTimer = 0f;
         hasInitializedDecay = true;
+        previousSoulState = soulSystem != null ? soulSystem.CurrentState : previousSoulState;
+        previousPossessedBodyResolver = possessionSystem != null
+            ? possessionSystem.PossessedBodyResolver
+            : previousPossessedBodyResolver;
     }
 
     public void ApplyHitDecayPenalty()
