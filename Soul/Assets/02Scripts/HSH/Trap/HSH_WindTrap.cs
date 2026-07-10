@@ -92,7 +92,7 @@ public class HSH_WindTrap : MonoBehaviour
 
     private void ApplyDamage(GameObject player)
     {
-        HSH_BarUI[] barUIs = FindObjectsOfType<HSH_BarUI>(true);
+        HSH_BarUI[] barUIs = FindObjectsByType<HSH_BarUI>(FindObjectsInactive.Include, FindObjectsSortMode.None);
         bool isDamaged = false;
 
         foreach (var barUI in barUIs)

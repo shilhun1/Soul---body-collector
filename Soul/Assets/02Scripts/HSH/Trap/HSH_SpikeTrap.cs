@@ -110,7 +110,7 @@ public class HSH_SpikeTrap : MonoBehaviour
 
 
         // 2. UI 체력바도 깎습니다.
-        HSH_BarUI[] barUIs = FindObjectsOfType<HSH_BarUI>(true);
+        HSH_BarUI[] barUIs = FindObjectsByType<HSH_BarUI>(FindObjectsInactive.Include, FindObjectsSortMode.None);
         bool isDamaged = false;
 
         foreach (var barUI in barUIs)

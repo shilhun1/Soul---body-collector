@@ -76,7 +76,7 @@ public class HSH_FallingTrap : MonoBehaviour
 
 
         // 2. UI 체력바도 깎습니다.
-        HSH_BarUI[] barUIs = FindObjectsOfType<HSH_BarUI>(true); // 꺼져있는 UI도 찾음
+        HSH_BarUI[] barUIs = FindObjectsByType<HSH_BarUI>(FindObjectsInactive.Include, FindObjectsSortMode.None); // 꺼져있는 UI도 찾음
         bool isDamaged = false;
 
         foreach (var barUI in barUIs)

@@ -78,7 +78,7 @@ public class HSH_StealBody : MonoBehaviour
             // UI가 없다면 씬 내의 Canvas를 찾아 자식으로 생성
             if (spawnedUi == null && stealBodyUiPrefab != null)
             {
-                Canvas mainCanvas = FindObjectOfType<Canvas>();
+                Canvas mainCanvas = FindAnyObjectByType<Canvas>();
                 if (mainCanvas != null)
                 {
                     spawnedUi = Instantiate(stealBodyUiPrefab, transform.position + uiOffset, Quaternion.identity, mainCanvas.transform);
