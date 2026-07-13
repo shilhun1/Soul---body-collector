@@ -32,8 +32,8 @@ public class HSH_FallingTrap : MonoBehaviour
 
             foreach (RaycastHit2D hit in hits)
             {
-                // 맞은 것들 중에 플레이어(Player) 또는 적(Enemy)이 있다면?
-                if (hit.collider != null && (hit.collider.CompareTag("Player") || hit.collider.CompareTag("Enemy")))
+                // 맞은 것들 중에 플레이어(Player)가 있다면? (함정 발동은 플레이어에게만)
+                if (hit.collider != null && hit.collider.CompareTag("Player"))
                 {
                     // 중력을 켜서 돌을 떨어뜨립니다!
                     rb.gravityScale = fallGravity;
@@ -48,10 +48,13 @@ public class HSH_FallingTrap : MonoBehaviour
     {
         if (collision.CompareTag("Player") || collision.CompareTag("Enemy"))
         {
-            // 중력을 활성화하여 돌을 떨어뜨림
+            // 중력을 활성화하여 돌을 떨어뜨림 (플레이어만 발동시킴)
             if (rb != null && rb.gravityScale == 0f)
             {
-                rb.gravityScale = fallGravity;
+                if (collision.CompareTag("Player"))
+                {
+                    rb.gravityScale = fallGravity;
+                }
             }
             else
             {
@@ -73,29 +76,26 @@ public class HSH_FallingTrap : MonoBehaviour
 
     private void ApplyDamageAndKnockback(GameObject target)
     {
+        // 영혼 상태일 경우 데미지 및 넉백 무시
+        HWJ_SoulSystem soulSystem = target.GetComponent<HWJ_SoulSystem>();
+        if (soulSystem != null && soulSystem.CurrentState != HWJ_SoulRuntimeState.Body)
+        {
+            return;
+        }
+
         // 1. 데미지 처리
-        if (target.CompareTag("Player"))
+        HWJ_RuntimeStatusSystem statusSystem = target.GetComponent<HWJ_RuntimeStatusSystem>();
+        if (statusSystem != null)
+        {
+            statusSystem.ApplyDamage(damage);
+            Debug.Log($"[{gameObject.name}] {target.name}에게 데미지: {damage}");
+        }
+        else if (target.CompareTag("Player"))
         {
             HSH_BarUI[] barUIs = FindObjectsByType<HSH_BarUI>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-            bool isDamaged = false;
             foreach (var barUI in barUIs)
             {
-                if (barUI.currentType == HSH_BarUI.BarType.HP || barUI.currentType == HSH_BarUI.BarType.GhostHP)
-                {
-                    barUI.DecreaseValue(damage);
-                    isDamaged = true;
-                }
-            }
-            if (isDamaged)
-                Debug.Log($"[FallingTrap] 낙석이 플레이어를 깔아뭉갰습니다! 데미지: {damage}");
-        }
-        else if (target.CompareTag("Enemy"))
-        {
-            HWJ_RuntimeStatusSystem statusSystem = target.GetComponent<HWJ_RuntimeStatusSystem>();
-            if (statusSystem != null)
-            {
-                statusSystem.ApplyDamage(damage);
-                Debug.Log($"[FallingTrap] 낙석이 적을 깔아뭉갰습니다! 데미지: {damage}");
+                if (barUI.currentType == HSH_BarUI.BarType.HP) barUI.DecreaseValue(damage);
             }
         }
 

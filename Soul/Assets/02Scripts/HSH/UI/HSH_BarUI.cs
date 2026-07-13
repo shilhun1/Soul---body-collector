@@ -137,33 +137,14 @@ public class HSH_BarUI : MonoBehaviour
             {
                 statusSystem.ApplyDamage(amount);
             }
-            else if (currentType == BarType.GhostHP)
-            {
-                if (soulSystem != null)
-                {
-                    // HWJ 스크립트를 수정할 수 없으므로 리플렉션으로 타이머를 깎습니다.
-                    var field = typeof(HWJ_SoulSystem).GetField("soulDeadlineTimer", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                    if (field != null)
-                    {
-                        float currentTimer = (float)field.GetValue(soulSystem);
-                        float newTimer = currentTimer - amount;
-
-                        if (newTimer <= 0f)
-                        {
-                            field.SetValue(soulSystem, 0f);
-                            soulSystem.EnterDeadState();
-                        }
-                        else
-                        {
-                            field.SetValue(soulSystem, newTimer);
-                        }
-                    }
-                }
-            }
+            // 고스트 체력(GhostHP)은 함정 데미지 등 외부 요인으로 감소시키지 않음
         }
         else
         {
-            currentValue -= amount;
+            if (currentType != BarType.GhostHP)
+            {
+                currentValue -= amount;
+            }
         }
         
 

@@ -41,7 +41,7 @@ public class HSH_WindTrap : MonoBehaviour
 
             foreach (var hit in hits)
             {
-                if (hit.collider.CompareTag("Player") || hit.collider.CompareTag("Enemy"))
+                if (hit.collider.CompareTag("Player"))
                 {
                     isPlayerDetected = true;
                     break;
@@ -92,29 +92,26 @@ public class HSH_WindTrap : MonoBehaviour
 
     private void ApplyDamageAndKnockback(GameObject target)
     {
+        // 영혼 상태일 경우 데미지 및 넉백 무시
+        HWJ_SoulSystem soulSystem = target.GetComponent<HWJ_SoulSystem>();
+        if (soulSystem != null && soulSystem.CurrentState != HWJ_SoulRuntimeState.Body)
+        {
+            return;
+        }
+
         // 1. 데미지 처리
-        if (target.CompareTag("Player"))
+        HWJ_RuntimeStatusSystem statusSystem = target.GetComponent<HWJ_RuntimeStatusSystem>();
+        if (statusSystem != null)
+        {
+            statusSystem.ApplyDamage(damage);
+            Debug.Log($"[{gameObject.name}] {target.name}에게 데미지: {damage}");
+        }
+        else if (target.CompareTag("Player"))
         {
             HSH_BarUI[] barUIs = FindObjectsByType<HSH_BarUI>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-            bool isDamaged = false;
             foreach (var barUI in barUIs)
             {
-                if (barUI.currentType == HSH_BarUI.BarType.HP || barUI.currentType == HSH_BarUI.BarType.GhostHP)
-                {
-                    barUI.DecreaseValue(damage);
-                    isDamaged = true;
-                }
-            }
-            if (isDamaged)
-                Debug.Log($"[WindTrap] 돌풍이 플레이어를 강타했습니다! 데미지: {damage}");
-        }
-        else if (target.CompareTag("Enemy"))
-        {
-            HWJ_RuntimeStatusSystem statusSystem = target.GetComponent<HWJ_RuntimeStatusSystem>();
-            if (statusSystem != null)
-            {
-                statusSystem.ApplyDamage(damage);
-                Debug.Log($"[WindTrap] 돌풍이 적을 강타했습니다! 데미지: {damage}");
+                if (barUI.currentType == HSH_BarUI.BarType.HP) barUI.DecreaseValue(damage);
             }
         }
 
