@@ -113,7 +113,7 @@ GameObject:
   - component: {fileID: -9096298348847796411}
   m_Layer: 0
   m_Name: HWJ_Monster_Bow_Test
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -295,6 +295,13 @@ MonoBehaviour:
   possessionSystem: {fileID: 0}
   runtimeStatus: {fileID: 0}
   bossBrain: {fileID: 0}
+  useGameplayDamageRules: 1
+  commonDamageRule: {fileID: 0}
+  commonDamageRuleId: damage_can_apply_common
+  playerDamageToEnemyRule: {fileID: 0}
+  playerDamageToEnemyRuleId: player_damage_to_enemy
+  grantKillRewards: 1
+  lastRewardResult: 
 --- !u!114 &6556585155606281372
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -310,6 +317,7 @@ MonoBehaviour:
   dataResolver: {fileID: 0}
   runtimeStatus: {fileID: 0}
   enemyAttackSystem: {fileID: 0}
+  skillActionSystem: {fileID: 0}
   motionSystem: {fileID: 0}
   knockbackSystem: {fileID: 0}
   body: {fileID: 0}
@@ -324,6 +332,9 @@ MonoBehaviour:
   fallbackTrackingRange: 8
   fallbackAttackRange: 1.2
   targetSearchIntervalSeconds: 0.5
+  useGameplayTargetRule: 1
+  targetDetectRule: {fileID: 0}
+  targetDetectRuleId: monster_detect_player_body
   currentState: 0
 --- !u!114 &8267704180947712405
 MonoBehaviour:

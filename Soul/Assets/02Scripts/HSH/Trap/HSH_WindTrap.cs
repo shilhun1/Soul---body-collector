@@ -41,7 +41,7 @@ public class HSH_WindTrap : MonoBehaviour
 
             foreach (var hit in hits)
             {
-                if (hit.collider.CompareTag("Player"))
+                if (hit.collider.CompareTag("Player") || hit.collider.CompareTag("Enemy"))
                 {
                     isPlayerDetected = true;
                     break;
@@ -82,31 +82,61 @@ public class HSH_WindTrap : MonoBehaviour
     private void OnTriggerEnter2D(Collider2D collision)
     {
         // 발사기가 아닌 '투사체'일 때만 데미지를 줌
-        if (!isSpawner && collision.CompareTag("Player"))
+        if (!isSpawner && (collision.CompareTag("Player") || collision.CompareTag("Enemy")))
         {
-            ApplyDamage(collision.gameObject);
+            ApplyDamageAndKnockback(collision.gameObject);
             // 원한다면 맞춘 후 바람 삭제 가능
             // Destroy(gameObject);
         }
     }
 
-    private void ApplyDamage(GameObject player)
+    private void ApplyDamageAndKnockback(GameObject target)
     {
-        HSH_BarUI[] barUIs = FindObjectsByType<HSH_BarUI>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-        bool isDamaged = false;
-
-        foreach (var barUI in barUIs)
+        // 1. 데미지 처리
+        if (target.CompareTag("Player"))
         {
-            if (barUI.currentType == HSH_BarUI.BarType.HP || barUI.currentType == HSH_BarUI.BarType.GhostHP)
+            HSH_BarUI[] barUIs = FindObjectsByType<HSH_BarUI>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            bool isDamaged = false;
+            foreach (var barUI in barUIs)
             {
-                barUI.DecreaseValue(damage);
-                isDamaged = true;
+                if (barUI.currentType == HSH_BarUI.BarType.HP || barUI.currentType == HSH_BarUI.BarType.GhostHP)
+                {
+                    barUI.DecreaseValue(damage);
+                    isDamaged = true;
+                }
+            }
+            if (isDamaged)
+                Debug.Log($"[WindTrap] 돌풍이 플레이어를 강타했습니다! 데미지: {damage}");
+        }
+        else if (target.CompareTag("Enemy"))
+        {
+            HWJ_RuntimeStatusSystem statusSystem = target.GetComponent<HWJ_RuntimeStatusSystem>();
+            if (statusSystem != null)
+            {
+                statusSystem.ApplyDamage(damage);
+                Debug.Log($"[WindTrap] 돌풍이 적을 강타했습니다! 데미지: {damage}");
             }
         }
 
-        if (isDamaged)
+        // 2. 넉백 처리
+        float knockbackPower = 10f; 
+        Vector2 knockbackDir = (target.transform.position - transform.position).normalized;
+        knockbackDir.y += 0.5f; // 약간 위로 뜨게 설정
+        knockbackDir = knockbackDir.normalized;
+
+        hys_Player_Hit playerHit = target.GetComponent<hys_Player_Hit>();
+        if (playerHit != null)
         {
-            Debug.Log($"[WindTrap] 돌풍이 플레이어를 강타했습니다! 데미지: {damage}");
+            playerHit.ApplyKnockback(knockbackDir * knockbackPower);
+        }
+        else
+        {
+            HWJ_KnockbackSystem knockbackSystem = target.GetComponent<HWJ_KnockbackSystem>();
+            if (knockbackSystem == null)
+            {
+                knockbackSystem = target.AddComponent<HWJ_KnockbackSystem>();
+            }
+            knockbackSystem.PlayKnockback(knockbackDir, knockbackPower, 0.25f);
         }
     }
 

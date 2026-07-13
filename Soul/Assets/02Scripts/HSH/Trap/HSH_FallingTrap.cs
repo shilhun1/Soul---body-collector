@@ -32,8 +32,8 @@ public class HSH_FallingTrap : MonoBehaviour
 
             foreach (RaycastHit2D hit in hits)
             {
-                // 맞은 것들 중에 플레이어(Player)가 있다면?
-                if (hit.collider != null && hit.collider.CompareTag("Player"))
+                // 맞은 것들 중에 플레이어(Player) 또는 적(Enemy)이 있다면?
+                if (hit.collider != null && (hit.collider.CompareTag("Player") || hit.collider.CompareTag("Enemy")))
                 {
                     // 중력을 켜서 돌을 떨어뜨립니다!
                     rb.gravityScale = fallGravity;
@@ -43,10 +43,10 @@ public class HSH_FallingTrap : MonoBehaviour
         }
     }
 
-    // 감지 센서(Trigger)에 플레이어가 들어왔을 때 (기존 방식 유지)
+    // 감지 센서(Trigger)에 플레이어나 적이 들어왔을 때 (기존 방식 유지)
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.CompareTag("Player"))
+        if (collision.CompareTag("Player") || collision.CompareTag("Enemy"))
         {
             // 중력을 활성화하여 돌을 떨어뜨림
             if (rb != null && rb.gravityScale == 0f)
@@ -55,40 +55,69 @@ public class HSH_FallingTrap : MonoBehaviour
             }
             else
             {
-                // 이미 떨어지는 중이거나 땅에 닿은 상태에서 플레이어(유령 등)와 겹쳤다면 데미지
-                ApplyDamage(collision.gameObject);
+                // 이미 떨어지는 중이거나 땅에 닿은 상태에서 부딪혔다면 데미지와 넉백
+                ApplyDamageAndKnockback(collision.gameObject);
             }
         }
     }
 
-    // 돌이 플레이어와 실제로 부딪혔을 때
+    // 돌이 실제로 부딪혔을 때
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        if (collision.gameObject.CompareTag("Player"))
+        if (collision.gameObject.CompareTag("Player") || collision.gameObject.CompareTag("Enemy"))
         {
             Debug.Log("hit");
-            ApplyDamage(collision.gameObject);
+            ApplyDamageAndKnockback(collision.gameObject);
         }
     }
 
-    private void ApplyDamage(GameObject player)
+    private void ApplyDamageAndKnockback(GameObject target)
     {
-        // 2. UI 체력바를 깎습니다.
-        HSH_BarUI[] barUIs = FindObjectsByType<HSH_BarUI>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-        bool isDamaged = false;
-
-        foreach (var barUI in barUIs)
+        // 1. 데미지 처리
+        if (target.CompareTag("Player"))
         {
-            if (barUI.currentType == HSH_BarUI.BarType.HP || barUI.currentType == HSH_BarUI.BarType.GhostHP)
+            HSH_BarUI[] barUIs = FindObjectsByType<HSH_BarUI>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            bool isDamaged = false;
+            foreach (var barUI in barUIs)
             {
-                barUI.DecreaseValue(damage);
-                isDamaged = true;
+                if (barUI.currentType == HSH_BarUI.BarType.HP || barUI.currentType == HSH_BarUI.BarType.GhostHP)
+                {
+                    barUI.DecreaseValue(damage);
+                    isDamaged = true;
+                }
+            }
+            if (isDamaged)
+                Debug.Log($"[FallingTrap] 낙석이 플레이어를 깔아뭉갰습니다! 데미지: {damage}");
+        }
+        else if (target.CompareTag("Enemy"))
+        {
+            HWJ_RuntimeStatusSystem statusSystem = target.GetComponent<HWJ_RuntimeStatusSystem>();
+            if (statusSystem != null)
+            {
+                statusSystem.ApplyDamage(damage);
+                Debug.Log($"[FallingTrap] 낙석이 적을 깔아뭉갰습니다! 데미지: {damage}");
             }
         }
 
-        if (isDamaged)
+        // 2. 넉백 처리
+        float knockbackPower = 10f; 
+        Vector2 knockbackDir = (target.transform.position - transform.position).normalized;
+        knockbackDir.y += 0.5f; // 약간 위로 뜨게 설정
+        knockbackDir = knockbackDir.normalized;
+
+        hys_Player_Hit playerHit = target.GetComponent<hys_Player_Hit>();
+        if (playerHit != null)
         {
-            Debug.Log($"[FallingTrap] 낙석이 플레이어를 깔아뭉갰습니다! 데미지: {damage}");
+            playerHit.ApplyKnockback(knockbackDir * knockbackPower);
+        }
+        else
+        {
+            HWJ_KnockbackSystem knockbackSystem = target.GetComponent<HWJ_KnockbackSystem>();
+            if (knockbackSystem == null)
+            {
+                knockbackSystem = target.AddComponent<HWJ_KnockbackSystem>();
+            }
+            knockbackSystem.PlayKnockback(knockbackDir, knockbackPower, 0.25f);
         }
     }
 
