@@ -7,10 +7,13 @@ using UnityEngine;
 /// </summary>
 public class HWJ_RuntimeStatusSystem : MonoBehaviour
 {
+    [SerializeField] private HWJ_RuntimeObjectContext runtimeContext;
     [SerializeField] private HWJ_RootObjectDataResolver dataResolver;
     [SerializeField] private HWJ_PossessionSystem possessionSystem;
     [SerializeField] private HWJ_SoulSystem soulSystem;
     [SerializeField] private HWJ_BodyDecaySystem bodyDecaySystem;
+    [SerializeField] private HWJ_PossessedBodySystem possessedBodySystem;
+    [SerializeField] private HWJ_CollapseSystem collapseSystem;
     [SerializeField] private HWJ_CharacterMotionSystem motionSystem;
     [SerializeField] private HWJ_BossBrainSystem bossBrain;
     [SerializeField] private HWJ_RuntimeState currentState = HWJ_RuntimeState.Idle;
@@ -36,7 +39,7 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
     public float SoulHp => soulHp;
     public float PossessedBodyHp => possessedBodyHp;
     public float SoulMaxHp => GetOwnerBaseStatusValue(status => status.maxHp) + maxHpBonus;
-    public float MaxHp => GetBaseStatusValue(status => status.maxHp) + maxHpBonus;
+    public float MaxHp => GetRuntimeBodyMaxHpOrBase() + maxHpBonus;
     public float MoveSpeed => GetBaseStatusValue(status => status.moveSpeed) + moveSpeedBonus;
     public float AttackPower => GetBaseStatusValue(status => status.attackPower) + attackPowerBonus;
     public float Defense => GetBaseStatusValue(status => status.defense) + defenseBonus;
@@ -57,9 +60,16 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
 
     private void Awake()
     {
+        if (runtimeContext == null)
+        {
+            runtimeContext = GetComponent<HWJ_RuntimeObjectContext>();
+        }
+
         if (dataResolver == null)
         {
-            dataResolver = GetComponent<HWJ_RootObjectDataResolver>();
+            dataResolver = runtimeContext != null
+                ? runtimeContext.DataResolver
+                : GetComponent<HWJ_RootObjectDataResolver>();
         }
 
         if (possessionSystem == null)
@@ -75,6 +85,16 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
         if (bodyDecaySystem == null)
         {
             bodyDecaySystem = GetComponent<HWJ_BodyDecaySystem>();
+        }
+
+        if (possessedBodySystem == null)
+        {
+            possessedBodySystem = GetComponent<HWJ_PossessedBodySystem>();
+        }
+
+        if (collapseSystem == null)
+        {
+            collapseSystem = GetComponent<HWJ_CollapseSystem>();
         }
 
         if (motionSystem == null)
@@ -98,7 +118,20 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
     /// </summary>
     public void SetState(HWJ_RuntimeState state)
     {
+        if (currentState == state)
+        {
+            return;
+        }
+
+        HWJ_RuntimeState previousState = currentState;
         currentState = state;
+        HWJ_GameplayEvents.RaiseRuntimeStateChanged(
+            new HWJ_RuntimeStateChangedEvent(this, previousState, currentState));
+    }
+
+    public HWJ_RuntimeStatSnapshot CreateStatSnapshot()
+    {
+        return HWJ_RuntimeStatSnapshot.FromStatus(this);
     }
 
     public void LockMovement(float seconds)
@@ -176,10 +209,13 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
 
         if (TryApplyPossessedBodyDecayDamage(damage, source, sourceDamage))
         {
+            HWJ_GameplayEvents.RaiseDamageApplied(
+                new HWJ_DamageEvent(this, source, sourceDamage, damage, currentHp, IsDead));
             SavePlayerRuntimeSnapshotIfOwner();
             return;
         }
 
+        bool wasDead = IsDead;
         currentHp = Mathf.Max(0f, currentHp - damage);
         CacheCurrentHpForActiveState();
         ApplyPostHitTimers(source, sourceDamage);
@@ -193,6 +229,8 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
             ApplyHitReaction(damage, sourceDamage);
         }
 
+        HWJ_GameplayEvents.RaiseDamageApplied(
+            new HWJ_DamageEvent(this, source, sourceDamage, damage, currentHp, !wasDead && IsDead));
         SavePlayerRuntimeSnapshotIfOwner();
     }
 
@@ -225,6 +263,18 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
 
         if (soulSystem.CurrentState == HWJ_SoulRuntimeState.Body && possessionSystem != null && possessionSystem.HasActivePossessedBody)
         {
+            if (TryGetCurrentPossessedBodyState(out HWJ_PossessedBodyRuntimeState bodyState))
+            {
+                if (refillToMax)
+                {
+                    bodyState.RestoreHpToMax();
+                }
+
+                possessedBodyHp = bodyState.CurrentHp;
+                currentHp = possessedBodyHp;
+                return;
+            }
+
             float bodyMaxHp = MaxHp;
             possessedBodyHp = refillToMax ? bodyMaxHp : Mathf.Min(possessedBodyHp, bodyMaxHp);
             currentHp = possessedBodyHp;
@@ -258,6 +308,11 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
 
         currentHp = bodyMaxHp > 0f ? Mathf.Clamp(restoredCurrentHp, 0f, bodyMaxHp) : 0f;
         possessedBodyHp = currentHp;
+
+        if (TryGetCurrentPossessedBodyState(out HWJ_PossessedBodyRuntimeState bodyState))
+        {
+            bodyState.SetCurrentHp(possessedBodyHp);
+        }
     }
 
     /// <summary>
@@ -274,6 +329,12 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
         if (soulSystem.CurrentState == HWJ_SoulRuntimeState.Body)
         {
             possessedBodyHp = currentHp;
+
+            if (TryGetCurrentPossessedBodyState(out HWJ_PossessedBodyRuntimeState bodyState))
+            {
+                bodyState.SetCurrentHp(currentHp);
+            }
+
             return;
         }
 
@@ -318,6 +379,12 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
 
     private float GetBaseStatusValue(System.Func<HWJ_StatusData, float> selector)
     {
+        if (runtimeContext != null)
+        {
+            HWJ_StatusData effectiveStatus = runtimeContext.GetEffectiveStatusData();
+            return effectiveStatus != null ? selector(effectiveStatus) : 0f;
+        }
+
         if (possessionSystem != null && possessionSystem.TryGetPossessedStatus(out HWJ_StatusData possessedStatus))
         {
             return selector(possessedStatus);
@@ -331,8 +398,23 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
         return selector(dataResolver.Status);
     }
 
+    private float GetRuntimeBodyMaxHpOrBase()
+    {
+        if (TryGetCurrentPossessedBodyState(out HWJ_PossessedBodyRuntimeState bodyState))
+        {
+            return bodyState.MaxHp;
+        }
+
+        return GetBaseStatusValue(status => status.maxHp);
+    }
+
     private HWJ_ReceivedDamageData GetReceivedDamageData()
     {
+        if (runtimeContext != null)
+        {
+            return runtimeContext.GetEffectiveReceivedDamageData();
+        }
+
         if (possessionSystem != null
             && possessionSystem.TryGetPossessedReceivedDamage(out HWJ_ReceivedDamageData possessedReceivedDamage))
         {
@@ -536,6 +618,18 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
 
         if (soulSystem.CurrentState == HWJ_SoulRuntimeState.Body)
         {
+            if (collapseSystem == null)
+            {
+                collapseSystem = GetComponent<HWJ_CollapseSystem>();
+            }
+
+            if (collapseSystem != null)
+            {
+                collapseSystem.TryCollapseCurrentBody(HWJ_BodyCollapseReason.HpDepleted);
+                return;
+            }
+
+            possessedBodySystem?.MarkCurrentBodyCollapsed();
             soulSystem.EnterSoulState(false);
             return;
         }
@@ -548,5 +642,18 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
 
         SetState(HWJ_RuntimeState.Dead);
         motionSystem?.PlayDead();
+    }
+
+    private bool TryGetCurrentPossessedBodyState(out HWJ_PossessedBodyRuntimeState bodyState)
+    {
+        if (possessedBodySystem == null)
+        {
+            possessedBodySystem = GetComponent<HWJ_PossessedBodySystem>();
+        }
+
+        bodyState = null;
+        return possessedBodySystem != null
+            && possessedBodySystem.TryGetCurrentBodyState(out bodyState)
+            && bodyState != null;
     }
 }

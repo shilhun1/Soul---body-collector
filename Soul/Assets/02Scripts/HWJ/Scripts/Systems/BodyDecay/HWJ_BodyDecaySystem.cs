@@ -7,6 +7,8 @@ public class HWJ_BodyDecaySystem : MonoBehaviour
     [SerializeField] private HWJ_RootObjectDataResolver dataResolver;
     [SerializeField] private HWJ_SoulSystem soulSystem;
     [SerializeField] private HWJ_PossessionSystem possessionSystem;
+    [SerializeField] private HWJ_PossessedBodySystem possessedBodySystem;
+    [SerializeField] private HWJ_CollapseSystem collapseSystem;
     [SerializeField] private float currentDecayValue;
     [SerializeField] private bool resetDecayWhenEnterBody = true;
     [SerializeField] private bool isDecaying;
@@ -16,9 +18,26 @@ public class HWJ_BodyDecaySystem : MonoBehaviour
     private bool hasInitializedDecay;
     private HWJ_SoulRuntimeState previousSoulState;
     private HWJ_RootObjectDataResolver previousPossessedBodyResolver;
+    private HWJ_DecayDangerLevel previousDangerLevel = HWJ_DecayDangerLevel.Stable;
 
-    public float CurrentDecayValue => currentDecayValue;
+    public float CurrentDecayValue => TryGetCurrentPossessedBodyState(out HWJ_PossessedBodyRuntimeState bodyState)
+        ? bodyState.CurrentDecayValue
+        : currentDecayValue;
+    public float MaxDecayValue => TryGetCurrentPossessedBodyState(out HWJ_PossessedBodyRuntimeState bodyState)
+        ? bodyState.MaxDecayValue
+        : TryGetBodyDecayData(out HWJ_BodyDecayData bodyDecay)
+        ? Mathf.Max(0f, bodyDecay.maxDecayValue)
+        : 0f;
+    public float CurrentDecayRatio => MaxDecayValue > 0f
+        ? Mathf.Clamp01(CurrentDecayValue / MaxDecayValue)
+        : 0f;
+    public float RemainingDecayValue => Mathf.Max(0f, MaxDecayValue - CurrentDecayValue);
+    public float RemainingDecayRatio => MaxDecayValue > 0f
+        ? Mathf.Clamp01(RemainingDecayValue / MaxDecayValue)
+        : 0f;
+    public bool HasDecayRemaining => MaxDecayValue <= 0f || CurrentDecayValue < MaxDecayValue;
     public bool IsDecaying => isDecaying;
+    public HWJ_DecayDangerLevel CurrentDangerLevel => ResolveDangerLevel();
     public string RuntimeStateMessage => runtimeStateMessage;
 
     private void Reset()
@@ -32,7 +51,7 @@ public class HWJ_BodyDecaySystem : MonoBehaviour
 
         if (TryGetBodyDecayData(out HWJ_BodyDecayData bodyDecay))
         {
-            SetDecayToMax(bodyDecay);
+            SetDecayToInitial(bodyDecay);
         }
 
         previousSoulState = soulSystem != null ? soulSystem.CurrentState : HWJ_SoulRuntimeState.Body;
@@ -52,6 +71,8 @@ public class HWJ_BodyDecaySystem : MonoBehaviour
         HWJ_RootObjectDataResolver currentPossessedBodyResolver = possessionSystem != null
             ? possessionSystem.PossessedBodyResolver
             : null;
+
+        SyncDecayFromRuntimeBodyState();
 
         if (currentSoulState == HWJ_SoulRuntimeState.Body
             && (previousSoulState != HWJ_SoulRuntimeState.Body
@@ -91,15 +112,15 @@ public class HWJ_BodyDecaySystem : MonoBehaviour
 
         if (!hasInitializedDecay)
         {
-            SetDecayToMax(bodyDecay);
+            SetDecayToInitial(bodyDecay);
         }
 
         isDecaying = true;
         runtimeStateMessage = "Body decay is running.";
 
-        if (currentDecayValue <= 0f)
+        if (MaxDecayValue > 0f && currentDecayValue >= MaxDecayValue)
         {
-            TryEnterSoulStateWhenDecayEmpty(bodyDecay);
+            TryEnterSoulStateWhenDecayMaxed(bodyDecay);
             return;
         }
 
@@ -112,8 +133,8 @@ public class HWJ_BodyDecaySystem : MonoBehaviour
         }
 
         decayTimer = 0f;
-        currentDecayValue -= bodyDecay.decayAmountPerTick;
-        TryEnterSoulStateWhenDecayEmpty(bodyDecay);
+        ApplyDecayAmount(bodyDecay.decayAmountPerTick, "time_tick", bodyDecay);
+        TryEnterSoulStateWhenDecayMaxed(bodyDecay);
         SavePlayerRuntimeSnapshotIfOwner();
     }
 
@@ -123,7 +144,7 @@ public class HWJ_BodyDecaySystem : MonoBehaviour
 
         if (TryGetBodyDecayData(out HWJ_BodyDecayData bodyDecay))
         {
-            SetDecayToMax(bodyDecay);
+            SetDecayToInitial(bodyDecay);
         }
     }
 
@@ -136,9 +157,10 @@ public class HWJ_BodyDecaySystem : MonoBehaviour
             return;
         }
 
-        currentDecayValue = Mathf.Clamp(restoredDecayValue, 0f, Mathf.Max(0f, bodyDecay.maxDecayValue));
+        SetCurrentDecayValue(restoredDecayValue, bodyDecay);
         decayTimer = 0f;
         hasInitializedDecay = true;
+        previousDangerLevel = CurrentDangerLevel;
         previousSoulState = soulSystem != null ? soulSystem.CurrentState : previousSoulState;
         previousPossessedBodyResolver = possessionSystem != null
             ? possessionSystem.PossessedBodyResolver
@@ -169,12 +191,62 @@ public class HWJ_BodyDecaySystem : MonoBehaviour
 
         if (!hasInitializedDecay)
         {
-            SetDecayToMax(bodyDecay);
+            SetDecayToInitial(bodyDecay);
         }
 
+        SyncDecayFromRuntimeBodyState();
+
         float decayPenalty = Mathf.Max(bodyDecay.hitDecayPenalty, incomingDamage);
-        currentDecayValue -= decayPenalty;
-        TryEnterSoulStateWhenDecayEmpty(bodyDecay);
+        ApplyDecayAmount(decayPenalty, "hit", bodyDecay);
+        TryEnterSoulStateWhenDecayMaxed(bodyDecay);
+        SavePlayerRuntimeSnapshotIfOwner();
+    }
+
+    public void ApplyMoveDecay(float deltaSeconds)
+    {
+        if (!TryBeginActionDecay(out HWJ_BodyDecayData bodyDecay))
+        {
+            return;
+        }
+
+        ApplyDecayAmount(bodyDecay.moveDecayPerSecond * Mathf.Max(0f, deltaSeconds), "move", bodyDecay);
+        TryEnterSoulStateWhenDecayMaxed(bodyDecay);
+        SavePlayerRuntimeSnapshotIfOwner();
+    }
+
+    public void ApplyBasicAttackDecay()
+    {
+        if (!TryBeginActionDecay(out HWJ_BodyDecayData bodyDecay))
+        {
+            return;
+        }
+
+        ApplyDecayAmount(bodyDecay.basicAttackDecayAmount, "basic_attack", bodyDecay);
+        TryEnterSoulStateWhenDecayMaxed(bodyDecay);
+        SavePlayerRuntimeSnapshotIfOwner();
+    }
+
+    public void ApplySkillDecay()
+    {
+        if (!TryBeginActionDecay(out HWJ_BodyDecayData bodyDecay))
+        {
+            return;
+        }
+
+        ApplyDecayAmount(bodyDecay.skillDecayAmount, "skill", bodyDecay);
+        TryEnterSoulStateWhenDecayMaxed(bodyDecay);
+        SavePlayerRuntimeSnapshotIfOwner();
+    }
+
+    public void ApplyActionDecay(float rawDecayAmount)
+    {
+        if (!TryBeginActionDecay(out HWJ_BodyDecayData bodyDecay))
+        {
+            return;
+        }
+
+        ApplyDecayAmount(rawDecayAmount + bodyDecay.actionDecayAmount, "action", bodyDecay);
+        TryEnterSoulStateWhenDecayMaxed(bodyDecay);
         SavePlayerRuntimeSnapshotIfOwner();
     }
 
@@ -194,6 +266,16 @@ public class HWJ_BodyDecaySystem : MonoBehaviour
         {
             possessionSystem = GetComponent<HWJ_PossessionSystem>();
         }
+
+        if (possessedBodySystem == null)
+        {
+            possessedBodySystem = GetComponent<HWJ_PossessedBodySystem>();
+        }
+
+        if (collapseSystem == null)
+        {
+            collapseSystem = GetComponent<HWJ_CollapseSystem>();
+        }
     }
 
     private bool TryGetBodyDecayData(out HWJ_BodyDecayData bodyDecay)
@@ -209,11 +291,12 @@ public class HWJ_BodyDecaySystem : MonoBehaviour
         return bodyDecay != null;
     }
 
-    private void SetDecayToMax(HWJ_BodyDecayData bodyDecay)
+    private void SetDecayToInitial(HWJ_BodyDecayData bodyDecay)
     {
-        currentDecayValue = Mathf.Max(0f, bodyDecay.maxDecayValue);
+        SetCurrentDecayValue(bodyDecay.initialDecayValue, bodyDecay);
         decayTimer = 0f;
         hasInitializedDecay = true;
+        previousDangerLevel = CurrentDangerLevel;
     }
 
     private void StopDecay(string message)
@@ -223,30 +306,173 @@ public class HWJ_BodyDecaySystem : MonoBehaviour
         runtimeStateMessage = message;
     }
 
-    private void TryEnterSoulStateWhenDecayEmpty(HWJ_BodyDecayData bodyDecay)
+    private void TryEnterSoulStateWhenDecayMaxed(HWJ_BodyDecayData bodyDecay)
     {
-        if (currentDecayValue > 0f)
+        if (MaxDecayValue <= 0f || currentDecayValue < MaxDecayValue)
         {
             return;
         }
 
-        currentDecayValue = 0f;
+        currentDecayValue = MaxDecayValue;
+        possessedBodySystem?.SetCurrentDecayValue(currentDecayValue);
         isDecaying = false;
 
-        if (!bodyDecay.enterSoulStateWhenEmpty)
+        if (!bodyDecay.enterSoulStateWhenMaxed && !bodyDecay.enterSoulStateWhenEmpty)
         {
-            runtimeStateMessage = "Body decay reached zero, but soul transition is disabled.";
+            possessedBodySystem?.MarkCurrentBodyCollapsed();
+            runtimeStateMessage = "Body decay reached max, but soul transition is disabled.";
             return;
         }
+
+        if (collapseSystem != null)
+        {
+            HWJ_BodyCollapseResult collapseResult = collapseSystem.TryCollapseCurrentBody(HWJ_BodyCollapseReason.DecayMaxed);
+            runtimeStateMessage = collapseResult.Message;
+            return;
+        }
+
+        possessedBodySystem?.MarkCurrentBodyCollapsed();
 
         if (soulSystem == null)
         {
-            runtimeStateMessage = "Body decay reached zero, but HWJ_SoulSystem is missing.";
+            runtimeStateMessage = "Body decay reached max, but HWJ_SoulSystem is missing.";
             return;
         }
 
-        runtimeStateMessage = "Body decay reached zero. Entering soul state.";
+        runtimeStateMessage = "Body decay reached max. Entering soul state.";
         soulSystem.EnterSoulState();
+    }
+
+    private void SetCurrentDecayValue(float value, HWJ_BodyDecayData bodyDecay)
+    {
+        float maxDecayValue = bodyDecay != null ? Mathf.Max(0f, bodyDecay.maxDecayValue) : MaxDecayValue;
+        float previousValue = currentDecayValue;
+        HWJ_DecayDangerLevel previousLevel = previousDangerLevel;
+        currentDecayValue = Mathf.Clamp(value, 0f, maxDecayValue);
+
+        if (possessedBodySystem != null && possessedBodySystem.TryGetCurrentBodyState(out _))
+        {
+            possessedBodySystem.SetCurrentDecayValue(currentDecayValue);
+        }
+
+        RaiseDecayEvents(previousValue, previousLevel);
+    }
+
+    private bool TryBeginActionDecay(out HWJ_BodyDecayData bodyDecay)
+    {
+        ResolveReferences();
+        bodyDecay = null;
+
+        if (soulSystem == null
+            || soulSystem.CurrentState != HWJ_SoulRuntimeState.Body
+            || possessionSystem == null
+            || !possessionSystem.HasActivePossessedBody)
+        {
+            return false;
+        }
+
+        if (!TryGetBodyDecayData(out bodyDecay))
+        {
+            return false;
+        }
+
+        if (!hasInitializedDecay)
+        {
+            SetDecayToInitial(bodyDecay);
+        }
+
+        SyncDecayFromRuntimeBodyState();
+        return bodyDecay.startDecayOnEnterBody;
+    }
+
+    private void ApplyDecayAmount(float rawAmount, string reason, HWJ_BodyDecayData bodyDecay)
+    {
+        if (rawAmount <= 0f)
+        {
+            return;
+        }
+
+        float resistanceMultiplier = 1f - Mathf.Clamp01(bodyDecay != null ? bodyDecay.decayResistance : 0f);
+        float finalAmount = Mathf.Max(0f, rawAmount * resistanceMultiplier);
+
+        if (finalAmount <= 0f)
+        {
+            return;
+        }
+
+        SetCurrentDecayValue(currentDecayValue + finalAmount, bodyDecay);
+        runtimeStateMessage = $"Body decay increased by {finalAmount:0.###}. Reason: {reason}.";
+    }
+
+    private HWJ_DecayDangerLevel ResolveDangerLevel()
+    {
+        if (MaxDecayValue > 0f && CurrentDecayValue >= MaxDecayValue)
+        {
+            return HWJ_DecayDangerLevel.Collapsed;
+        }
+
+        if (!TryGetBodyDecayData(out HWJ_BodyDecayData bodyDecay)
+            || bodyDecay.dangerThresholds == null
+            || bodyDecay.dangerThresholds.Length == 0)
+        {
+            return HWJ_DecayDangerLevel.Stable;
+        }
+
+        HWJ_DecayDangerLevel result = HWJ_DecayDangerLevel.Stable;
+        float currentRatio = CurrentDecayRatio;
+
+        for (int i = 0; i < bodyDecay.dangerThresholds.Length; i++)
+        {
+            HWJ_DecayDangerThresholdData threshold = bodyDecay.dangerThresholds[i];
+
+            if (threshold == null || currentRatio < threshold.ratio)
+            {
+                continue;
+            }
+
+            if (threshold.dangerLevel > result)
+            {
+                result = threshold.dangerLevel;
+            }
+        }
+
+        return result;
+    }
+
+    private void RaiseDecayEvents(float previousValue, HWJ_DecayDangerLevel previousLevel)
+    {
+        HWJ_DecayDangerLevel currentLevel = CurrentDangerLevel;
+        previousDangerLevel = currentLevel;
+
+        HWJ_GameplayEvents.RaiseBodyDecayChanged(
+            new HWJ_BodyDecayChangedEvent(this, previousValue, currentDecayValue, MaxDecayValue, currentLevel));
+
+        if (previousLevel != currentLevel)
+        {
+            HWJ_GameplayEvents.RaiseDecayDangerLevelChanged(
+                new HWJ_DecayDangerLevelChangedEvent(this, previousLevel, currentLevel));
+        }
+    }
+
+    private void SyncDecayFromRuntimeBodyState()
+    {
+        if (TryGetCurrentPossessedBodyState(out HWJ_PossessedBodyRuntimeState bodyState))
+        {
+            currentDecayValue = bodyState.CurrentDecayValue;
+        }
+    }
+
+    private bool TryGetCurrentPossessedBodyState(out HWJ_PossessedBodyRuntimeState bodyState)
+    {
+        if (possessedBodySystem == null)
+        {
+            possessedBodySystem = GetComponent<HWJ_PossessedBodySystem>();
+        }
+
+        bodyState = null;
+        return possessedBodySystem != null
+            && possessedBodySystem.TryGetCurrentBodyState(out bodyState)
+            && bodyState != null;
     }
 
     private void SavePlayerRuntimeSnapshotIfOwner()

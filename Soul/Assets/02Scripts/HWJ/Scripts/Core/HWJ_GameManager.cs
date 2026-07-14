@@ -424,4 +424,23 @@ public class HWJ_GameManager : MonoBehaviour
         gameplayRule = null;
         return database != null && database.TryGetGameplayRule(ruleId, out gameplayRule);
     }
+
+    public bool TryGetRuleExecutionCore(string executionCoreId, out HWJ_RuleExecutionCoreSO executionCore)
+    {
+        executionCore = null;
+        return database != null && database.TryGetRuleExecutionCore(executionCoreId, out executionCore);
+    }
+
+    public bool TryValidateGameplayDatabase(out HWJ_GameDataRegistryReport report)
+    {
+        report = null;
+
+        if (database == null)
+        {
+            return false;
+        }
+
+        report = database.ValidateRegistryIds();
+        return report != null;
+    }
 }

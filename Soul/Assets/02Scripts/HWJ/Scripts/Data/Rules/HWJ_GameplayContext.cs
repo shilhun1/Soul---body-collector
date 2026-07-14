@@ -44,7 +44,8 @@ public enum HWJ_PossessionRequirement
     TargetIsEnemyOrBoss,
     TargetCanBePossessed,
     TargetDefeatedIfRequired,
-    WithinPossessionRange
+    WithinPossessionRange,
+    TargetCorpseAvailable
 }
 
 public enum HWJ_SkillRequirement
@@ -53,7 +54,90 @@ public enum HWJ_SkillRequirement
     RequiredWeaponMatchesSource,
     SourceCanAttack,
     SourceCanDash,
-    SkillCooldownReady
+    SkillCooldownReady,
+    SkillUnlockedBySource
+}
+
+public enum HWJ_PossessionStateRequirement
+{
+    HasActivePossessedBody,
+    DoesNotHaveActivePossessedBody,
+    PossessedWeaponMatches,
+    PossessedObjectTypeMatches,
+    CanLoadBodyStats
+}
+
+public enum HWJ_BodyDecayRequirement
+{
+    IsDecaying,
+    IsNotDecaying,
+    HasDecayRemaining,
+    DecayValueCompare,
+    DecayRatioCompare,
+    RemainingDecayValueCompare,
+    RemainingDecayRatioCompare,
+    DangerLevelAtLeast,
+    DangerLevelEquals
+}
+
+public enum HWJ_AIRequirement
+{
+    HasTarget,
+    StateMatches,
+    TargetInTrackingRange,
+    TargetInAttackRange,
+    TargetDistanceCompare,
+    TargetBodyState
+}
+
+public enum HWJ_BossRequirement
+{
+    EncounterStarted,
+    EncounterNotStarted,
+    StateMatches,
+    PhaseNumberCompare,
+    IsGroggy,
+    NotGroggy,
+    TargetInsideBossRoom
+}
+
+public enum HWJ_ProgressionRequirement
+{
+    LevelCompare,
+    ExperienceCompare,
+    SkillPointCompare,
+    HasSkillPoint
+}
+
+public enum HWJ_AttackHitRequirement
+{
+    HasHitConfirmed,
+    HasHitboxId,
+    HitboxIdMatches,
+    HasHitCollider,
+    DamageTypeMatches
+}
+
+public enum HWJ_EnvironmentRequirement
+{
+    ActorGrounded,
+    GroundBelow,
+    WallInDirection,
+    LineOfSightToTarget,
+    NoLineOfSightToTarget,
+    PointOverlapsLayer
+}
+
+public enum HWJ_RuntimeStatField
+{
+    CurrentHp,
+    MaxHp,
+    MoveSpeed,
+    AttackPower,
+    Defense,
+    AttackSpeed,
+    BodyDecayValue,
+    BodyDecayRatio
 }
 
 public class HWJ_GameplayContext
@@ -65,6 +149,13 @@ public class HWJ_GameplayContext
     public HWJ_DamageData DamageData { get; set; }
     public HWJ_SkillActionDataSO SkillAction { get; set; }
     public string ActionId { get; set; }
+    public string HitboxId { get; set; }
+    public Collider2D HitCollider { get; set; }
+    public Vector2 WorldPoint { get; set; }
+    public bool HasWorldPoint { get; set; }
+    public LayerMask EnvironmentLayerMask { get; set; }
+    public Vector2 CheckDirection { get; set; } = Vector2.down;
+    public float CheckDistance { get; set; } = 1f;
     public bool HasHitConfirmed { get; set; }
     public float DamageMultiplier { get; set; } = 1f;
     public float DistanceOverride { get; set; } = -1f;
@@ -122,6 +213,43 @@ public class HWJ_GameplayContext
         return this;
     }
 
+    public HWJ_GameplayContext WithActionId(string actionId)
+    {
+        ActionId = actionId;
+        return this;
+    }
+
+    public HWJ_GameplayContext WithHitbox(string hitboxId, Collider2D hitCollider = null)
+    {
+        HitboxId = hitboxId;
+        HitCollider = hitCollider;
+        return this;
+    }
+
+    public HWJ_GameplayContext WithWorldPoint(Vector2 worldPoint)
+    {
+        WorldPoint = worldPoint;
+        HasWorldPoint = true;
+        return this;
+    }
+
+    public HWJ_GameplayContext WithEnvironment(
+        LayerMask layerMask,
+        Vector2 direction,
+        float distance)
+    {
+        EnvironmentLayerMask = layerMask;
+        CheckDirection = direction.sqrMagnitude > 0.0001f ? direction.normalized : Vector2.down;
+        CheckDistance = Mathf.Max(0f, distance);
+        return this;
+    }
+
+    public HWJ_GameplayContext WithDistanceOverride(float distance)
+    {
+        DistanceOverride = distance;
+        return this;
+    }
+
     public HWJ_RootObjectDataResolver GetResolver(HWJ_GameplayActorSlot actor)
     {
         if (actor == HWJ_GameplayActorSlot.Source)
@@ -171,6 +299,48 @@ public class HWJ_GameplayContext
     {
         HWJ_RootObjectDataResolver resolver = GetResolver(actor);
         return resolver != null ? resolver.GetComponent<HWJ_SkillActionSystem>() : null;
+    }
+
+    public HWJ_SkillUnlockSystem GetSkillUnlockSystem(HWJ_GameplayActorSlot actor)
+    {
+        HWJ_RootObjectDataResolver resolver = GetResolver(actor);
+        return resolver != null ? resolver.GetComponent<HWJ_SkillUnlockSystem>() : null;
+    }
+
+    public HWJ_PossessionSystem GetPossessionSystem(HWJ_GameplayActorSlot actor)
+    {
+        HWJ_RootObjectDataResolver resolver = GetResolver(actor);
+        return resolver != null ? resolver.GetComponent<HWJ_PossessionSystem>() : null;
+    }
+
+    public HWJ_BodyDecaySystem GetBodyDecay(HWJ_GameplayActorSlot actor)
+    {
+        HWJ_RootObjectDataResolver resolver = GetResolver(actor);
+        return resolver != null ? resolver.GetComponent<HWJ_BodyDecaySystem>() : null;
+    }
+
+    public HWJ_MonsterAISystem GetMonsterAI(HWJ_GameplayActorSlot actor)
+    {
+        HWJ_RootObjectDataResolver resolver = GetResolver(actor);
+        return resolver != null ? resolver.GetComponent<HWJ_MonsterAISystem>() : null;
+    }
+
+    public HWJ_BossBrainSystem GetBossBrain(HWJ_GameplayActorSlot actor)
+    {
+        HWJ_RootObjectDataResolver resolver = GetResolver(actor);
+        return resolver != null ? resolver.GetComponent<HWJ_BossBrainSystem>() : null;
+    }
+
+    public HWJ_LevelUpSystem GetLevel(HWJ_GameplayActorSlot actor)
+    {
+        HWJ_RootObjectDataResolver resolver = GetResolver(actor);
+        return resolver != null ? resolver.GetComponent<HWJ_LevelUpSystem>() : null;
+    }
+
+    public HWJ_PlayerMovementSystem GetMovement(HWJ_GameplayActorSlot actor)
+    {
+        HWJ_RootObjectDataResolver resolver = GetResolver(actor);
+        return resolver != null ? resolver.GetComponent<HWJ_PlayerMovementSystem>() : null;
     }
 
     public float GetDistance()

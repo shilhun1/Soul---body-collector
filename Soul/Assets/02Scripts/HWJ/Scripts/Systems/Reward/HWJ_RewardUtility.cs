@@ -1,5 +1,102 @@
 using UnityEngine;
 
+public enum HWJ_RewardGrantFailureCode
+{
+    None,
+    MissingResolver,
+    SourceNotPlayer,
+    InvalidDefeatedObject,
+    MissingRewardData,
+    MissingRewardReceiver,
+    MissingSaveIdentity,
+    AlreadyClaimed
+}
+
+public readonly struct HWJ_RewardGrantResult
+{
+    public readonly bool Succeeded;
+    public readonly HWJ_RewardGrantFailureCode FailureCode;
+    public readonly HWJ_RootObjectDataResolver DefeatedResolver;
+    public readonly HWJ_RootObjectDataResolver RewardSourceResolver;
+    public readonly HWJ_RewardData RewardData;
+    public readonly int ExperienceGranted;
+    public readonly int SkillPointGranted;
+    public readonly bool StatOrbGranted;
+    public readonly Vector3 RewardPosition;
+    public readonly string RewardClaimId;
+    public readonly string Message;
+
+    private HWJ_RewardGrantResult(
+        bool succeeded,
+        HWJ_RewardGrantFailureCode failureCode,
+        HWJ_RootObjectDataResolver defeatedResolver,
+        HWJ_RootObjectDataResolver rewardSourceResolver,
+        HWJ_RewardData rewardData,
+        int experienceGranted,
+        int skillPointGranted,
+        bool statOrbGranted,
+        Vector3 rewardPosition,
+        string rewardClaimId,
+        string message)
+    {
+        Succeeded = succeeded;
+        FailureCode = failureCode;
+        DefeatedResolver = defeatedResolver;
+        RewardSourceResolver = rewardSourceResolver;
+        RewardData = rewardData;
+        ExperienceGranted = experienceGranted;
+        SkillPointGranted = skillPointGranted;
+        StatOrbGranted = statOrbGranted;
+        RewardPosition = rewardPosition;
+        RewardClaimId = rewardClaimId;
+        Message = message;
+    }
+
+    public static HWJ_RewardGrantResult Success(
+        HWJ_RootObjectDataResolver defeatedResolver,
+        HWJ_RootObjectDataResolver rewardSourceResolver,
+        HWJ_RewardData rewardData,
+        bool statOrbGranted,
+        Vector3 rewardPosition,
+        string rewardClaimId,
+        string message)
+    {
+        return new HWJ_RewardGrantResult(
+            true,
+            HWJ_RewardGrantFailureCode.None,
+            defeatedResolver,
+            rewardSourceResolver,
+            rewardData,
+            rewardData != null ? Mathf.Max(0, rewardData.experienceReward) : 0,
+            rewardData != null ? Mathf.Max(0, rewardData.skillPointReward) : 0,
+            statOrbGranted,
+            rewardPosition,
+            rewardClaimId,
+            message);
+    }
+
+    public static HWJ_RewardGrantResult Fail(
+        HWJ_RewardGrantFailureCode failureCode,
+        string message,
+        HWJ_RootObjectDataResolver defeatedResolver = null,
+        HWJ_RootObjectDataResolver rewardSourceResolver = null,
+        string rewardClaimId = null)
+    {
+        return new HWJ_RewardGrantResult(
+            false,
+            failureCode,
+            defeatedResolver,
+            rewardSourceResolver,
+            null,
+            0,
+            0,
+            false,
+            Vector3.zero,
+            rewardClaimId,
+            message);
+    }
+}
+
 public static class HWJ_RewardUtility
 {
     public static bool TryGrantKillReward(
@@ -8,25 +105,92 @@ public static class HWJ_RewardUtility
         Vector3 rewardPosition,
         out string result)
     {
-        result = "Reward skipped.";
+        HWJ_RewardGrantResult grantResult = TryGrantKillRewardDetailed(
+            defeatedResolver,
+            rewardSourceResolver,
+            rewardPosition);
+        result = grantResult.Message;
+        return grantResult.Succeeded;
+    }
 
+    public static HWJ_RewardGrantResult TryGrantKillRewardDetailed(
+        HWJ_RootObjectDataResolver defeatedResolver,
+        HWJ_RootObjectDataResolver rewardSourceResolver,
+        Vector3 rewardPosition)
+    {
         if (defeatedResolver == null || rewardSourceResolver == null)
         {
-            result = "Reward skipped: missing resolver.";
-            return false;
+            return HWJ_RewardGrantResult.Fail(
+                HWJ_RewardGrantFailureCode.MissingResolver,
+                "Reward skipped: missing resolver.",
+                defeatedResolver,
+                rewardSourceResolver);
         }
 
         if (!IsPlayerRewardSource(rewardSourceResolver))
         {
-            result = "Reward skipped: source is not player.";
-            return false;
+            return HWJ_RewardGrantResult.Fail(
+                HWJ_RewardGrantFailureCode.SourceNotPlayer,
+                "Reward skipped: source is not player.",
+                defeatedResolver,
+                rewardSourceResolver);
         }
 
         if (defeatedResolver.ObjectType != HWJ_ObjectType.Enemy
             && defeatedResolver.ObjectType != HWJ_ObjectType.Boss)
         {
-            result = "Reward skipped: defeated object is not enemy or boss.";
-            return false;
+            return HWJ_RewardGrantResult.Fail(
+                HWJ_RewardGrantFailureCode.InvalidDefeatedObject,
+                "Reward skipped: defeated object is not enemy or boss.",
+                defeatedResolver,
+                rewardSourceResolver);
+        }
+
+        HWJ_RewardData rewardData = defeatedResolver.Reward;
+
+        if (rewardData == null)
+        {
+            return HWJ_RewardGrantResult.Fail(
+                HWJ_RewardGrantFailureCode.MissingRewardData,
+                "Reward skipped: no reward data.",
+                defeatedResolver,
+                rewardSourceResolver);
+        }
+
+        HWJ_LevelUpSystem playerLevel = GetPlayerLevel(rewardSourceResolver);
+        HWJ_RuntimeStatusSystem playerStatus = GetPlayerStatus(rewardSourceResolver);
+        HWJ_SaveIdentityValidationResult saveIdentityValidation = HWJ_RuntimeSaveIdentity.ValidateRewardClaimIdentity(defeatedResolver);
+        string rewardClaimId = saveIdentityValidation.RewardClaimId;
+
+        // 저장 서비스가 켜진 전투에서는 영구 중복 지급 차단을 위해 안정 ID가 반드시 필요합니다.
+        if (RequiresSavedProgressionRewardClaim() && !saveIdentityValidation.Succeeded)
+        {
+            return HWJ_RewardGrantResult.Fail(
+                HWJ_RewardGrantFailureCode.MissingSaveIdentity,
+                saveIdentityValidation.Message,
+                defeatedResolver,
+                rewardSourceResolver,
+                rewardClaimId);
+        }
+
+        if (playerLevel == null && (rewardData.experienceReward > 0 || rewardData.skillPointReward > 0))
+        {
+            return HWJ_RewardGrantResult.Fail(
+                HWJ_RewardGrantFailureCode.MissingRewardReceiver,
+                "Reward skipped: missing player level system.",
+                defeatedResolver,
+                rewardSourceResolver,
+                rewardClaimId);
+        }
+
+        if (IsRewardClaimedBySavedProgression(rewardClaimId))
+        {
+            return HWJ_RewardGrantResult.Fail(
+                HWJ_RewardGrantFailureCode.AlreadyClaimed,
+                $"Reward skipped: saved progression already claimed {rewardClaimId}.",
+                defeatedResolver,
+                rewardSourceResolver,
+                rewardClaimId);
         }
 
         HWJ_RewardClaimState claimState = defeatedResolver.GetComponent<HWJ_RewardClaimState>();
@@ -38,20 +202,23 @@ public static class HWJ_RewardUtility
 
         if (!claimState.TryClaim())
         {
-            result = "Reward skipped: already claimed.";
-            return false;
+            return HWJ_RewardGrantResult.Fail(
+                HWJ_RewardGrantFailureCode.AlreadyClaimed,
+                "Reward skipped: already claimed.",
+                defeatedResolver,
+                rewardSourceResolver,
+                rewardClaimId);
         }
 
-        HWJ_RewardData rewardData = defeatedResolver.Reward;
-
-        if (rewardData == null)
+        if (!TryClaimSavedProgressionReward(rewardClaimId, defeatedResolver))
         {
-            result = "Reward skipped: no reward data.";
-            return false;
+            return HWJ_RewardGrantResult.Fail(
+                HWJ_RewardGrantFailureCode.AlreadyClaimed,
+                $"Reward skipped: saved progression claim failed for {rewardClaimId}.",
+                defeatedResolver,
+                rewardSourceResolver,
+                rewardClaimId);
         }
-
-        HWJ_LevelUpSystem playerLevel = GetPlayerLevel(rewardSourceResolver);
-        HWJ_RuntimeStatusSystem playerStatus = GetPlayerStatus(rewardSourceResolver);
 
         if (playerLevel != null)
         {
@@ -60,8 +227,49 @@ public static class HWJ_RewardUtility
 
         bool statOrbGranted = TryGrantStatOrbReward(rewardData, playerStatus, rewardPosition);
 
-        result = $"Reward granted. Exp:{rewardData.experienceReward}, SkillPoint:{rewardData.skillPointReward}, StatOrb:{statOrbGranted}.";
-        return true;
+        string message = $"Reward granted. Exp:{rewardData.experienceReward}, SkillPoint:{rewardData.skillPointReward}, StatOrb:{statOrbGranted}.";
+        HWJ_RewardGrantResult result = HWJ_RewardGrantResult.Success(
+            defeatedResolver,
+            rewardSourceResolver,
+            rewardData,
+            statOrbGranted,
+            rewardPosition,
+            rewardClaimId,
+            message);
+        HWJ_GameplayEvents.RaiseEnemyDefeated(
+            new HWJ_EnemyDefeatedEvent(defeatedResolver, rewardSourceResolver, rewardPosition, defeatedResolver.ObjectType == HWJ_ObjectType.Boss));
+        HWJ_GameplayEvents.RaiseRewardGranted(
+            new HWJ_RewardGrantedEvent(result));
+        return result;
+    }
+
+    private static bool RequiresSavedProgressionRewardClaim()
+    {
+        return HWJ_SaveService.TryGetActiveService(out _);
+    }
+
+    private static bool IsRewardClaimedBySavedProgression(string rewardClaimId)
+    {
+        return !string.IsNullOrEmpty(rewardClaimId)
+            && HWJ_SaveService.TryGetActiveService(out HWJ_SaveService activeSaveService)
+            && activeSaveService.IsRewardClaimed(rewardClaimId);
+    }
+
+    private static bool TryClaimSavedProgressionReward(
+        string rewardClaimId,
+        HWJ_RootObjectDataResolver defeatedResolver)
+    {
+        if (string.IsNullOrEmpty(rewardClaimId)
+            || !HWJ_SaveService.TryGetActiveService(out HWJ_SaveService activeSaveService))
+        {
+            return true;
+        }
+
+        string defeatedObjectId = ResolveDefeatedObjectId(defeatedResolver);
+        return activeSaveService.TryClaimReward(
+            rewardClaimId,
+            defeatedResolver != null && defeatedResolver.ObjectType == HWJ_ObjectType.Boss,
+            defeatedObjectId);
     }
 
     private static bool TryGrantStatOrbReward(
@@ -97,6 +305,22 @@ public static class HWJ_RewardUtility
 
         playerStatus.ApplyStatOrb(statOrbData);
         return true;
+    }
+
+    private static string ResolveDefeatedObjectId(HWJ_RootObjectDataResolver defeatedResolver)
+    {
+        if (defeatedResolver == null || defeatedResolver.RootObjectData == null)
+        {
+            return null;
+        }
+
+        if (defeatedResolver.RootObjectData.Identity != null
+            && !string.IsNullOrEmpty(defeatedResolver.RootObjectData.Identity.objectId))
+        {
+            return defeatedResolver.RootObjectData.Identity.objectId;
+        }
+
+        return defeatedResolver.RootObjectData.name;
     }
 
     private static bool IsPlayerRewardSource(HWJ_RootObjectDataResolver rewardSourceResolver)

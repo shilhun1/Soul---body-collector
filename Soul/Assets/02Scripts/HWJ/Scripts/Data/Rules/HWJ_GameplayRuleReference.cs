@@ -30,4 +30,17 @@ public class HWJ_GameplayRuleReference
             ? resolvedRule.IsSatisfied(context)
             : passWhenRuleMissing;
     }
+
+    public bool TryEvaluate(HWJ_GameplayContext context, out HWJ_RuleEvaluationResult result)
+    {
+        if (TryGetRule(out HWJ_GameplayRuleSO resolvedRule))
+        {
+            return resolvedRule.TryEvaluate(context, out result);
+        }
+
+        result = passWhenRuleMissing
+            ? HWJ_RuleEvaluationResult.Pass(ruleId, null, "Rule reference passed because the rule is missing.")
+            : HWJ_RuleEvaluationResult.Fail(ruleId, null, "Rule reference failed because the rule is missing.");
+        return passWhenRuleMissing;
+    }
 }

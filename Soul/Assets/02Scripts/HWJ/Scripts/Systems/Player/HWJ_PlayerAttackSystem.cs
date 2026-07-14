@@ -15,15 +15,24 @@ public class HWJ_PlayerAttackSystem : MonoBehaviour
     [SerializeField] private HWJ_PlayerInputSystem playerInput;
     [SerializeField] private HWJ_CombatSystem combatSystem;
     [SerializeField] private HWJ_CombatExecutionSystem combatExecutionSystem;
+    [SerializeField] private HWJ_BodyDecaySystem bodyDecaySystem;
     [SerializeField] private HWJ_CharacterMotionSystem motionSystem;
     [SerializeField] private LayerMask attackTargetLayer;
     [SerializeField] private float minimumAttackRange = 2f;
     [SerializeField] private int possessedSkillSlotCount = 3;
+    [SerializeField] private bool useGameplayAttackRule = true;
+    [SerializeField] private HWJ_RuleExecutionCoreSO possessedBodyAttackExecutionCore;
+    [SerializeField] private string possessedBodyAttackExecutionCoreId = "possessed_body_attack_execution";
+    [SerializeField] private HWJ_GameplayRuleSO possessedBodyAttackRule;
+    [SerializeField] private string possessedBodyAttackRuleId = "possessed_body_can_attack";
     [SerializeField] private string lastAttackResult;
     [SerializeField] private float lastDamageApplied;
 
     private float nextAttackTime;
     private Coroutine basicAttackRoutine;
+
+    public string LastAttackResult => lastAttackResult;
+    public float LastDamageApplied => lastDamageApplied;
 
     private void Awake()
     {
@@ -70,6 +79,11 @@ public class HWJ_PlayerAttackSystem : MonoBehaviour
         if (combatExecutionSystem == null)
         {
             combatExecutionSystem = GetComponent<HWJ_CombatExecutionSystem>();
+        }
+
+        if (bodyDecaySystem == null)
+        {
+            bodyDecaySystem = GetComponent<HWJ_BodyDecaySystem>();
         }
 
         if (motionSystem == null)
@@ -123,6 +137,11 @@ public class HWJ_PlayerAttackSystem : MonoBehaviour
             return false;
         }
 
+        if (!IsPossessedBodyAttackRuleSatisfied())
+        {
+            return false;
+        }
+
         if (playerData.Attack == null)
         {
             lastAttackResult = "Missing attack data.";
@@ -143,6 +162,7 @@ public class HWJ_PlayerAttackSystem : MonoBehaviour
             runtimeStatus?.SetState(HWJ_RuntimeState.Attack);
             lastDamageApplied = skillActionSystem.LastDamageApplied;
             lastAttackResult = skillActionSystem.LastSkillResult;
+            ApplyBasicAttackDecayAndNotify(skillActionId);
             return true;
         }
 
@@ -153,6 +173,7 @@ public class HWJ_PlayerAttackSystem : MonoBehaviour
 
         nextAttackTime = Time.time + playerData.Attack.attackIntervalSeconds;
         runtimeStatus?.SetState(HWJ_RuntimeState.Attack);
+        ApplyBasicAttackDecayAndNotify("basic_attack");
         return true;
     }
 
@@ -171,6 +192,11 @@ public class HWJ_PlayerAttackSystem : MonoBehaviour
         if (!CanAttack(playerData))
         {
             lastAttackResult = "Possessed skill requires a possessed body.";
+            return false;
+        }
+
+        if (!IsPossessedBodyAttackRuleSatisfied())
+        {
             return false;
         }
 
@@ -204,6 +230,7 @@ public class HWJ_PlayerAttackSystem : MonoBehaviour
         runtimeStatus?.SetState(HWJ_RuntimeState.Attack);
         lastDamageApplied = skillActionSystem.LastDamageApplied;
         lastAttackResult = skillActionSystem.LastSkillResult;
+        ApplySkillDecayAndNotify(skillActionId);
         return true;
     }
 
@@ -332,6 +359,96 @@ public class HWJ_PlayerAttackSystem : MonoBehaviour
         }
 
         return playerData.Attack != null ? playerData.Attack.basicAttackSkillActionId : null;
+    }
+
+    private void ApplyBasicAttackDecayAndNotify(string abilityId)
+    {
+        ResolveBodyDecaySystem();
+        bodyDecaySystem?.ApplyBasicAttackDecay();
+        RaiseAbilityUsed(abilityId, true);
+    }
+
+    private void ApplySkillDecayAndNotify(string abilityId)
+    {
+        ResolveBodyDecaySystem();
+        bodyDecaySystem?.ApplySkillDecay();
+        RaiseAbilityUsed(abilityId, false);
+    }
+
+    private void ResolveBodyDecaySystem()
+    {
+        if (bodyDecaySystem == null)
+        {
+            bodyDecaySystem = GetComponent<HWJ_BodyDecaySystem>();
+        }
+    }
+
+    private void RaiseAbilityUsed(string abilityId, bool isBasicAttack)
+    {
+        string resolvedAbilityId = string.IsNullOrEmpty(abilityId)
+            ? (isBasicAttack ? "basic_attack" : "skill")
+            : abilityId;
+        float decayValue = bodyDecaySystem != null ? bodyDecaySystem.CurrentDecayValue : 0f;
+
+        HWJ_GameplayEvents.RaiseAbilityUsed(
+            new HWJ_AbilityUsedEvent(
+                this,
+                dataResolver,
+                resolvedAbilityId,
+                isBasicAttack,
+                decayValue,
+                lastAttackResult));
+    }
+
+    private bool IsPossessedBodyAttackRuleSatisfied()
+    {
+        if (!useGameplayAttackRule)
+        {
+            return true;
+        }
+
+        HWJ_GameplayContext context = HWJ_GameplayContext
+            .Create(dataResolver, null)
+            .WithSource(this);
+
+        if (ResolvePossessedBodyAttackExecutionCore(out HWJ_RuleExecutionCoreSO executionCore))
+        {
+            bool passed = executionCore.TryExecute(context, out HWJ_RuleExecutionResult result);
+            lastAttackResult = result.Message;
+            return passed;
+        }
+
+        HWJ_GameplayRuleSO rule = possessedBodyAttackRule;
+
+        if (rule == null
+            && !string.IsNullOrEmpty(possessedBodyAttackRuleId)
+            && HWJ_GameAccess.TryGetGameplayRule(possessedBodyAttackRuleId, out HWJ_GameplayRuleSO resolvedRule))
+        {
+            rule = resolvedRule;
+        }
+
+        if (rule == null)
+        {
+            return true;
+        }
+
+        bool rulePassed = rule.TryEvaluate(context, out HWJ_RuleEvaluationResult ruleResult);
+        lastAttackResult = ruleResult.Message;
+        return rulePassed;
+    }
+
+    private bool ResolvePossessedBodyAttackExecutionCore(out HWJ_RuleExecutionCoreSO executionCore)
+    {
+        executionCore = null;
+
+        if (possessedBodyAttackExecutionCore != null)
+        {
+            executionCore = possessedBodyAttackExecutionCore;
+            return true;
+        }
+
+        return !string.IsNullOrEmpty(possessedBodyAttackExecutionCoreId)
+            && HWJ_GameAccess.TryGetRuleExecutionCore(possessedBodyAttackExecutionCoreId, out executionCore);
     }
 
     private void OnDrawGizmosSelected()

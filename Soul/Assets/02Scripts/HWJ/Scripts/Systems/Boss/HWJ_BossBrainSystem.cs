@@ -31,6 +31,7 @@ public class HWJ_BossBrainSystem : MonoBehaviour
     public HWJ_BossFSMState CurrentState => currentState;
     public bool EncounterStarted => encounterStarted;
     public int CurrentPhaseNumber => currentPhaseNumber;
+    public Transform Target => target;
     public Vector2 BossRoomCenter => GetBossRoomCenter();
     public Vector2 BossRoomSize => GetBossRoomSize();
     public bool IsGroggy => currentState == HWJ_BossFSMState.Groggy;
@@ -286,7 +287,7 @@ public class HWJ_BossBrainSystem : MonoBehaviour
             && runtimeStatus.CurrentHp / runtimeStatus.MaxHp <= Mathf.Clamp01(bossData.FSM.phaseTwoHpRatio))
         {
             phaseTwoTriggered = true;
-            currentPhaseNumber = 2;
+            SetCurrentPhaseNumber(2);
             currentPhaseId = "phase_2";
             pendingPhaseIndex = 1;
             StartPhaseTransition(bossData);
@@ -301,7 +302,7 @@ public class HWJ_BossBrainSystem : MonoBehaviour
         }
 
         currentPhaseIndex = nextPhaseIndex;
-        currentPhaseNumber = Mathf.Max(1, nextPhaseIndex + 1);
+        SetCurrentPhaseNumber(Mathf.Max(1, nextPhaseIndex + 1));
         currentPhaseId = GetPhaseId(currentPhaseIndex);
         pendingPhaseIndex = nextPhaseIndex;
         StartPhaseTransition(bossData);
@@ -674,25 +675,22 @@ public class HWJ_BossBrainSystem : MonoBehaviour
             return;
         }
 
-        switch (currentState)
+        runtimeStatus.SetState(HWJ_FSMStateUtility.ToRuntimeState(currentState));
+    }
+
+    private void SetCurrentPhaseNumber(int nextPhaseNumber)
+    {
+        nextPhaseNumber = Mathf.Max(1, nextPhaseNumber);
+
+        if (currentPhaseNumber == nextPhaseNumber)
         {
-            case HWJ_BossFSMState.Chase:
-                runtimeStatus.SetState(HWJ_RuntimeState.Move);
-                break;
-            case HWJ_BossFSMState.Attack:
-                runtimeStatus.SetState(HWJ_RuntimeState.Attack);
-                break;
-            case HWJ_BossFSMState.PhaseTransition:
-            case HWJ_BossFSMState.Groggy:
-                runtimeStatus.SetState(HWJ_RuntimeState.Hit);
-                break;
-            case HWJ_BossFSMState.Dead:
-                runtimeStatus.SetState(HWJ_RuntimeState.Dead);
-                break;
-            default:
-                runtimeStatus.SetState(HWJ_RuntimeState.Idle);
-                break;
+            return;
         }
+
+        int previousPhaseNumber = currentPhaseNumber;
+        currentPhaseNumber = nextPhaseNumber;
+        HWJ_GameplayEvents.RaiseBossPhaseChanged(
+            new HWJ_BossPhaseChangedEvent(this, previousPhaseNumber, currentPhaseNumber));
     }
 
     private bool TryGetBossData(out HWJ_BossTypeDataSO bossData)

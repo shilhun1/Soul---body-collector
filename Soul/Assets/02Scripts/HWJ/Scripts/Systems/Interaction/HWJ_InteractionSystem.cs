@@ -9,6 +9,7 @@ public class HWJ_InteractionSystem : MonoBehaviour
     [SerializeField] private HWJ_RootObjectDataResolver dataResolver;
     [SerializeField] private HWJ_RuntimeStatusSystem runtimeStatus;
     [SerializeField] private HWJ_PossessionSystem possessionSystem;
+    [SerializeField] private HWJ_BodyDiscoverySystem bodyDiscoverySystem;
     [SerializeField] private HWJ_PlayerInputSystem playerInput;
     [SerializeField] private HWJ_SoulSystem soulSystem;
     [SerializeField] private LayerMask interactionTargetLayer;
@@ -34,6 +35,11 @@ public class HWJ_InteractionSystem : MonoBehaviour
         if (possessionSystem == null)
         {
             possessionSystem = GetComponent<HWJ_PossessionSystem>();
+        }
+
+        if (bodyDiscoverySystem == null)
+        {
+            bodyDiscoverySystem = GetComponent<HWJ_BodyDiscoverySystem>();
         }
 
         if (playerInput == null)
@@ -240,6 +246,12 @@ public class HWJ_InteractionSystem : MonoBehaviour
             return null;
         }
 
+        if (bodyDiscoverySystem != null
+            && bodyDiscoverySystem.TryGetBestTarget(out HWJ_RootObjectDataResolver discoveredTarget))
+        {
+            return discoveredTarget;
+        }
+
         float range = GetInteractionRange();
         float bestDistance = float.MaxValue;
         HWJ_RootObjectDataResolver bestTarget = null;
@@ -316,6 +328,6 @@ public class HWJ_InteractionSystem : MonoBehaviour
 
     private bool IsSoulState()
     {
-        return soulSystem != null && soulSystem.CurrentState == HWJ_SoulRuntimeState.Soul;
+        return soulSystem != null && soulSystem.CurrentExistenceState == HWJ_PlayerExistenceState.Spirit;
     }
 }

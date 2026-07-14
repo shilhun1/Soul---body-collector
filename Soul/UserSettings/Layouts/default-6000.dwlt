@@ -220,8 +220,8 @@ MonoBehaviour:
     y: 0
     width: 370.40002
     height: 308
-  m_MinSize: {x: 200, y: 200}
-  m_MaxSize: {x: 4000, y: 4000}
+  m_MinSize: {x: 202, y: 226}
+  m_MaxSize: {x: 4002, y: 4026}
   m_ActualView: {fileID: 15}
   m_Panes:
   - {fileID: 15}
@@ -246,8 +246,8 @@ MonoBehaviour:
     y: 0
     width: 289.59998
     height: 716.8
-  m_MinSize: {x: 275, y: 50}
-  m_MaxSize: {x: 4000, y: 4000}
+  m_MinSize: {x: 276, y: 76}
+  m_MaxSize: {x: 4001, y: 4026}
   m_ActualView: {fileID: 16}
   m_Panes:
   - {fileID: 16}
@@ -272,8 +272,8 @@ MonoBehaviour:
     y: 0
     width: 876
     height: 368
-  m_MinSize: {x: 200, y: 200}
-  m_MaxSize: {x: 4000, y: 4000}
+  m_MinSize: {x: 201, y: 226}
+  m_MaxSize: {x: 4001, y: 4026}
   m_ActualView: {fileID: 19}
   m_Panes:
   - {fileID: 19}
@@ -298,8 +298,8 @@ MonoBehaviour:
     y: 368
     width: 876
     height: 348.8
-  m_MinSize: {x: 200, y: 200}
-  m_MaxSize: {x: 4000, y: 4000}
+  m_MinSize: {x: 201, y: 226}
+  m_MaxSize: {x: 4001, y: 4026}
   m_ActualView: {fileID: 18}
   m_Panes:
   - {fileID: 18}
@@ -365,7 +365,7 @@ MonoBehaviour:
   m_Pos:
     serializedVersion: 2
     x: 0
-    y: 43.2
+    y: 0
     width: 1536
     height: 36
   m_SerializedDataModeController:
@@ -644,8 +644,8 @@ MonoBehaviour:
     m_TextWithWhitespace: "Hierarchy\u200B"
   m_Pos:
     serializedVersion: 2
-    x: 876
-    y: 79.200005
+    x: 1
+    y: 24
     width: 368.40002
     height: 282
   m_SerializedDataModeController:
@@ -664,8 +664,7 @@ MonoBehaviour:
   m_SceneHierarchy:
     m_TreeViewState:
       scrollPos: {x: 0, y: 0}
-      m_SelectedIDs:
-      - m_Data: -4852
+      m_SelectedIDs: []
       m_LastClickedID:
         m_Data: 0
       m_ExpandedIDs:
@@ -716,8 +715,8 @@ MonoBehaviour:
     m_TextWithWhitespace: "Inspector\u200B"
   m_Pos:
     serializedVersion: 2
-    x: 1246.4
-    y: 79.200005
+    x: 1247.4
+    y: 24
     width: 288.59998
     height: 690.8
   m_SerializedDataModeController:
@@ -767,8 +766,8 @@ MonoBehaviour:
     m_TextWithWhitespace: "Project\u200B"
   m_Pos:
     serializedVersion: 2
-    x: 876
-    y: 387.2
+    x: 1
+    y: 332
     width: 368.40002
     height: 382.8
   m_SerializedDataModeController:
@@ -817,38 +816,46 @@ MonoBehaviour:
       m_Data: 0
     m_ExpandedIDs:
     - m_Data: 0
-    - m_Data: 53600
-    - m_Data: 53662
-    - m_Data: 53664
-    - m_Data: 53666
-    - m_Data: 53668
-    - m_Data: 53670
-    - m_Data: 53672
-    - m_Data: 53674
-    - m_Data: 53676
-    - m_Data: 53678
-    - m_Data: 53680
-    - m_Data: 53682
-    - m_Data: 53684
-    - m_Data: 53686
-    - m_Data: 53688
-    - m_Data: 53690
-    - m_Data: 53692
-    - m_Data: 53694
-    - m_Data: 53696
-    - m_Data: 53698
-    - m_Data: 53700
-    - m_Data: 53702
-    - m_Data: 53704
-    - m_Data: 53706
-    - m_Data: 53708
-    - m_Data: 53710
-    - m_Data: 53712
-    - m_Data: 53714
-    - m_Data: 53716
-    - m_Data: 53718
-    - m_Data: 53720
-    - m_Data: 53722
+    - m_Data: 53914
+    - m_Data: 53976
+    - m_Data: 53978
+    - m_Data: 53980
+    - m_Data: 53982
+    - m_Data: 53984
+    - m_Data: 53986
+    - m_Data: 53988
+    - m_Data: 53990
+    - m_Data: 53992
+    - m_Data: 53994
+    - m_Data: 53996
+    - m_Data: 53998
+    - m_Data: 54000
+    - m_Data: 54002
+    - m_Data: 54004
+    - m_Data: 54006
+    - m_Data: 54008
+    - m_Data: 54010
+    - m_Data: 54012
+    - m_Data: 54014
+    - m_Data: 54016
+    - m_Data: 54018
+    - m_Data: 54020
+    - m_Data: 54022
+    - m_Data: 54024
+    - m_Data: 54026
+    - m_Data: 54028
+    - m_Data: 54030
+    - m_Data: 54032
+    - m_Data: 54034
+    - m_Data: 54036
+    - m_Data: 54038
+    - m_Data: 54040
+    - m_Data: 54042
+    - m_Data: 54044
+    - m_Data: 54046
+    - m_Data: 54048
+    - m_Data: 54050
+    - m_Data: 54052
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 
@@ -882,46 +889,46 @@ MonoBehaviour:
       m_Data: -4852
     m_ExpandedIDs:
     - m_Data: 0
-    - m_Data: 53600
-    - m_Data: 53662
-    - m_Data: 53664
-    - m_Data: 53666
-    - m_Data: 53668
-    - m_Data: 53670
-    - m_Data: 53672
-    - m_Data: 53674
-    - m_Data: 53676
-    - m_Data: 53678
-    - m_Data: 53680
-    - m_Data: 53682
-    - m_Data: 53684
-    - m_Data: 53686
-    - m_Data: 53688
-    - m_Data: 53690
-    - m_Data: 53692
-    - m_Data: 53694
-    - m_Data: 53696
-    - m_Data: 53698
-    - m_Data: 53700
-    - m_Data: 53702
-    - m_Data: 53704
-    - m_Data: 53706
-    - m_Data: 53708
-    - m_Data: 53710
-    - m_Data: 53712
-    - m_Data: 53714
-    - m_Data: 53716
-    - m_Data: 53718
-    - m_Data: 53720
-    - m_Data: 53722
-    - m_Data: 54082
-    - m_Data: 54084
-    - m_Data: 54114
-    - m_Data: 54152
-    - m_Data: 54154
-    - m_Data: 54156
-    - m_Data: 54158
-    - m_Data: 54378
+    - m_Data: 53914
+    - m_Data: 53976
+    - m_Data: 53978
+    - m_Data: 53980
+    - m_Data: 53982
+    - m_Data: 53984
+    - m_Data: 53986
+    - m_Data: 53988
+    - m_Data: 53990
+    - m_Data: 53992
+    - m_Data: 53994
+    - m_Data: 53996
+    - m_Data: 53998
+    - m_Data: 54000
+    - m_Data: 54002
+    - m_Data: 54004
+    - m_Data: 54006
+    - m_Data: 54008
+    - m_Data: 54010
+    - m_Data: 54012
+    - m_Data: 54014
+    - m_Data: 54016
+    - m_Data: 54018
+    - m_Data: 54020
+    - m_Data: 54022
+    - m_Data: 54024
+    - m_Data: 54026
+    - m_Data: 54028
+    - m_Data: 54030
+    - m_Data: 54032
+    - m_Data: 54034
+    - m_Data: 54036
+    - m_Data: 54038
+    - m_Data: 54040
+    - m_Data: 54042
+    - m_Data: 54044
+    - m_Data: 54046
+    - m_Data: 54048
+    - m_Data: 54050
+    - m_Data: 54052
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 
@@ -1004,7 +1011,7 @@ MonoBehaviour:
   m_Pos:
     serializedVersion: 2
     x: 0
-    y: 447.2
+    y: 392
     width: 875
     height: 322.8
   m_SerializedDataModeController:
@@ -1107,7 +1114,7 @@ MonoBehaviour:
   m_Pos:
     serializedVersion: 2
     x: 0
-    y: 79.200005
+    y: 24
     width: 875
     height: 342
   m_SerializedDataModeController:

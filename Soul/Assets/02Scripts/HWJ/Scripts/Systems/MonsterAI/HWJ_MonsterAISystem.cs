@@ -23,13 +23,26 @@ public class HWJ_MonsterAISystem : MonoBehaviour
     [SerializeField] private float fallbackAttackRange = 1.2f;
     [SerializeField] private float targetSearchIntervalSeconds = 0.5f;
     [SerializeField] private bool useGameplayTargetRule = true;
+    [SerializeField] private HWJ_RuleExecutionCoreSO targetExecutionCore;
+    [SerializeField] private string targetExecutionCoreId = "monster_target_execution";
     [SerializeField] private HWJ_GameplayRuleSO targetDetectRule;
     [SerializeField] private string targetDetectRuleId = "monster_detect_player_body";
+    [SerializeField] private string lastTargetRuleResult;
     [SerializeField] private HWJ_MonsterAIState currentState = HWJ_MonsterAIState.Idle;
+    [SerializeField] private HWJ_EnemyAITransitionFailureCode lastTransitionFailureCode;
+    [SerializeField] private string lastTransitionMessage;
 
     public HWJ_EnemyTypeDataSO EnemyData { get; private set; }
     public bool DrivesBehavior => driveBehavior;
     public HWJ_MonsterAIState CurrentState => currentState;
+    public Transform Target => target;
+    public float CurrentTargetDistance => GetTargetDistance();
+    public bool TargetInTrackingRange => EnemyData != null && target != null && IsTargetInTrackingRange();
+    public bool TargetInAttackRange => EnemyData != null && target != null && IsTargetInAttackRange();
+    public string LastTargetRuleResult => lastTargetRuleResult;
+    public HWJ_EnemyAITransitionResult LastTransitionResult { get; private set; }
+    public HWJ_EnemyAITransitionFailureCode LastTransitionFailureCode => lastTransitionFailureCode;
+    public string LastTransitionMessage => lastTransitionMessage;
 
     private float stateEndTime;
     private float nextTargetSearchTime;
@@ -105,6 +118,23 @@ public class HWJ_MonsterAISystem : MonoBehaviour
     {
         this.target = target;
         enemyAttackSystem?.SetTarget(target);
+    }
+
+    public bool IsTargetBodyStateForRule()
+    {
+        if (target == null)
+        {
+            return false;
+        }
+
+        HWJ_SoulSystem targetSoul = target.GetComponent<HWJ_SoulSystem>();
+
+        if (targetSoul == null)
+        {
+            targetSoul = target.GetComponentInParent<HWJ_SoulSystem>();
+        }
+
+        return targetSoul == null || targetSoul.CurrentState == HWJ_SoulRuntimeState.Body;
     }
 
     private void RunState()
@@ -230,64 +260,73 @@ public class HWJ_MonsterAISystem : MonoBehaviour
         SetAIState(IsTargetInAttackRange() ? HWJ_MonsterAIState.AttackPrepare : HWJ_MonsterAIState.Approach);
     }
 
-    private void SetAIState(HWJ_MonsterAIState nextState)
+    public HWJ_EnemyAITransitionResult TrySetAIState(HWJ_MonsterAIState nextState)
     {
-        SetAIState(nextState, GetDefaultStateDuration(nextState));
+        return TrySetAIState(nextState, GetDefaultStateDuration(nextState));
     }
 
-    private void SetAIState(HWJ_MonsterAIState nextState, float durationSeconds)
+    // External systems should use this instead of changing currentState directly.
+    public HWJ_EnemyAITransitionResult TrySetAIState(
+        HWJ_MonsterAIState nextState,
+        float durationSeconds)
     {
+        return SetAIState(nextState, durationSeconds);
+    }
+
+    private HWJ_EnemyAITransitionResult SetAIState(HWJ_MonsterAIState nextState)
+    {
+        return SetAIState(nextState, GetDefaultStateDuration(nextState));
+    }
+
+    private HWJ_EnemyAITransitionResult SetAIState(HWJ_MonsterAIState nextState, float durationSeconds)
+    {
+        // Invalid enum values can happen when data or tools pass a stale serialized value.
+        if (!System.Enum.IsDefined(typeof(HWJ_MonsterAIState), nextState))
+        {
+            return StoreTransitionResult(
+                HWJ_EnemyAITransitionResult.Fail(
+                    HWJ_EnemyAITransitionFailureCode.InvalidState,
+                    currentState,
+                    nextState,
+                    stateEndTime,
+                    $"Monster AI transition failed: {nextState} is not a valid state."),
+                false);
+        }
+
         if (currentState == nextState && Time.time < stateEndTime)
         {
-            return;
+            return StoreTransitionResult(
+                HWJ_EnemyAITransitionResult.Fail(
+                    HWJ_EnemyAITransitionFailureCode.SameStateTimerActive,
+                    currentState,
+                    nextState,
+                    stateEndTime,
+                    $"Monster AI transition skipped: {nextState} timer is still active."),
+                false);
         }
 
+        HWJ_MonsterAIState previousState = currentState;
         currentState = nextState;
-        stateEndTime = Time.time + Mathf.Max(0f, durationSeconds);
+        float safeDuration = Mathf.Max(0f, durationSeconds);
+        stateEndTime = Time.time + safeDuration;
+        runtimeStatus?.SetState(HWJ_FSMStateUtility.ToRuntimeState(currentState));
 
-        switch (currentState)
-        {
-            case HWJ_MonsterAIState.Approach:
-                runtimeStatus?.SetState(HWJ_RuntimeState.Move);
-                break;
-            case HWJ_MonsterAIState.AttackPrepare:
-            case HWJ_MonsterAIState.Attack:
-                runtimeStatus?.SetState(HWJ_RuntimeState.Attack);
-                break;
-            case HWJ_MonsterAIState.HitStun:
-                runtimeStatus?.SetState(HWJ_RuntimeState.Hit);
-                break;
-            case HWJ_MonsterAIState.Dead:
-                runtimeStatus?.SetState(HWJ_RuntimeState.Dead);
-                break;
-            default:
-                runtimeStatus?.SetState(HWJ_RuntimeState.Idle);
-                break;
-        }
+        bool stateChanged = previousState != currentState;
+        return StoreTransitionResult(
+            HWJ_EnemyAITransitionResult.Success(
+                previousState,
+                currentState,
+                safeDuration,
+                stateEndTime,
+                stateChanged
+                    ? $"Monster AI transitioned from {previousState} to {currentState}."
+                    : $"Monster AI refreshed {currentState}."),
+            stateChanged);
     }
 
     private float GetDefaultStateDuration(HWJ_MonsterAIState state)
     {
-        if (EnemyData == null)
-        {
-            return 0f;
-        }
-
-        switch (state)
-        {
-            case HWJ_MonsterAIState.Idle:
-                return EnemyData.AI.idleSeconds;
-            case HWJ_MonsterAIState.Detect:
-                return EnemyData.AI.detectSeconds;
-            case HWJ_MonsterAIState.AttackPrepare:
-                return EnemyData.AI.attackPrepareSeconds;
-            case HWJ_MonsterAIState.Recovery:
-                return EnemyData.AI.attackRecoverySeconds;
-            case HWJ_MonsterAIState.Repath:
-                return EnemyData.AI.repathSeconds;
-            default:
-                return 0f;
-        }
+        return HWJ_FSMStateUtility.GetDefaultMonsterStateDuration(state, EnemyData);
     }
 
     private bool IsStateTimeDone()
@@ -476,7 +515,7 @@ public class HWJ_MonsterAISystem : MonoBehaviour
             return true;
         }
 
-        if (useGameplayTargetRule && IsTargetRuleAvailable(out HWJ_GameplayRuleSO rule))
+        if (useGameplayTargetRule)
         {
             HWJ_RootObjectDataResolver targetResolver = target.GetComponent<HWJ_RootObjectDataResolver>();
 
@@ -494,7 +533,19 @@ public class HWJ_MonsterAISystem : MonoBehaviour
                 context.WithTarget(targetResolver);
             }
 
-            return rule.IsSatisfied(context);
+            if (ResolveTargetExecutionCore(out HWJ_RuleExecutionCoreSO executionCore))
+            {
+                bool corePassed = executionCore.TryExecute(context, out HWJ_RuleExecutionResult executionResult);
+                lastTargetRuleResult = executionResult.Message;
+                return corePassed;
+            }
+
+            if (IsTargetRuleAvailable(out HWJ_GameplayRuleSO rule))
+            {
+                bool passed = rule.TryEvaluate(context, out HWJ_RuleEvaluationResult result);
+                lastTargetRuleResult = result.Message;
+                return passed;
+            }
         }
 
         HWJ_SoulSystem targetSoul = target.GetComponent<HWJ_SoulSystem>();
@@ -505,6 +556,20 @@ public class HWJ_MonsterAISystem : MonoBehaviour
         }
 
         return targetSoul == null || targetSoul.CurrentState == HWJ_SoulRuntimeState.Body;
+    }
+
+    private bool ResolveTargetExecutionCore(out HWJ_RuleExecutionCoreSO executionCore)
+    {
+        executionCore = null;
+
+        if (targetExecutionCore != null)
+        {
+            executionCore = targetExecutionCore;
+            return true;
+        }
+
+        return !string.IsNullOrEmpty(targetExecutionCoreId)
+            && HWJ_GameAccess.TryGetRuleExecutionCore(targetExecutionCoreId, out executionCore);
     }
 
     private bool IsTargetRuleAvailable(out HWJ_GameplayRuleSO rule)
@@ -578,5 +643,22 @@ public class HWJ_MonsterAISystem : MonoBehaviour
         {
             body = GetComponent<Rigidbody2D>();
         }
+    }
+
+    private HWJ_EnemyAITransitionResult StoreTransitionResult(
+        HWJ_EnemyAITransitionResult result,
+        bool raiseEvent)
+    {
+        LastTransitionResult = result;
+        lastTransitionFailureCode = result.FailureCode;
+        lastTransitionMessage = result.Message;
+
+        if (raiseEvent)
+        {
+            HWJ_GameplayEvents.RaiseEnemyAIStateTransitioned(
+                new HWJ_EnemyAITransitionEvent(this, result));
+        }
+
+        return result;
     }
 }

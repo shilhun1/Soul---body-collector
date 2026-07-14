@@ -21,6 +21,8 @@ public class HWJ_SkillConditionSO : HWJ_GameplayConditionSO
                 return dashStatus != null && dashStatus.CanDash;
             case HWJ_SkillRequirement.SkillCooldownReady:
                 return IsSkillCooldownReady(context);
+            case HWJ_SkillRequirement.SkillUnlockedBySource:
+                return IsSkillUnlockedBySource(context);
             default:
                 return false;
         }
@@ -66,5 +68,18 @@ public class HWJ_SkillConditionSO : HWJ_GameplayConditionSO
 
         HWJ_SkillActionSystem skillActionSystem = context.GetSkillActionSystem(HWJ_GameplayActorSlot.Source);
         return skillActionSystem == null || skillActionSystem.IsSkillReady(skillId);
+    }
+
+    private bool IsSkillUnlockedBySource(HWJ_GameplayContext context)
+    {
+        string skillId = context.SkillAction != null ? context.SkillAction.SkillActionId : context.ActionId;
+
+        if (string.IsNullOrEmpty(skillId))
+        {
+            return false;
+        }
+
+        HWJ_SkillUnlockSystem sourceUnlockState = context.GetSkillUnlockSystem(HWJ_GameplayActorSlot.Source);
+        return sourceUnlockState != null && sourceUnlockState.IsSkillUnlocked(skillId);
     }
 }

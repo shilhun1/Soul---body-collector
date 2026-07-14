@@ -71,4 +71,16 @@ public static class HWJ_GameAccess
         gameplayRule = null;
         return HasManager && Manager.TryGetGameplayRule(ruleId, out gameplayRule);
     }
+
+    public static bool TryGetRuleExecutionCore(string executionCoreId, out HWJ_RuleExecutionCoreSO executionCore)
+    {
+        executionCore = null;
+        return HasManager && Manager.TryGetRuleExecutionCore(executionCoreId, out executionCore);
+    }
+
+    public static bool TryValidateGameplayDatabase(out HWJ_GameDataRegistryReport report)
+    {
+        report = null;
+        return HasManager && Manager.TryValidateGameplayDatabase(out report);
+    }
 }

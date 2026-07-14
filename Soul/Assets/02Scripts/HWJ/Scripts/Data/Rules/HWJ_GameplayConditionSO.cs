@@ -17,5 +17,31 @@ public abstract class HWJ_GameplayConditionSO : ScriptableObject
         return invertResult ? !result : result;
     }
 
+    public virtual bool TryEvaluate(
+        HWJ_GameplayContext context,
+        out HWJ_RuleEvaluationResult result)
+    {
+        bool rawResult = context != null ? Evaluate(context) : passWhenContextMissing;
+        bool passed = invertResult ? !rawResult : rawResult;
+        string message = passed
+            ? $"{GetConditionLabel()} passed."
+            : $"{GetConditionLabel()} failed.";
+
+        result = passed
+            ? HWJ_RuleEvaluationResult.Pass(null, conditionId, message)
+            : HWJ_RuleEvaluationResult.Fail(null, conditionId, message);
+        return passed;
+    }
+
+    protected string GetConditionLabel()
+    {
+        if (!string.IsNullOrEmpty(conditionId))
+        {
+            return conditionId;
+        }
+
+        return name;
+    }
+
     protected abstract bool Evaluate(HWJ_GameplayContext context);
 }

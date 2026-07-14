@@ -7,16 +7,30 @@ using UnityEngine;
 /// </summary>
 public class HWJ_BossPatternSystem : MonoBehaviour
 {
+    [SerializeField] private HWJ_RootObjectDataResolver dataResolver;
     [SerializeField] private HWJ_RuntimeStatusSystem runtimeStatus;
     [SerializeField] private HWJ_SkillActionSystem skillActionSystem;
     [SerializeField] private HWJ_Stage1BossPatternSystem stageOnePatternSystem;
     [SerializeField] private HWJ_BossPatternDataSO[] patterns;
     [SerializeField] private bool autoUsePatterns;
+    [SerializeField] private bool useGameplayPatternRule = true;
+    [SerializeField] private HWJ_RuleExecutionCoreSO bossPatternExecutionCore;
+    [SerializeField] private string bossPatternExecutionCoreId = "boss_pattern_execution";
+    [SerializeField] private HWJ_GameplayRuleSO bossPatternRule;
+    [SerializeField] private string bossPatternRuleId = "boss_can_use_combat_pattern";
+    [SerializeField] private string lastPatternResult;
 
     private readonly Dictionary<string, float> nextUseTimes = new Dictionary<string, float>();
 
+    public string LastPatternResult => lastPatternResult;
+
     private void Awake()
     {
+        if (dataResolver == null)
+        {
+            dataResolver = GetComponent<HWJ_RootObjectDataResolver>();
+        }
+
         if (runtimeStatus == null)
         {
             runtimeStatus = GetComponent<HWJ_RuntimeStatusSystem>();
@@ -87,6 +101,11 @@ public class HWJ_BossPatternSystem : MonoBehaviour
             return false;
         }
 
+        if (!IsPatternRuleSatisfied(target))
+        {
+            return false;
+        }
+
         bool executed = false;
 
         if (pattern.UseStageOneSpecialExecution
@@ -115,6 +134,65 @@ public class HWJ_BossPatternSystem : MonoBehaviour
         }
 
         return executed;
+    }
+
+    private bool IsPatternRuleSatisfied(Transform target)
+    {
+        if (!useGameplayPatternRule)
+        {
+            return true;
+        }
+
+        HWJ_RootObjectDataResolver targetResolver = target != null
+            ? target.GetComponentInParent<HWJ_RootObjectDataResolver>()
+            : null;
+        HWJ_GameplayContext context = HWJ_GameplayContext
+            .Create(dataResolver, targetResolver)
+            .WithSource(this);
+
+        if (target != null)
+        {
+            context.WithTarget(target);
+        }
+
+        if (ResolveBossPatternExecutionCore(out HWJ_RuleExecutionCoreSO executionCore))
+        {
+            bool passed = executionCore.TryExecute(context, out HWJ_RuleExecutionResult result);
+            lastPatternResult = result.Message;
+            return passed;
+        }
+
+        HWJ_GameplayRuleSO rule = bossPatternRule;
+
+        if (rule == null
+            && !string.IsNullOrEmpty(bossPatternRuleId)
+            && HWJ_GameAccess.TryGetGameplayRule(bossPatternRuleId, out HWJ_GameplayRuleSO resolvedRule))
+        {
+            rule = resolvedRule;
+        }
+
+        if (rule == null)
+        {
+            return true;
+        }
+
+        bool rulePassed = rule.TryEvaluate(context, out HWJ_RuleEvaluationResult ruleResult);
+        lastPatternResult = ruleResult.Message;
+        return rulePassed;
+    }
+
+    private bool ResolveBossPatternExecutionCore(out HWJ_RuleExecutionCoreSO executionCore)
+    {
+        executionCore = null;
+
+        if (bossPatternExecutionCore != null)
+        {
+            executionCore = bossPatternExecutionCore;
+            return true;
+        }
+
+        return !string.IsNullOrEmpty(bossPatternExecutionCoreId)
+            && HWJ_GameAccess.TryGetRuleExecutionCore(bossPatternExecutionCoreId, out executionCore);
     }
 
     private bool TrySelectPattern(out HWJ_BossPatternDataSO selectedPattern)

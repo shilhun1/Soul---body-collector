@@ -24,6 +24,9 @@ public class HWJ_BossTypeDataSO : HWJ_ObjectTypeDataSO
     [SerializeField] private HWJ_BossPhaseData[] phases;
     [SerializeField] private HWJ_BossTransformData phaseTransform = new HWJ_BossTransformData();
 
+    [Header("Entry Flow")]
+    [SerializeField] private HWJ_BossEntryRequirementData entryRequirements = new HWJ_BossEntryRequirementData();
+
     [Header("Possession")]
     [SerializeField] private HWJ_PossessionData possessionBody = new HWJ_PossessionData();
 
@@ -34,5 +37,6 @@ public class HWJ_BossTypeDataSO : HWJ_ObjectTypeDataSO
     public HWJ_SkillSetData SkillCycle => skillCycle;
     public HWJ_BossPhaseData[] Phases => phases;
     public HWJ_BossTransformData PhaseTransform => phaseTransform;
+    public HWJ_BossEntryRequirementData EntryRequirements => entryRequirements;
     public HWJ_PossessionData PossessionBody => possessionBody;
 }
