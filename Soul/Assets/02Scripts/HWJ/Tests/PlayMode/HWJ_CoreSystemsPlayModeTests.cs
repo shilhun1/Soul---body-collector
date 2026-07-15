@@ -1370,6 +1370,32 @@ public class HWJ_CoreSystemsPlayModeTests
     }
 
     [UnityTest]
+    public IEnumerator SkillActionSystem_UsesLockedDirectionBeforeTargetPosition()
+    {
+        GameObject caster = new GameObject("SkillLockedDirectionCaster");
+        GameObject target = new GameObject("SkillLockedDirectionTarget");
+        HWJ_SkillActionSystem skillActionSystem = caster.AddComponent<HWJ_SkillActionSystem>();
+        caster.transform.position = Vector3.zero;
+        target.transform.position = Vector3.right * 5f;
+
+        yield return null;
+
+        MethodInfo resolveDirectionMethod = typeof(HWJ_SkillActionSystem).GetMethod(
+            "ResolveSkillDirectionWithLock",
+            BindingFlags.Instance | BindingFlags.NonPublic);
+        Assert.IsNotNull(resolveDirectionMethod);
+
+        Vector2 resolvedDirection = (Vector2)resolveDirectionMethod.Invoke(
+            skillActionSystem,
+            new object[] { target.transform, true, Vector2.left });
+
+        Assert.Less(resolvedDirection.x, 0f);
+
+        Object.Destroy(caster);
+        Object.Destroy(target);
+    }
+
+    [UnityTest]
     public IEnumerator PossessionSystem_AllowsDefeatedPossessableEnemyBody()
     {
         GameObject player = CreatePlayerObject("Player", true);

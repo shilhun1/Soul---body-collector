@@ -243,7 +243,9 @@ public class HWJ_EnemyAttackSystem : MonoBehaviour
         isPreparingSkill = true;
         runtimeStatus?.SetState(HWJ_RuntimeState.Attack);
         skillActionSystem?.BlockNavigationForSkill(skillWarningDelaySeconds + 0.05f, false);
-        ShowSkillWarning(skillAction, skillTarget);
+        float lockedDirectionX = ResolveTargetDirection(skillTarget);
+        Vector2 lockedDirection = new Vector2(lockedDirectionX, 0f);
+        ShowSkillWarning(skillAction, lockedDirectionX);
 
         float delaySeconds = Mathf.Max(0f, skillWarningDelaySeconds);
 
@@ -262,7 +264,7 @@ public class HWJ_EnemyAttackSystem : MonoBehaviour
 
         float cooldownSeconds = ResolveMonsterSkillCooldownSeconds(skillEntry, skillAction);
 
-        if (skillActionSystem != null && skillActionSystem.TryUseSkill(skillAction, skillTarget, cooldownSeconds))
+        if (skillActionSystem != null && skillActionSystem.TryUseSkill(skillAction, skillTarget, cooldownSeconds, lockedDirection))
         {
             lastDamageApplied = skillActionSystem.LastDamageApplied;
             lastAttackResult = skillActionSystem.LastSkillResult;
@@ -328,18 +330,6 @@ public class HWJ_EnemyAttackSystem : MonoBehaviour
             return false;
         }
 
-        float skillRange = skillAction != null && skillAction.Range > 0f
-            ? skillAction.Range
-            : GetAttackRange();
-
-        float distance = Vector2.Distance(transform.position, skillTarget.position);
-
-        if (distance > skillRange)
-        {
-            lastAttackResult = "Skill canceled: target moved out of range.";
-            return false;
-        }
-
         if (skillActionSystem != null
             && skillAction != null
             && !skillActionSystem.IsSkillReady(skillAction.SkillActionId))
@@ -351,14 +341,14 @@ public class HWJ_EnemyAttackSystem : MonoBehaviour
         return true;
     }
 
-    private void ShowSkillWarning(HWJ_SkillActionDataSO skillAction, Transform skillTarget)
+    private void ShowSkillWarning(HWJ_SkillActionDataSO skillAction, float lockedDirectionX)
     {
         if (!showSkillWarning || skillAction == null || skillWarningDelaySeconds <= 0f)
         {
             return;
         }
 
-        float direction = ResolveTargetDirection(skillTarget);
+        float direction = lockedDirectionX == 0f ? ResolveTargetDirection(null) : lockedDirectionX;
         Color warningColor = GetWarningColor(skillAction);
 
         switch (skillAction.ActionType)
