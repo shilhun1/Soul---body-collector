@@ -504,48 +504,24 @@ public class HWJ_MonsterAISystem : MonoBehaviour
 
     private bool IsTargetInAttackRange()
     {
-        float attackRange = GetSkillAwareAttackRange();
+        float attackRange = GetAttackStartRange();
         return GetTargetDistance() <= attackRange;
     }
 
-    private float GetSkillAwareAttackRange()
+    // 스킬 사거리는 실제 스킬 실행 가능 여부에만 쓰고, AI 접근을 멈추는 기준은 몬스터 포지셔닝 데이터로 제한합니다.
+    private float GetAttackStartRange()
     {
-        float attackRange = EnemyData.State.attackRange > 0f
-            ? EnemyData.State.attackRange
-            : fallbackAttackRange;
-
-        if (skillActionSystem == null || EnemyData.SkillCycle == null || EnemyData.SkillCycle.skills == null)
+        if (EnemyData.State.attackRange > 0f)
         {
-            return attackRange;
+            return EnemyData.State.attackRange;
         }
 
-        for (int i = 0; i < EnemyData.SkillCycle.skills.Length; i++)
+        if (EnemyData.Navigation.stoppingDistance > 0f)
         {
-            HWJ_SkillEntryData skillEntry = EnemyData.SkillCycle.skills[i];
-
-            if (!CanUseSkillEntryForRange(skillEntry)
-                || !skillActionSystem.TryGetSkillAction(skillEntry.skillId, out HWJ_SkillActionDataSO skillAction))
-            {
-                continue;
-            }
-
-            float skillRange = skillAction.Range > 0f ? skillAction.Range : skillAction.HitRange;
-            attackRange = Mathf.Max(attackRange, skillRange);
+            return EnemyData.Navigation.stoppingDistance;
         }
 
-        return attackRange;
-    }
-
-    private bool CanUseSkillEntryForRange(HWJ_SkillEntryData skillEntry)
-    {
-        if (skillEntry == null || string.IsNullOrEmpty(skillEntry.skillId) || !skillEntry.startsUnlocked)
-        {
-            return false;
-        }
-
-        HWJ_WeaponType weaponType = dataResolver != null ? dataResolver.WeaponType : HWJ_WeaponType.None;
-        return skillEntry.requiredWeaponType == HWJ_WeaponType.None
-            || skillEntry.requiredWeaponType == weaponType;
+        return fallbackAttackRange;
     }
 
     private float GetTargetDistance()

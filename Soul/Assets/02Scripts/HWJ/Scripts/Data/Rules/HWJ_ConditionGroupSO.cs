@@ -3,8 +3,15 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "HWJ_ConditionGroup", menuName = "HWJ/Data/Rules/Condition Group")]
 public class HWJ_ConditionGroupSO : HWJ_GameplayConditionSO
 {
+    [Header("조건 그룹")]
+    [Tooltip("모든 조건을 만족해야 하는지, 하나만 만족해도 되는지 정합니다.")]
+    [InspectorName("조건 묶음 방식")]
     [SerializeField] private HWJ_ConditionGroupMode groupMode = HWJ_ConditionGroupMode.All;
+    [Tooltip("조건 배열이 비어 있을 때 통과로 처리할지 정합니다.")]
+    [InspectorName("비어 있으면 통과")]
     [SerializeField] private bool passWhenEmpty;
+    [Tooltip("이 그룹에서 검사할 조건 목록입니다.")]
+    [InspectorName("조건 목록")]
     [SerializeField] private HWJ_GameplayConditionSO[] conditions;
 
     public HWJ_ConditionGroupMode GroupMode => groupMode;

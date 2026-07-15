@@ -62,6 +62,8 @@ public class HWJ_CharacterMotionSystem : MonoBehaviour
     private float initialScaleXSign = 1f;
     private bool hasInitialScaleXSign;
 
+    public float CurrentFacingDirection => ResolveCurrentFacingDirection();
+
     private void Awake()
     {
         CacheReferences();
@@ -204,6 +206,30 @@ public class HWJ_CharacterMotionSystem : MonoBehaviour
         }
 
         ApplyFacing(directionX < 0f);
+    }
+
+    public float ResolveCurrentFacingDirection()
+    {
+        CacheReferences();
+
+        if (spriteRenderer != null && flipSpriteByMoveDirection)
+        {
+            if (!hasInitialSpriteFlipX)
+            {
+                initialSpriteFlipX = spriteRenderer.flipX;
+                hasInitialSpriteFlipX = true;
+            }
+
+            bool faceLeft = useInitialSpriteFlipAsRightFacing
+                ? spriteRenderer.flipX != initialSpriteFlipX
+                : spriteRenderer.flipX;
+            return faceLeft ? -1f : 1f;
+        }
+
+        float scaleSign = Mathf.Sign(transform.localScale.x);
+        float rightFacingSign = hasInitialScaleXSign ? initialScaleXSign : 1f;
+        scaleSign = scaleSign == 0f ? rightFacingSign : scaleSign;
+        return Mathf.Approximately(scaleSign, rightFacingSign) ? 1f : -1f;
     }
 
     private void CacheReferences()

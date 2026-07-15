@@ -7,6 +7,9 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "HWJ_ObjectPoolData", menuName = "HWJ/Data/System/Object Pool")]
 public class HWJ_ObjectPoolDataSO : ScriptableObject
 {
+    [Header("오브젝트 풀")]
+    [Tooltip("미리 생성하거나 재사용할 프리팹 풀 목록입니다.")]
+    [InspectorName("풀 항목 목록")]
     [SerializeField] private HWJ_PoolEntryData[] entries;
 
     public HWJ_PoolEntryData[] Entries => entries;

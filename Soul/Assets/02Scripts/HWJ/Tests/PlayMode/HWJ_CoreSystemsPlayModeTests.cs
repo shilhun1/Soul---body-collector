@@ -1342,6 +1342,34 @@ public class HWJ_CoreSystemsPlayModeTests
     }
 
     [UnityTest]
+    public IEnumerator SkillActionSystem_UsesCharacterFacingDirectionWhenNoTargetExists()
+    {
+        GameObject player = new GameObject("SkillFacingDirectionPlayer");
+        SpriteRenderer spriteRenderer = player.AddComponent<SpriteRenderer>();
+        HWJ_CharacterMotionSystem motionSystem = player.AddComponent<HWJ_CharacterMotionSystem>();
+        HWJ_SkillActionSystem skillActionSystem = player.AddComponent<HWJ_SkillActionSystem>();
+        player.transform.localScale = Vector3.one;
+
+        yield return null;
+
+        motionSystem.RefreshFacingBaseline();
+        motionSystem.FaceDirection(-1f);
+
+        MethodInfo resolveDirectionMethod = typeof(HWJ_SkillActionSystem).GetMethod(
+            "ResolveSkillDirection",
+            BindingFlags.Instance | BindingFlags.NonPublic);
+        Assert.IsNotNull(resolveDirectionMethod);
+
+        Vector2 resolvedDirection = (Vector2)resolveDirectionMethod.Invoke(skillActionSystem, new object[] { null });
+
+        Assert.AreEqual(1f, player.transform.localScale.x, 0.001f);
+        Assert.IsTrue(spriteRenderer.flipX);
+        Assert.Less(resolvedDirection.x, 0f);
+
+        Object.Destroy(player);
+    }
+
+    [UnityTest]
     public IEnumerator PossessionSystem_AllowsDefeatedPossessableEnemyBody()
     {
         GameObject player = CreatePlayerObject("Player", true);
@@ -3258,6 +3286,122 @@ public class HWJ_CoreSystemsPlayModeTests
 
         HWJ_GameplayEvents.EnemyAIStateTransitioned -= OnEnemyAITransitioned;
         Object.Destroy(enemy);
+    }
+
+    [UnityTest]
+    public IEnumerator MonsterAISystem_LongRangeSkillDoesNotSkipApproachState()
+    {
+        GameObject player = CreatePlayerObject("MonsterAILongRangeSkillTarget", false, startAsSoul: false);
+        HWJ_EnemyTypeDataSO enemyData = CreateEnemyTypeData(true);
+        enemyData.Tracking.trackingRange = 10f;
+        enemyData.State.attackRange = 1f;
+        enemyData.Navigation.avoidLedges = false;
+        enemyData.AI.decisionIntervalSeconds = 0f;
+        enemyData.AI.detectSeconds = 0f;
+
+        HWJ_SkillActionDataSO longRangeSkill = CreateSkillActionData(
+            "skill.test.monster_long_range_projectile",
+            HWJ_SkillActionType.Projectile);
+        SetPrivateField(longRangeSkill, "range", 20f);
+        SetPrivateField(longRangeSkill, "hitRange", 1f);
+        SetPrivateField(longRangeSkill, "moveSpeed", 20f);
+        enemyData.SkillCycle.skills = new[]
+        {
+            new HWJ_SkillEntryData
+            {
+                skillId = "skill.test.monster_long_range_projectile",
+                startsUnlocked = true,
+                requiredWeaponType = HWJ_WeaponType.None
+            }
+        };
+
+        GameObject enemy = CreateCombatObject(
+            "MonsterAILongRangeSkillEnemy",
+            HWJ_ObjectType.Enemy,
+            HWJ_Faction.Monster,
+            10f,
+            1f,
+            1f,
+            enemyData);
+        HWJ_SkillActionSystem skillActionSystem = enemy.AddComponent<HWJ_SkillActionSystem>();
+        SetPrivateField(skillActionSystem, "localSkillActions", new[] { longRangeSkill });
+        HWJ_MonsterAISystem monsterAI = enemy.AddComponent<HWJ_MonsterAISystem>();
+
+        player.transform.position = Vector3.zero;
+        enemy.transform.position = Vector3.right * 5f;
+        monsterAI.SetTarget(player.transform);
+
+        yield return null;
+
+        monsterAI.TrySetAIState(HWJ_MonsterAIState.Detect, 0f);
+        SetPrivateField(monsterAI, "nextDecisionTime", 0f);
+
+        yield return null;
+
+        Assert.AreEqual(HWJ_MonsterAIState.Approach, monsterAI.CurrentState);
+        Assert.AreEqual(HWJ_EnemyAIActionType.Detect, monsterAI.LastActionResult.ActionType);
+        Assert.IsTrue(monsterAI.LastActionResult.Succeeded);
+
+        Object.Destroy(player);
+        Object.Destroy(enemy);
+        Object.Destroy(longRangeSkill);
+    }
+
+    [UnityTest]
+    public IEnumerator EnemyAttackSystem_UsesEnemyDefaultSkillCooldownWhenSkillCooldownsAreUnset()
+    {
+        GameObject player = CreatePlayerObject("EnemyDefaultCooldownTarget", false, startAsSoul: false);
+        HWJ_EnemyTypeDataSO enemyData = CreateEnemyTypeData(true);
+        enemyData.Tracking.trackingRange = 10f;
+        enemyData.State.attackRange = 1f;
+        enemyData.AI.defaultSkillCooldownSeconds = 2f;
+        enemyData.SkillCycle.skills = new[]
+        {
+            new HWJ_SkillEntryData
+            {
+                skillId = "skill.test.enemy_default_cooldown",
+                startsUnlocked = true,
+                cooldownSeconds = 0f,
+                useIntervalSeconds = 0f
+            }
+        };
+
+        HWJ_SkillActionDataSO skillAction = CreateSkillActionData(
+            "skill.test.enemy_default_cooldown",
+            HWJ_SkillActionType.Buff);
+        SetPrivateField(skillAction, "range", 5f);
+        SetPrivateField(skillAction, "cooldownSeconds", 0f);
+
+        GameObject enemy = CreateCombatObject(
+            "EnemyDefaultCooldownUser",
+            HWJ_ObjectType.Enemy,
+            HWJ_Faction.Monster,
+            10f,
+            1f,
+            1f,
+            enemyData);
+        HWJ_SkillActionSystem skillActionSystem = enemy.AddComponent<HWJ_SkillActionSystem>();
+        SetPrivateField(skillActionSystem, "localSkillActions", new[] { skillAction });
+        HWJ_EnemyAttackSystem attackSystem = enemy.AddComponent<HWJ_EnemyAttackSystem>();
+        SetPrivateField(attackSystem, "skillWarningDelaySeconds", 0f);
+        SetPrivateField(attackSystem, "fallbackAttackIntervalSeconds", 0f);
+
+        player.transform.position = Vector3.zero;
+        enemy.transform.position = Vector3.right * 2f;
+        attackSystem.SetTarget(player.transform);
+
+        yield return null;
+
+        Assert.IsTrue(attackSystem.TryAutoAttack(), attackSystem.LastAttackResult);
+        yield return null;
+
+        Assert.IsFalse(
+            skillActionSystem.IsSkillReady("skill.test.enemy_default_cooldown"),
+            "EnemyTypeDataSO.AI.defaultSkillCooldownSeconds must be used when the skill entry and SkillActionDataSO cooldowns are unset.");
+
+        Object.Destroy(player);
+        Object.Destroy(enemy);
+        Object.Destroy(skillAction);
     }
 
     [UnityTest]

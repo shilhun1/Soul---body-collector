@@ -734,6 +734,13 @@ public class HWJ_SkillActionSystem : MonoBehaviour
 
     private float GetFacingDirection()
     {
+        if (motionSystem != null)
+        {
+            // 스프라이트 플립과 스케일 플립 중 실제 캐릭터가 사용하는 방향 기준을 모션 시스템에서 가져옵니다.
+            float motionFacing = motionSystem.ResolveCurrentFacingDirection();
+            return motionFacing < 0f ? -1f : 1f;
+        }
+
         float facing = Mathf.Sign(transform.localScale.x);
         return facing == 0f ? 1f : facing;
     }

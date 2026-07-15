@@ -3,11 +3,24 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "HWJ_EnvironmentCondition", menuName = "HWJ/Data/Rules/Conditions/Environment")]
 public class HWJ_EnvironmentConditionSO : HWJ_GameplayConditionSO
 {
+    [Header("환경 조건")]
+    [Tooltip("Source 또는 Target 중 어느 쪽 위치를 기준으로 검사할지 정합니다.")]
+    [InspectorName("검사 대상")]
     [SerializeField] private HWJ_GameplayActorSlot actor = HWJ_GameplayActorSlot.Source;
+    [Tooltip("바닥, 벽, 시야 등 어떤 환경 조건을 검사할지 정합니다.")]
+    [InspectorName("검사 조건")]
     [SerializeField] private HWJ_EnvironmentRequirement requirement = HWJ_EnvironmentRequirement.ActorGrounded;
+    [Tooltip("검사할 레이어입니다.")]
+    [InspectorName("검사 레이어")]
     [SerializeField] private LayerMask layerMask;
+    [Tooltip("레이캐스트 또는 박스 검사 방향입니다.")]
+    [InspectorName("검사 방향")]
     [SerializeField] private Vector2 direction = Vector2.down;
+    [Tooltip("검사 거리입니다.")]
+    [InspectorName("검사 거리")]
     [SerializeField] private float distance = 1f;
+    [Tooltip("박스 검사에 사용할 크기입니다.")]
+    [InspectorName("박스 크기")]
     [SerializeField] private Vector2 boxSize = Vector2.one;
 
     protected override bool Evaluate(HWJ_GameplayContext context)

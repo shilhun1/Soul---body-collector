@@ -3,6 +3,9 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "HWJ_DifferentFactionCondition", menuName = "HWJ/Data/Rules/Conditions/Different Faction")]
 public class HWJ_DifferentFactionConditionSO : HWJ_GameplayConditionSO
 {
+    [Header("다른 진영 조건")]
+    [Tooltip("켜면 Neutral 진영도 서로 다른 진영 판정에 포함합니다.")]
+    [InspectorName("Neutral 허용")]
     [SerializeField] private bool allowNeutralFaction;
 
     protected override bool Evaluate(HWJ_GameplayContext context)

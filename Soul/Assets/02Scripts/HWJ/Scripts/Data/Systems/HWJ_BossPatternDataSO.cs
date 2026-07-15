@@ -7,18 +7,48 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "HWJ_BossPatternData", menuName = "HWJ/Data/System/Boss Pattern")]
 public class HWJ_BossPatternDataSO : ScriptableObject
 {
+    [Header("패턴 기본 정보")]
+    [Tooltip("보스 패턴을 구분하는 고정 ID입니다.")]
+    [InspectorName("패턴 ID")]
     [SerializeField] private string patternId;
+    [Tooltip("기획서상의 패턴 번호입니다.")]
+    [InspectorName("패턴 번호")]
     [SerializeField] private int patternNumber;
+    [Tooltip("패턴이 발동되는 조건입니다.")]
+    [InspectorName("발동 조건")]
     [SerializeField] private HWJ_BossPatternTrigger trigger;
+    [Tooltip("근거리/원거리/전체 거리 중 어떤 상황에서 사용할지 정합니다.")]
+    [InspectorName("거리 조건")]
     [SerializeField] private HWJ_BossPatternRangeMode rangeMode;
+    [Header("페이즈 사용 여부")]
+    [Tooltip("켜면 1페이즈에서 사용할 수 있습니다.")]
+    [InspectorName("1페이즈 사용")]
     [SerializeField] private bool usableInPhase1 = true;
+    [Tooltip("켜면 2페이즈에서 사용할 수 있습니다.")]
+    [InspectorName("2페이즈 사용")]
     [SerializeField] private bool usableInPhase2 = true;
+    [Header("실행 조건")]
+    [Tooltip("HP 비율 조건 패턴일 때 이 값 이하에서 실행됩니다.")]
+    [InspectorName("HP 비율")]
     [SerializeField] private float hpRatio = 1f;
+    [Tooltip("이 패턴 자체의 쿨타임입니다. 0이면 기본 쿨타임을 사용합니다.")]
+    [InspectorName("패턴 쿨타임")]
     [SerializeField] private float cooldownSeconds;
+    [Tooltip("패턴 쿨타임이 0일 때 사용할 기본 쿨타임입니다.")]
+    [InspectorName("기본 쿨타임")]
     [SerializeField] private float defaultCooldownSeconds = 5f;
+    [Tooltip("여러 패턴이 가능할 때 선택 가중치입니다. 높을수록 선택 확률이 올라갑니다.")]
+    [InspectorName("선택 가중치")]
     [SerializeField] private int weight = 1;
+    [Header("연출과 스킬")]
+    [Tooltip("패턴 시작 시 재생할 애니메이션 ID입니다.")]
+    [InspectorName("애니메이션 ID")]
     [SerializeField] private string animationId;
+    [Tooltip("켜면 1스테이지 보스 전용 특수 실행 로직을 사용합니다.")]
+    [InspectorName("1스테이지 특수 실행")]
     [SerializeField] private bool useStageOneSpecialExecution = true;
+    [Tooltip("이 패턴이 실행할 SkillActionDataSO 목록입니다.")]
+    [InspectorName("실행 스킬 목록")]
     [SerializeField] private HWJ_SkillActionDataSO[] skillActions;
 
     public string PatternId => patternId;

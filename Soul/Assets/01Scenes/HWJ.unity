@@ -1641,6 +1641,7 @@ MonoBehaviour:
   soulSystem: {fileID: 2087133896}
   possessionSystem: {fileID: 0}
   possessedBodySystem: {fileID: 0}
+  runtimeStatus: {fileID: 0}
   collapseSystem: {fileID: 0}
   currentDecayValue: 0
   resetDecayWhenEnterBody: 1

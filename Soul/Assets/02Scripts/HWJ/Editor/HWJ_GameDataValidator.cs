@@ -295,6 +295,7 @@ public static class HWJ_GameDataValidator
             ValidateNonNegative(validationIssues, enemyType.AI.attackPrepareSeconds, "REQ-14", assetPath, "AI.attackPrepareSeconds", "ENEMY_AI_ATTACK_PREPARE_SECONDS_NEGATIVE");
             ValidateNonNegative(validationIssues, enemyType.AI.attackRecoverySeconds, "REQ-14", assetPath, "AI.attackRecoverySeconds", "ENEMY_AI_ATTACK_RECOVERY_SECONDS_NEGATIVE");
             ValidateNonNegative(validationIssues, enemyType.AI.repathSeconds, "REQ-14", assetPath, "AI.repathSeconds", "ENEMY_AI_REPATH_SECONDS_NEGATIVE");
+            ValidateNonNegative(validationIssues, enemyType.AI.defaultSkillCooldownSeconds, "REQ-14", assetPath, "AI.defaultSkillCooldownSeconds", "ENEMY_AI_DEFAULT_SKILL_COOLDOWN_NEGATIVE");
 
             if (Mathf.Approximately(enemyType.AI.decisionIntervalSeconds, 0f))
             {

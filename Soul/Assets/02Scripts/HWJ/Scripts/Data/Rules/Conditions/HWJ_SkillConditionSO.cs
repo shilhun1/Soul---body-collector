@@ -3,6 +3,9 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "HWJ_SkillCondition", menuName = "HWJ/Data/Rules/Conditions/Skill")]
 public class HWJ_SkillConditionSO : HWJ_GameplayConditionSO
 {
+    [Header("스킬 조건")]
+    [Tooltip("스킬 사용 가능 여부에서 검사할 조건 종류입니다.")]
+    [InspectorName("검사 조건")]
     [SerializeField] private HWJ_SkillRequirement requirement = HWJ_SkillRequirement.HasSkillAction;
 
     protected override bool Evaluate(HWJ_GameplayContext context)
