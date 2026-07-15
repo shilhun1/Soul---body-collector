@@ -9,13 +9,10 @@ onBoardingDoNotAskAgain = true
 showPackageIndexes = false
 showStatusBar = false
 scopes = {
-<<<<<<< HEAD
 	"picker_window_position_offset.00000000" = "-32.66663;185.3333;320;550.6667"
 	"picker_visibility_flags.00000000" = "0"
 	"picker_item_size.00000000" = "1"
 	"picker_inspector.00000000" = "0"
-=======
->>>>>>> merge
 }
 providers = {
 	asset = {
@@ -51,21 +48,6 @@ providers = {
 	profilermarkers = {
 		active = false
 		priority = 100
-		defaultAction = null
-	}
-	performance = {
-		active = false
-		priority = 100
-		defaultAction = null
-	}
-	store = {
-		active = false
-		priority = 100
-		defaultAction = null
-	}
-	log = {
-		active = false
-		priority = 210
 		defaultAction = null
 	}
 }

@@ -65,7 +65,7 @@ public class hys_Player_Attack : MonoBehaviour
 
     private void Update()
     {
-        // 현재는 X 키를 공격 입력으로 사용합니다.
+        // X 키를 공격 입력으로 사용합니다.
         if (IsAttackInputPressed())
         {
             TryAttack();
@@ -75,11 +75,24 @@ public class hys_Player_Attack : MonoBehaviour
     // 공격 가능 여부를 확인하고 공격 루틴을 시작합니다.
     public bool TryAttack()
     {
-        if (Time.time < nextAttackTime || playerState == null || !playerState.CanAttack)
+        if (Time.time < nextAttackTime || playerState == null)
         {
             return false;
         }
 
+        // 기본 상태에서 공격할 수 없더라도 대쉬 후딜 공격 허용 옵션은 별도로 확인합니다.
+        if (!playerState.CanAttack &&
+            (playerMovement == null || !playerMovement.TryConsumeDashRecoveryForAttack()))
+        {
+            return false;
+        }
+
+        StartFirstAttack();
+        return true;
+    }
+
+    private void StartFirstAttack()
+    {
         attackOriginSnapshot = GetCurrentAttackOrigin();
         attackDirectionSnapshot = GetCurrentAttackDirection();
         nextAttackTime = Time.time + attackCooldown;
@@ -90,7 +103,6 @@ public class hys_Player_Attack : MonoBehaviour
         }
 
         attackRoutine = StartCoroutine(AttackRoutine());
-        return true;
     }
 
     // 공격 상태 진입, 선딜레이, 판정 발생, 상태 복구를 순서대로 처리합니다.
@@ -99,6 +111,12 @@ public class hys_Player_Attack : MonoBehaviour
         playerState.SetState(hys_PlayerState.Attack);
 
         yield return new WaitForSeconds(hitDelay);
+
+        if (playerState.CurrentState != hys_PlayerState.Attack)
+        {
+            attackRoutine = null;
+            yield break;
+        }
 
         attackFillEndTime = Time.time + attackFillVisibleTime;
         HitTargets();

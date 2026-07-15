@@ -28,6 +28,7 @@ public class hys_Player_Health : MonoBehaviour
     [SerializeField] private bool useDebugLog = true;
 
     private hys_Player_State playerState;
+    private hys_Player_Movement playerMovement;
     private Coroutine hitRoutine;
     private Coroutine deathRoutine;
     private float currentHp;
@@ -40,12 +41,14 @@ public class hys_Player_Health : MonoBehaviour
     public float CurrentHp => currentHp;
     public float MaxHp => maxHp;
     public bool IsDead => playerState != null && playerState.CurrentState == hys_PlayerState.Dead;
-    public bool IsInvincible => Time.time < invincibleEndTime;
+    public bool IsInvincible => Time.time < invincibleEndTime ||
+        (playerMovement != null && playerMovement.Is_Invincible);
 
     private void Awake()
     {
         // 시작 시 최대 체력으로 초기화합니다.
         playerState = GetComponent<hys_Player_State>();
+        playerMovement = GetComponent<hys_Player_Movement>();
         soulSystem = soulSystem != null ? soulSystem : GetComponent<HWJ_SoulSystem>();
         currentHp = maxHp;
     }

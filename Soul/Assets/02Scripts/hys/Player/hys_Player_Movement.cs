@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -35,12 +36,27 @@ public class hys_Player_Movement : MonoBehaviour
     // 대시 속도, 지속 시간, 쿨타임, 입력 버퍼 값입니다.
     [SerializeField] private float dashSpeed = 18f;
     [SerializeField] private float dashDuration = 0.12f;
+    // 대쉬 종료 직전 몇 프레임을 피격 가능 구간으로 둘지 정합니다.
+    [SerializeField, Range(2, 3)] private int dashInvincibilityEndLeadFrames = 3;
+    [SerializeField, Min(1f)] private float dashAnimationFrameRate = 60f;
     [SerializeField] private float dashEndSpeedMultiplier = 0.05f;
     [SerializeField] private float dashEndSmoothTime = 0.02f;
     [SerializeField] private float dashCooldown = 0.16f;
     [SerializeField] private float dashInputBufferTime = 0.25f;
     [SerializeField] private int maxDashCount = 2;
     [SerializeField] private bool canAirDash = true;
+
+    [Header("Dash Recovery")]
+    // 기본값은 후딜레이가 끝날 때까지 모든 행동을 막습니다.
+    [SerializeField] private bool allowMoveDuringDashRecovery;
+    [SerializeField] private bool allowJumpDuringDashRecovery;
+    [SerializeField] private bool allowAttackDuringDashRecovery;
+    [SerializeField] private bool allowConsecutiveDashDuringRecovery;
+
+    [Header("Landing")]
+    // 착지 중 물리는 그대로 두고 좌우 입력 적용만 잠깐 제한합니다.
+    [SerializeField, Min(0f)] private float landingInputLockDuration = 0.05f;
+    [SerializeField] private bool allowMoveDuringLanding;
 
     [Header("Physics")]
     // Rigidbody 보간을 켜서 이동이 덜 끊겨 보이게 합니다.
@@ -69,22 +85,53 @@ public class hys_Player_Movement : MonoBehaviour
     private int jumpCount;
     private int dashCount;
     private int jumpVersion;
+    private int downJumpVersion;
+    private int dashVersion;
+    private int landingVersion;
     private Coroutine dashRoutine;
+    private Coroutine dashCooldownRoutine;
     private bool isDashCoolingDown;
     private bool isPassingThrough;
+    private bool isDownJumping;
+    private bool wasGrounded;
+    private float landingEndTime;
+    private float dashDirection = 1f;
+    private readonly HashSet<Collider2D> ignoredPlatforms = new HashSet<Collider2D>();
 
     // 다른 스크립트가 대시/무적 여부를 확인할 수 있게 공개합니다.
     public bool Is_Dashing { get; private set; }
+    public bool Is_DashEnding { get; private set; }
     public bool Is_Invincible { get; private set; }
+    public bool Is_Landing { get; private set; }
+
+    // 하단 발판을 완전히 빠져나올 때까지 Fall 애니메이션을 유지할 때 사용합니다.
+    public bool Is_DownJumping => isDownJumping;
 
     // 공격 방향 계산에 사용하는 마지막 좌우 방향입니다.
     public float LastMoveDirection => lastMoveDirection;
+
+    // 대쉬 시작 순간 저장한 방향으로, 대쉬 중 반대 입력이 들어와도 바뀌지 않습니다.
+    public float DashDirection => dashDirection;
+
+    // 달리기 애니메이션 속도를 실제 최고 이동 속도와 맞출 때 사용합니다.
+    public float MoveSpeed => moveSpeed;
 
     // 애니메이션 전환에서 사용하는 현재 접지 여부입니다.
     public bool Is_Grounded => IsGrounded();
 
     // 같은 Jump 상태 안에서 2단 점프가 성공해도 애니메이션 트리거를 다시 보낼 수 있게 합니다.
     public int JumpVersion => jumpVersion;
+
+    // 하단 점프가 성공한 순간 낙하 애니메이션으로 바로 전환하기 위한 버전 값입니다.
+    public int DownJumpVersion => downJumpVersion;
+
+    // 대쉬와 착지 시작 순간을 Animator Trigger로 한 번만 전달하기 위한 값입니다.
+    public int DashVersion => dashVersion;
+    public int LandingVersion => landingVersion;
+
+    // 공격 스크립트가 대쉬 후딜레이 취소 허용 여부를 확인할 때 사용합니다.
+    public bool CanAttackDuringDashRecovery =>
+        Is_Dashing && Is_DashEnding && allowAttackDuringDashRecovery;
 
     private void Awake()
     {
@@ -94,6 +141,7 @@ public class hys_Player_Movement : MonoBehaviour
         soulSystem = soulSystem != null ? soulSystem : GetComponent<HWJ_SoulSystem>();
         playerColliders = GetComponents<Collider2D>();
         defaultGravityScale = rb.gravityScale;
+        wasGrounded = IsGrounded();
 
         if (useRigidbodyInterpolation)
         {
@@ -109,6 +157,8 @@ public class hys_Player_Movement : MonoBehaviour
             ApplySoulGravityOverride();
             return;
         }
+
+        TickLandingState();
 
         // 입력은 매 프레임 읽고, 실제 물리 이동은 FixedUpdate에서 처리합니다.
         ReadMoveInput();
@@ -131,7 +181,19 @@ public class hys_Player_Movement : MonoBehaviour
         ApplyBetterFallGravity();
         TryPassUpThroughPlatform(FindPassPlatformAbove());
 
-        if (Is_Dashing || (playerState != null && !playerState.CanMove))
+        if (Is_Dashing)
+        {
+            // 후딜레이 이동 허용 옵션을 켠 경우에만 좌우 입력을 적용합니다.
+            if (Is_DashEnding && allowMoveDuringDashRecovery)
+            {
+                rb.linearVelocity = new Vector2(moveInput * moveSpeed, rb.linearVelocity.y);
+            }
+
+            return;
+        }
+
+        if ((Is_Landing && !allowMoveDuringLanding) ||
+            (playerState != null && !playerState.CanMove))
         {
             return;
         }
@@ -196,18 +258,38 @@ public class hys_Player_Movement : MonoBehaviour
             dashRoutine = null;
         }
 
+        if (dashCooldownRoutine != null)
+        {
+            StopCoroutine(dashCooldownRoutine);
+            dashCooldownRoutine = null;
+        }
+
         if (Is_Dashing)
         {
             Is_Dashing = false;
-            Is_Invincible = false;
-            isDashCoolingDown = false;
+            Is_DashEnding = false;
+            DisableDashInvincibility();
         }
+
+        Is_Landing = false;
+        isDashCoolingDown = false;
+        rb.gravityScale = defaultGravityScale;
     }
 
     private void UpdateGroundState()
     {
         // 접지 중이면 점프/대시 횟수를 회복하고, 공중이면 코요테 타임을 줄입니다.
-        if (IsGrounded())
+        bool isGrounded = IsGrounded() && !isDownJumping;
+        bool landedThisFrame = !wasGrounded && isGrounded && rb.linearVelocity.y <= 0f;
+
+        if (landedThisFrame && !Is_Dashing)
+        {
+            StartLandingDelay();
+        }
+
+        wasGrounded = isGrounded;
+
+        if (isGrounded)
         {
             coyoteCounter = coyoteTime;
 
@@ -224,6 +306,23 @@ public class hys_Player_Movement : MonoBehaviour
         else
         {
             coyoteCounter -= Time.deltaTime;
+        }
+    }
+
+    private void StartLandingDelay()
+    {
+        // 착지 애니메이션 시작 신호와 입력 잠금 시간만 기록하고 Rigidbody는 건드리지 않습니다.
+        Is_Landing = true;
+        landingEndTime = Time.time + landingInputLockDuration;
+        landingVersion++;
+        jumpBufferCounter = 0f;
+    }
+
+    private void TickLandingState()
+    {
+        if (Is_Landing && (Time.time >= landingEndTime || !IsGrounded()))
+        {
+            Is_Landing = false;
         }
     }
 
@@ -253,6 +352,27 @@ public class hys_Player_Movement : MonoBehaviour
 
     private bool TryJump()
     {
+        // 착지 딜레이와 기본 대쉬 구간에는 점프가 끼어들지 못합니다.
+        if (Is_Landing)
+        {
+            return false;
+        }
+
+        if (Is_Dashing)
+        {
+            if (!Is_DashEnding || !allowJumpDuringDashRecovery)
+            {
+                return false;
+            }
+
+            InterruptDashRecovery(true);
+        }
+
+        if (playerState != null && !playerState.CanMove)
+        {
+            return false;
+        }
+
         // 코요테 타임 덕분에 발판에서 살짝 벗어나도 첫 점프는 허용됩니다.
         bool canUseCoyoteJump = jumpCount == 0 && coyoteCounter > 0f;
         if (jumpCount >= maxJumpCount && !canUseCoyoteJump)
@@ -285,7 +405,11 @@ public class hys_Player_Movement : MonoBehaviour
     private bool TryStartDownJump()
     {
         // 실제로 아래에 통과 가능한 발판이 있을 때만 충돌 무시 루틴을 시작합니다.
-        if (Keyboard.current == null || !Keyboard.current.downArrowKey.isPressed || isPassingThrough)
+        if (Keyboard.current == null ||
+            !Keyboard.current.downArrowKey.isPressed ||
+            isPassingThrough ||
+            Is_Dashing ||
+            (playerState != null && !playerState.CanMove))
         {
             return false;
         }
@@ -296,6 +420,9 @@ public class hys_Player_Movement : MonoBehaviour
             return false;
         }
 
+        // 일반 점프의 상승 모션을 거치지 않고 Fall 상태로 보내기 위한 신호입니다.
+        Is_Landing = false;
+        downJumpVersion++;
         StartCoroutine(PassThroughPlatform(platform, true));
         return true;
     }
@@ -349,9 +476,20 @@ public class hys_Player_Movement : MonoBehaviour
         // 대시 중복, 쿨타임, 공중 대시 허용 여부를 검사합니다.
         bool isGrounded = IsGrounded();
 
-        if (Is_Dashing)
+        // 공격/피격/사망처럼 이동이 잠긴 상태에서는 대시가 끼어들지 못하게 합니다.
+        if (playerState != null && !playerState.CanMove)
         {
             return false;
+        }
+
+        if (Is_Dashing)
+        {
+            if (!Is_DashEnding || !allowConsecutiveDashDuringRecovery)
+            {
+                return false;
+            }
+
+            InterruptDashRecovery(false);
         }
 
         if (isDashCoolingDown || dashCount >= maxDashCount || (!isGrounded && !canAirDash))
@@ -359,52 +497,139 @@ public class hys_Player_Movement : MonoBehaviour
             return false;
         }
 
+        Is_Landing = false;
         dashRoutine = StartCoroutine(DashRoutine());
         return true;
     }
 
     private IEnumerator DashRoutine()
     {
-        // 대시 중에는 중력을 끄고, 짧은 시간 동안 가로 속도를 강하게 줍니다.
+        // 대쉬 시작 방향을 저장하고 고정 시간 동안 입력과 무관하게 같은 방향으로 이동합니다.
         dashCount++;
+        dashVersion++;
+        dashDirection = Mathf.Approximately(lastMoveDirection, 0f) ? 1f : Mathf.Sign(lastMoveDirection);
         Is_Dashing = true;
-        Is_Invincible = true;
+        Is_DashEnding = false;
+        EnableDashInvincibility();
         SetPlayerState(hys_PlayerState.Dash);
 
         rb.gravityScale = 0f;
-        rb.linearVelocity = new Vector2(lastMoveDirection * dashSpeed, 0f);
+        rb.linearVelocity = new Vector2(dashDirection * dashSpeed, 0f);
 
-        yield return new WaitForSeconds(dashDuration);
+        float dashEndTime = Time.time + dashDuration;
+        float invincibilityLeadTime = dashInvincibilityEndLeadFrames /
+            Mathf.Max(1f, dashAnimationFrameRate);
+        float invincibleEndTime = dashEndTime - invincibilityLeadTime;
 
-        float endTime = Time.time + dashEndSmoothTime;
-        float startSpeed = lastMoveDirection * dashSpeed;
-        float endSpeed = lastMoveDirection * dashSpeed * dashEndSpeedMultiplier;
-
-        while (Time.time < endTime)
+        // 대쉬 포즈와 속도는 유지하고 종료 직전 2~3프레임에는 무적만 먼저 해제합니다.
+        while (Time.time < dashEndTime)
         {
-            float t = 1f - ((endTime - Time.time) / Mathf.Max(0.01f, dashEndSmoothTime));
-            float currentSpeed = Mathf.Lerp(startSpeed, endSpeed, t);
-            rb.linearVelocity = new Vector2(currentSpeed, 0f);
+            if (Time.time >= invincibleEndTime)
+            {
+                DisableDashInvincibility();
+            }
+
+            rb.linearVelocity = new Vector2(dashDirection * dashSpeed, 0f);
             yield return null;
         }
 
+        DisableDashInvincibility();
+        Is_DashEnding = true;
         rb.gravityScale = defaultGravityScale;
-        rb.linearVelocity = new Vector2(endSpeed, rb.linearVelocity.y);
-        Is_Dashing = false;
-        Is_Invincible = false;
-        UpdateMoveState();
 
-        if (dashBufferCounter > 0f && dashCount < maxDashCount)
+        // DashEnd 후딜레이 중 기본값은 감속만 허용하며, 옵션으로 이동을 열 수 있습니다.
+        float endTime = Time.time + dashEndSmoothTime;
+        float startSpeed = dashDirection * dashSpeed;
+        float endSpeed = dashDirection * dashSpeed * dashEndSpeedMultiplier;
+
+        while (Time.time < endTime)
         {
-            dashBufferCounter = 0f;
-            dashRoutine = StartCoroutine(DashRoutine());
-            yield break;
+            if (!allowMoveDuringDashRecovery)
+            {
+                float t = 1f - ((endTime - Time.time) / Mathf.Max(0.01f, dashEndSmoothTime));
+                float currentSpeed = Mathf.Lerp(startSpeed, endSpeed, t);
+                rb.linearVelocity = new Vector2(currentSpeed, rb.linearVelocity.y);
+            }
+
+            yield return null;
         }
 
+        if (!allowMoveDuringDashRecovery)
+        {
+            rb.linearVelocity = new Vector2(endSpeed, rb.linearVelocity.y);
+        }
+
+        Is_Dashing = false;
+        Is_DashEnding = false;
+        DisableDashInvincibility();
+        dashRoutine = null;
+        UpdateMoveState();
+        BeginDashCooldown();
+    }
+
+    // Animation Event를 나중에 연결해도 같은 무적 값을 사용하도록 공개 메서드로 둡니다.
+    public void EnableDashInvincibility()
+    {
+        Is_Invincible = true;
+    }
+
+    public void DisableDashInvincibility()
+    {
+        Is_Invincible = false;
+    }
+
+    // 공격 스크립트가 후딜 공격 허용 옵션을 사용할 때 대쉬 상태를 안전하게 끝냅니다.
+    public bool TryConsumeDashRecoveryForAttack()
+    {
+        if (!CanAttackDuringDashRecovery)
+        {
+            return false;
+        }
+
+        InterruptDashRecovery(true);
+        return true;
+    }
+
+    private void InterruptDashRecovery(bool startCooldown)
+    {
+        // 점프/공격/연속 대쉬 옵션이 후딜을 취소해도 중력과 무적을 반드시 복구합니다.
+        if (dashRoutine != null)
+        {
+            StopCoroutine(dashRoutine);
+            dashRoutine = null;
+        }
+
+        if (dashCooldownRoutine != null)
+        {
+            StopCoroutine(dashCooldownRoutine);
+            dashCooldownRoutine = null;
+        }
+
+        rb.gravityScale = defaultGravityScale;
+        Is_Dashing = false;
+        Is_DashEnding = false;
+        DisableDashInvincibility();
+
+        if (startCooldown)
+        {
+            BeginDashCooldown();
+        }
+    }
+
+    private void BeginDashCooldown()
+    {
+        if (dashCooldownRoutine == null)
+        {
+            dashCooldownRoutine = StartCoroutine(DashCooldownRoutine());
+        }
+    }
+
+    private IEnumerator DashCooldownRoutine()
+    {
         isDashCoolingDown = true;
         yield return new WaitForSeconds(dashCooldown);
         isDashCoolingDown = false;
-        dashRoutine = null;
+        dashCooldownRoutine = null;
         TryConsumeDashBuffer();
     }
 
@@ -530,6 +755,7 @@ public class hys_Player_Movement : MonoBehaviour
 
         if (pushDown)
         {
+            isDownJumping = true;
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, passDownVelocity);
         }
 
@@ -542,6 +768,11 @@ public class hys_Player_Movement : MonoBehaviour
         if (platform != null)
         {
             SetIgnoreCollision(platform, false);
+        }
+
+        if (pushDown)
+        {
+            isDownJumping = false;
         }
 
         isPassingThrough = false;
@@ -571,19 +802,65 @@ public class hys_Player_Movement : MonoBehaviour
                 Physics2D.IgnoreCollision(playerCollider, platform, ignore);
             }
         }
+
+        if (platform != null)
+        {
+            if (ignore)
+            {
+                ignoredPlatforms.Add(platform);
+            }
+            else
+            {
+                ignoredPlatforms.Remove(platform);
+            }
+        }
     }
 
     private bool IsPassPlatform(Collider2D target)
     {
-        // 자기 자신이 아니고 지정 태그를 가진 발판만 통과 발판으로 봅니다.
+        // Pass 태그 또는 PlatformEffector2D를 가진 One Way Platform을 통과 대상으로 봅니다.
         return target != null &&
             !IsPlayerCollider(target) &&
-            target.CompareTag(passPlatformTag);
+            (target.CompareTag(passPlatformTag) || target.GetComponent<PlatformEffector2D>() != null);
+    }
+
+    private void OnDisable()
+    {
+        // 오브젝트 비활성화 중에도 무적·중력·발판 충돌 무시가 남지 않게 모두 복구합니다.
+        StopAllCoroutines();
+
+        Collider2D[] platformsToRestore = new Collider2D[ignoredPlatforms.Count];
+        ignoredPlatforms.CopyTo(platformsToRestore);
+        foreach (Collider2D platform in platformsToRestore)
+        {
+            if (platform != null)
+            {
+                SetIgnoreCollision(platform, false);
+            }
+        }
+
+        ignoredPlatforms.Clear();
+        dashRoutine = null;
+        dashCooldownRoutine = null;
+        isDashCoolingDown = false;
+        isPassingThrough = false;
+        isDownJumping = false;
+        Is_Dashing = false;
+        Is_DashEnding = false;
+        Is_Landing = false;
+        DisableDashInvincibility();
+
+        if (rb != null)
+        {
+            rb.gravityScale = defaultGravityScale;
+        }
     }
 
     private bool IsPlayerCollider(Collider2D target)
     {
         // 충돌 검사 결과에서 플레이어 자신의 콜라이더를 제외하기 위한 체크입니다.
+        EnsurePlayerColliders();
+
         foreach (Collider2D playerCollider in playerColliders)
         {
             if (target == playerCollider)
@@ -624,6 +901,8 @@ public class hys_Player_Movement : MonoBehaviour
     private Bounds GetPlayerBounds()
     {
         // 여러 콜라이더를 하나의 플레이어 영역으로 합칩니다.
+        EnsurePlayerColliders();
+
         Collider2D firstCollider = playerColliders.Length > 0 ? playerColliders[0] : null;
         if (firstCollider == null)
         {
@@ -645,6 +924,8 @@ public class hys_Player_Movement : MonoBehaviour
     private Vector2 GetGroundCheckPosition()
     {
         // 발밑 접지 검사를 할 기준 위치입니다.
+        EnsurePlayerColliders();
+
         Collider2D firstCollider = playerColliders.Length > 0 ? playerColliders[0] : null;
         if (firstCollider == null)
         {
@@ -653,5 +934,14 @@ public class hys_Player_Movement : MonoBehaviour
 
         Bounds bounds = firstCollider.bounds;
         return new Vector2(bounds.center.x, bounds.min.y);
+    }
+
+    private void EnsurePlayerColliders()
+    {
+        // 다른 스크립트가 Awake 순서상 먼저 접지 여부를 물어도 안전하게 콜라이더를 준비합니다.
+        if (playerColliders == null || playerColliders.Length == 0)
+        {
+            playerColliders = GetComponents<Collider2D>();
+        }
     }
 }

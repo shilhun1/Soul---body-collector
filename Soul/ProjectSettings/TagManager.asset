@@ -3,12 +3,12 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 3
-<<<<<<< HEAD
+
   tags:
   - Pass
-=======
-  tags: []
->>>>>>> merge
+
+
+
   layers:
   - Default
   - TransparentFX
