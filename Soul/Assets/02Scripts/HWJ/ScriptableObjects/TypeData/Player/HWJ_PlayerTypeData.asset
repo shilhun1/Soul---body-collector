@@ -102,6 +102,6 @@ MonoBehaviour:
     maxDecayValue: 120
     decayTickSeconds: 0.5
     decayAmountPerTick: 1
-    hitDecayPenalty: 10
+    hitDecayPenalty: 0
     startDecayOnEnterBody: 1
     enterSoulStateWhenEmpty: 1
