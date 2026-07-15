@@ -562,6 +562,7 @@ public static class HWJ_GameDataValidator
                 AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Warning, "SKILL_ACTION_TYPE_NONE", "REQ-14", assetPath, "ActionType", "Skill action type is None.", "Choose Melee, Projectile, Buff, Dash, or Area.");
             }
 
+            ValidateNonNegative(validationIssues, skillAction.AuthoredAttackPower, "REQ-14", assetPath, "authoredAttackPower", "SKILL_AUTHORED_ATTACK_POWER_NEGATIVE");
             ValidateNonNegative(validationIssues, skillAction.DamageMultiplier, "REQ-14", assetPath, "damageMultiplier", "SKILL_DAMAGE_MULTIPLIER_NEGATIVE");
             ValidateNonNegative(validationIssues, skillAction.Range, "REQ-14", assetPath, "range", "SKILL_RANGE_NEGATIVE");
             ValidateNonNegative(validationIssues, skillAction.HitRange, "REQ-14", assetPath, "hitRange", "SKILL_HIT_RANGE_NEGATIVE");
@@ -575,6 +576,10 @@ public static class HWJ_GameDataValidator
             ValidateNonNegative(validationIssues, skillAction.MoveDistance, "REQ-14", assetPath, "moveDistance", "SKILL_MOVE_DISTANCE_NEGATIVE");
             ValidateNonNegative(validationIssues, skillAction.MoveSpeed, "REQ-14", assetPath, "moveSpeed", "SKILL_MOVE_SPEED_NEGATIVE");
             ValidateNonNegative(validationIssues, skillAction.HitIntervalSeconds, "REQ-14", assetPath, "hitIntervalSeconds", "SKILL_HIT_INTERVAL_NEGATIVE");
+            ValidateNonNegative(validationIssues, skillAction.KnockbackDistance, "REQ-14", assetPath, "knockbackDistance", "SKILL_KNOCKBACK_DISTANCE_NEGATIVE");
+            ValidateNonNegative(validationIssues, skillAction.StaggerSeconds, "REQ-14", assetPath, "staggerSeconds", "SKILL_STAGGER_SECONDS_NEGATIVE");
+            ValidateNonNegative(validationIssues, skillAction.LaunchHeight, "REQ-14", assetPath, "launchHeight", "SKILL_LAUNCH_HEIGHT_NEGATIVE");
+            ValidateNonNegative(validationIssues, skillAction.InvincibilitySeconds, "REQ-14", assetPath, "invincibilitySeconds", "SKILL_INVINCIBILITY_SECONDS_NEGATIVE");
             ValidateNonNegative(validationIssues, skillAction.CustomBodyDecayAmount, "REQ-10", assetPath, "customBodyDecayAmount", "SKILL_CUSTOM_BODY_DECAY_NEGATIVE");
             ValidateNonNegative(validationIssues, skillAction.AdditionalBodyDecayAmount, "REQ-10", assetPath, "additionalBodyDecayAmount", "SKILL_ADDITIONAL_BODY_DECAY_NEGATIVE");
             ValidateNonNegative(validationIssues, skillAction.ComboBodyDecayMultiplier, "REQ-10", assetPath, "comboBodyDecayMultiplier", "SKILL_COMBO_BODY_DECAY_MULTIPLIER_NEGATIVE");

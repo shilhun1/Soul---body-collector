@@ -587,6 +587,9 @@ public class HWJ_PlayerInputSystem : MonoBehaviour
             case HWJ_PlayerInputActionId.SkillSlot3:
                 binding = HWJ_PlayerInputRuntimeBinding.FromKeyboard(actionId, KeyCode.Alpha3);
                 return true;
+            case HWJ_PlayerInputActionId.SkillSlot4:
+                binding = HWJ_PlayerInputRuntimeBinding.FromKeyboard(actionId, KeyCode.Alpha4);
+                return true;
             default:
                 binding = default(HWJ_PlayerInputRuntimeBinding);
                 return false;
@@ -606,6 +609,9 @@ public class HWJ_PlayerInputSystem : MonoBehaviour
             case 2:
                 actionId = HWJ_PlayerInputActionId.SkillSlot3;
                 return true;
+            case 3:
+                actionId = HWJ_PlayerInputActionId.SkillSlot4;
+                return true;
             default:
                 actionId = default(HWJ_PlayerInputActionId);
                 return false;
@@ -615,7 +621,7 @@ public class HWJ_PlayerInputSystem : MonoBehaviour
     private static bool IsActionIdDefined(HWJ_PlayerInputActionId actionId)
     {
         return actionId >= HWJ_PlayerInputActionId.MoveLeft
-            && actionId <= HWJ_PlayerInputActionId.SkillSlot3;
+            && actionId <= HWJ_PlayerInputActionId.SkillSlot4;
     }
 
     private void OnEnable()

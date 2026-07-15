@@ -1,0 +1,58 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a6a8eded0c744166a37dfeef997b499e, type: 3}
+  m_Name: HWJ_PlayerSkill_Sword_FinalSlash
+  m_EditorClassIdentifier: Assembly-CSharp::HWJ_SkillActionDataSO
+  skillActionId: player_sword_final_slash
+  sourceSkillId: 1105
+  displayName: "Final Slash"
+  skillDescription: "앞으로 이동하며 빠르게 연속베기를 가해 적을 공격한다."
+  effectId: ""
+  soundId: ""
+  actionType: 4
+  requiredWeaponType: 3
+  authoredAttackPower: 55
+  damageMultiplier: 5.5
+  range: 9
+  hitRange: 9
+  durationSeconds: 4.26
+  cooldownSeconds: 15
+  hitStartSeconds: 2.5
+  hitActiveSeconds: 0.76
+  recoverySeconds: 1
+  movementLockSeconds: 3.5
+  dashCancelStartSeconds: 2.5
+  canDashCancel: 1
+  moveDistance: 1.7
+  moveSpeed: 20
+  hitCount: 10
+  hitIntervalSeconds: 0.08
+  causesKnockback: 1
+  knockbackDistance: 0.7
+  causesStagger: 0
+  staggerSeconds: 0.65
+  launchesTarget: 0
+  launchHeight: 1.5
+  grantsInvincibility: 1
+  invincibilitySeconds: 1
+  usesCustomBodyDecayAmount: 0
+  customBodyDecayAmount: 0
+  additionalBodyDecayAmount: 0
+  usesComboBodyDecayMultiplier: 0
+  comboBodyDecayMultiplier: 1
+  chargeBodyDecayPerSecond: 0
+  maxChargeBodyDecayAmount: 0
+  motionKey: PlayerSkill_Sword_FinalSlash
+  motionSequenceKeys: []
+  motionStepIntervalSeconds: 0.12
+  projectilePrefab: {fileID: 0}
+  actionEffectPrefab: {fileID: 0}

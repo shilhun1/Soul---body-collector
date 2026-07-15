@@ -8,6 +8,7 @@ public class HWJ_BodyDecaySystem : MonoBehaviour
     [SerializeField] private HWJ_SoulSystem soulSystem;
     [SerializeField] private HWJ_PossessionSystem possessionSystem;
     [SerializeField] private HWJ_PossessedBodySystem possessedBodySystem;
+    [SerializeField] private HWJ_RuntimeStatusSystem runtimeStatus;
     [SerializeField] private HWJ_CollapseSystem collapseSystem;
     [SerializeField] private float currentDecayValue;
     [SerializeField] private bool resetDecayWhenEnterBody = true;
@@ -312,6 +313,11 @@ public class HWJ_BodyDecaySystem : MonoBehaviour
             possessedBodySystem = GetComponent<HWJ_PossessedBodySystem>();
         }
 
+        if (runtimeStatus == null)
+        {
+            runtimeStatus = GetComponent<HWJ_RuntimeStatusSystem>();
+        }
+
         if (collapseSystem == null)
         {
             collapseSystem = GetComponent<HWJ_CollapseSystem>();
@@ -440,8 +446,62 @@ public class HWJ_BodyDecaySystem : MonoBehaviour
             return;
         }
 
+        float previousDecayValue = currentDecayValue;
         SetCurrentDecayValue(currentDecayValue + finalAmount, bodyDecay);
         runtimeStateMessage = $"Body decay increased by {finalAmount:0.###}. Reason: {reason}.";
+        ApplyPossessedBodyHpLossForDecay(currentDecayValue - previousDecayValue, bodyDecay);
+    }
+
+    private void ApplyPossessedBodyHpLossForDecay(float appliedDecayAmount, HWJ_BodyDecayData bodyDecay)
+    {
+        if (appliedDecayAmount <= 0f || !TryGetCurrentPossessedBodyState(out HWJ_PossessedBodyRuntimeState bodyState))
+        {
+            return;
+        }
+
+        float maxDecayValue = bodyDecay != null
+            ? Mathf.Max(0f, bodyDecay.maxDecayValue)
+            : bodyState.MaxDecayValue;
+
+        if (maxDecayValue <= 0f)
+        {
+            return;
+        }
+
+        // Possessed body HP represents remaining usable body time, so decay progress must lower HP instead of healing it.
+        float hpLoss = bodyState.MaxHp * Mathf.Clamp01(appliedDecayAmount / maxDecayValue);
+        possessedBodySystem.SetCurrentHp(bodyState.CurrentHp - hpLoss);
+        runtimeStatus?.RefreshCurrentHpFromData(false);
+        TryEnterSoulStateWhenPossessedBodyHpEmpty();
+    }
+
+    private void TryEnterSoulStateWhenPossessedBodyHpEmpty()
+    {
+        if (!TryGetCurrentPossessedBodyState(out HWJ_PossessedBodyRuntimeState bodyState)
+            || bodyState.CurrentHp > 0f)
+        {
+            return;
+        }
+
+        isDecaying = false;
+
+        if (collapseSystem != null)
+        {
+            HWJ_BodyCollapseResult collapseResult = collapseSystem.TryCollapseCurrentBody(HWJ_BodyCollapseReason.HpDepleted);
+            runtimeStateMessage = collapseResult.Message;
+            return;
+        }
+
+        possessedBodySystem?.MarkCurrentBodyCollapsed();
+
+        if (soulSystem == null)
+        {
+            runtimeStateMessage = "Possessed body HP reached 0, but HWJ_SoulSystem is missing.";
+            return;
+        }
+
+        runtimeStateMessage = "Possessed body HP reached 0. Entering soul state.";
+        soulSystem.EnterSoulState();
     }
 
     private static float ResolveSkillActionDecayAmount(

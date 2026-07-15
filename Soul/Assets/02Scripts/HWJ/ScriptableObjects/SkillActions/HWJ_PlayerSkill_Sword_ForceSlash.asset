@@ -1,0 +1,58 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a6a8eded0c744166a37dfeef997b499e, type: 3}
+  m_Name: HWJ_PlayerSkill_Sword_ForceSlash
+  m_EditorClassIdentifier: Assembly-CSharp::HWJ_SkillActionDataSO
+  skillActionId: player_sword_force_slash
+  sourceSkillId: 1104
+  displayName: "Force Slash"
+  skillDescription: "전방으로 거대한 검기를 날려 적을 공격한다."
+  effectId: ""
+  soundId: ""
+  actionType: 2
+  requiredWeaponType: 3
+  authoredAttackPower: 30
+  damageMultiplier: 3
+  range: 15
+  hitRange: 15
+  durationSeconds: 1.33
+  cooldownSeconds: 9
+  hitStartSeconds: 0.75
+  hitActiveSeconds: 0.28
+  recoverySeconds: 0.3
+  movementLockSeconds: 1.05
+  dashCancelStartSeconds: 0.75
+  canDashCancel: 1
+  moveDistance: 0
+  moveSpeed: 0
+  hitCount: 4
+  hitIntervalSeconds: 0.08
+  causesKnockback: 0
+  knockbackDistance: 0
+  causesStagger: 1
+  staggerSeconds: 0.65
+  launchesTarget: 0
+  launchHeight: 1.5
+  grantsInvincibility: 0
+  invincibilitySeconds: 0
+  usesCustomBodyDecayAmount: 0
+  customBodyDecayAmount: 0
+  additionalBodyDecayAmount: 0
+  usesComboBodyDecayMultiplier: 0
+  comboBodyDecayMultiplier: 1
+  chargeBodyDecayPerSecond: 0
+  maxChargeBodyDecayAmount: 0
+  motionKey: PlayerSkill_Sword_ForceSlash
+  motionSequenceKeys: []
+  motionStepIntervalSeconds: 0.12
+  projectilePrefab: {fileID: 6123444099088108134, guid: 9cf4f102adaf7694bae11e7010bab686, type: 3}
+  actionEffectPrefab: {fileID: 0}

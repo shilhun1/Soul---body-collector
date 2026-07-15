@@ -652,8 +652,14 @@ public class HWJ_PossessionSystem : MonoBehaviour
 
         if (possessedBodyResolver.TryGetTypeData(out HWJ_EnemyTypeDataSO enemyData))
         {
+            if (HasAnySkillEntry(enemyData.PlayerPossessionSkillSet))
+            {
+                skillSet = enemyData.PlayerPossessionSkillSet;
+                return true;
+            }
+
             skillSet = enemyData.SkillCycle;
-            return skillSet != null;
+            return HasAnySkillEntry(skillSet);
         }
 
         if (possessedBodyResolver.TryGetTypeData(out HWJ_BossTypeDataSO bossData))
@@ -663,6 +669,11 @@ public class HWJ_PossessionSystem : MonoBehaviour
         }
 
         return false;
+    }
+
+    private static bool HasAnySkillEntry(HWJ_SkillSetData skillSet)
+    {
+        return skillSet != null && skillSet.skills != null && skillSet.skills.Length > 0;
     }
 
     /// <summary>

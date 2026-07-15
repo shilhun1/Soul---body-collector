@@ -7,9 +7,18 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "HWJ_SkillActionData", menuName = "HWJ/Data/System/Skill Action")]
 public class HWJ_SkillActionDataSO : ScriptableObject
 {
+    [Header("Identity")]
     [SerializeField] private string skillActionId;
+    [SerializeField] private string sourceSkillId;
+    [SerializeField] private string displayName;
+    [SerializeField] private string skillDescription;
+    [SerializeField] private string effectId;
+    [SerializeField] private string soundId;
+
+    [Header("Execution")]
     [SerializeField] private HWJ_SkillActionType actionType;
     [SerializeField] private HWJ_WeaponType requiredWeaponType;
+    [SerializeField] private float authoredAttackPower;
     [SerializeField] private float damageMultiplier = 1f;
     [SerializeField] private float range;
     [SerializeField] private float hitRange;
@@ -25,6 +34,18 @@ public class HWJ_SkillActionDataSO : ScriptableObject
     [SerializeField] private float moveSpeed;
     [SerializeField] private int hitCount = 1;
     [SerializeField] private float hitIntervalSeconds;
+
+    [Header("Hit Reaction Metadata")]
+    [SerializeField] private bool causesKnockback;
+    [SerializeField] private float knockbackDistance;
+    [SerializeField] private bool causesStagger;
+    [SerializeField] private float staggerSeconds;
+    [SerializeField] private bool launchesTarget;
+    [SerializeField] private float launchHeight;
+    [SerializeField] private bool grantsInvincibility;
+    [SerializeField] private float invincibilitySeconds;
+
+    [Header("Body Decay")]
     [SerializeField] private bool usesCustomBodyDecayAmount;
     [SerializeField] private float customBodyDecayAmount;
     [SerializeField] private float additionalBodyDecayAmount;
@@ -32,6 +53,8 @@ public class HWJ_SkillActionDataSO : ScriptableObject
     [SerializeField] private float comboBodyDecayMultiplier = 1f;
     [SerializeField] private float chargeBodyDecayPerSecond;
     [SerializeField] private float maxChargeBodyDecayAmount;
+
+    [Header("Motion And Assets")]
     [SerializeField] private string motionKey;
     [SerializeField] private string[] motionSequenceKeys;
     [SerializeField] private float motionStepIntervalSeconds = 0.12f;
@@ -39,8 +62,14 @@ public class HWJ_SkillActionDataSO : ScriptableObject
     [SerializeField] private GameObject actionEffectPrefab;
 
     public string SkillActionId => skillActionId;
+    public string SourceSkillId => sourceSkillId;
+    public string DisplayName => displayName;
+    public string SkillDescription => skillDescription;
+    public string EffectId => effectId;
+    public string SoundId => soundId;
     public HWJ_SkillActionType ActionType => actionType;
     public HWJ_WeaponType RequiredWeaponType => requiredWeaponType;
+    public float AuthoredAttackPower => authoredAttackPower;
     public float DamageMultiplier => damageMultiplier;
     public float Range => range;
     public float HitRange => hitRange;
@@ -56,6 +85,14 @@ public class HWJ_SkillActionDataSO : ScriptableObject
     public float MoveSpeed => moveSpeed;
     public int HitCount => hitCount;
     public float HitIntervalSeconds => hitIntervalSeconds;
+    public bool CausesKnockback => causesKnockback;
+    public float KnockbackDistance => knockbackDistance;
+    public bool CausesStagger => causesStagger;
+    public float StaggerSeconds => staggerSeconds;
+    public bool LaunchesTarget => launchesTarget;
+    public float LaunchHeight => launchHeight;
+    public bool GrantsInvincibility => grantsInvincibility;
+    public float InvincibilitySeconds => invincibilitySeconds;
     public bool UsesCustomBodyDecayAmount => usesCustomBodyDecayAmount;
     public float CustomBodyDecayAmount => customBodyDecayAmount;
     public float AdditionalBodyDecayAmount => additionalBodyDecayAmount;

@@ -1,0 +1,58 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a6a8eded0c744166a37dfeef997b499e, type: 3}
+  m_Name: HWJ_PlayerSkill_Bow_ArrowsRain
+  m_EditorClassIdentifier: Assembly-CSharp::HWJ_SkillActionDataSO
+  skillActionId: player_bow_arrows_rain
+  sourceSkillId: 1405
+  displayName: "Arrows Rain"
+  skillDescription: "하늘로 화살을 쏴올려 화살비를 내린 다음 공격한다."
+  effectId: ""
+  soundId: ""
+  actionType: 5
+  requiredWeaponType: 5
+  authoredAttackPower: 8
+  damageMultiplier: 0.8
+  range: 20
+  hitRange: 20
+  durationSeconds: 1.9
+  cooldownSeconds: 18
+  hitStartSeconds: 1
+  hitActiveSeconds: 0.6
+  recoverySeconds: 0.3
+  movementLockSeconds: 1.6
+  dashCancelStartSeconds: 1
+  canDashCancel: 1
+  moveDistance: 0
+  moveSpeed: 0
+  hitCount: 8
+  hitIntervalSeconds: 0.08
+  causesKnockback: 0
+  knockbackDistance: 0
+  causesStagger: 1
+  staggerSeconds: 0.6
+  launchesTarget: 0
+  launchHeight: 0
+  grantsInvincibility: 0
+  invincibilitySeconds: 0
+  usesCustomBodyDecayAmount: 0
+  customBodyDecayAmount: 0
+  additionalBodyDecayAmount: 0
+  usesComboBodyDecayMultiplier: 0
+  comboBodyDecayMultiplier: 1
+  chargeBodyDecayPerSecond: 0
+  maxChargeBodyDecayAmount: 0
+  motionKey: PlayerSkill_Bow_ArrowsRain
+  motionSequenceKeys: []
+  motionStepIntervalSeconds: 0.12
+  projectilePrefab: {fileID: 0}
+  actionEffectPrefab: {fileID: 0}

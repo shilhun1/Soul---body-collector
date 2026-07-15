@@ -1532,6 +1532,42 @@ public class HWJ_CoreSystemsPlayModeTests
     }
 
     [UnityTest]
+    public IEnumerator BodyDecaySystem_DecreasesPossessedBodyHpOnTimeDecayTick()
+    {
+        GameObject player = CreatePlayerObject("PlayerTimeDecayHp", true, 100f, 1f);
+        HWJ_PlayerTypeDataSO playerData = player.GetComponent<HWJ_RootObjectDataResolver>().TypeData as HWJ_PlayerTypeDataSO;
+        playerData.BodyDecay.decayTickSeconds = 0.01f;
+        playerData.BodyDecay.decayAmountPerTick = 5f;
+        GameObject enemy = CreateCombatObject(
+            "TimeDecayBody",
+            HWJ_ObjectType.Enemy,
+            HWJ_Faction.Monster,
+            100f,
+            0f,
+            0f,
+            CreateEnemyTypeData(true));
+
+        yield return null;
+
+        enemy.GetComponent<HWJ_RuntimeStatusSystem>().ApplyDamage(999f);
+        yield return null;
+
+        HWJ_PossessionSystem possession = player.GetComponent<HWJ_PossessionSystem>();
+        Assert.IsTrue(possession.TryPossess(enemy.GetComponent<HWJ_RootObjectDataResolver>()));
+        Assert.IsTrue(possession.TryGetPossessedBodyRuntimeState(out HWJ_PossessedBodyRuntimeState bodyState));
+        Assert.AreEqual(100f, bodyState.CurrentHp, 0.001f);
+
+        yield return new WaitForSeconds(0.05f);
+
+        Assert.Greater(player.GetComponent<HWJ_BodyDecaySystem>().CurrentDecayValue, 0f);
+        Assert.Less(bodyState.CurrentHp, 100f);
+        Assert.AreEqual(bodyState.CurrentHp, player.GetComponent<HWJ_RuntimeStatusSystem>().CurrentHp, 0.001f);
+
+        Object.Destroy(player);
+        Object.Destroy(enemy);
+    }
+
+    [UnityTest]
     public IEnumerator PossessedBodySystem_CreatesRuntimeStateWithoutMutatingSourceData()
     {
         GameObject player = CreatePlayerObject("PlayerRuntimeBodyState", true, 12f, 2f);
@@ -2181,7 +2217,7 @@ public class HWJ_CoreSystemsPlayModeTests
     {
         HWJ_PlayerInputBindingDataSO bindingData = ScriptableObject.CreateInstance<HWJ_PlayerInputBindingDataSO>();
 
-        Assert.AreEqual(12, bindingData.BindingCount);
+        Assert.AreEqual(13, bindingData.BindingCount);
         Assert.IsTrue(bindingData.TryGetBindingAt(0, out HWJ_PlayerInputBindingEntry firstBinding));
         Assert.AreEqual(HWJ_PlayerInputActionId.MoveLeft, firstBinding.ActionId);
         Assert.IsTrue(bindingData.TryGetBinding(
@@ -2193,6 +2229,7 @@ public class HWJ_CoreSystemsPlayModeTests
         Assert.AreEqual(
             HWJ_InputMouseButton.Left,
             bindingData.GetMouseButton(HWJ_PlayerInputActionId.Attack, HWJ_InputMouseButton.None));
+        Assert.AreEqual(KeyCode.Alpha4, bindingData.GetKeyboardKey(HWJ_PlayerInputActionId.SkillSlot4, KeyCode.None));
 
         Object.Destroy(bindingData);
         yield return null;
@@ -2627,6 +2664,60 @@ public class HWJ_CoreSystemsPlayModeTests
         HWJ_GameplayEvents.StageFlowStateChanged -= OnStageFlowChanged;
         HWJ_GameplayEvents.BossBattleStarted -= OnBossBattleStarted;
         Object.Destroy(stageObject);
+    }
+
+    [UnityTest]
+    public IEnumerator StageEnemyCountSystem_CompletesObjectiveWhenAllMapEnemiesAreDead()
+    {
+        GameObject stageObject = new GameObject("StageEnemyCountGate");
+        HWJ_StageProgressionSystem stage = stageObject.AddComponent<HWJ_StageProgressionSystem>();
+        HWJ_StageEnemyCountSystem enemyCounter = stageObject.AddComponent<HWJ_StageEnemyCountSystem>();
+        GameObject enemyA = CreateCombatObject(
+            "StageEnemyCountA",
+            HWJ_ObjectType.Enemy,
+            HWJ_Faction.Monster,
+            5f,
+            0f,
+            0f,
+            CreateEnemyTypeData(true));
+        GameObject enemyB = CreateCombatObject(
+            "StageEnemyCountB",
+            HWJ_ObjectType.Enemy,
+            HWJ_Faction.Monster,
+            5f,
+            0f,
+            0f,
+            CreateEnemyTypeData(true));
+
+        stage.SetStageIds("stage.enemy.count", "region.enemy.count.next");
+        SetPrivateField(enemyCounter, "stageProgressionSystem", stage);
+        SetPrivateField(enemyCounter, "rescanIntervalSeconds", 0.01f);
+
+        yield return null;
+
+        enemyCounter.ForceScan("test_initial");
+        Assert.AreEqual(2, enemyCounter.RemainingAliveEnemyCount);
+        Assert.IsFalse(stage.ObjectiveComplete);
+        Assert.AreEqual(HWJ_StageFlowState.Combat, stage.CurrentState);
+
+        enemyA.GetComponent<HWJ_RuntimeStatusSystem>().ApplyDamage(99f);
+        yield return null;
+
+        Assert.AreEqual(1, enemyCounter.RemainingAliveEnemyCount);
+        Assert.IsFalse(stage.ObjectiveComplete);
+
+        enemyB.GetComponent<HWJ_RuntimeStatusSystem>().ApplyDamage(99f);
+        yield return null;
+
+        enemyCounter.ForceScan("test_final");
+        Assert.AreEqual(0, enemyCounter.RemainingAliveEnemyCount);
+        Assert.IsTrue(stage.ObjectiveComplete);
+        Assert.IsTrue(enemyCounter.ObjectiveCompletedByThisSystem);
+        Assert.AreEqual(HWJ_StageFlowState.ObjectiveComplete, stage.CurrentState);
+
+        Object.Destroy(stageObject);
+        Object.Destroy(enemyA);
+        Object.Destroy(enemyB);
     }
 
     [UnityTest]
