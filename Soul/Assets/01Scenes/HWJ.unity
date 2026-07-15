@@ -1195,6 +1195,7 @@ MonoBehaviour:
   playerLevel: {fileID: 0}
   playerSoul: {fileID: 0}
   playerBodyDecay: {fileID: 0}
+  playerPossession: {fileID: 0}
   preservePlayerRuntimeAcrossScenes: 1
   hasPlayerRuntimeSnapshot: 0
   savedCurrentHp: 0
@@ -1202,6 +1203,20 @@ MonoBehaviour:
   savedPossessedBodyHp: 0
   hasBodyDecaySnapshot: 0
   savedBodyDecayValue: 0
+  hasPlayerGrowthSnapshot: 0
+  savedLevel: 0
+  savedExperience: 0
+  savedSkillPoint: 0
+  hasPlayerPossessionSnapshot: 0
+  savedHasActivePossessedBody: 0
+  savedPossessedRootObjectId: 
+  savedPossessedRootObjectData: {fileID: 0}
+  savedHasPossessedVisualSnapshot: 0
+  savedPossessedVisualSprite: {fileID: 0}
+  savedPossessedVisualColor: {r: 1, g: 1, b: 1, a: 1}
+  savedPossessedVisualFlipX: 0
+  savedPossessedVisualFlipY: 0
+  savedPossessedAnimatorController: {fileID: 0}
   togglePauseWithEscape: 1
   isPaused: 0
   timeScaleBeforePause: 1
@@ -1549,6 +1564,13 @@ MonoBehaviour:
   possessionSystem: {fileID: 0}
   runtimeStatus: {fileID: 0}
   bossBrain: {fileID: 0}
+  useGameplayDamageRules: 1
+  commonDamageRule: {fileID: 0}
+  commonDamageRuleId: damage_can_apply_common
+  playerDamageToEnemyRule: {fileID: 0}
+  playerDamageToEnemyRuleId: player_damage_to_enemy
+  grantKillRewards: 1
+  lastRewardResult: 
 --- !u!114 &2087133894
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1566,11 +1588,15 @@ MonoBehaviour:
   runtimeStatus: {fileID: 0}
   playerInput: {fileID: 0}
   possessedBodyResolver: {fileID: 0}
+  runtimePossessedBodyResolver: {fileID: 0}
   moveOwnerToPossessedBody: 1
   copyPossessedBodyVisual: 1
   consumePossessedCorpse: 1
   deactivateConsumedCorpse: 1
   allowManualSoulExit: 1
+  useGameplayPossessionRule: 1
+  possessionRule: {fileID: 0}
+  possessionRuleId: possession_can_start
   lastPossessionResult: 
 --- !u!114 &2087133895
 MonoBehaviour:
@@ -1606,6 +1632,7 @@ MonoBehaviour:
   dataResolver: {fileID: 0}
   possessionSystem: {fileID: 0}
   runtimeStatus: {fileID: 0}
+  initializeStateFromPlayerData: 1
   currentState: 0
   bodyToSoulTransitionSeconds: 2.5
   soulDeadlineTimer: 0
