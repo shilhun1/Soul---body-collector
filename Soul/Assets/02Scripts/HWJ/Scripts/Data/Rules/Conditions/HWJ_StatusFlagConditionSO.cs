@@ -3,8 +3,15 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "HWJ_StatusFlagCondition", menuName = "HWJ/Data/Rules/Conditions/Status Flag")]
 public class HWJ_StatusFlagConditionSO : HWJ_GameplayConditionSO
 {
+    [Header("상태 플래그 조건")]
+    [Tooltip("Source 또는 Target 중 어느 쪽의 상태 플래그를 검사할지 정합니다.")]
+    [InspectorName("검사 대상")]
     [SerializeField] private HWJ_GameplayActorSlot actor = HWJ_GameplayActorSlot.Target;
+    [Tooltip("검사할 상태 플래그입니다.")]
+    [InspectorName("상태 플래그")]
     [SerializeField] private HWJ_StatusFlag flag = HWJ_StatusFlag.Alive;
+    [Tooltip("해당 플래그가 이 값과 같아야 조건을 통과합니다.")]
+    [InspectorName("기대값")]
     [SerializeField] private bool expectedValue = true;
 
     protected override bool Evaluate(HWJ_GameplayContext context)

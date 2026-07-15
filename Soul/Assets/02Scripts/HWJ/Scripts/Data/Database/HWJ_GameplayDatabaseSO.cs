@@ -9,22 +9,46 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "HWJ_GameplayDatabase", menuName = "HWJ/Data/Gameplay Database")]
 public class HWJ_GameplayDatabaseSO : ScriptableObject
 {
-    [Header("Object Data")]
+    [Header("오브젝트 데이터")]
+    [Tooltip("플레이어, 적, NPC, 보스의 RootObjectDataSO 목록입니다.")]
+    [InspectorName("RootObjectData 목록")]
     [SerializeField] private HWJ_RootObjectDataSO[] rootObjects;
 
-    [Header("System Data")]
+    [Header("시스템 데이터")]
+    [Tooltip("오브젝트 풀 전체 설정입니다.")]
+    [InspectorName("오브젝트 풀 데이터")]
     [SerializeField] private HWJ_ObjectPoolDataSO objectPoolData;
+    [Tooltip("스테이지/구간별 스폰 테이블 목록입니다.")]
+    [InspectorName("스폰 테이블 목록")]
     [SerializeField] private HWJ_SpawnTableDataSO[] spawnTables;
+    [Tooltip("스탯 구슬 보상 데이터 목록입니다.")]
+    [InspectorName("스탯 구슬 목록")]
     [SerializeField] private HWJ_StatOrbDataSO[] statOrbs;
+    [Tooltip("레벨업 경험치 테이블 목록입니다.")]
+    [InspectorName("레벨 테이블 목록")]
     [SerializeField] private HWJ_LevelUpDataSO[] levelTables;
+    [Tooltip("플레이어, 몬스터, 보스가 실행하는 스킬 액션 목록입니다.")]
+    [InspectorName("스킬 액션 목록")]
     [SerializeField] private HWJ_SkillActionDataSO[] skillActions;
+    [Tooltip("보스 패턴 데이터 목록입니다.")]
+    [InspectorName("보스 패턴 목록")]
     [SerializeField] private HWJ_BossPatternDataSO[] bossPatterns;
+    [Tooltip("체력바 표시 설정 목록입니다.")]
+    [InspectorName("체력바 설정 목록")]
     [SerializeField] private HWJ_HealthBarDataSO[] healthBars;
+    [Tooltip("게임오버 창 설정 목록입니다.")]
+    [InspectorName("게임오버 설정 목록")]
     [SerializeField] private HWJ_GameOverDataSO[] gameOverWindows;
 
-    [Header("Condition And Rule Data")]
+    [Header("조건과 규칙 데이터")]
+    [Tooltip("공통 조건 SO 목록입니다.")]
+    [InspectorName("조건 목록")]
     [SerializeField] private HWJ_GameplayConditionSO[] conditions;
+    [Tooltip("조건을 묶어 만든 게임플레이 규칙 목록입니다.")]
+    [InspectorName("게임플레이 규칙 목록")]
     [SerializeField] private HWJ_GameplayRuleSO[] gameplayRules;
+    [Tooltip("여러 규칙을 실행 순서와 정책으로 묶은 실행 코어 목록입니다.")]
+    [InspectorName("규칙 실행 코어 목록")]
     [SerializeField] private HWJ_RuleExecutionCoreSO[] ruleExecutionCores;
 
     public HWJ_RootObjectDataSO[] RootObjects => rootObjects;

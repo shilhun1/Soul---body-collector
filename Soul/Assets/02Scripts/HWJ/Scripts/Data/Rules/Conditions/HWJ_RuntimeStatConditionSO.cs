@@ -3,9 +3,18 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "HWJ_RuntimeStatCondition", menuName = "HWJ/Data/Rules/Conditions/Runtime Stat")]
 public class HWJ_RuntimeStatConditionSO : HWJ_GameplayConditionSO
 {
+    [Header("런타임 능력치 조건")]
+    [Tooltip("Source 또는 Target 중 어느 쪽의 능력치를 검사할지 정합니다.")]
+    [InspectorName("검사 대상")]
     [SerializeField] private HWJ_GameplayActorSlot actor = HWJ_GameplayActorSlot.Target;
+    [Tooltip("검사할 런타임 능력치입니다.")]
+    [InspectorName("능력치 종류")]
     [SerializeField] private HWJ_RuntimeStatField statField = HWJ_RuntimeStatField.Defense;
+    [Tooltip("현재 능력치와 기준값을 비교하는 방식입니다.")]
+    [InspectorName("비교 방식")]
     [SerializeField] private HWJ_FloatCompareMode compareMode = HWJ_FloatCompareMode.GreaterOrEqual;
+    [Tooltip("비교에 사용할 기준값입니다.")]
+    [InspectorName("기준값")]
     [SerializeField] private float value;
 
     protected override bool Evaluate(HWJ_GameplayContext context)

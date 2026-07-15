@@ -3,7 +3,12 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "HWJ_PossessionCondition", menuName = "HWJ/Data/Rules/Conditions/Possession")]
 public class HWJ_PossessionConditionSO : HWJ_GameplayConditionSO
 {
+    [Header("빙의 조건")]
+    [Tooltip("빙의에서 검사할 조건 종류입니다.")]
+    [InspectorName("검사 조건")]
     [SerializeField] private HWJ_PossessionRequirement requirement = HWJ_PossessionRequirement.TargetCanBePossessed;
+    [Tooltip("대상 빙의 거리 데이터가 없을 때 사용할 기본 거리입니다.")]
+    [InspectorName("기본 빙의 거리")]
     [SerializeField] private float fallbackRange = 1.5f;
 
     protected override bool Evaluate(HWJ_GameplayContext context)

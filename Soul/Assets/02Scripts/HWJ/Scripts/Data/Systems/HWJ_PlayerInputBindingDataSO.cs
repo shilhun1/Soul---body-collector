@@ -5,6 +5,9 @@ using UnityEngine;
 public class HWJ_PlayerInputBindingDataSO : ScriptableObject
 {
     // Definition data only. User changes should be stored as runtime overrides or save data.
+    [Header("플레이어 입력 기본값")]
+    [Tooltip("게임 시작 시 사용할 기본 입력 키 목록입니다. 인게임 변경값은 저장 데이터나 런타임 override로 관리합니다.")]
+    [InspectorName("입력 바인딩 목록")]
     [SerializeField] private HWJ_PlayerInputBindingEntry[] bindings =
     {
         new HWJ_PlayerInputBindingEntry(HWJ_PlayerInputActionId.MoveLeft, KeyCode.LeftArrow),
@@ -78,8 +81,15 @@ public class HWJ_PlayerInputBindingDataSO : ScriptableObject
 [Serializable]
 public class HWJ_PlayerInputBindingEntry
 {
+    [Header("입력 항목")]
+    [Tooltip("이 키가 실행할 플레이어 행동입니다.")]
+    [InspectorName("행동 ID")]
     [SerializeField] private HWJ_PlayerInputActionId actionId;
+    [Tooltip("키보드 입력입니다. 마우스만 쓰는 행동이면 None으로 둡니다.")]
+    [InspectorName("키보드 키")]
     [SerializeField] private KeyCode keyboardKey;
+    [Tooltip("마우스 입력입니다. 키보드만 쓰는 행동이면 None으로 둡니다.")]
+    [InspectorName("마우스 버튼")]
     [SerializeField] private HWJ_InputMouseButton mouseButton;
 
     public HWJ_PlayerInputBindingEntry()

@@ -7,7 +7,12 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "HWJ_SpawnTableData", menuName = "HWJ/Data/System/Spawn Table")]
 public class HWJ_SpawnTableDataSO : ScriptableObject
 {
+    [Header("스폰 테이블")]
+    [Tooltip("이 스폰 테이블을 구분하는 고정 ID입니다.")]
+    [InspectorName("스폰 테이블 ID")]
     [SerializeField] private string tableId;
+    [Tooltip("이 테이블에서 생성할 스폰 항목 목록입니다.")]
+    [InspectorName("스폰 항목 목록")]
     [SerializeField] private HWJ_SpawnEntryData[] entries;
 
     public string TableId => tableId;

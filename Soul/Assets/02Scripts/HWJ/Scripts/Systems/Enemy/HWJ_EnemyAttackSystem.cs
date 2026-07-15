@@ -260,7 +260,9 @@ public class HWJ_EnemyAttackSystem : MonoBehaviour
             yield break;
         }
 
-        if (skillActionSystem != null && skillActionSystem.TryUseSkillEntry(skillEntry, skillTarget))
+        float cooldownSeconds = ResolveMonsterSkillCooldownSeconds(skillEntry, skillAction);
+
+        if (skillActionSystem != null && skillActionSystem.TryUseSkill(skillAction, skillTarget, cooldownSeconds))
         {
             lastDamageApplied = skillActionSystem.LastDamageApplied;
             lastAttackResult = skillActionSystem.LastSkillResult;
@@ -275,6 +277,29 @@ public class HWJ_EnemyAttackSystem : MonoBehaviour
         nextAttackTime = Time.time + Mathf.Max(0f, useIntervalSeconds);
         isPreparingSkill = false;
         skillPrepareRoutine = null;
+    }
+
+    private float ResolveMonsterSkillCooldownSeconds(HWJ_SkillEntryData skillEntry, HWJ_SkillActionDataSO skillAction)
+    {
+        if (skillEntry != null && skillEntry.cooldownSeconds > 0f)
+        {
+            return skillEntry.cooldownSeconds;
+        }
+
+        if (skillAction != null && skillAction.CooldownSeconds > 0f)
+        {
+            return skillAction.CooldownSeconds;
+        }
+
+        if (dataResolver != null
+            && dataResolver.TryGetTypeData(out HWJ_EnemyTypeDataSO enemyData)
+            && enemyData.AI != null
+            && enemyData.AI.defaultSkillCooldownSeconds > 0f)
+        {
+            return enemyData.AI.defaultSkillCooldownSeconds;
+        }
+
+        return 0f;
     }
 
     private bool CanCompletePreparedSkill(HWJ_SkillActionDataSO skillAction, Transform skillTarget)
