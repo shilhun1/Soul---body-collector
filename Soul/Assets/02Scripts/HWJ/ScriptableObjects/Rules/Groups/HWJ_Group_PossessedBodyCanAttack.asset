@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f32a93c4e6cec4148a5985e98aeb4c09, type: 3}
+  m_Name: HWJ_Group_PossessedBodyCanAttack
+  m_EditorClassIdentifier: Assembly-CSharp::HWJ_ConditionGroupSO
+  conditionId: group_possessed_body_can_attack
+  description: Possessed body attack requires an active body, attack permission, loaded body stats, and remaining decay.
+  invertResult: 0
+  passWhenContextMissing: 0
+  groupMode: 0
+  passWhenEmpty: 0
+  conditions:
+  - {fileID: 11400000, guid: 87b684697b354d5e8a3e79fb027482c5, type: 2}
+  - {fileID: 11400000, guid: aa000001000000000000000000000010, type: 2}
+  - {fileID: 11400000, guid: 8370ffbfb4434be3a6ae7718ca5bbc21, type: 2}
+  - {fileID: 11400000, guid: ed07a30b550c4d71a4c3869391e9713e, type: 2}

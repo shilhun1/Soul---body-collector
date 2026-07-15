@@ -18,5 +18,5 @@ MonoBehaviour:
   amount: 2
   isPermanent: 1
   durationSeconds: 0
-  orbPrefab: {fileID: 0}
+  orbPrefab: {fileID: 3726267153045181684, guid: 78f7a6c4fb43efc448d0c5d9f68136a0, type: 3}
   collectEffectPrefab: {fileID: 0}

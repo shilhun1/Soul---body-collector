@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f32a93c4e6cec4148a5985e98aeb4c09, type: 3}
+  m_Name: HWJ_Group_BossCanUseCombatPattern
+  m_EditorClassIdentifier: Assembly-CSharp::HWJ_ConditionGroupSO
+  conditionId: group_boss_can_use_combat_pattern
+  description: Boss can use combat patterns only during an active encounter while target is inside room and boss is not groggy.
+  invertResult: 0
+  passWhenContextMissing: 0
+  groupMode: 0
+  passWhenEmpty: 0
+  conditions:
+  - {fileID: 11400000, guid: a5fc12454c5c4ba58685d5f3f0abc178, type: 2}
+  - {fileID: 11400000, guid: e548579abd3d4f4f8ff109cb370c2e3c, type: 2}
+  - {fileID: 11400000, guid: 1704525e84c34ceabe4cc5b9c99b9059, type: 2}

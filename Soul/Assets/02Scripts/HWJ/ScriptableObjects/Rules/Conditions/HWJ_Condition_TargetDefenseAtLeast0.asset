@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c9023a54d97646f18bd36d08411f85f6, type: 3}
+  m_Name: HWJ_Condition_TargetDefenseAtLeast0
+  m_EditorClassIdentifier: HWJ.Runtime::HWJ_RuntimeStatConditionSO
+  conditionId: target_defense_at_least_0
+  description: Template condition for rules that need to compare target defense.
+  invertResult: 0
+  passWhenContextMissing: 0
+  actor: 1
+  statField: 4
+  compareMode: 3
+  value: 0

@@ -6,20 +6,34 @@ using UnityEngine;
 /// </summary>
 public class HWJ_PossessionSystem : MonoBehaviour
 {
+    [Header("Core References")]
     [SerializeField] private HWJ_RootObjectDataResolver ownerDataResolver;
     [SerializeField] private HWJ_SoulSystem soulSystem;
     [SerializeField] private HWJ_RuntimeStatusSystem runtimeStatus;
     [SerializeField] private HWJ_PlayerInputSystem playerInput;
+    [SerializeField] private HWJ_PossessedBodySystem possessedBodySystem;
     [SerializeField] private HWJ_RootObjectDataResolver possessedBodyResolver;
     [SerializeField] private HWJ_RootObjectDataResolver runtimePossessedBodyResolver;
+
+    [Space(8f)]
+    [Header("Possession Runtime")]
     [SerializeField] private bool moveOwnerToPossessedBody = true;
     [SerializeField] private bool copyPossessedBodyVisual = true;
     [SerializeField] private bool consumePossessedCorpse = true;
     [SerializeField] private bool deactivateConsumedCorpse = true;
     [SerializeField] private bool allowManualSoulExit = true;
+
+    [Space(8f)]
+    [Header("Rules")]
     [SerializeField] private bool useGameplayPossessionRule = true;
+    [SerializeField] private HWJ_RuleExecutionCoreSO possessionExecutionCore;
+    [SerializeField] private string possessionExecutionCoreId = "possession_execution";
     [SerializeField] private HWJ_GameplayRuleSO possessionRule;
     [SerializeField] private string possessionRuleId = "possession_can_start";
+
+    [Space(8f)]
+    [Header("Debug")]
+    [SerializeField] private HWJ_PossessionFailureCode lastPossessionFailureCode;
     [SerializeField] private string lastPossessionResult;
 
     private HWJ_PossessionData activePossessionBodyData;
@@ -35,12 +49,16 @@ public class HWJ_PossessionSystem : MonoBehaviour
     private HWJ_CharacterMotionSystem ownerMotionSystem;
 
     public bool HasActivePossessedBody => possessedBodyResolver != null
-        && (soulSystem == null || soulSystem.CurrentState == HWJ_SoulRuntimeState.Body);
+        && (soulSystem == null || soulSystem.CurrentExistenceState == HWJ_PlayerExistenceState.Possessed);
 
     public HWJ_RootObjectDataResolver PossessedBodyResolver => possessedBodyResolver;
+    public HWJ_PossessedBodySystem PossessedBodySystem => possessedBodySystem;
+    public bool CanLoadPossessedBodyStats => CanLoadBodyStats();
     public HWJ_WeaponType CurrentWeaponType => HasActivePossessedBody
         ? possessedBodyResolver.WeaponType
         : HWJ_WeaponType.None;
+    public HWJ_PossessionFailureCode LastPossessionFailureCode => lastPossessionFailureCode;
+    public string LastPossessionResult => lastPossessionResult;
 
     private void Awake()
     {
@@ -61,7 +79,12 @@ public class HWJ_PossessionSystem : MonoBehaviour
 
         if (playerInput == null)
         {
-            playerInput = GetComponent<HWJ_PlayerInputSystem>();
+            ResolvePlayerInput();
+        }
+
+        if (possessedBodySystem == null)
+        {
+            possessedBodySystem = GetComponent<HWJ_PossessedBodySystem>();
         }
 
         CacheOwnerVisual();
@@ -69,6 +92,8 @@ public class HWJ_PossessionSystem : MonoBehaviour
 
     private void Update()
     {
+        ResolvePlayerInput();
+
         if (playerInput != null && playerInput.ExitPossessionPressedThisFrame)
         {
             TryExitPossessedBodyToSoul();
@@ -81,28 +106,58 @@ public class HWJ_PossessionSystem : MonoBehaviour
     /// </summary>
     public bool CanPossess(HWJ_RootObjectDataResolver targetDataResolver)
     {
+        return EvaluatePossession(targetDataResolver).Succeeded;
+    }
+
+    public HWJ_PossessionResult EvaluatePossession(HWJ_RootObjectDataResolver targetDataResolver)
+    {
+        CacheRuntimeReferences();
+
         if (targetDataResolver == null)
         {
-            lastPossessionResult = "Possession failed: missing target.";
-            return false;
+            return StorePossessionResult(HWJ_PossessionResult.Fail(
+                HWJ_PossessionFailureCode.InvalidTarget,
+                "Possession failed: missing target."));
+        }
+
+        if (soulSystem != null && soulSystem.IsTransitioningExistence)
+        {
+            return StorePossessionResult(HWJ_PossessionResult.Fail(
+                HWJ_PossessionFailureCode.TransitionInProgress,
+                "Possession failed: player existence state is transitioning.",
+                targetDataResolver));
+        }
+
+        if (soulSystem != null && soulSystem.CurrentExistenceState != HWJ_PlayerExistenceState.Spirit)
+        {
+            return StorePossessionResult(HWJ_PossessionResult.Fail(
+                HWJ_PossessionFailureCode.NotInSpiritState,
+                "Possession failed: player is not in Spirit existence state.",
+                targetDataResolver));
+        }
+
+        if (possessedBodyResolver != null || HasActivePossessedBody)
+        {
+            return StorePossessionResult(HWJ_PossessionResult.Fail(
+                HWJ_PossessionFailureCode.AlreadyPossessingBody,
+                "Possession failed: player already has an occupied body.",
+                targetDataResolver));
+        }
+
+        if (!targetDataResolver.gameObject.activeInHierarchy)
+        {
+            return StorePossessionResult(HWJ_PossessionResult.Fail(
+                HWJ_PossessionFailureCode.TargetUnavailable,
+                "Possession failed: target body is inactive.",
+                targetDataResolver));
         }
 
         if (IsConsumedPossessionBody(targetDataResolver))
         {
-            lastPossessionResult = "Possession failed: target body was already consumed.";
-            return false;
-        }
-
-        if (!IsPossessionRuleSatisfied(targetDataResolver))
-        {
-            lastPossessionResult = "Possession failed: gameplay rule rejected target.";
-            return false;
-        }
-
-        if (soulSystem != null && soulSystem.CurrentState != HWJ_SoulRuntimeState.Soul)
-        {
-            lastPossessionResult = "Possession failed: player is not in Soul state.";
-            return false;
+            return StorePossessionResult(HWJ_PossessionResult.Fail(
+                HWJ_PossessionFailureCode.TargetAlreadyPossessed,
+                "Possession failed: target body was already consumed.",
+                targetDataResolver));
         }
 
         if (ownerDataResolver != null
@@ -110,36 +165,55 @@ public class HWJ_PossessionSystem : MonoBehaviour
             && playerData.Possession != null
             && !playerData.Possession.canPossess)
         {
-            lastPossessionResult = "Possession failed: player possession is disabled.";
-            return false;
+            return StorePossessionResult(HWJ_PossessionResult.Fail(
+                HWJ_PossessionFailureCode.PossessionBlocked,
+                "Possession failed: player possession is disabled.",
+                targetDataResolver));
         }
 
         if (!TryGetPossessionBodyData(targetDataResolver, out HWJ_PossessionData possessionBody))
         {
-            lastPossessionResult = "Possession failed: target has no possessable body data.";
-            return false;
+            return StorePossessionResult(HWJ_PossessionResult.Fail(
+                HWJ_PossessionFailureCode.InvalidTarget,
+                "Possession failed: target has no possessable body data.",
+                targetDataResolver));
         }
 
         if (!possessionBody.canBePossessed)
         {
-            lastPossessionResult = "Possession failed: target cannot be possessed.";
-            return false;
+            return StorePossessionResult(HWJ_PossessionResult.Fail(
+                HWJ_PossessionFailureCode.TargetUnavailable,
+                "Possession failed: target cannot be possessed.",
+                targetDataResolver));
         }
 
         if (IsEnemyOrBoss(targetDataResolver) && !IsDefeatedTarget(targetDataResolver))
         {
-            lastPossessionResult = "Possession failed: target monster is still alive.";
-            return false;
+            return StorePossessionResult(HWJ_PossessionResult.Fail(
+                HWJ_PossessionFailureCode.TargetUnavailable,
+                "Possession failed: target monster is still alive.",
+                targetDataResolver));
         }
 
         if (!IsDefeatedIfRequired(targetDataResolver, possessionBody))
         {
-            lastPossessionResult = "Possession failed: target is not defeated.";
-            return false;
+            return StorePossessionResult(HWJ_PossessionResult.Fail(
+                HWJ_PossessionFailureCode.TargetUnavailable,
+                "Possession failed: target is not defeated.",
+                targetDataResolver));
         }
 
-        lastPossessionResult = "Possession target is valid.";
-        return true;
+        if (!IsPossessionRuleSatisfied(targetDataResolver))
+        {
+            return StorePossessionResult(HWJ_PossessionResult.Fail(
+                ResolveRuleFailureCode(lastPossessionResult),
+                lastPossessionResult,
+                targetDataResolver));
+        }
+
+        return StorePossessionResult(HWJ_PossessionResult.Success(
+            targetDataResolver,
+            "Possession target is valid."));
     }
 
     private bool IsPossessionRuleSatisfied(HWJ_RootObjectDataResolver targetDataResolver)
@@ -147,6 +221,18 @@ public class HWJ_PossessionSystem : MonoBehaviour
         if (!useGameplayPossessionRule)
         {
             return true;
+        }
+
+        HWJ_GameplayContext context = HWJ_GameplayContext
+            .Create(ownerDataResolver, targetDataResolver)
+            .WithSource(this)
+            .WithTarget(targetDataResolver);
+
+        if (ResolvePossessionExecutionCore(out HWJ_RuleExecutionCoreSO executionCore))
+        {
+            bool corePassed = executionCore.TryExecute(context, out HWJ_RuleExecutionResult executionResult);
+            lastPossessionResult = executionResult.Message;
+            return corePassed;
         }
 
         HWJ_GameplayRuleSO rule = possessionRule;
@@ -163,12 +249,27 @@ public class HWJ_PossessionSystem : MonoBehaviour
             return true;
         }
 
-        HWJ_GameplayContext context = HWJ_GameplayContext
-            .Create(ownerDataResolver, targetDataResolver)
-            .WithSource(this)
-            .WithTarget(targetDataResolver);
+        bool passed = rule.TryEvaluate(context, out HWJ_RuleEvaluationResult result);
+        lastPossessionResult = result.Message;
+        return passed;
+    }
 
-        return rule.IsSatisfied(context);
+    private bool ResolvePossessionExecutionCore(out HWJ_RuleExecutionCoreSO executionCore)
+    {
+        executionCore = null;
+
+        if (possessionExecutionCore != null)
+        {
+            executionCore = possessionExecutionCore;
+            return true;
+        }
+
+        if (string.IsNullOrEmpty(possessionExecutionCoreId))
+        {
+            return false;
+        }
+
+        return HWJ_GameAccess.TryGetRuleExecutionCore(possessionExecutionCoreId, out executionCore);
     }
 
     /// <summary>
@@ -191,6 +292,7 @@ public class HWJ_PossessionSystem : MonoBehaviour
         TryGetPossessionBodyData(targetDataResolver, out activePossessionBodyData);
         possessedBodyResolver = targetDataResolver;
         MarkPossessionBodyConsumed(targetDataResolver);
+        CreateRuntimeBodyState(targetDataResolver, true, true);
 
         if (activePossessionBodyData == null || activePossessionBodyData.transfersControlToBody)
         {
@@ -207,6 +309,8 @@ public class HWJ_PossessionSystem : MonoBehaviour
         }
 
         lastPossessionResult = $"Possessed {targetDataResolver.name}.";
+        HWJ_GameplayEvents.RaisePossessionChanged(
+            new HWJ_PossessionEvent(this, targetDataResolver, true, lastPossessionResult));
         SavePlayerRuntimeSnapshotIfOwner();
         return true;
     }
@@ -250,6 +354,7 @@ public class HWJ_PossessionSystem : MonoBehaviour
         }
 
         possessedBodyResolver = restoredResolver;
+        CreateRuntimeBodyState(restoredResolver, refillToMax, true);
         soulSystem?.EnterBodyState();
 
         if (hasVisualSnapshot)
@@ -275,6 +380,8 @@ public class HWJ_PossessionSystem : MonoBehaviour
         }
 
         lastPossessionResult = $"Restored possessed body from {rootObjectData.name}.";
+        HWJ_GameplayEvents.RaisePossessionChanged(
+            new HWJ_PossessionEvent(this, possessedBodyResolver, true, lastPossessionResult));
         if (saveSnapshot)
         {
             SavePlayerRuntimeSnapshotIfOwner();
@@ -301,8 +408,11 @@ public class HWJ_PossessionSystem : MonoBehaviour
     /// </summary>
     public void ClearPossessedBody(bool refreshStatus = true, bool refillToMax = false, bool saveSnapshot = true)
     {
+        HWJ_RootObjectDataResolver previousBodyResolver = possessedBodyResolver;
+        bool hadActiveBody = HasActivePossessedBody;
         possessedBodyResolver = null;
         activePossessionBodyData = null;
+        possessedBodySystem?.ClearCurrentBodyState(false);
         RestoreOwnerVisual();
 
         if (refreshStatus)
@@ -314,6 +424,99 @@ public class HWJ_PossessionSystem : MonoBehaviour
         {
             SavePlayerRuntimeSnapshotIfOwner();
         }
+
+        if (hadActiveBody)
+        {
+            HWJ_GameplayEvents.RaisePossessionChanged(
+                new HWJ_PossessionEvent(this, previousBodyResolver, false, "Possession body cleared."));
+        }
+    }
+
+    private void CacheRuntimeReferences()
+    {
+        if (ownerDataResolver == null)
+        {
+            ownerDataResolver = GetComponent<HWJ_RootObjectDataResolver>();
+        }
+
+        if (soulSystem == null)
+        {
+            soulSystem = GetComponent<HWJ_SoulSystem>();
+        }
+
+        if (runtimeStatus == null)
+        {
+            runtimeStatus = GetComponent<HWJ_RuntimeStatusSystem>();
+        }
+
+        if (playerInput == null)
+        {
+            ResolvePlayerInput();
+        }
+
+        if (possessedBodySystem == null)
+        {
+            possessedBodySystem = GetComponent<HWJ_PossessedBodySystem>();
+        }
+    }
+
+    private void ResolvePlayerInput()
+    {
+        if (playerInput != null)
+        {
+            return;
+        }
+
+        playerInput = GetComponent<HWJ_PlayerInputSystem>();
+
+        if (playerInput == null)
+        {
+            playerInput = HWJ_GameAccess.PlayerInput;
+        }
+    }
+
+    private HWJ_PossessionResult StorePossessionResult(HWJ_PossessionResult result)
+    {
+        lastPossessionFailureCode = result.FailureCode;
+        lastPossessionResult = result.Message;
+        return result;
+    }
+
+    private static HWJ_PossessionFailureCode ResolveRuleFailureCode(string ruleMessage)
+    {
+        if (string.IsNullOrEmpty(ruleMessage))
+        {
+            return HWJ_PossessionFailureCode.PossessionBlocked;
+        }
+
+        if (ruleMessage.Contains("within_possession_range"))
+        {
+            return HWJ_PossessionFailureCode.TargetOutOfRange;
+        }
+
+        if (ruleMessage.Contains("target_corpse_available"))
+        {
+            return HWJ_PossessionFailureCode.TargetAlreadyPossessed;
+        }
+
+        if (ruleMessage.Contains("source_soul_state"))
+        {
+            return HWJ_PossessionFailureCode.NotInSpiritState;
+        }
+
+        if (ruleMessage.Contains("source_can_possess"))
+        {
+            return HWJ_PossessionFailureCode.PossessionBlocked;
+        }
+
+        if (ruleMessage.Contains("target_can_be_possessed")
+            || ruleMessage.Contains("target_defeated")
+            || ruleMessage.Contains("target_object"))
+        {
+            return HWJ_PossessionFailureCode.TargetUnavailable;
+        }
+
+        return HWJ_PossessionFailureCode.PossessionBlocked;
     }
 
     public bool TryGetPossessedRootObjectId(out string rootObjectId)
@@ -331,6 +534,16 @@ public class HWJ_PossessionSystem : MonoBehaviour
 
         rootObjectId = possessedBodyResolver.RootObjectData.Identity.objectId;
         return true;
+    }
+
+    public bool TryGetPossessedBodyRuntimeState(out HWJ_PossessedBodyRuntimeState state)
+    {
+        CacheRuntimeReferences();
+
+        state = null;
+        return possessedBodySystem != null
+            && possessedBodySystem.TryGetCurrentBodyState(out state)
+            && state != null;
     }
 
     public bool TryGetPossessedVisualSnapshot(
@@ -439,8 +652,14 @@ public class HWJ_PossessionSystem : MonoBehaviour
 
         if (possessedBodyResolver.TryGetTypeData(out HWJ_EnemyTypeDataSO enemyData))
         {
+            if (HasAnySkillEntry(enemyData.PlayerPossessionSkillSet))
+            {
+                skillSet = enemyData.PlayerPossessionSkillSet;
+                return true;
+            }
+
             skillSet = enemyData.SkillCycle;
-            return skillSet != null;
+            return HasAnySkillEntry(skillSet);
         }
 
         if (possessedBodyResolver.TryGetTypeData(out HWJ_BossTypeDataSO bossData))
@@ -450,6 +669,11 @@ public class HWJ_PossessionSystem : MonoBehaviour
         }
 
         return false;
+    }
+
+    private static bool HasAnySkillEntry(HWJ_SkillSetData skillSet)
+    {
+        return skillSet != null && skillSet.skills != null && skillSet.skills.Length > 0;
     }
 
     /// <summary>
@@ -547,6 +771,36 @@ public class HWJ_PossessionSystem : MonoBehaviour
         return HasActivePossessedBody
             && activePossessionBodyData != null
             && activePossessionBodyData.loadsBodyStatsToPlayer;
+    }
+
+    private void CreateRuntimeBodyState(
+        HWJ_RootObjectDataResolver targetDataResolver,
+        bool refillHpToMax,
+        bool resetDecayToInitial)
+    {
+        CacheRuntimeReferences();
+
+        if (possessedBodySystem == null)
+        {
+            return;
+        }
+
+        possessedBodySystem.CreateCurrentBodyState(
+            targetDataResolver,
+            ResolveOwnerBodyDecayData(),
+            refillHpToMax,
+            resetDecayToInitial);
+    }
+
+    private HWJ_BodyDecayData ResolveOwnerBodyDecayData()
+    {
+        if (ownerDataResolver != null
+            && ownerDataResolver.TryGetTypeData(out HWJ_PlayerTypeDataSO playerData))
+        {
+            return playerData.BodyDecay;
+        }
+
+        return null;
     }
 
     private void SavePlayerRuntimeSnapshotIfOwner()

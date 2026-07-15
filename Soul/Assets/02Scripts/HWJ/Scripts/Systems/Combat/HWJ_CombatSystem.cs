@@ -4,27 +4,49 @@ using UnityEngine;
 /// 공통 전투 계산을 담당하는 컴포넌트입니다.
 /// 공격하거나 피해를 받을 수 있는 플레이어, 적, 보스 오브젝트에 붙여 RootObjectData의 Status/Damage/ReceivedDamage를 사용합니다.
 /// </summary>
-public class HWJ_CombatSystem : MonoBehaviour
+public class HWJ_CombatSystem : MonoBehaviour, HWJ_ICombatActor, HWJ_IDamageDealer, HWJ_IDamageReceiver
 {
     private const float DefaultKnockbackDuration = 0.25f;
 
+    [SerializeField] private HWJ_RuntimeObjectContext runtimeContext;
     [SerializeField] private HWJ_RootObjectDataResolver dataResolver;
     [SerializeField] private HWJ_PossessionSystem possessionSystem;
     [SerializeField] private HWJ_RuntimeStatusSystem runtimeStatus;
     [SerializeField] private HWJ_BossBrainSystem bossBrain;
     [SerializeField] private bool useGameplayDamageRules = true;
+    [SerializeField] private HWJ_RuleExecutionCoreSO commonDamageExecutionCore;
+    [SerializeField] private string commonDamageExecutionCoreId = "common_damage_execution";
     [SerializeField] private HWJ_GameplayRuleSO commonDamageRule;
     [SerializeField] private string commonDamageRuleId = "damage_can_apply_common";
+    [SerializeField] private HWJ_RuleExecutionCoreSO playerDamageToEnemyExecutionCore;
+    [SerializeField] private string playerDamageToEnemyExecutionCoreId = "player_damage_to_enemy_execution";
     [SerializeField] private HWJ_GameplayRuleSO playerDamageToEnemyRule;
     [SerializeField] private string playerDamageToEnemyRuleId = "player_damage_to_enemy";
     [SerializeField] private bool grantKillRewards = true;
+    [SerializeField] private string lastDamageRuleResult;
     [SerializeField] private string lastRewardResult;
+
+    public string LastDamageRuleResult => lastDamageRuleResult;
+    public HWJ_RootObjectDataResolver DataResolver => dataResolver;
+    public HWJ_RuntimeObjectContext RuntimeContext => runtimeContext;
+    public HWJ_RuntimeStatusSystem RuntimeStatus => runtimeStatus;
+    public HWJ_ObjectType ObjectType => dataResolver != null ? dataResolver.ObjectType : HWJ_ObjectType.Player;
+    public HWJ_Faction Faction => dataResolver != null && dataResolver.Identity != null ? dataResolver.Identity.faction : HWJ_Faction.Neutral;
+    public float Defense => GetDefense();
+    public bool IsCombatDead => runtimeStatus != null && runtimeStatus.IsDead;
 
     private void Awake()
     {
+        if (runtimeContext == null)
+        {
+            runtimeContext = GetComponent<HWJ_RuntimeObjectContext>();
+        }
+
         if (dataResolver == null)
         {
-            dataResolver = GetComponent<HWJ_RootObjectDataResolver>();
+            dataResolver = runtimeContext != null
+                ? runtimeContext.DataResolver
+                : GetComponent<HWJ_RootObjectDataResolver>();
         }
 
         if (possessionSystem == null)
@@ -71,21 +93,34 @@ public class HWJ_CombatSystem : MonoBehaviour
     /// </summary>
     public float GetReceivedDamage(float incomingDamage)
     {
-        return GetReceivedDamage(incomingDamage, HWJ_ObjectType.Player, false);
+        return GetReceivedDamage(incomingDamage, HWJ_ObjectType.Player, null, false);
     }
 
     public float GetReceivedDamage(float incomingDamage, HWJ_ObjectType attackerType)
     {
-        return GetReceivedDamage(incomingDamage, attackerType, true);
+        return GetReceivedDamage(incomingDamage, attackerType, null, true);
     }
 
-    private float GetReceivedDamage(float incomingDamage, HWJ_ObjectType attackerType, bool hasAttackerType)
+    public float GetReceivedDamage(
+        float incomingDamage,
+        HWJ_ObjectType attackerType,
+        HWJ_DamageData sourceDamage)
+    {
+        return GetReceivedDamage(incomingDamage, attackerType, sourceDamage, true);
+    }
+
+    private float GetReceivedDamage(
+        float incomingDamage,
+        HWJ_ObjectType attackerType,
+        HWJ_DamageData sourceDamage,
+        bool hasAttackerType)
     {
         HWJ_ReceivedDamageData receivedDamage = GetReceivedDamageData();
+        float damageAfterDefense = ApplyDefense(incomingDamage, sourceDamage);
 
         if (receivedDamage == null)
         {
-            return ApplyReceivedDamageModifiers(incomingDamage);
+            return ApplyReceivedDamageModifiers(damageAfterDefense);
         }
 
         if (receivedDamage.isInvincible)
@@ -100,11 +135,19 @@ public class HWJ_CombatSystem : MonoBehaviour
             return 0f;
         }
 
-        HWJ_StatusData status = GetStatusData();
-        float defense = status != null ? status.defense : 0f;
-        float reducedDamage = Mathf.Max(0f, incomingDamage - defense);
-        float finalDamage = reducedDamage * receivedDamage.damageMultiplier;
+        float finalDamage = damageAfterDefense * receivedDamage.damageMultiplier;
         return ApplyReceivedDamageModifiers(finalDamage);
+    }
+
+    public float GetDefense()
+    {
+        if (runtimeStatus != null)
+        {
+            return Mathf.Max(0f, runtimeStatus.Defense);
+        }
+
+        HWJ_StatusData status = GetStatusData();
+        return status != null ? Mathf.Max(0f, status.defense) : 0f;
     }
 
     public bool TryDealDamageTo(HWJ_RootObjectDataResolver targetResolver, out float finalDamage)
@@ -140,7 +183,7 @@ public class HWJ_CombatSystem : MonoBehaviour
         }
 
         finalDamage = targetCombat != null
-            ? targetCombat.GetReceivedDamage(outgoingDamage, dataResolver != null ? dataResolver.ObjectType : HWJ_ObjectType.Player)
+            ? targetCombat.GetReceivedDamage(outgoingDamage, dataResolver != null ? dataResolver.ObjectType : HWJ_ObjectType.Player, damageData)
             : outgoingDamage;
 
         if (finalDamage <= 0f)
@@ -172,19 +215,36 @@ public class HWJ_CombatSystem : MonoBehaviour
         return runtimeStatus == null || !runtimeStatus.IsDead;
     }
 
+    public bool CanReceiveDamageFrom(Component source)
+    {
+        return runtimeStatus == null || runtimeStatus.CanReceiveHitFrom(source);
+    }
+
+    public void ReceiveDamage(float damage, Component source, HWJ_DamageData sourceDamage)
+    {
+        if (runtimeStatus == null)
+        {
+            return;
+        }
+
+        HWJ_RootObjectDataResolver sourceResolver = source != null
+            ? source.GetComponentInParent<HWJ_RootObjectDataResolver>()
+            : null;
+        HWJ_ObjectType attackerType = sourceResolver != null ? sourceResolver.ObjectType : HWJ_ObjectType.Player;
+        float finalDamage = GetReceivedDamage(damage, attackerType, sourceDamage);
+
+        if (finalDamage > 0f)
+        {
+            runtimeStatus.ApplyDamage(finalDamage, source, sourceDamage);
+        }
+    }
+
     private bool IsDamageRuleSatisfied(
         HWJ_RootObjectDataResolver targetResolver,
         HWJ_DamageData damageData,
         float damageMultiplier)
     {
         if (!useGameplayDamageRules)
-        {
-            return true;
-        }
-
-        HWJ_GameplayRuleSO rule = ResolveDamageRule(targetResolver);
-
-        if (rule == null)
         {
             return true;
         }
@@ -196,7 +256,61 @@ public class HWJ_CombatSystem : MonoBehaviour
             .WithDamage(damageData, damageMultiplier)
             .WithHitConfirmed(true);
 
-        return rule.IsSatisfied(context);
+        if (ResolveDamageExecutionCore(targetResolver, out HWJ_RuleExecutionCoreSO executionCore))
+        {
+            bool corePassed = executionCore.TryExecute(context, out HWJ_RuleExecutionResult coreResult);
+            lastDamageRuleResult = coreResult.Message;
+            return corePassed;
+        }
+
+        HWJ_GameplayRuleSO rule = ResolveDamageRule(targetResolver);
+
+        if (rule == null)
+        {
+            return true;
+        }
+
+        bool rulePassed = rule.TryEvaluate(context, out HWJ_RuleEvaluationResult ruleResult);
+        lastDamageRuleResult = ruleResult.Message;
+        return rulePassed;
+    }
+
+    private bool ResolveDamageExecutionCore(
+        HWJ_RootObjectDataResolver targetResolver,
+        out HWJ_RuleExecutionCoreSO executionCore)
+    {
+        executionCore = null;
+        bool usePlayerEnemyCore = dataResolver != null
+            && dataResolver.ObjectType == HWJ_ObjectType.Player
+            && targetResolver != null
+            && (targetResolver.ObjectType == HWJ_ObjectType.Enemy || targetResolver.ObjectType == HWJ_ObjectType.Boss);
+
+        if (usePlayerEnemyCore)
+        {
+            if (playerDamageToEnemyExecutionCore != null)
+            {
+                executionCore = playerDamageToEnemyExecutionCore;
+                return true;
+            }
+
+            if (!string.IsNullOrEmpty(playerDamageToEnemyExecutionCoreId))
+            {
+                return HWJ_GameAccess.TryGetRuleExecutionCore(playerDamageToEnemyExecutionCoreId, out executionCore);
+            }
+        }
+
+        if (commonDamageExecutionCore != null)
+        {
+            executionCore = commonDamageExecutionCore;
+            return true;
+        }
+
+        if (string.IsNullOrEmpty(commonDamageExecutionCoreId))
+        {
+            return false;
+        }
+
+        return HWJ_GameAccess.TryGetRuleExecutionCore(commonDamageExecutionCoreId, out executionCore);
     }
 
     private HWJ_GameplayRuleSO ResolveDamageRule(HWJ_RootObjectDataResolver targetResolver)
@@ -293,11 +407,28 @@ public class HWJ_CombatSystem : MonoBehaviour
             damage *= bossBrain.ReceivedDamageMultiplier;
         }
 
-        return damage;
+        return Mathf.Max(0f, damage);
+    }
+
+    private float ApplyDefense(float incomingDamage, HWJ_DamageData sourceDamage)
+    {
+        float clampedIncomingDamage = Mathf.Max(0f, incomingDamage);
+
+        if (sourceDamage != null && sourceDamage.damageType == HWJ_DamageType.TrueDamage)
+        {
+            return clampedIncomingDamage;
+        }
+
+        return Mathf.Max(0f, clampedIncomingDamage - GetDefense());
     }
 
     private HWJ_StatusData GetStatusData()
     {
+        if (runtimeContext != null)
+        {
+            return runtimeContext.GetEffectiveStatusData();
+        }
+
         if (possessionSystem != null && possessionSystem.TryGetPossessedStatus(out HWJ_StatusData possessedStatus))
         {
             return possessedStatus;
@@ -308,6 +439,11 @@ public class HWJ_CombatSystem : MonoBehaviour
 
     private HWJ_DamageData GetDamageData()
     {
+        if (runtimeContext != null)
+        {
+            return runtimeContext.GetEffectiveDamageData();
+        }
+
         if (possessionSystem != null && possessionSystem.TryGetPossessedDamage(out HWJ_DamageData possessedDamage))
         {
             return possessedDamage;
@@ -318,6 +454,11 @@ public class HWJ_CombatSystem : MonoBehaviour
 
     private HWJ_ReceivedDamageData GetReceivedDamageData()
     {
+        if (runtimeContext != null)
+        {
+            return runtimeContext.GetEffectiveReceivedDamageData();
+        }
+
         if (possessionSystem != null
             && possessionSystem.TryGetPossessedReceivedDamage(out HWJ_ReceivedDamageData possessedReceivedDamage))
         {

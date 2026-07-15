@@ -225,27 +225,21 @@ public class HSH_BarUI : MonoBehaviour
         }
         
         // 2. 값에 따른 상태 변화(게임오버, 레벨업 등)를 처리합니다.
-        if (currentType == BarType.HP && currentValue <= 0 && maxValue > 0)
+        
+        bool isGameOver = false;
+
+        // 영혼 상태에서 시간이 다 되어 Dead 상태가 된 경우, 혹은 UI상 GhostHP가 0 이하가 된 경우
+        if (soulSystem != null && soulSystem.CurrentState == HWJ_SoulRuntimeState.Dead)
         {
-            currentType = BarType.GhostHP;
-            UpdateColor();
-            Debug.Log("HP가 모두 닳아서 GhostHP 타입으로 변경되었습니다!");
-        }
-        else if(currentType == BarType.GhostHP && currentValue <= 0 && temp == true){
-            
-            currentValue = 100;
-            if (statusSystem != null)
-            {
-                statusSystem.Heal(100);
-            }
-            Debug.Log("temp  true");
-            temp = false;
-            Debug.Log("temp  false");
-            
+            isGameOver = true;
         }
         else if (currentType == BarType.GhostHP && currentValue <= 0 && maxValue > 0)
         {
-            
+            isGameOver = true;
+        }
+
+        if (isGameOver)
+        {
             if (!hasTriggeredGameOver)
             {
                 hasTriggeredGameOver = true;
@@ -254,27 +248,47 @@ public class HSH_BarUI : MonoBehaviour
                 if (gameOverUI != null)
                 {
                     gameOverUI.ShowGameOver();
-      
+                }
+                else if (HSH_GameOverUI.Instance != null)
+                {
+                    HSH_GameOverUI.Instance.ShowGameOver();
+                }
+                else
+                {
+                    Debug.LogError("GameOverUI를 찾을 수 없습니다!");
                 }
             }
         }
-        else if (currentType == BarType.Exp && currentValue >= maxValue && maxValue > 0)
+        else
         {
-            // 경험치가 가득 찼으므로 레벨업!
-            if (levelTextUI != null)
+            // 게임 오버 상태가 아닐 때(리스타트 후 등) 플래그를 초기화하여 다시 죽었을 때 뜰 수 있게 합니다.
+            hasTriggeredGameOver = false;
+
+            if (currentType == BarType.HP && currentValue <= 0 && maxValue > 0)
             {
-                levelTextUI.LevelUp();
+                currentType = BarType.GhostHP;
+                UpdateColor();
+                Debug.Log("HP가 모두 닳아서 GhostHP 타입으로 변경되었습니다!");
             }
+            else if (currentType == BarType.Exp && currentValue >= maxValue && maxValue > 0)
+            {
+                // 경험치가 가득 찼으므로 레벨업!
+                if (levelTextUI != null)
+                {
+                    levelTextUI.LevelUp();
+                }
 
-            // 남은 초과 경험치를 이월
-            currentValue -= maxValue;
-            if (currentValue < 0) currentValue = 0;
+                // 남은 초과 경험치를 이월
+                currentValue -= maxValue;
+                if (currentValue < 0) currentValue = 0;
 
-            // TODO: 레벨업 시 다음 레벨의 요구 경험치(maxValue)를 증가시킬 수 있습니다.
-            
-            Debug.Log("경험치가 가득 차서 레벨업을 진행합니다!");
+                // TODO: 레벨업 시 다음 레벨의 요구 경험치(maxValue)를 증가시킬 수 있습니다.
+                
+                Debug.Log("경험치가 가득 차서 레벨업을 진행합니다!");
+            }
         }
-        else if (currentValue < 0)
+
+        if (currentValue < 0)
         {
             currentValue = 0;
         }

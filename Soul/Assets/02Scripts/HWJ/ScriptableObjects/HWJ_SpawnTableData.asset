@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d1a5acc17f284fdd907014eda3e72398, type: 3}
   m_Name: HWJ_SpawnTableData
   m_EditorClassIdentifier: Assembly-CSharp::HWJ_SpawnTableDataSO
-  tableId: 
+  tableId: spawn.hwj.default
   entries:
   - spawnId: enemy_Sword
     spawnPointId: enemy_Sword

@@ -23,7 +23,7 @@ MonoBehaviour:
   hitStartSeconds: 0.22
   hitActiveSeconds: 0.12
   recoverySeconds: 0.32
-  movementLockSeconds: 0.68
+  movementLockSeconds: 0.65
   dashCancelStartSeconds: 0.48
   canDashCancel: 1
   moveDistance: 0

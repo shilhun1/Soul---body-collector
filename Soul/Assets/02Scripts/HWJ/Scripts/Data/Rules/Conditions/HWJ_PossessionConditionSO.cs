@@ -3,7 +3,12 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "HWJ_PossessionCondition", menuName = "HWJ/Data/Rules/Conditions/Possession")]
 public class HWJ_PossessionConditionSO : HWJ_GameplayConditionSO
 {
+    [Header("빙의 조건")]
+    [Tooltip("빙의에서 검사할 조건 종류입니다.")]
+    [InspectorName("검사 조건")]
     [SerializeField] private HWJ_PossessionRequirement requirement = HWJ_PossessionRequirement.TargetCanBePossessed;
+    [Tooltip("대상 빙의 거리 데이터가 없을 때 사용할 기본 거리입니다.")]
+    [InspectorName("기본 빙의 거리")]
     [SerializeField] private float fallbackRange = 1.5f;
 
     protected override bool Evaluate(HWJ_GameplayContext context)
@@ -15,7 +20,8 @@ public class HWJ_PossessionConditionSO : HWJ_GameplayConditionSO
                     && sourcePossession.canPossess;
             case HWJ_PossessionRequirement.SourceIsSoulState:
                 HWJ_SoulSystem sourceSoul = context.GetSoul(HWJ_GameplayActorSlot.Source);
-                return sourceSoul != null && sourceSoul.CurrentState == HWJ_SoulRuntimeState.Soul;
+                return sourceSoul != null
+                    && sourceSoul.CurrentExistenceState == HWJ_PlayerExistenceState.Spirit;
             case HWJ_PossessionRequirement.TargetIsEnemyOrBoss:
                 HWJ_RootObjectDataResolver target = context.GetResolver(HWJ_GameplayActorSlot.Target);
                 return target != null
@@ -27,6 +33,8 @@ public class HWJ_PossessionConditionSO : HWJ_GameplayConditionSO
                 return IsTargetDefeatedIfRequired(context);
             case HWJ_PossessionRequirement.WithinPossessionRange:
                 return IsWithinPossessionRange(context);
+            case HWJ_PossessionRequirement.TargetCorpseAvailable:
+                return IsTargetCorpseAvailable(context);
             default:
                 return false;
         }
@@ -64,5 +72,18 @@ public class HWJ_PossessionConditionSO : HWJ_GameplayConditionSO
         }
 
         return context.GetDistance() <= Mathf.Max(0f, range);
+    }
+
+    private bool IsTargetCorpseAvailable(HWJ_GameplayContext context)
+    {
+        HWJ_RootObjectDataResolver target = context.GetResolver(HWJ_GameplayActorSlot.Target);
+
+        if (target == null)
+        {
+            return false;
+        }
+
+        HWJ_PossessionBodyState bodyState = target.GetComponent<HWJ_PossessionBodyState>();
+        return bodyState == null || !bodyState.IsConsumed;
     }
 }

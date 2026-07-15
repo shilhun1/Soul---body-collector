@@ -449,12 +449,12 @@ public class HWJ_Stage1BossPatternSystem : MonoBehaviour
 
         if (playerResolver == null || !playerResolver.TryGetTypeData(out HWJ_PlayerTypeDataSO playerData) || playerData.BodyDecay == null)
         {
-            return bodyDecay.CurrentDecayValue;
+            return bodyDecay.RemainingDecayValue;
         }
 
         float tickAmount = Mathf.Max(0.01f, playerData.BodyDecay.decayAmountPerTick);
         float tickSeconds = Mathf.Max(0.01f, playerData.BodyDecay.decayTickSeconds);
-        return bodyDecay.CurrentDecayValue / tickAmount * tickSeconds;
+        return bodyDecay.RemainingDecayValue / tickAmount * tickSeconds;
     }
 
     private void DamageTargetIfInside(Transform target, Vector3 center, float radius, float damageMultiplier)

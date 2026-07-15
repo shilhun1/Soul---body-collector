@@ -161,3 +161,41 @@ public enum HWJ_MonsterAIState
     HitStun,
     Dead
 }
+
+public enum HWJ_PlayerInputActionId
+{
+    MoveLeft,
+    MoveRight,
+    MoveUp,
+    MoveDown,
+    Jump,
+    Dash,
+    Attack,
+    Interact,
+    ExitPossession,
+    SkillSlot1,
+    SkillSlot2,
+    SkillSlot3,
+    SkillSlot4
+}
+
+public enum HWJ_InputMouseButton
+{
+    None,
+    Left,
+    Right,
+    Middle
+}
+
+public enum HWJ_PlayerInputRebindFailureCode
+{
+    None,
+    InvalidActionId,
+    EmptyKeyboardKey,
+    InvalidKeyboardKey,
+    EmptyMouseButton,
+    InvalidMouseButton,
+    EmptyBinding,
+    BindingAlreadyUsed,
+    RuntimeOverrideNotFound
+}

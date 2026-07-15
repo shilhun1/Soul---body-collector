@@ -7,9 +7,9 @@ using UnityEngine;
 /// </summary>
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(HWJ_RuntimeStatusSystem))]
-[RequireComponent(typeof(HWJ_PlayerInputSystem))]
 public class HWJ_PlayerMovementSystem : MonoBehaviour
 {
+    [Header("Core References")]
     [SerializeField] private HWJ_RootObjectDataResolver dataResolver;
     [SerializeField] private HWJ_RuntimeStatusSystem runtimeStatus;
     [SerializeField] private HWJ_SoulSystem soulSystem;
@@ -19,16 +19,19 @@ public class HWJ_PlayerMovementSystem : MonoBehaviour
     [SerializeField] private HWJ_PlayerAttackSystem playerAttackSystem;
     [SerializeField] private Rigidbody2D body;
 
+    [Space(8f)]
     [Header("Ground Check")]
     [SerializeField] private bool isGrounded;
     [SerializeField] private LayerMask groundLayer;
     [SerializeField] private Vector2 groundCheckOffset = new Vector2(0f, -0.55f);
     [SerializeField] private Vector2 groundCheckSize = new Vector2(0.7f, 0.12f);
 
+    [Space(8f)]
     [Header("Soul Collision")]
     [SerializeField] private bool phaseThroughCollidersInSoul = true;
     [SerializeField] private bool isSoulCollisionMode;
 
+    [Space(8f)]
     [Header("Enemy Collision")]
     [SerializeField] private bool ignoreEnemyBodyCollision = true;
     [SerializeField] private float enemyCollisionRefreshSeconds = 0.25f;
@@ -92,7 +95,7 @@ public class HWJ_PlayerMovementSystem : MonoBehaviour
 
         if (playerInput == null)
         {
-            playerInput = GetComponent<HWJ_PlayerInputSystem>();
+            ResolvePlayerInput();
         }
 
         if (motionSystem == null)
@@ -118,6 +121,7 @@ public class HWJ_PlayerMovementSystem : MonoBehaviour
 
     private void Update()
     {
+        ResolvePlayerInput();
         moveInput = playerInput != null ? playerInput.MoveInput : Vector2.zero;
         UpdateSoulCollisionMode();
         UpdateEnemyCollisionIgnores();
@@ -156,6 +160,21 @@ public class HWJ_PlayerMovementSystem : MonoBehaviour
         if (canUseBodyActions && playerInput != null && playerInput.DashPressedThisFrame)
         {
             TryDash();
+        }
+    }
+
+    private void ResolvePlayerInput()
+    {
+        if (playerInput != null)
+        {
+            return;
+        }
+
+        playerInput = GetComponent<HWJ_PlayerInputSystem>();
+
+        if (playerInput == null)
+        {
+            playerInput = HWJ_GameAccess.PlayerInput;
         }
     }
 

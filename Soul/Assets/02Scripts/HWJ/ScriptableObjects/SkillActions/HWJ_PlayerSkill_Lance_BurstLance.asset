@@ -1,0 +1,58 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a6a8eded0c744166a37dfeef997b499e, type: 3}
+  m_Name: HWJ_PlayerSkill_Lance_BurstLance
+  m_EditorClassIdentifier: Assembly-CSharp::HWJ_SkillActionDataSO
+  skillActionId: player_lance_burst_lance
+  sourceSkillId: 1205
+  displayName: "Burst Lance"
+  skillDescription: "창 끝에 기를 모은다음 적을 꿰뚫으며 대쉬한다."
+  effectId: ""
+  soundId: ""
+  actionType: 4
+  requiredWeaponType: 4
+  authoredAttackPower: 40
+  damageMultiplier: 4
+  range: 15
+  hitRange: 15
+  durationSeconds: 4.02
+  cooldownSeconds: 18
+  hitStartSeconds: 2.3
+  hitActiveSeconds: 0.92
+  recoverySeconds: 0.8
+  movementLockSeconds: 3.1
+  dashCancelStartSeconds: 2.3
+  canDashCancel: 1
+  moveDistance: 15
+  moveSpeed: 30
+  hitCount: 12
+  hitIntervalSeconds: 0.08
+  causesKnockback: 0
+  knockbackDistance: 0
+  causesStagger: 1
+  staggerSeconds: 1.2
+  launchesTarget: 0
+  launchHeight: 0
+  grantsInvincibility: 0
+  invincibilitySeconds: 0
+  usesCustomBodyDecayAmount: 0
+  customBodyDecayAmount: 0
+  additionalBodyDecayAmount: 0
+  usesComboBodyDecayMultiplier: 0
+  comboBodyDecayMultiplier: 1
+  chargeBodyDecayPerSecond: 0
+  maxChargeBodyDecayAmount: 0
+  motionKey: PlayerSkill_Lance_BurstLance
+  motionSequenceKeys: []
+  motionStepIntervalSeconds: 0.12
+  projectilePrefab: {fileID: 0}
+  actionEffectPrefab: {fileID: 0}

@@ -87,33 +87,25 @@ public class HSH_SteamTrap : MonoBehaviour
     private void ApplyDamageAndKnockback(GameObject target)
     {
         // 영혼 상태일 경우 데미지 및 넉백 무시
-        HWJ_SoulSystem soulSystem = target.GetComponent<HWJ_SoulSystem>();
+        HWJ_SoulSystem soulSystem = target.GetComponentInParent<HWJ_SoulSystem>();
         if (soulSystem != null && soulSystem.CurrentState != HWJ_SoulRuntimeState.Body)
         {
             return;
         }
 
         // 1. 데미지 처리
-        HWJ_RuntimeStatusSystem statusSystem = target.GetComponent<HWJ_RuntimeStatusSystem>();
+        HWJ_RuntimeStatusSystem statusSystem = target.GetComponentInParent<HWJ_RuntimeStatusSystem>();
         if (statusSystem != null)
         {
             statusSystem.ApplyDamage(damage);
             Debug.Log($"[{gameObject.name}] {target.name}에게 데미지: {damage}");
-        }
-        else if (target.CompareTag("Player"))
-        {
-            HSH_BarUI[] barUIs = FindObjectsByType<HSH_BarUI>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-            foreach (var barUI in barUIs)
-            {
-                if (barUI.currentType == HSH_BarUI.BarType.HP) barUI.DecreaseValue(damage);
-            }
         }
 
         // 2. 넉백 처리 (수증기는 무조건 위로 솟구치도록)
         // 옆으로 밀리는 현상을 방지하기 위해 방향을 완전한 위쪽(Up)으로 고정합니다.
         Vector2 knockbackDir = Vector2.up; 
 
-        hys_Player_Hit playerHit = target.GetComponent<hys_Player_Hit>();
+        hys_Player_Hit playerHit = target.GetComponentInParent<hys_Player_Hit>();
         if (playerHit != null)
         {
             // 플레이어는 자체 넉백 시스템에 전달
@@ -123,10 +115,11 @@ public class HSH_SteamTrap : MonoBehaviour
         {
             // 적의 범용 넉백 시스템은 기본적으로 '수직(Y축) 넉백 무시' 설정이 되어 있어 옆으로만 밀리게 됩니다.
             // 이를 뚫고 강제로 위로 띄우기 위해 Rigidbody의 Y축 속도를 직접 조작합니다.
-            HWJ_KnockbackSystem knockbackSystem = target.GetComponent<HWJ_KnockbackSystem>();
+            HWJ_KnockbackSystem knockbackSystem = target.GetComponentInParent<HWJ_KnockbackSystem>();
             if (knockbackSystem == null)
             {
-                knockbackSystem = target.AddComponent<HWJ_KnockbackSystem>();
+                Rigidbody2D parentRb = target.GetComponentInParent<Rigidbody2D>();
+                knockbackSystem = (parentRb != null) ? parentRb.gameObject.AddComponent<HWJ_KnockbackSystem>() : target.AddComponent<HWJ_KnockbackSystem>();
             }
             // X축 방향 넉백(0)을 전달해서 기절 상태만 유발
             knockbackSystem.PlayKnockback(knockbackDir, knockbackPower, 0.25f);

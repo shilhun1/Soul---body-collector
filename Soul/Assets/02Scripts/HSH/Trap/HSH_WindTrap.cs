@@ -93,26 +93,18 @@ public class HSH_WindTrap : MonoBehaviour
     private void ApplyDamageAndKnockback(GameObject target)
     {
         // 영혼 상태일 경우 데미지 및 넉백 무시
-        HWJ_SoulSystem soulSystem = target.GetComponent<HWJ_SoulSystem>();
+        HWJ_SoulSystem soulSystem = target.GetComponentInParent<HWJ_SoulSystem>();
         if (soulSystem != null && soulSystem.CurrentState != HWJ_SoulRuntimeState.Body)
         {
             return;
         }
 
         // 1. 데미지 처리
-        HWJ_RuntimeStatusSystem statusSystem = target.GetComponent<HWJ_RuntimeStatusSystem>();
+        HWJ_RuntimeStatusSystem statusSystem = target.GetComponentInParent<HWJ_RuntimeStatusSystem>();
         if (statusSystem != null)
         {
             statusSystem.ApplyDamage(damage);
             Debug.Log($"[{gameObject.name}] {target.name}에게 데미지: {damage}");
-        }
-        else if (target.CompareTag("Player"))
-        {
-            HSH_BarUI[] barUIs = FindObjectsByType<HSH_BarUI>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-            foreach (var barUI in barUIs)
-            {
-                if (barUI.currentType == HSH_BarUI.BarType.HP) barUI.DecreaseValue(damage);
-            }
         }
 
         // 2. 넉백 처리
@@ -121,17 +113,18 @@ public class HSH_WindTrap : MonoBehaviour
         knockbackDir.y += 0.5f; // 약간 위로 뜨게 설정
         knockbackDir = knockbackDir.normalized;
 
-        hys_Player_Hit playerHit = target.GetComponent<hys_Player_Hit>();
+        hys_Player_Hit playerHit = target.GetComponentInParent<hys_Player_Hit>();
         if (playerHit != null)
         {
             playerHit.ApplyKnockback(knockbackDir * knockbackPower);
         }
         else
         {
-            HWJ_KnockbackSystem knockbackSystem = target.GetComponent<HWJ_KnockbackSystem>();
+            HWJ_KnockbackSystem knockbackSystem = target.GetComponentInParent<HWJ_KnockbackSystem>();
             if (knockbackSystem == null)
             {
-                knockbackSystem = target.AddComponent<HWJ_KnockbackSystem>();
+                Rigidbody2D parentRb = target.GetComponentInParent<Rigidbody2D>();
+                knockbackSystem = (parentRb != null) ? parentRb.gameObject.AddComponent<HWJ_KnockbackSystem>() : target.AddComponent<HWJ_KnockbackSystem>();
             }
             knockbackSystem.PlayKnockback(knockbackDir, knockbackPower, 0.25f);
         }

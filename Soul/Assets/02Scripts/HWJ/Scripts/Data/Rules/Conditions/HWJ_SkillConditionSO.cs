@@ -3,6 +3,9 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "HWJ_SkillCondition", menuName = "HWJ/Data/Rules/Conditions/Skill")]
 public class HWJ_SkillConditionSO : HWJ_GameplayConditionSO
 {
+    [Header("스킬 조건")]
+    [Tooltip("스킬 사용 가능 여부에서 검사할 조건 종류입니다.")]
+    [InspectorName("검사 조건")]
     [SerializeField] private HWJ_SkillRequirement requirement = HWJ_SkillRequirement.HasSkillAction;
 
     protected override bool Evaluate(HWJ_GameplayContext context)
@@ -21,6 +24,8 @@ public class HWJ_SkillConditionSO : HWJ_GameplayConditionSO
                 return dashStatus != null && dashStatus.CanDash;
             case HWJ_SkillRequirement.SkillCooldownReady:
                 return IsSkillCooldownReady(context);
+            case HWJ_SkillRequirement.SkillUnlockedBySource:
+                return IsSkillUnlockedBySource(context);
             default:
                 return false;
         }
@@ -66,5 +71,18 @@ public class HWJ_SkillConditionSO : HWJ_GameplayConditionSO
 
         HWJ_SkillActionSystem skillActionSystem = context.GetSkillActionSystem(HWJ_GameplayActorSlot.Source);
         return skillActionSystem == null || skillActionSystem.IsSkillReady(skillId);
+    }
+
+    private bool IsSkillUnlockedBySource(HWJ_GameplayContext context)
+    {
+        string skillId = context.SkillAction != null ? context.SkillAction.SkillActionId : context.ActionId;
+
+        if (string.IsNullOrEmpty(skillId))
+        {
+            return false;
+        }
+
+        HWJ_SkillUnlockSystem sourceUnlockState = context.GetSkillUnlockSystem(HWJ_GameplayActorSlot.Source);
+        return sourceUnlockState != null && sourceUnlockState.IsSkillUnlocked(skillId);
     }
 }
