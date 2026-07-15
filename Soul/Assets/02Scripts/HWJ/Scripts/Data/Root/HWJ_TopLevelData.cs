@@ -76,6 +76,9 @@ public class HWJ_ReceivedDamageData
     public bool ignoreEnemyDamage;
     public float hitStunSeconds = 0.18f;
     public float hitReactionImmuneSeconds;
+    public int maxHitReactionsPerWindow;
+    public float hitReactionWindowSeconds = 1f;
+    public float hitReactionLimitImmuneSeconds;
     public float knockbackWeightMultiplier = 1f;
     public bool hasSuperArmor;
     public bool ignoreHitStun;

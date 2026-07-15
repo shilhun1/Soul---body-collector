@@ -44,6 +44,9 @@ public class HWJ_StatusFlagConditionSO : HWJ_GameplayConditionSO
             case HWJ_StatusFlag.HitReactionImmune:
                 value = status.IsHitReactionImmune;
                 break;
+            case HWJ_StatusFlag.HitReactionLimited:
+                value = status.IsHitReactionLimited;
+                break;
             case HWJ_StatusFlag.SuperArmor:
                 value = status.HasSuperArmor;
                 break;

@@ -20,6 +20,12 @@ MonoBehaviour:
   hitRange: 2.2
   durationSeconds: 0.65
   cooldownSeconds: 2.4
+  hitStartSeconds: 0.07
+  hitActiveSeconds: 0.4
+  recoverySeconds: 0.18
+  movementLockSeconds: 0.5
+  dashCancelStartSeconds: 0.56
+  canDashCancel: 1
   moveDistance: 0
   moveSpeed: 0
   hitCount: 4

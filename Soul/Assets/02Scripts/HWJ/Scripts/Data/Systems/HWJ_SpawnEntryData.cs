@@ -18,6 +18,7 @@ public class HWJ_SpawnEntryData
     public bool useSequentialSpawnWhenMultiple = true;
     public bool waitUntilCurrentSpawnedMonstersDefeated = true;
     public float nextSpawnMaxWaitSeconds = 5f;
+    public bool skipSpawnWhenRewardClaimed = true;
     public Vector2 spawnOffset;
     public bool randomizePoint;
     public bool spawnOnStart = true;

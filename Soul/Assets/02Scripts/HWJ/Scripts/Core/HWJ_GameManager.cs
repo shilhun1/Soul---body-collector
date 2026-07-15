@@ -12,20 +12,31 @@ public class HWJ_GameManager : MonoBehaviour
 {
     public static HWJ_GameManager Instance { get; private set; }
 
-    [Header("Core")]
+    [Header("Core Services")]
     [SerializeField] private HWJ_GameplayDatabaseSO database;
     [SerializeField] private HWJ_ObjectPoolSystem objectPool;
     [SerializeField] private HWJ_SpawnerSystem spawner;
+
+    [Space(8f)]
+    [Header("Lifetime")]
     [SerializeField] private bool dontDestroyOnLoad = true;
 
-    [Header("Player Runtime")]
+    [Space(8f)]
+    [Header("Player Runtime References")]
     [SerializeField] private HWJ_RootObjectDataResolver playerResolver;
+    [SerializeField] private HWJ_PlayerInputSystem playerInput;
     [SerializeField] private HWJ_RuntimeStatusSystem playerStatus;
     [SerializeField] private HWJ_LevelUpSystem playerLevel;
     [SerializeField] private HWJ_SoulSystem playerSoul;
     [SerializeField] private HWJ_BodyDecaySystem playerBodyDecay;
     [SerializeField] private HWJ_PossessionSystem playerPossession;
 
+    [Space(8f)]
+    [Header("Player Runtime Auto Wiring")]
+    [SerializeField] private bool autoFindPlayerResolverInScene = true;
+    [SerializeField] private bool autoAddMissingPlayerCoreSystems = true;
+
+    [Space(8f)]
     [Header("Player Runtime Persistence")]
     [SerializeField] private bool preservePlayerRuntimeAcrossScenes = true;
     [SerializeField] private bool hasPlayerRuntimeSnapshot;
@@ -49,6 +60,7 @@ public class HWJ_GameManager : MonoBehaviour
     [SerializeField] private bool savedPossessedVisualFlipY;
     [SerializeField] private RuntimeAnimatorController savedPossessedAnimatorController;
 
+    [Space(8f)]
     [Header("Pause")]
     [SerializeField] private bool togglePauseWithEscape = true;
     [SerializeField] private bool isPaused;
@@ -58,6 +70,7 @@ public class HWJ_GameManager : MonoBehaviour
     public HWJ_ObjectPoolSystem ObjectPool => objectPool;
     public HWJ_SpawnerSystem Spawner => spawner;
     public HWJ_RootObjectDataResolver PlayerResolver => playerResolver;
+    public HWJ_PlayerInputSystem PlayerInput => playerInput;
     public HWJ_RuntimeStatusSystem PlayerStatus => playerStatus;
     public HWJ_LevelUpSystem PlayerLevel => playerLevel;
     public HWJ_SoulSystem PlayerSoul => playerSoul;
@@ -86,6 +99,14 @@ public class HWJ_GameManager : MonoBehaviour
         if (objectPool != null)
         {
             objectPool.Prewarm();
+        }
+    }
+
+    private void OnDestroy()
+    {
+        if (Instance == this)
+        {
+            Instance = null;
         }
     }
 
@@ -172,6 +193,22 @@ public class HWJ_GameManager : MonoBehaviour
         {
             spawner = GetComponentInChildren<HWJ_SpawnerSystem>();
         }
+
+        if (playerInput == null)
+        {
+            playerInput = GetComponentInChildren<HWJ_PlayerInputSystem>();
+        }
+
+        if (playerResolver == null && autoFindPlayerResolverInScene)
+        {
+            playerResolver = FindPlayerResolverInScene();
+        }
+
+        if (playerResolver != null)
+        {
+            EnsurePlayerCoreSystems(playerResolver);
+            CachePlayerRuntimeReferencesFromResolver(playerResolver);
+        }
     }
 
     /// <summary>
@@ -186,15 +223,44 @@ public class HWJ_GameManager : MonoBehaviour
         }
 
         playerResolver = resolver;
+        EnsurePlayerCoreSystems(playerResolver);
 
         if (resolver == null)
         {
-            playerStatus = null;
-            playerLevel = null;
-            playerSoul = null;
-            playerBodyDecay = null;
-            playerPossession = null;
+            ClearRegisteredPlayerRuntimeReferences(false);
             return;
+        }
+
+        CachePlayerRuntimeReferencesFromResolver(resolver);
+
+        if (preservePlayerRuntimeAcrossScenes)
+        {
+            ApplyPlayerRuntimeSnapshot();
+        }
+    }
+
+    public void RegisterPlayerInput(HWJ_PlayerInputSystem inputSystem)
+    {
+        playerInput = inputSystem;
+    }
+
+    private void CachePlayerRuntimeReferencesFromResolver(HWJ_RootObjectDataResolver resolver)
+    {
+        if (resolver == null)
+        {
+            ClearRegisteredPlayerRuntimeReferences(false);
+            return;
+        }
+
+        HWJ_PlayerInputSystem resolverInput = resolver.GetComponent<HWJ_PlayerInputSystem>();
+
+        if (resolverInput != null)
+        {
+            playerInput = resolverInput;
+        }
+        else if (playerInput == null)
+        {
+            playerInput = GetComponentInChildren<HWJ_PlayerInputSystem>();
         }
 
         playerStatus = resolver.GetComponent<HWJ_RuntimeStatusSystem>();
@@ -202,11 +268,66 @@ public class HWJ_GameManager : MonoBehaviour
         playerSoul = resolver.GetComponent<HWJ_SoulSystem>();
         playerBodyDecay = resolver.GetComponent<HWJ_BodyDecaySystem>();
         playerPossession = resolver.GetComponent<HWJ_PossessionSystem>();
+    }
 
-        if (preservePlayerRuntimeAcrossScenes)
+    private void EnsurePlayerCoreSystems(HWJ_RootObjectDataResolver resolver)
+    {
+        if (!autoAddMissingPlayerCoreSystems || resolver == null)
         {
-            ApplyPlayerRuntimeSnapshot();
+            return;
         }
+
+        GameObject playerObject = resolver.gameObject;
+
+        // These components are required for the current vertical slice: spirit, possession, decay, collapse, and rediscovery.
+        EnsureComponent<HWJ_RuntimeStatusSystem>(playerObject);
+        EnsureComponent<HWJ_SoulSystem>(playerObject);
+        EnsureComponent<HWJ_PossessedBodySystem>(playerObject);
+        EnsureComponent<HWJ_PossessionSystem>(playerObject);
+        EnsureComponent<HWJ_BodyDecaySystem>(playerObject);
+        EnsureComponent<HWJ_CollapseSystem>(playerObject);
+        EnsureComponent<HWJ_BodyDiscoverySystem>(playerObject);
+    }
+
+    private static T EnsureComponent<T>(GameObject owner) where T : Component
+    {
+        T component = owner.GetComponent<T>();
+        return component != null ? component : owner.AddComponent<T>();
+    }
+
+    private static HWJ_RootObjectDataResolver FindPlayerResolverInScene()
+    {
+        HWJ_RootObjectDataResolver[] resolvers = FindObjectsByType<HWJ_RootObjectDataResolver>(
+            FindObjectsInactive.Exclude,
+            FindObjectsSortMode.None);
+
+        for (int i = 0; i < resolvers.Length; i++)
+        {
+            HWJ_RootObjectDataResolver resolver = resolvers[i];
+
+            if (resolver != null
+                && resolver.RootObjectData != null
+                && resolver.ObjectType == HWJ_ObjectType.Player)
+            {
+                return resolver;
+            }
+        }
+
+        return null;
+    }
+
+    private void ClearRegisteredPlayerRuntimeReferences(bool clearInput)
+    {
+        if (clearInput)
+        {
+            playerInput = null;
+        }
+
+        playerStatus = null;
+        playerLevel = null;
+        playerSoul = null;
+        playerBodyDecay = null;
+        playerPossession = null;
     }
 
     private void CapturePlayerRuntimeSnapshot()
@@ -423,5 +544,24 @@ public class HWJ_GameManager : MonoBehaviour
     {
         gameplayRule = null;
         return database != null && database.TryGetGameplayRule(ruleId, out gameplayRule);
+    }
+
+    public bool TryGetRuleExecutionCore(string executionCoreId, out HWJ_RuleExecutionCoreSO executionCore)
+    {
+        executionCore = null;
+        return database != null && database.TryGetRuleExecutionCore(executionCoreId, out executionCore);
+    }
+
+    public bool TryValidateGameplayDatabase(out HWJ_GameDataRegistryReport report)
+    {
+        report = null;
+
+        if (database == null)
+        {
+            return false;
+        }
+
+        report = database.ValidateRegistryIds();
+        return report != null;
     }
 }

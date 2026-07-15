@@ -17,12 +17,15 @@ public class HWJ_SkillActionSystem : MonoBehaviour
     [SerializeField] private HWJ_CombatSystem combatSystem;
     [SerializeField] private HWJ_CombatExecutionSystem combatExecutionSystem;
     [SerializeField] private HWJ_PossessionSystem possessionSystem;
+    [SerializeField] private HWJ_SkillUnlockSystem playerSkillUnlock;
     [SerializeField] private HWJ_CharacterMotionSystem motionSystem;
     [SerializeField] private HWJ_ObjectPoolSystem objectPool;
     [SerializeField] private HWJ_GameplayDatabaseSO database;
     [SerializeField] private Rigidbody2D body;
     [SerializeField] private HWJ_SkillActionDataSO[] localSkillActions;
     [SerializeField] private bool useGameplaySkillRule = true;
+    [SerializeField] private HWJ_RuleExecutionCoreSO skillUseExecutionCore;
+    [SerializeField] private string skillUseExecutionCoreId = "skill_use_execution";
     [SerializeField] private HWJ_GameplayRuleSO skillUseRule;
     [SerializeField] private string skillUseRuleId = "skill_can_use";
     [SerializeField] private string lastSkillResult;
@@ -72,30 +75,30 @@ public class HWJ_SkillActionSystem : MonoBehaviour
 
     /// <summary>
     /// EnemyTypeDataSO의 SkillCycle에 들어간 스킬 항목을 실행합니다.
-    /// SkillEntry의 쿨타임 값이 0보다 크면 SO 기본 쿨타임보다 우선합니다.
+    /// 스킬 정의 엔트리의 쿨타임 값이 0보다 크면 SO 기본 쿨타임보다 우선합니다.
     /// </summary>
-    public bool TryUseSkillEntry(HWJ_SkillEntryData skillEntry, Transform target)
+    public bool TryUseSkillEntry(HWJ_SkillEntryData definedSkillEntry, Transform target)
     {
-        if (skillEntry == null || string.IsNullOrEmpty(skillEntry.skillId))
+        if (definedSkillEntry == null || string.IsNullOrEmpty(definedSkillEntry.skillId))
         {
             lastSkillResult = "Skill failed: missing skill entry.";
             return false;
         }
 
-        if (!IsSkillEntryWeaponMatched(skillEntry))
+        if (!IsSkillEntryWeaponMatched(definedSkillEntry))
         {
-            lastSkillResult = $"Skill failed: {skillEntry.skillId} weapon mismatch.";
+            lastSkillResult = $"Skill failed: {definedSkillEntry.skillId} weapon mismatch.";
             return false;
         }
 
-        if (!TryGetSkillAction(skillEntry.skillId, out HWJ_SkillActionDataSO skillAction))
+        if (!TryGetSkillAction(definedSkillEntry.skillId, out HWJ_SkillActionDataSO skillAction))
         {
-            lastSkillResult = $"Skill failed: missing action data for {skillEntry.skillId}.";
+            lastSkillResult = $"Skill failed: missing action data for {definedSkillEntry.skillId}.";
             return false;
         }
 
-        float cooldownOverride = skillEntry.cooldownSeconds > 0f
-            ? skillEntry.cooldownSeconds
+        float cooldownOverride = definedSkillEntry.cooldownSeconds > 0f
+            ? definedSkillEntry.cooldownSeconds
             : -1f;
 
         return TryUseSkill(skillAction, target, cooldownOverride);
@@ -128,7 +131,11 @@ public class HWJ_SkillActionSystem : MonoBehaviour
 
         if (skillAction.ActionType != HWJ_SkillActionType.Dash && !IsSkillRuleSatisfied(skillAction))
         {
-            lastSkillResult = $"Skill failed: {skillAction.SkillActionId} gameplay rule.";
+            if (string.IsNullOrEmpty(lastSkillResult))
+            {
+                lastSkillResult = $"Skill failed: {skillAction.SkillActionId} gameplay rule.";
+            }
+
             return false;
         }
 
@@ -143,6 +150,11 @@ public class HWJ_SkillActionSystem : MonoBehaviour
         if (!skillAction.CanUseWithWeapon(GetCurrentWeaponType()))
         {
             lastSkillResult = $"Skill failed: {skillAction.SkillActionId} weapon mismatch.";
+            return false;
+        }
+
+        if (!IsTrackedPlayerSkillUnlocked(skillAction.SkillActionId))
+        {
             return false;
         }
 
@@ -172,6 +184,18 @@ public class HWJ_SkillActionSystem : MonoBehaviour
             return true;
         }
 
+        HWJ_GameplayContext context = HWJ_GameplayContext
+            .Create(dataResolver, null)
+            .WithSource(this)
+            .WithSkill(skillAction);
+
+        if (ResolveSkillExecutionCore(out HWJ_RuleExecutionCoreSO executionCore))
+        {
+            bool corePassed = executionCore.TryExecute(context, out HWJ_RuleExecutionResult executionResult);
+            lastSkillResult = executionResult.Message;
+            return corePassed;
+        }
+
         HWJ_GameplayRuleSO rule = skillUseRule;
 
         if (rule == null
@@ -186,12 +210,27 @@ public class HWJ_SkillActionSystem : MonoBehaviour
             return true;
         }
 
-        HWJ_GameplayContext context = HWJ_GameplayContext
-            .Create(dataResolver, null)
-            .WithSource(this)
-            .WithSkill(skillAction);
+        bool passed = rule.TryEvaluate(context, out HWJ_RuleEvaluationResult result);
+        lastSkillResult = result.Message;
+        return passed;
+    }
 
-        return rule.IsSatisfied(context);
+    private bool ResolveSkillExecutionCore(out HWJ_RuleExecutionCoreSO executionCore)
+    {
+        executionCore = null;
+
+        if (skillUseExecutionCore != null)
+        {
+            executionCore = skillUseExecutionCore;
+            return true;
+        }
+
+        if (string.IsNullOrEmpty(skillUseExecutionCoreId))
+        {
+            return false;
+        }
+
+        return HWJ_GameAccess.TryGetRuleExecutionCore(skillUseExecutionCoreId, out executionCore);
     }
 
     /// <summary>
@@ -728,16 +767,16 @@ public class HWJ_SkillActionSystem : MonoBehaviour
         return shader != null ? new Material(shader) : null;
     }
 
-    private bool IsSkillEntryWeaponMatched(HWJ_SkillEntryData skillEntry)
+    private bool IsSkillEntryWeaponMatched(HWJ_SkillEntryData definedSkillEntry)
     {
-        if (skillEntry == null)
+        if (definedSkillEntry == null)
         {
             return false;
         }
 
         HWJ_WeaponType currentWeaponType = GetCurrentWeaponType();
-        return skillEntry.requiredWeaponType == HWJ_WeaponType.None
-            || skillEntry.requiredWeaponType == currentWeaponType;
+        return definedSkillEntry.requiredWeaponType == HWJ_WeaponType.None
+            || definedSkillEntry.requiredWeaponType == currentWeaponType;
     }
 
     private HWJ_WeaponType GetCurrentWeaponType()
@@ -748,6 +787,31 @@ public class HWJ_SkillActionSystem : MonoBehaviour
         }
 
         return dataResolver != null ? dataResolver.WeaponType : HWJ_WeaponType.None;
+    }
+
+    /// <summary>
+    /// 플레이어 스킬트리에 등록된 스킬만 해금 상태를 검사합니다.
+    /// 몬스터/보스 전용 스킬은 기존 스킬 사이클 규칙을 그대로 사용합니다.
+    /// </summary>
+    private bool IsTrackedPlayerSkillUnlocked(string skillActionId)
+    {
+        if (playerSkillUnlock == null)
+        {
+            playerSkillUnlock = GetComponent<HWJ_SkillUnlockSystem>();
+        }
+
+        if (playerSkillUnlock == null || !playerSkillUnlock.HasSkillDefinition(skillActionId))
+        {
+            return true;
+        }
+
+        if (playerSkillUnlock.IsSkillUnlocked(skillActionId))
+        {
+            return true;
+        }
+
+        lastSkillResult = $"Skill failed: {skillActionId} is locked.";
+        return false;
     }
 
     private void CacheReferences()
@@ -775,6 +839,11 @@ public class HWJ_SkillActionSystem : MonoBehaviour
         if (possessionSystem == null)
         {
             possessionSystem = GetComponent<HWJ_PossessionSystem>();
+        }
+
+        if (playerSkillUnlock == null)
+        {
+            playerSkillUnlock = GetComponent<HWJ_SkillUnlockSystem>();
         }
 
         if (motionSystem == null)

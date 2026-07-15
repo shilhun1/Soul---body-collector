@@ -35,6 +35,8 @@ public class HWJ_LevelUpSystem : MonoBehaviour
             return;
         }
 
+        int previousExperience = currentExperience;
+        int previousLevel = currentLevel;
         currentExperience += amount;
 
         while (currentLevel < levelUpData.MaxLevel
@@ -44,6 +46,15 @@ public class HWJ_LevelUpSystem : MonoBehaviour
             currentExperience -= requiredExperience;
             currentLevel++;
             skillPoint += levelUpData.SkillPointPerLevel;
+        }
+
+        HWJ_GameplayEvents.RaiseExperienceChanged(
+            new HWJ_ExperienceChangedEvent(this, previousExperience, currentExperience, amount));
+
+        if (previousLevel != currentLevel)
+        {
+            HWJ_GameplayEvents.RaisePlayerLevelChanged(
+                new HWJ_PlayerLevelChangedEvent(this, previousLevel, currentLevel, skillPoint));
         }
     }
 

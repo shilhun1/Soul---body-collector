@@ -15,7 +15,8 @@ public class HWJ_PossessionConditionSO : HWJ_GameplayConditionSO
                     && sourcePossession.canPossess;
             case HWJ_PossessionRequirement.SourceIsSoulState:
                 HWJ_SoulSystem sourceSoul = context.GetSoul(HWJ_GameplayActorSlot.Source);
-                return sourceSoul != null && sourceSoul.CurrentState == HWJ_SoulRuntimeState.Soul;
+                return sourceSoul != null
+                    && sourceSoul.CurrentExistenceState == HWJ_PlayerExistenceState.Spirit;
             case HWJ_PossessionRequirement.TargetIsEnemyOrBoss:
                 HWJ_RootObjectDataResolver target = context.GetResolver(HWJ_GameplayActorSlot.Target);
                 return target != null
@@ -27,6 +28,8 @@ public class HWJ_PossessionConditionSO : HWJ_GameplayConditionSO
                 return IsTargetDefeatedIfRequired(context);
             case HWJ_PossessionRequirement.WithinPossessionRange:
                 return IsWithinPossessionRange(context);
+            case HWJ_PossessionRequirement.TargetCorpseAvailable:
+                return IsTargetCorpseAvailable(context);
             default:
                 return false;
         }
@@ -64,5 +67,18 @@ public class HWJ_PossessionConditionSO : HWJ_GameplayConditionSO
         }
 
         return context.GetDistance() <= Mathf.Max(0f, range);
+    }
+
+    private bool IsTargetCorpseAvailable(HWJ_GameplayContext context)
+    {
+        HWJ_RootObjectDataResolver target = context.GetResolver(HWJ_GameplayActorSlot.Target);
+
+        if (target == null)
+        {
+            return false;
+        }
+
+        HWJ_PossessionBodyState bodyState = target.GetComponent<HWJ_PossessionBodyState>();
+        return bodyState == null || !bodyState.IsConsumed;
     }
 }

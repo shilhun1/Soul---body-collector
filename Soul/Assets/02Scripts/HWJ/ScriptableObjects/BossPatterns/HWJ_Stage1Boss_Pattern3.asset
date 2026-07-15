@@ -24,4 +24,6 @@ MonoBehaviour:
   weight: 1
   animationId: 
   useStageOneSpecialExecution: 1
-  skillActions: []
+  skillActions:
+  - {fileID: 11400000, guid: b0a7b1c2d3e44f5a8b90123456789002, type: 2}
+  - {fileID: 11400000, guid: b0a7b1c2d3e44f5a8b90123456789001, type: 2}
