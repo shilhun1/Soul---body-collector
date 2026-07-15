@@ -1,0 +1,58 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a6a8eded0c744166a37dfeef997b499e, type: 3}
+  m_Name: HWJ_PlayerSkill_Bow_PentaStrike
+  m_EditorClassIdentifier: Assembly-CSharp::HWJ_SkillActionDataSO
+  skillActionId: player_bow_penta_strike
+  sourceSkillId: 1403
+  displayName: "Penta Strike"
+  skillDescription: "공중으로 도약해 아래로 한 번에 5발을 발사해 적을 공격한다."
+  effectId: ""
+  soundId: ""
+  actionType: 2
+  requiredWeaponType: 5
+  authoredAttackPower: 16
+  damageMultiplier: 1.6
+  range: 9
+  hitRange: 9
+  durationSeconds: 3.46
+  cooldownSeconds: 9
+  hitStartSeconds: 1.8
+  hitActiveSeconds: 0.36
+  recoverySeconds: 1.3
+  movementLockSeconds: 3.1
+  dashCancelStartSeconds: 1.8
+  canDashCancel: 1
+  moveDistance: 0
+  moveSpeed: 0
+  hitCount: 5
+  hitIntervalSeconds: 0.08
+  causesKnockback: 1
+  knockbackDistance: 0.8
+  causesStagger: 0
+  staggerSeconds: 0
+  launchesTarget: 0
+  launchHeight: 0
+  grantsInvincibility: 1
+  invincibilitySeconds: 0.5
+  usesCustomBodyDecayAmount: 0
+  customBodyDecayAmount: 0
+  additionalBodyDecayAmount: 0
+  usesComboBodyDecayMultiplier: 0
+  comboBodyDecayMultiplier: 1
+  chargeBodyDecayPerSecond: 0
+  maxChargeBodyDecayAmount: 0
+  motionKey: PlayerSkill_Bow_PentaStrike
+  motionSequenceKeys: []
+  motionStepIntervalSeconds: 0.12
+  projectilePrefab: {fileID: 5062887714543854764, guid: 528dff6452e5a154f8ac9bc4630ff040, type: 3}
+  actionEffectPrefab: {fileID: 0}

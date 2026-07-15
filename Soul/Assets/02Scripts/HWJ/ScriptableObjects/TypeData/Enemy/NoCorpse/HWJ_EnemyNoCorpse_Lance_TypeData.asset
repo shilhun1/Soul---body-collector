@@ -62,6 +62,36 @@ MonoBehaviour:
       startsUnlocked: 1
       cooldownSeconds: 3
       useIntervalSeconds: 1
+  playerPossessionSkillSet:
+    skills:
+    - skillId: player_lance_piercing_drive
+      requiredWeaponType: 4
+      unlockLevel: 1
+      requiredSkillPoint: 0
+      startsUnlocked: 1
+      cooldownSeconds: 3
+      useIntervalSeconds: 3
+    - skillId: player_lance_rapid_stinger
+      requiredWeaponType: 4
+      unlockLevel: 11
+      requiredSkillPoint: 0
+      startsUnlocked: 1
+      cooldownSeconds: 4.5
+      useIntervalSeconds: 4.5
+    - skillId: player_lance_rising_spear
+      requiredWeaponType: 4
+      unlockLevel: 21
+      requiredSkillPoint: 0
+      startsUnlocked: 1
+      cooldownSeconds: 15
+      useIntervalSeconds: 15
+    - skillId: player_lance_burst_lance
+      requiredWeaponType: 4
+      unlockLevel: 25
+      requiredSkillPoint: 0
+      startsUnlocked: 1
+      cooldownSeconds: 18
+      useIntervalSeconds: 18
   possessionBody:
     canPossess: 0
     canBePossessed: 0

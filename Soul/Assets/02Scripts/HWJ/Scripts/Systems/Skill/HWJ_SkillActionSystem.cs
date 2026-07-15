@@ -334,6 +334,11 @@ public class HWJ_SkillActionSystem : MonoBehaviour
             return;
         }
 
+        if (skillAction.GrantsInvincibility && runtimeStatus != null)
+        {
+            runtimeStatus.GrantInvincibility(skillAction.InvincibilitySeconds);
+        }
+
         if (skillAction.ActionEffectPrefab != null)
         {
             SpawnPooled(skillAction.ActionEffectPrefab);

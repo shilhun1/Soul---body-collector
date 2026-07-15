@@ -1,0 +1,58 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a6a8eded0c744166a37dfeef997b499e, type: 3}
+  m_Name: HWJ_PlayerSkill_Lance_PiercingDrive
+  m_EditorClassIdentifier: Assembly-CSharp::HWJ_SkillActionDataSO
+  skillActionId: player_lance_piercing_drive
+  sourceSkillId: 1202
+  displayName: "Piercing Drive"
+  skillDescription: "창을 앞으로 돌진하며 적을 공격한다."
+  effectId: ""
+  soundId: ""
+  actionType: 4
+  requiredWeaponType: 4
+  authoredAttackPower: 10
+  damageMultiplier: 1
+  range: 10
+  hitRange: 10
+  durationSeconds: 0.5
+  cooldownSeconds: 3
+  hitStartSeconds: 0.2
+  hitActiveSeconds: 0.2
+  recoverySeconds: 0.1
+  movementLockSeconds: 0.3
+  dashCancelStartSeconds: 0.2
+  canDashCancel: 1
+  moveDistance: 8
+  moveSpeed: 25
+  hitCount: 3
+  hitIntervalSeconds: 0.08
+  causesKnockback: 1
+  knockbackDistance: 0.5
+  causesStagger: 0
+  staggerSeconds: 0.65
+  launchesTarget: 0
+  launchHeight: 1.5
+  grantsInvincibility: 0
+  invincibilitySeconds: 0
+  usesCustomBodyDecayAmount: 0
+  customBodyDecayAmount: 0
+  additionalBodyDecayAmount: 0
+  usesComboBodyDecayMultiplier: 0
+  comboBodyDecayMultiplier: 1
+  chargeBodyDecayPerSecond: 0
+  maxChargeBodyDecayAmount: 0
+  motionKey: PlayerSkill_Lance_PiercingDrive
+  motionSequenceKeys: []
+  motionStepIntervalSeconds: 0.12
+  projectilePrefab: {fileID: 0}
+  actionEffectPrefab: {fileID: 0}

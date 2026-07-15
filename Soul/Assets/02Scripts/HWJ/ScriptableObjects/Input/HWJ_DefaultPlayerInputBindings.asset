@@ -49,3 +49,6 @@ MonoBehaviour:
   - actionId: 11
     keyboardKey: 51
     mouseButton: 0
+  - actionId: 12
+    keyboardKey: 52
+    mouseButton: 0

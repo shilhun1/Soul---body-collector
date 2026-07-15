@@ -1,0 +1,58 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a6a8eded0c744166a37dfeef997b499e, type: 3}
+  m_Name: HWJ_PlayerSkill_Sword_DashSlash
+  m_EditorClassIdentifier: Assembly-CSharp::HWJ_SkillActionDataSO
+  skillActionId: player_sword_dash_slash
+  sourceSkillId: 1103
+  displayName: "Dash Slash"
+  skillDescription: "검을 쥐고 앞으로 돌진하며 적을 공격한다."
+  effectId: ""
+  soundId: ""
+  actionType: 4
+  requiredWeaponType: 3
+  authoredAttackPower: 25
+  damageMultiplier: 2.5
+  range: 6
+  hitRange: 6
+  durationSeconds: 1.72
+  cooldownSeconds: 4.5
+  hitStartSeconds: 0.9
+  hitActiveSeconds: 0.12
+  recoverySeconds: 0.7
+  movementLockSeconds: 1.6
+  dashCancelStartSeconds: 0.9
+  canDashCancel: 1
+  moveDistance: 6
+  moveSpeed: 21
+  hitCount: 2
+  hitIntervalSeconds: 0.08
+  causesKnockback: 1
+  knockbackDistance: 0.5
+  causesStagger: 0
+  staggerSeconds: 0
+  launchesTarget: 0
+  launchHeight: 0
+  grantsInvincibility: 0
+  invincibilitySeconds: 0
+  usesCustomBodyDecayAmount: 0
+  customBodyDecayAmount: 0
+  additionalBodyDecayAmount: 0
+  usesComboBodyDecayMultiplier: 0
+  comboBodyDecayMultiplier: 1
+  chargeBodyDecayPerSecond: 0
+  maxChargeBodyDecayAmount: 0
+  motionKey: PlayerSkill_Sword_DashSlash
+  motionSequenceKeys: []
+  motionStepIntervalSeconds: 0.12
+  projectilePrefab: {fileID: 0}
+  actionEffectPrefab: {fileID: 0}

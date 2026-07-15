@@ -23,7 +23,7 @@ public class HWJ_PlayerAttackSystem : MonoBehaviour
     [Header("Attack Tuning")]
     [SerializeField] private LayerMask attackTargetLayer;
     [SerializeField] private float minimumAttackRange = 2f;
-    [SerializeField] private int possessedSkillSlotCount = 3;
+    [SerializeField] private int possessedSkillSlotCount = 4;
 
     [Space(8f)]
     [Header("Charge")]

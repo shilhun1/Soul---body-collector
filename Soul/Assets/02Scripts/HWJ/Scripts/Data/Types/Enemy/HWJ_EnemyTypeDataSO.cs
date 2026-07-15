@@ -18,6 +18,7 @@ public class HWJ_EnemyTypeDataSO : HWJ_ObjectTypeDataSO
 
     [Header("Combat And Possession")]
     [SerializeField] private HWJ_SkillSetData skillCycle = new HWJ_SkillSetData();
+    [SerializeField] private HWJ_SkillSetData playerPossessionSkillSet = new HWJ_SkillSetData();
     [SerializeField] private HWJ_PossessionData possessionBody = new HWJ_PossessionData();
 
     public HWJ_EnemyRoleData Role => role;
@@ -26,5 +27,6 @@ public class HWJ_EnemyTypeDataSO : HWJ_ObjectTypeDataSO
     public HWJ_NavigationData Navigation => navigation;
     public HWJ_EnemyStateData State => state;
     public HWJ_SkillSetData SkillCycle => skillCycle;
+    public HWJ_SkillSetData PlayerPossessionSkillSet => playerPossessionSkillSet;
     public HWJ_PossessionData PossessionBody => possessionBody;
 }

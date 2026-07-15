@@ -18,7 +18,8 @@ public class HWJ_PlayerInputBindingDataSO : ScriptableObject
         new HWJ_PlayerInputBindingEntry(HWJ_PlayerInputActionId.ExitPossession, KeyCode.Q),
         new HWJ_PlayerInputBindingEntry(HWJ_PlayerInputActionId.SkillSlot1, KeyCode.Alpha1),
         new HWJ_PlayerInputBindingEntry(HWJ_PlayerInputActionId.SkillSlot2, KeyCode.Alpha2),
-        new HWJ_PlayerInputBindingEntry(HWJ_PlayerInputActionId.SkillSlot3, KeyCode.Alpha3)
+        new HWJ_PlayerInputBindingEntry(HWJ_PlayerInputActionId.SkillSlot3, KeyCode.Alpha3),
+        new HWJ_PlayerInputBindingEntry(HWJ_PlayerInputActionId.SkillSlot4, KeyCode.Alpha4)
     };
 
     public int BindingCount => bindings != null ? bindings.Length : 0;

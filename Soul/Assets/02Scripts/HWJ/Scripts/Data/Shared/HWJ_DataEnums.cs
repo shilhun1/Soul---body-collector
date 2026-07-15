@@ -175,7 +175,8 @@ public enum HWJ_PlayerInputActionId
     ExitPossession,
     SkillSlot1,
     SkillSlot2,
-    SkillSlot3
+    SkillSlot3,
+    SkillSlot4
 }
 
 public enum HWJ_InputMouseButton
