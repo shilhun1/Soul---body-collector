@@ -34,7 +34,8 @@ public enum HWJ_StatusFlag
     SuperArmor,
     UsesHp,
     HasHpRemaining,
-    IgnoreKnockback
+    IgnoreKnockback,
+    HitReactionLimited
 }
 
 public enum HWJ_PossessionRequirement

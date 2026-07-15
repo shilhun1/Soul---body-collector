@@ -7,6 +7,7 @@ using UnityEngine;
 /// </summary>
 public class HWJ_PlayerAttackSystem : MonoBehaviour
 {
+    [Header("Core References")]
     [SerializeField] private HWJ_RootObjectDataResolver dataResolver;
     [SerializeField] private HWJ_RuntimeStatusSystem runtimeStatus;
     [SerializeField] private HWJ_SkillActionSystem skillActionSystem;
@@ -17,22 +18,47 @@ public class HWJ_PlayerAttackSystem : MonoBehaviour
     [SerializeField] private HWJ_CombatExecutionSystem combatExecutionSystem;
     [SerializeField] private HWJ_BodyDecaySystem bodyDecaySystem;
     [SerializeField] private HWJ_CharacterMotionSystem motionSystem;
+
+    [Space(8f)]
+    [Header("Attack Tuning")]
     [SerializeField] private LayerMask attackTargetLayer;
     [SerializeField] private float minimumAttackRange = 2f;
     [SerializeField] private int possessedSkillSlotCount = 3;
+
+    [Space(8f)]
+    [Header("Charge")]
+    [SerializeField] private bool useChargeReleaseInput;
+    [SerializeField] private float maxBasicAttackChargeSeconds = 2f;
+
+    [Space(8f)]
+    [Header("Rules")]
     [SerializeField] private bool useGameplayAttackRule = true;
     [SerializeField] private HWJ_RuleExecutionCoreSO possessedBodyAttackExecutionCore;
     [SerializeField] private string possessedBodyAttackExecutionCoreId = "possessed_body_attack_execution";
     [SerializeField] private HWJ_GameplayRuleSO possessedBodyAttackRule;
     [SerializeField] private string possessedBodyAttackRuleId = "possessed_body_can_attack";
+
+    [Space(8f)]
+    [Header("Debug")]
     [SerializeField] private string lastAttackResult;
     [SerializeField] private float lastDamageApplied;
 
     private float nextAttackTime;
     private Coroutine basicAttackRoutine;
+    private int currentBasicAttackComboStep;
+    private float lastBasicAttackComboTime = float.NegativeInfinity;
+    private float lastResolvedAttackChargeSeconds;
+    private bool isChargingBasicAttack;
+    private float basicAttackChargeStartTime;
 
     public string LastAttackResult => lastAttackResult;
     public float LastDamageApplied => lastDamageApplied;
+    public int CurrentBasicAttackComboStep => currentBasicAttackComboStep;
+    public float LastResolvedAttackChargeSeconds => lastResolvedAttackChargeSeconds;
+    public bool IsChargingBasicAttack => isChargingBasicAttack;
+    public float CurrentBasicAttackChargeSeconds => ResolveCurrentBasicAttackChargeSeconds();
+    public float MaxBasicAttackChargeSeconds => Mathf.Max(0f, maxBasicAttackChargeSeconds);
+    public float CurrentBasicAttackChargeRatio => ResolveCurrentBasicAttackChargeRatio();
 
     private void Awake()
     {
@@ -68,7 +94,7 @@ public class HWJ_PlayerAttackSystem : MonoBehaviour
 
         if (playerInput == null)
         {
-            playerInput = GetComponent<HWJ_PlayerInputSystem>();
+            ResolvePlayerInput();
         }
 
         if (combatSystem == null)
@@ -94,17 +120,73 @@ public class HWJ_PlayerAttackSystem : MonoBehaviour
 
     private void Update()
     {
+        ResolvePlayerInput();
+
         if (soulSystem != null && soulSystem.IsControlLocked)
+        {
+            lastAttackResult = "Basic attack charge cancelled: control is locked.";
+            CancelBasicAttackCharge(lastAttackResult);
+            return;
+        }
+
+        if (isChargingBasicAttack && !CanContinueBasicAttackCharge())
+        {
+            CancelBasicAttackCharge();
+            return;
+        }
+
+        if (playerInput != null)
+        {
+            if (useChargeReleaseInput)
+            {
+                HandleBasicAttackChargeInput();
+            }
+            else if (playerInput.AttackPressedThisFrame)
+            {
+                TryBasicAttack();
+            }
+        }
+
+        TryPossessedSkillSlotInputs();
+    }
+
+    private void ResolvePlayerInput()
+    {
+        if (playerInput != null)
         {
             return;
         }
 
-        if (playerInput != null && playerInput.AttackPressedThisFrame)
+        playerInput = GetComponent<HWJ_PlayerInputSystem>();
+
+        if (playerInput == null)
         {
-            TryBasicAttack();
+            playerInput = HWJ_GameAccess.PlayerInput;
+        }
+    }
+
+    private void HandleBasicAttackChargeInput()
+    {
+        if (playerInput.AttackPressedThisFrame)
+        {
+            BeginBasicAttackCharge();
         }
 
-        TryPossessedSkillSlotInputs();
+        if (!isChargingBasicAttack)
+        {
+            return;
+        }
+
+        if (!CanContinueBasicAttackCharge())
+        {
+            CancelBasicAttackCharge();
+            return;
+        }
+
+        if (playerInput.AttackReleasedThisFrame || !playerInput.AttackHeld)
+        {
+            ReleaseBasicAttackCharge();
+        }
     }
 
     /// <summary>
@@ -112,6 +194,11 @@ public class HWJ_PlayerAttackSystem : MonoBehaviour
     /// basicAttackSkillActionId가 있으면 SkillActionSystem으로 실행하고, 없으면 쿨타임과 상태만 갱신합니다.
     /// </summary>
     public bool TryBasicAttack()
+    {
+        return TryBasicAttack(0f);
+    }
+
+    public bool TryBasicAttack(float chargeSeconds)
     {
         if (dataResolver == null || !dataResolver.TryGetTypeData(out HWJ_PlayerTypeDataSO playerData))
         {
@@ -149,6 +236,8 @@ public class HWJ_PlayerAttackSystem : MonoBehaviour
         }
 
         string skillActionId = GetBasicAttackSkillActionId(playerData);
+        float resolvedChargeSeconds = Mathf.Max(0f, chargeSeconds);
+        int resolvedComboStep = ResolveNextBasicAttackComboStep(playerData.Attack);
 
         if (skillActionSystem != null && !string.IsNullOrEmpty(skillActionId))
         {
@@ -162,7 +251,8 @@ public class HWJ_PlayerAttackSystem : MonoBehaviour
             runtimeStatus?.SetState(HWJ_RuntimeState.Attack);
             lastDamageApplied = skillActionSystem.LastDamageApplied;
             lastAttackResult = skillActionSystem.LastSkillResult;
-            ApplyBasicAttackDecayAndNotify(skillActionId);
+            RegisterBasicAttackComboUse(resolvedComboStep, resolvedChargeSeconds);
+            ApplyBasicAttackDecayAndNotify(skillActionId, resolvedChargeSeconds, resolvedComboStep);
             return true;
         }
 
@@ -173,7 +263,83 @@ public class HWJ_PlayerAttackSystem : MonoBehaviour
 
         nextAttackTime = Time.time + playerData.Attack.attackIntervalSeconds;
         runtimeStatus?.SetState(HWJ_RuntimeState.Attack);
-        ApplyBasicAttackDecayAndNotify("basic_attack");
+        RegisterBasicAttackComboUse(resolvedComboStep, resolvedChargeSeconds);
+        ApplyBasicAttackDecayAndNotify("basic_attack", resolvedChargeSeconds, resolvedComboStep);
+        return true;
+    }
+
+    public bool BeginBasicAttackCharge()
+    {
+        if (isChargingBasicAttack)
+        {
+            return true;
+        }
+
+        if (!CanBeginBasicAttackCharge())
+        {
+            return false;
+        }
+
+            isChargingBasicAttack = true;
+            basicAttackChargeStartTime = Time.time;
+            lastResolvedAttackChargeSeconds = 0f;
+            lastAttackResult = "Basic attack charge started.";
+            RaiseBasicAttackChargeChanged(true, 0f, lastAttackResult);
+            return true;
+        }
+
+    public bool ReleaseBasicAttackCharge()
+    {
+        if (!isChargingBasicAttack)
+        {
+            lastAttackResult = "Basic attack charge was not started.";
+            return false;
+        }
+
+        float chargeSeconds = ResolveCurrentBasicAttackChargeSeconds();
+        isChargingBasicAttack = false;
+        basicAttackChargeStartTime = 0f;
+        RaiseBasicAttackChargeChanged(false, chargeSeconds, "Basic attack charge released.");
+        return TryBasicAttack(chargeSeconds);
+    }
+
+    private bool CanBeginBasicAttackCharge()
+    {
+        if (dataResolver == null || !dataResolver.TryGetTypeData(out HWJ_PlayerTypeDataSO playerData))
+        {
+            lastAttackResult = "Missing player type data.";
+            return false;
+        }
+
+        if (Time.time < nextAttackTime)
+        {
+            lastAttackResult = "Attack is on cooldown.";
+            return false;
+        }
+
+        if (runtimeStatus != null && !runtimeStatus.CanAttack)
+        {
+            lastAttackResult = "Attack is locked.";
+            return false;
+        }
+
+        if (!CanAttack(playerData))
+        {
+            lastAttackResult = "Charge requires a possessed body.";
+            return false;
+        }
+
+        if (!IsPossessedBodyAttackRuleSatisfied())
+        {
+            return false;
+        }
+
+        if (playerData.Attack == null)
+        {
+            lastAttackResult = "Missing attack data.";
+            return false;
+        }
+
         return true;
     }
 
@@ -182,6 +348,11 @@ public class HWJ_PlayerAttackSystem : MonoBehaviour
     /// 스킬 자체 쿨타임은 SkillActionSystem이 관리하므로 여기서는 입력과 상태 조건만 확인합니다.
     /// </summary>
     public bool TryPossessedSkillSlot(int slotIndex)
+    {
+        return TryPossessedSkillSlot(slotIndex, 0f);
+    }
+
+    public bool TryPossessedSkillSlot(int slotIndex, float chargeSeconds)
     {
         if (dataResolver == null || !dataResolver.TryGetTypeData(out HWJ_PlayerTypeDataSO playerData))
         {
@@ -230,7 +401,7 @@ public class HWJ_PlayerAttackSystem : MonoBehaviour
         runtimeStatus?.SetState(HWJ_RuntimeState.Attack);
         lastDamageApplied = skillActionSystem.LastDamageApplied;
         lastAttackResult = skillActionSystem.LastSkillResult;
-        ApplySkillDecayAndNotify(skillActionId);
+        ApplySkillDecayAndNotify(skillActionId, Mathf.Max(0f, chargeSeconds));
         return true;
     }
 
@@ -270,6 +441,8 @@ public class HWJ_PlayerAttackSystem : MonoBehaviour
         }
 
         runtimeStatus?.CancelAttackAction();
+        ResetBasicAttackCombo();
+        CancelBasicAttackCharge();
     }
 
     private IEnumerator TimedBasicAttackRoutine(HWJ_PlayerTypeDataSO playerData)
@@ -332,6 +505,31 @@ public class HWJ_PlayerAttackSystem : MonoBehaviour
             && possessionSystem.HasActivePossessedBody;
     }
 
+    private bool CanContinueBasicAttackCharge()
+    {
+        if (soulSystem != null && soulSystem.IsControlLocked)
+        {
+            lastAttackResult = "Basic attack charge cancelled: control is locked.";
+            return false;
+        }
+
+        if (runtimeStatus != null && !runtimeStatus.CanAttack)
+        {
+            lastAttackResult = "Basic attack charge cancelled: attack is locked.";
+            return false;
+        }
+
+        if (dataResolver == null
+            || !dataResolver.TryGetTypeData(out HWJ_PlayerTypeDataSO playerData)
+            || !CanAttack(playerData))
+        {
+            lastAttackResult = "Basic attack charge cancelled: possessed body is unavailable.";
+            return false;
+        }
+
+        return true;
+    }
+
     private void TryPossessedSkillSlotInputs()
     {
         if (playerInput == null || possessionSystem == null || !possessionSystem.HasActivePossessedBody)
@@ -361,18 +559,91 @@ public class HWJ_PlayerAttackSystem : MonoBehaviour
         return playerData.Attack != null ? playerData.Attack.basicAttackSkillActionId : null;
     }
 
-    private void ApplyBasicAttackDecayAndNotify(string abilityId)
+    private int ResolveNextBasicAttackComboStep(HWJ_PlayerAttackData attackData)
     {
-        ResolveBodyDecaySystem();
-        bodyDecaySystem?.ApplyBasicAttackDecay();
-        RaiseAbilityUsed(abilityId, true);
+        if (attackData == null || attackData.comboResetSeconds <= 0f)
+        {
+            return 1;
+        }
+
+        bool canContinueCombo = currentBasicAttackComboStep > 0
+            && Time.time - lastBasicAttackComboTime <= attackData.comboResetSeconds;
+
+        return canContinueCombo ? currentBasicAttackComboStep + 1 : 1;
     }
 
-    private void ApplySkillDecayAndNotify(string abilityId)
+    private void RegisterBasicAttackComboUse(int comboStep, float chargeSeconds)
+    {
+        currentBasicAttackComboStep = Mathf.Max(1, comboStep);
+        lastBasicAttackComboTime = Time.time;
+        lastResolvedAttackChargeSeconds = Mathf.Max(0f, chargeSeconds);
+    }
+
+    private void ResetBasicAttackCombo()
+    {
+        currentBasicAttackComboStep = 0;
+        lastBasicAttackComboTime = float.NegativeInfinity;
+        lastResolvedAttackChargeSeconds = 0f;
+    }
+
+    private void CancelBasicAttackCharge(string message = null)
+    {
+        bool wasCharging = isChargingBasicAttack;
+        float chargeSeconds = ResolveCurrentBasicAttackChargeSeconds();
+        isChargingBasicAttack = false;
+        basicAttackChargeStartTime = 0f;
+
+        if (wasCharging)
+        {
+            RaiseBasicAttackChargeChanged(false, chargeSeconds, string.IsNullOrEmpty(message) ? lastAttackResult : message);
+        }
+    }
+
+    private float ResolveCurrentBasicAttackChargeSeconds()
+    {
+        if (!isChargingBasicAttack)
+        {
+            return 0f;
+        }
+
+        float elapsedSeconds = Mathf.Max(0f, Time.time - basicAttackChargeStartTime);
+
+        return maxBasicAttackChargeSeconds > 0f
+            ? Mathf.Min(elapsedSeconds, maxBasicAttackChargeSeconds)
+            : elapsedSeconds;
+    }
+
+    private float ResolveCurrentBasicAttackChargeRatio()
+    {
+        return maxBasicAttackChargeSeconds > 0f
+            ? Mathf.Clamp01(ResolveCurrentBasicAttackChargeSeconds() / maxBasicAttackChargeSeconds)
+            : 0f;
+    }
+
+    private void RaiseBasicAttackChargeChanged(bool isCharging, float chargeSeconds, string message)
+    {
+        HWJ_GameplayEvents.RaiseBasicAttackChargeChanged(
+            new HWJ_BasicAttackChargeEvent(
+                this,
+                isCharging,
+                chargeSeconds,
+                maxBasicAttackChargeSeconds,
+                message));
+    }
+
+    private void ApplyBasicAttackDecayAndNotify(string abilityId, float chargeSeconds, int comboStep)
     {
         ResolveBodyDecaySystem();
-        bodyDecaySystem?.ApplySkillDecay();
-        RaiseAbilityUsed(abilityId, false);
+        bodyDecaySystem?.ApplyBasicAttackDecay(ResolveSkillActionData(abilityId), chargeSeconds, comboStep);
+        RaiseAbilityUsed(abilityId, true, comboStep, chargeSeconds);
+    }
+
+    private void ApplySkillDecayAndNotify(string abilityId, float chargeSeconds)
+    {
+        ResolveBodyDecaySystem();
+        lastResolvedAttackChargeSeconds = Mathf.Max(0f, chargeSeconds);
+        bodyDecaySystem?.ApplySkillDecay(ResolveSkillActionData(abilityId), chargeSeconds);
+        RaiseAbilityUsed(abilityId, false, 0, chargeSeconds);
     }
 
     private void ResolveBodyDecaySystem()
@@ -383,7 +654,19 @@ public class HWJ_PlayerAttackSystem : MonoBehaviour
         }
     }
 
-    private void RaiseAbilityUsed(string abilityId, bool isBasicAttack)
+    private HWJ_SkillActionDataSO ResolveSkillActionData(string abilityId)
+    {
+        if (skillActionSystem == null || string.IsNullOrEmpty(abilityId))
+        {
+            return null;
+        }
+
+        return skillActionSystem.TryGetSkillAction(abilityId, out HWJ_SkillActionDataSO skillAction)
+            ? skillAction
+            : null;
+    }
+
+    private void RaiseAbilityUsed(string abilityId, bool isBasicAttack, int comboStep, float chargeSeconds)
     {
         string resolvedAbilityId = string.IsNullOrEmpty(abilityId)
             ? (isBasicAttack ? "basic_attack" : "skill")
@@ -397,7 +680,9 @@ public class HWJ_PlayerAttackSystem : MonoBehaviour
                 resolvedAbilityId,
                 isBasicAttack,
                 decayValue,
-                lastAttackResult));
+                lastAttackResult,
+                comboStep,
+                chargeSeconds));
     }
 
     private bool IsPossessedBodyAttackRuleSatisfied()
@@ -447,8 +732,12 @@ public class HWJ_PlayerAttackSystem : MonoBehaviour
             return true;
         }
 
-        return !string.IsNullOrEmpty(possessedBodyAttackExecutionCoreId)
-            && HWJ_GameAccess.TryGetRuleExecutionCore(possessedBodyAttackExecutionCoreId, out executionCore);
+        if (string.IsNullOrEmpty(possessedBodyAttackExecutionCoreId))
+        {
+            return false;
+        }
+
+        return HWJ_GameAccess.TryGetRuleExecutionCore(possessedBodyAttackExecutionCoreId, out executionCore);
     }
 
     private void OnDrawGizmosSelected()

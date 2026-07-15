@@ -24,11 +24,11 @@ MonoBehaviour:
     isPossessableBody: 0
     guaranteesStatOrb: 0
   tracking:
-    trackingRange: 0
+    trackingRange: 8
     loseTargetRange: 0
   ai:
     aiProfileId: ""
-    decisionIntervalSeconds: 0
+    decisionIntervalSeconds: 0.1
     behaviorTreeId: ""
   navigation:
     stoppingDistance: 0

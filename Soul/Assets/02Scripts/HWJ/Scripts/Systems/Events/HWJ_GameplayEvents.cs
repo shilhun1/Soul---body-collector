@@ -205,6 +205,8 @@ public readonly struct HWJ_AbilityUsedEvent
     public readonly string AbilityId;
     public readonly bool IsBasicAttack;
     public readonly float DecayValueAfterUse;
+    public readonly int ComboStep;
+    public readonly float ChargeSeconds;
     public readonly string Message;
 
     public HWJ_AbilityUsedEvent(
@@ -213,13 +215,42 @@ public readonly struct HWJ_AbilityUsedEvent
         string abilityId,
         bool isBasicAttack,
         float decayValueAfterUse,
-        string message)
+        string message,
+        int comboStep = 0,
+        float chargeSeconds = 0f)
     {
         User = user;
         UserResolver = userResolver;
         AbilityId = abilityId;
         IsBasicAttack = isBasicAttack;
         DecayValueAfterUse = decayValueAfterUse;
+        ComboStep = comboStep > 0 ? comboStep : 0;
+        ChargeSeconds = chargeSeconds > 0f ? chargeSeconds : 0f;
+        Message = message;
+    }
+}
+
+public readonly struct HWJ_BasicAttackChargeEvent
+{
+    public readonly HWJ_PlayerAttackSystem AttackSystem;
+    public readonly bool IsCharging;
+    public readonly float ChargeSeconds;
+    public readonly float MaxChargeSeconds;
+    public readonly float ChargeRatio;
+    public readonly string Message;
+
+    public HWJ_BasicAttackChargeEvent(
+        HWJ_PlayerAttackSystem attackSystem,
+        bool isCharging,
+        float chargeSeconds,
+        float maxChargeSeconds,
+        string message)
+    {
+        AttackSystem = attackSystem;
+        IsCharging = isCharging;
+        ChargeSeconds = Mathf.Max(0f, chargeSeconds);
+        MaxChargeSeconds = Mathf.Max(0f, maxChargeSeconds);
+        ChargeRatio = MaxChargeSeconds > 0f ? Mathf.Clamp01(ChargeSeconds / MaxChargeSeconds) : 0f;
         Message = message;
     }
 }
@@ -348,6 +379,8 @@ public readonly struct HWJ_StageProgressionEvent
     public readonly HWJ_StageProgressionSystem StageSystem;
     public readonly string StageId;
     public readonly string NextRegionId;
+    public readonly string BossId;
+    public readonly string UnlockRegionId;
     public readonly HWJ_StageFlowState CurrentState;
     public readonly bool ObjectiveComplete;
     public readonly bool BossUnlocked;
@@ -367,10 +400,41 @@ public readonly struct HWJ_StageProgressionEvent
         bool bossDefeated,
         bool regionUnlocked,
         string message)
+        : this(
+            stageSystem,
+            stageId,
+            nextRegionId,
+            null,
+            nextRegionId,
+            currentState,
+            objectiveComplete,
+            bossUnlocked,
+            bossBattleStarted,
+            bossDefeated,
+            regionUnlocked,
+            message)
+    {
+    }
+
+    public HWJ_StageProgressionEvent(
+        HWJ_StageProgressionSystem stageSystem,
+        string stageId,
+        string nextRegionId,
+        string bossId,
+        string unlockRegionId,
+        HWJ_StageFlowState currentState,
+        bool objectiveComplete,
+        bool bossUnlocked,
+        bool bossBattleStarted,
+        bool bossDefeated,
+        bool regionUnlocked,
+        string message)
     {
         StageSystem = stageSystem;
         StageId = stageId;
         NextRegionId = nextRegionId;
+        BossId = bossId;
+        UnlockRegionId = unlockRegionId;
         CurrentState = currentState;
         ObjectiveComplete = objectiveComplete;
         BossUnlocked = bossUnlocked;
@@ -446,6 +510,20 @@ public readonly struct HWJ_EnemyAITransitionEvent
     }
 }
 
+public readonly struct HWJ_EnemyAIActionEvent
+{
+    public readonly HWJ_MonsterAISystem MonsterAI;
+    public readonly HWJ_EnemyAIActionResult ActionResult;
+
+    public HWJ_EnemyAIActionEvent(
+        HWJ_MonsterAISystem monsterAI,
+        HWJ_EnemyAIActionResult actionResult)
+    {
+        MonsterAI = monsterAI;
+        ActionResult = actionResult;
+    }
+}
+
 public static class HWJ_GameplayEvents
 {
     public static event Action<HWJ_DamageEvent> DamageApplied;
@@ -461,6 +539,7 @@ public static class HWJ_GameplayEvents
     public static event Action<HWJ_BodyCollapseEvent> BodyCollapseStarted;
     public static event Action<HWJ_BodyCollapseEvent> BodyCollapsed;
     public static event Action<HWJ_AbilityUsedEvent> AbilityUsed;
+    public static event Action<HWJ_BasicAttackChargeEvent> BasicAttackChargeChanged;
     public static event Action<HWJ_EnemyDefeatedEvent> EnemyDefeated;
     public static event Action<HWJ_RewardGrantedEvent> RewardGranted;
     public static event Action<HWJ_ExperienceChangedEvent> ExperienceChanged;
@@ -478,6 +557,7 @@ public static class HWJ_GameplayEvents
     public static event Action<HWJ_LoadCompletedEvent> LoadCompleted;
     public static event Action<HWJ_CoreLoopOperationEvent> CoreLoopOperationCompleted;
     public static event Action<HWJ_EnemyAITransitionEvent> EnemyAIStateTransitioned;
+    public static event Action<HWJ_EnemyAIActionEvent> EnemyAIActionResolved;
 
     public static void RaiseDamageApplied(HWJ_DamageEvent damageEvent)
     {
@@ -542,6 +622,11 @@ public static class HWJ_GameplayEvents
     public static void RaiseAbilityUsed(HWJ_AbilityUsedEvent abilityEvent)
     {
         AbilityUsed?.Invoke(abilityEvent);
+    }
+
+    public static void RaiseBasicAttackChargeChanged(HWJ_BasicAttackChargeEvent chargeEvent)
+    {
+        BasicAttackChargeChanged?.Invoke(chargeEvent);
     }
 
     public static void RaiseEnemyDefeated(HWJ_EnemyDefeatedEvent defeatedEvent)
@@ -629,6 +714,11 @@ public static class HWJ_GameplayEvents
         EnemyAIStateTransitioned?.Invoke(transitionEvent);
     }
 
+    public static void RaiseEnemyAIActionResolved(HWJ_EnemyAIActionEvent actionEvent)
+    {
+        EnemyAIActionResolved?.Invoke(actionEvent);
+    }
+
     public static void ClearAllSubscribers()
     {
         DamageApplied = null;
@@ -644,6 +734,7 @@ public static class HWJ_GameplayEvents
         BodyCollapseStarted = null;
         BodyCollapsed = null;
         AbilityUsed = null;
+        BasicAttackChargeChanged = null;
         EnemyDefeated = null;
         RewardGranted = null;
         ExperienceChanged = null;
@@ -661,5 +752,6 @@ public static class HWJ_GameplayEvents
         LoadCompleted = null;
         CoreLoopOperationCompleted = null;
         EnemyAIStateTransitioned = null;
+        EnemyAIActionResolved = null;
     }
 }

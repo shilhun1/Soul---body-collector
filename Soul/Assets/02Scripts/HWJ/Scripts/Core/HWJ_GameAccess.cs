@@ -10,6 +10,7 @@ public static class HWJ_GameAccess
     public static HWJ_GameManager Manager => HWJ_GameManager.Instance;
     public static HWJ_GameplayDatabaseSO Database => HasManager ? Manager.Database : null;
     public static HWJ_ObjectPoolSystem ObjectPool => HasManager ? Manager.ObjectPool : null;
+    public static HWJ_PlayerInputSystem PlayerInput => HasManager ? Manager.PlayerInput : null;
 
     /// <summary>
     /// GameManager가 있으면 풀 기반 생성으로 연결하고, 없으면 null을 반환합니다.
@@ -69,18 +70,36 @@ public static class HWJ_GameAccess
     public static bool TryGetGameplayRule(string ruleId, out HWJ_GameplayRuleSO gameplayRule)
     {
         gameplayRule = null;
-        return HasManager && Manager.TryGetGameplayRule(ruleId, out gameplayRule);
+
+        if (!HasManager)
+        {
+            return false;
+        }
+
+        return Manager.TryGetGameplayRule(ruleId, out gameplayRule);
     }
 
     public static bool TryGetRuleExecutionCore(string executionCoreId, out HWJ_RuleExecutionCoreSO executionCore)
     {
         executionCore = null;
-        return HasManager && Manager.TryGetRuleExecutionCore(executionCoreId, out executionCore);
+
+        if (!HasManager)
+        {
+            return false;
+        }
+
+        return Manager.TryGetRuleExecutionCore(executionCoreId, out executionCore);
     }
 
     public static bool TryValidateGameplayDatabase(out HWJ_GameDataRegistryReport report)
     {
         report = null;
-        return HasManager && Manager.TryValidateGameplayDatabase(out report);
+
+        if (!HasManager)
+        {
+            return false;
+        }
+
+        return Manager.TryValidateGameplayDatabase(out report);
     }
 }

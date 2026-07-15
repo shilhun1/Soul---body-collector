@@ -25,6 +25,13 @@ public class HWJ_SkillActionDataSO : ScriptableObject
     [SerializeField] private float moveSpeed;
     [SerializeField] private int hitCount = 1;
     [SerializeField] private float hitIntervalSeconds;
+    [SerializeField] private bool usesCustomBodyDecayAmount;
+    [SerializeField] private float customBodyDecayAmount;
+    [SerializeField] private float additionalBodyDecayAmount;
+    [SerializeField] private bool usesComboBodyDecayMultiplier;
+    [SerializeField] private float comboBodyDecayMultiplier = 1f;
+    [SerializeField] private float chargeBodyDecayPerSecond;
+    [SerializeField] private float maxChargeBodyDecayAmount;
     [SerializeField] private string motionKey;
     [SerializeField] private string[] motionSequenceKeys;
     [SerializeField] private float motionStepIntervalSeconds = 0.12f;
@@ -49,6 +56,13 @@ public class HWJ_SkillActionDataSO : ScriptableObject
     public float MoveSpeed => moveSpeed;
     public int HitCount => hitCount;
     public float HitIntervalSeconds => hitIntervalSeconds;
+    public bool UsesCustomBodyDecayAmount => usesCustomBodyDecayAmount;
+    public float CustomBodyDecayAmount => customBodyDecayAmount;
+    public float AdditionalBodyDecayAmount => additionalBodyDecayAmount;
+    public bool UsesComboBodyDecayMultiplier => usesComboBodyDecayMultiplier;
+    public float ComboBodyDecayMultiplier => comboBodyDecayMultiplier;
+    public float ChargeBodyDecayPerSecond => chargeBodyDecayPerSecond;
+    public float MaxChargeBodyDecayAmount => maxChargeBodyDecayAmount;
     public string MotionKey => motionKey;
     public string[] MotionSequenceKeys => motionSequenceKeys;
     public float MotionStepIntervalSeconds => motionStepIntervalSeconds;

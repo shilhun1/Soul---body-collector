@@ -225,8 +225,12 @@ public class HWJ_SkillActionSystem : MonoBehaviour
             return true;
         }
 
-        return !string.IsNullOrEmpty(skillUseExecutionCoreId)
-            && HWJ_GameAccess.TryGetRuleExecutionCore(skillUseExecutionCoreId, out executionCore);
+        if (string.IsNullOrEmpty(skillUseExecutionCoreId))
+        {
+            return false;
+        }
+
+        return HWJ_GameAccess.TryGetRuleExecutionCore(skillUseExecutionCoreId, out executionCore);
     }
 
     /// <summary>

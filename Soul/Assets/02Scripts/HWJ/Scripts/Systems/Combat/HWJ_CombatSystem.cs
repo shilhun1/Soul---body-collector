@@ -293,10 +293,9 @@ public class HWJ_CombatSystem : MonoBehaviour, HWJ_ICombatActor, HWJ_IDamageDeal
                 return true;
             }
 
-            if (!string.IsNullOrEmpty(playerDamageToEnemyExecutionCoreId)
-                && HWJ_GameAccess.TryGetRuleExecutionCore(playerDamageToEnemyExecutionCoreId, out executionCore))
+            if (!string.IsNullOrEmpty(playerDamageToEnemyExecutionCoreId))
             {
-                return true;
+                return HWJ_GameAccess.TryGetRuleExecutionCore(playerDamageToEnemyExecutionCoreId, out executionCore);
             }
         }
 
@@ -306,8 +305,12 @@ public class HWJ_CombatSystem : MonoBehaviour, HWJ_ICombatActor, HWJ_IDamageDeal
             return true;
         }
 
-        return !string.IsNullOrEmpty(commonDamageExecutionCoreId)
-            && HWJ_GameAccess.TryGetRuleExecutionCore(commonDamageExecutionCoreId, out executionCore);
+        if (string.IsNullOrEmpty(commonDamageExecutionCoreId))
+        {
+            return false;
+        }
+
+        return HWJ_GameAccess.TryGetRuleExecutionCore(commonDamageExecutionCoreId, out executionCore);
     }
 
     private HWJ_GameplayRuleSO ResolveDamageRule(HWJ_RootObjectDataResolver targetResolver)

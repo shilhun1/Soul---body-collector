@@ -30,10 +30,17 @@ MonoBehaviour:
   moveSpeed: 20
   hitCount: 1
   hitIntervalSeconds: 0
+  usesCustomBodyDecayAmount: 0
+  customBodyDecayAmount: 0
+  additionalBodyDecayAmount: 0
+  usesComboBodyDecayMultiplier: 0
+  comboBodyDecayMultiplier: 1
+  chargeBodyDecayPerSecond: 0
+  maxChargeBodyDecayAmount: 0
   motionKey: Bow_AirArrowShot
   motionSequenceKeys:
   - Bow_AirRise
   - Bow_AirArrowShot
   motionStepIntervalSeconds: 0.18
-  projectilePrefab: {fileID: 0}
+  projectilePrefab: {fileID: 1255587006966758219, guid: 1986e93bf4803bb48acbf2e203d5e807, type: 3}
   actionEffectPrefab: {fileID: 0}

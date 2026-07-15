@@ -6,12 +6,16 @@ using UnityEngine;
 /// </summary>
 public class HWJ_InteractionSystem : MonoBehaviour
 {
+    [Header("Core References")]
     [SerializeField] private HWJ_RootObjectDataResolver dataResolver;
     [SerializeField] private HWJ_RuntimeStatusSystem runtimeStatus;
     [SerializeField] private HWJ_PossessionSystem possessionSystem;
     [SerializeField] private HWJ_BodyDiscoverySystem bodyDiscoverySystem;
     [SerializeField] private HWJ_PlayerInputSystem playerInput;
     [SerializeField] private HWJ_SoulSystem soulSystem;
+
+    [Space(8f)]
+    [Header("Interaction Runtime")]
     [SerializeField] private LayerMask interactionTargetLayer;
     [SerializeField] private string lastInteractionResult;
 
@@ -44,7 +48,7 @@ public class HWJ_InteractionSystem : MonoBehaviour
 
         if (playerInput == null)
         {
-            playerInput = GetComponent<HWJ_PlayerInputSystem>();
+            ResolvePlayerInput();
         }
 
         if (soulSystem == null)
@@ -55,6 +59,8 @@ public class HWJ_InteractionSystem : MonoBehaviour
 
     private void Update()
     {
+        ResolvePlayerInput();
+
         if (soulSystem != null && soulSystem.IsControlLocked)
         {
             return;
@@ -63,6 +69,21 @@ public class HWJ_InteractionSystem : MonoBehaviour
         if (playerInput != null && playerInput.InteractPressedThisFrame)
         {
             TryInteract();
+        }
+    }
+
+    private void ResolvePlayerInput()
+    {
+        if (playerInput != null)
+        {
+            return;
+        }
+
+        playerInput = GetComponent<HWJ_PlayerInputSystem>();
+
+        if (playerInput == null)
+        {
+            playerInput = HWJ_GameAccess.PlayerInput;
         }
     }
 

@@ -16,11 +16,14 @@ public class HWJ_SaveService : MonoBehaviour
     [SerializeField] private string saveFolderName = "HWJ";
     [SerializeField] private bool prettyPrintJson = true;
 
+    [Space(8f)]
     [Header("Runtime Sources")]
     [SerializeField] private HWJ_RuntimeObjectContext playerRuntimeContext;
+    [SerializeField] private HWJ_PlayerInputSystem playerInputSystem;
     [SerializeField] private HWJ_StageProgressionSystem stageProgressionSystem;
     [SerializeField] private HWJ_GameplayDatabaseSO gameplayDatabase;
 
+    [Space(8f)]
     [Header("Tracked Progression")]
     [SerializeField] private HWJ_SaveProgressionData trackedProgression = new HWJ_SaveProgressionData();
     [SerializeField] private HWJ_GameSaveData lastLoadedSaveData;
@@ -51,6 +54,7 @@ public class HWJ_SaveService : MonoBehaviour
     {
         activeService = this;
         HWJ_GameplayEvents.EnemyDefeated += OnEnemyDefeated;
+        HWJ_GameplayEvents.BossDefeated += OnBossDefeated;
         HWJ_GameplayEvents.StageCleared += OnStageCleared;
         HWJ_GameplayEvents.RegionUnlocked += OnRegionUnlocked;
     }
@@ -63,6 +67,7 @@ public class HWJ_SaveService : MonoBehaviour
         }
 
         HWJ_GameplayEvents.EnemyDefeated -= OnEnemyDefeated;
+        HWJ_GameplayEvents.BossDefeated -= OnBossDefeated;
         HWJ_GameplayEvents.StageCleared -= OnStageCleared;
         HWJ_GameplayEvents.RegionUnlocked -= OnRegionUnlocked;
     }
@@ -73,6 +78,15 @@ public class HWJ_SaveService : MonoBehaviour
         HWJ_GameplayDatabaseSO database)
     {
         playerRuntimeContext = runtimeContext;
+        playerInputSystem = runtimeContext != null
+            ? runtimeContext.GetComponent<HWJ_PlayerInputSystem>()
+            : null;
+
+        if (playerInputSystem == null)
+        {
+            playerInputSystem = HWJ_GameAccess.PlayerInput;
+        }
+
         stageProgressionSystem = stageSystem;
         gameplayDatabase = database;
     }
@@ -127,6 +141,7 @@ public class HWJ_SaveService : MonoBehaviour
             playerSnapshot,
             stageSnapshot,
             trackedProgression);
+        CaptureInputSettings(saveData);
 
         return HWJ_SaveOperationResult.Success(
             normalizedSlotId,
@@ -152,7 +167,6 @@ public class HWJ_SaveService : MonoBehaviour
                 "Save failed: save data is null."));
         }
 
-        saveData.EnsureDefaults();
         saveData.saveId = string.IsNullOrEmpty(saveData.saveId) ? normalizedSlotId : saveData.saveId;
         HWJ_SaveOperationResult migrationResult = TryMigrateSaveDataToCurrent(
             ref saveData,
@@ -397,6 +411,8 @@ public class HWJ_SaveService : MonoBehaviour
             return playerResult;
         }
 
+        ApplySettingsData(saveData.settings);
+
         if (stageProgressionSystem != null && saveData.stage != null)
         {
             stageProgressionSystem.RestoreStageFlowSnapshot(saveData.stage.ToRuntimeSnapshot());
@@ -510,51 +526,50 @@ public class HWJ_SaveService : MonoBehaviour
             "Player runtime data applied.");
     }
 
+    private void CaptureInputSettings(HWJ_GameSaveData saveData)
+    {
+        if (saveData == null)
+        {
+            return;
+        }
+
+        if (saveData.settings == null)
+        {
+            saveData.settings = new HWJ_SaveSettingsData();
+        }
+
+        saveData.settings.inputBindings = playerInputSystem != null
+            ? playerInputSystem.CreateSaveInputBindingData()
+            : new HWJ_SaveInputBindingData();
+        saveData.settings.EnsureDefaults();
+    }
+
+    private void ApplySettingsData(HWJ_SaveSettingsData settingsData)
+    {
+        if (settingsData == null || playerInputSystem == null)
+        {
+            return;
+        }
+
+        settingsData.EnsureDefaults();
+        playerInputSystem.ApplySaveInputBindingData(settingsData.inputBindings);
+    }
+
     private HWJ_SaveOperationResult ValidateSaveData(
         HWJ_GameSaveData saveData,
         string slotId,
         string filePath)
     {
-        if (saveData == null)
+        HWJ_SaveDataValidationResult validationResult = HWJ_SaveDataRuntimeValidator.Validate(saveData);
+
+        if (!validationResult.Succeeded)
         {
             return HWJ_SaveOperationResult.Fail(
-                HWJ_SaveOperationFailureCode.InvalidSaveData,
-                slotId,
-                filePath,
-                null,
-                "Save data validation failed: data is null.");
-        }
-
-        saveData.EnsureDefaults();
-
-        if (saveData.schemaVersion < HWJ_SaveSchema.CurrentVersion)
-        {
-            return HWJ_SaveOperationResult.Fail(
-                HWJ_SaveOperationFailureCode.MigrationRequired,
+                ResolveSaveDataValidationOperationFailureCode(validationResult.FailureCode),
                 slotId,
                 filePath,
                 saveData,
-                $"Save data validation failed: schema {saveData.schemaVersion} requires migration.");
-        }
-
-        if (saveData.schemaVersion > HWJ_SaveSchema.CurrentVersion)
-        {
-            return HWJ_SaveOperationResult.Fail(
-                HWJ_SaveOperationFailureCode.UnsupportedFutureVersion,
-                slotId,
-                filePath,
-                saveData,
-                $"Save data validation failed: schema {saveData.schemaVersion} is newer than runtime schema {HWJ_SaveSchema.CurrentVersion}.");
-        }
-
-        if (string.IsNullOrEmpty(saveData.saveId))
-        {
-            return HWJ_SaveOperationResult.Fail(
-                HWJ_SaveOperationFailureCode.InvalidSaveData,
-                slotId,
-                filePath,
-                saveData,
-                "Save data validation failed: save id is empty.");
+                $"Save data validation failed [{validationResult.FailureCode}] Field:{validationResult.FieldName}. {validationResult.Message}");
         }
 
         return HWJ_SaveOperationResult.Success(
@@ -562,6 +577,20 @@ public class HWJ_SaveService : MonoBehaviour
             filePath,
             saveData,
             "Save data is valid.");
+    }
+
+    private static HWJ_SaveOperationFailureCode ResolveSaveDataValidationOperationFailureCode(
+        HWJ_SaveDataValidationFailureCode validationFailureCode)
+    {
+        switch (validationFailureCode)
+        {
+            case HWJ_SaveDataValidationFailureCode.UnsupportedLegacyVersion:
+                return HWJ_SaveOperationFailureCode.MigrationRequired;
+            case HWJ_SaveDataValidationFailureCode.UnsupportedFutureVersion:
+                return HWJ_SaveOperationFailureCode.UnsupportedFutureVersion;
+            default:
+                return HWJ_SaveOperationFailureCode.InvalidSaveData;
+        }
     }
 
     private static HWJ_SaveOperationResult TryMigrateSaveDataToCurrent(
@@ -714,6 +743,16 @@ public class HWJ_SaveService : MonoBehaviour
             playerRuntimeContext = HWJ_GameAccess.Manager.PlayerResolver.GetComponent<HWJ_RuntimeObjectContext>();
         }
 
+        if (playerInputSystem == null && playerRuntimeContext != null)
+        {
+            playerInputSystem = playerRuntimeContext.GetComponent<HWJ_PlayerInputSystem>();
+        }
+
+        if (playerInputSystem == null)
+        {
+            playerInputSystem = HWJ_GameAccess.PlayerInput;
+        }
+
         if (stageProgressionSystem == null)
         {
             stageProgressionSystem = GetComponent<HWJ_StageProgressionSystem>();
@@ -749,10 +788,23 @@ public class HWJ_SaveService : MonoBehaviour
         trackedProgression.AddClearedStageId(progressionEvent.StageId);
     }
 
+    private void OnBossDefeated(HWJ_StageProgressionEvent progressionEvent)
+    {
+        EnsureTrackedProgression();
+
+        if (!string.IsNullOrEmpty(progressionEvent.BossId))
+        {
+            trackedProgression.AddDefeatedBossId(progressionEvent.BossId);
+        }
+    }
+
     private void OnRegionUnlocked(HWJ_StageProgressionEvent progressionEvent)
     {
         EnsureTrackedProgression();
-        trackedProgression.AddUnlockedRegionId(progressionEvent.NextRegionId);
+        string unlockedRegionId = !string.IsNullOrEmpty(progressionEvent.UnlockRegionId)
+            ? progressionEvent.UnlockRegionId
+            : progressionEvent.NextRegionId;
+        trackedProgression.AddUnlockedRegionId(unlockedRegionId);
     }
 
     private void EnsureTrackedProgression()

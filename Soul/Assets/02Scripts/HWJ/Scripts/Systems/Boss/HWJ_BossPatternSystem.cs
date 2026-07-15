@@ -191,8 +191,12 @@ public class HWJ_BossPatternSystem : MonoBehaviour
             return true;
         }
 
-        return !string.IsNullOrEmpty(bossPatternExecutionCoreId)
-            && HWJ_GameAccess.TryGetRuleExecutionCore(bossPatternExecutionCoreId, out executionCore);
+        if (string.IsNullOrEmpty(bossPatternExecutionCoreId))
+        {
+            return false;
+        }
+
+        return HWJ_GameAccess.TryGetRuleExecutionCore(bossPatternExecutionCoreId, out executionCore);
     }
 
     private bool TrySelectPattern(out HWJ_BossPatternDataSO selectedPattern)

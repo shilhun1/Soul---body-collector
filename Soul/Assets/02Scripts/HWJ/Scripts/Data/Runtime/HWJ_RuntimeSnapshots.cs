@@ -20,6 +20,7 @@ public struct HWJ_RuntimeStatSnapshot
     public bool canDash;
     public bool isHitStunned;
     public bool isInvincible;
+    public bool isHitReactionLimited;
     public bool hasSuperArmor;
     public bool shouldIgnoreKnockback;
 
@@ -49,6 +50,7 @@ public struct HWJ_RuntimeStatSnapshot
             canDash = status.CanDash,
             isHitStunned = status.IsHitStunned,
             isInvincible = status.IsTemporarilyInvincible,
+            isHitReactionLimited = status.IsHitReactionLimited,
             hasSuperArmor = status.HasSuperArmor,
             shouldIgnoreKnockback = status.ShouldIgnoreKnockback
         };

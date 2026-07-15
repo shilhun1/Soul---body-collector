@@ -20,6 +20,7 @@ public class HWJ_GameSaveData
     public HWJ_SavePlayerRuntimeData player = new HWJ_SavePlayerRuntimeData();
     public HWJ_SaveStageRuntimeData stage = new HWJ_SaveStageRuntimeData();
     public HWJ_SaveProgressionData progression = new HWJ_SaveProgressionData();
+    public HWJ_SaveSettingsData settings = new HWJ_SaveSettingsData();
 
     public void EnsureDefaults()
     {
@@ -38,8 +39,14 @@ public class HWJ_GameSaveData
             progression = new HWJ_SaveProgressionData();
         }
 
+        if (settings == null)
+        {
+            settings = new HWJ_SaveSettingsData();
+        }
+
         player.EnsureDefaults();
         progression.EnsureLists();
+        settings.EnsureDefaults();
     }
 }
 
@@ -95,6 +102,7 @@ public class HWJ_SaveRuntimeStatData
     public bool canDash;
     public bool isHitStunned;
     public bool isInvincible;
+    public bool isHitReactionLimited;
     public bool hasSuperArmor;
     public bool shouldIgnoreKnockback;
 }
@@ -276,6 +284,78 @@ public class HWJ_SaveProgressionData
     }
 }
 
+[Serializable]
+public class HWJ_SaveSettingsData
+{
+    public HWJ_SaveInputBindingData inputBindings = new HWJ_SaveInputBindingData();
+
+    public void EnsureDefaults()
+    {
+        if (inputBindings == null)
+        {
+            inputBindings = new HWJ_SaveInputBindingData();
+        }
+
+        inputBindings.EnsureLists();
+    }
+}
+
+[Serializable]
+public class HWJ_SaveInputBindingData
+{
+    public List<HWJ_SaveInputBindingOverrideData> bindingOverrides = new List<HWJ_SaveInputBindingOverrideData>();
+
+    public int OverrideCount => bindingOverrides != null ? bindingOverrides.Count : 0;
+
+    public void EnsureLists()
+    {
+        if (bindingOverrides == null)
+        {
+            bindingOverrides = new List<HWJ_SaveInputBindingOverrideData>();
+        }
+    }
+
+    public void Clear()
+    {
+        EnsureLists();
+        bindingOverrides.Clear();
+    }
+
+    public bool AddOrReplace(HWJ_SaveInputBindingOverrideData bindingOverride)
+    {
+        if (bindingOverride == null)
+        {
+            return false;
+        }
+
+        EnsureLists();
+
+        for (int i = 0; i < bindingOverrides.Count; i++)
+        {
+            HWJ_SaveInputBindingOverrideData existing = bindingOverrides[i];
+
+            if (existing != null && existing.actionId == bindingOverride.actionId)
+            {
+                bindingOverrides[i] = bindingOverride;
+                return true;
+            }
+        }
+
+        bindingOverrides.Add(bindingOverride);
+        return true;
+    }
+}
+
+[Serializable]
+public class HWJ_SaveInputBindingOverrideData
+{
+    public HWJ_PlayerInputActionId actionId;
+    public bool hasKeyboard;
+    public int keyboardKeyCode;
+    public bool hasMouse;
+    public HWJ_InputMouseButton mouseButton;
+}
+
 public static class HWJ_SaveDataFactory
 {
     /// <summary>
@@ -355,6 +435,7 @@ public static class HWJ_SaveDataFactory
             canDash = snapshot.canDash,
             isHitStunned = snapshot.isHitStunned,
             isInvincible = snapshot.isInvincible,
+            isHitReactionLimited = snapshot.isHitReactionLimited,
             hasSuperArmor = snapshot.hasSuperArmor,
             shouldIgnoreKnockback = snapshot.shouldIgnoreKnockback
         };

@@ -4,7 +4,16 @@ using UnityEngine;
 public class HWJ_StageProgressionSystem : MonoBehaviour
 {
     [SerializeField] private string stageId;
+    [SerializeField] private string currentRegionId;
+    [SerializeField] private string nextStageId;
     [SerializeField] private string nextRegionId;
+    [SerializeField] private bool currentStageHasBoss;
+    [SerializeField] private string bossId;
+    [SerializeField] private bool unlocksRegionOnClear;
+    [SerializeField] private string unlockRegionId;
+    [SerializeField] private HWJ_StageDefinitionDataSO stageDefinition;
+    [SerializeField] private HWJ_RegionDefinitionDataSO regionDefinition;
+    [SerializeField] private bool applyDefinitionOnAwake = true;
     [SerializeField] private HWJ_StageFlowState initialState = HWJ_StageFlowState.Entering;
     [SerializeField] private HWJ_StageFlowState currentState = HWJ_StageFlowState.None;
     [SerializeField] private bool objectiveComplete;
@@ -21,9 +30,19 @@ public class HWJ_StageProgressionSystem : MonoBehaviour
     [SerializeField] private HWJ_CollapseSystem playerCollapseSystem;
     [SerializeField] private HWJ_StageFlowTransitionFailureCode lastFailureCode;
     [SerializeField] private string lastTransitionMessage;
+    [SerializeField] private HWJ_StageDefinitionApplyFailureCode lastDefinitionApplyFailureCode;
+    [SerializeField] private string lastDefinitionApplyMessage;
 
     public string StageId => stageId;
+    public string CurrentRegionId => currentRegionId;
+    public string NextStageId => nextStageId;
     public string NextRegionId => nextRegionId;
+    public bool CurrentStageHasBoss => currentStageHasBoss;
+    public string BossId => bossId;
+    public bool UnlocksRegionOnClear => unlocksRegionOnClear;
+    public string UnlockRegionId => unlockRegionId;
+    public HWJ_StageDefinitionDataSO StageDefinition => stageDefinition;
+    public HWJ_RegionDefinitionDataSO RegionDefinition => regionDefinition;
     public HWJ_StageFlowState CurrentState => currentState;
     public bool ObjectiveComplete => objectiveComplete;
     public bool BossUnlocked => bossUnlocked;
@@ -33,10 +52,17 @@ public class HWJ_StageProgressionSystem : MonoBehaviour
     public bool TransitionLocked => transitionLocked;
     public HWJ_StageFlowTransitionFailureCode LastFailureCode => lastFailureCode;
     public string LastTransitionMessage => lastTransitionMessage;
+    public HWJ_StageDefinitionApplyFailureCode LastDefinitionApplyFailureCode => lastDefinitionApplyFailureCode;
+    public string LastDefinitionApplyMessage => lastDefinitionApplyMessage;
 
     private void Awake()
     {
         ResolveReferences();
+
+        if (applyDefinitionOnAwake && stageDefinition != null)
+        {
+            TryApplyConfiguredStageDefinition(null, false, false);
+        }
 
         if (currentState == HWJ_StageFlowState.None && initialState != HWJ_StageFlowState.None)
         {
@@ -54,6 +80,70 @@ public class HWJ_StageProgressionSystem : MonoBehaviour
     {
         stageId = newStageId;
         nextRegionId = newNextRegionId;
+    }
+
+    public HWJ_StageDefinitionApplyResult TryApplyConfiguredStageDefinition(
+        HWJ_SaveProgressionData progressionData = null,
+        bool validateRequirements = false,
+        bool resetProgressFlags = false)
+    {
+        return TryApplyStageDefinition(
+            stageDefinition,
+            regionDefinition,
+            progressionData,
+            validateRequirements,
+            resetProgressFlags);
+    }
+
+    public HWJ_StageDefinitionApplyResult TryApplyStageDefinition(
+        HWJ_StageDefinitionDataSO newStageDefinition,
+        HWJ_RegionDefinitionDataSO newRegionDefinition = null,
+        HWJ_SaveProgressionData progressionData = null,
+        bool validateRequirements = false,
+        bool resetProgressFlags = false)
+    {
+        HWJ_StageDefinitionApplyResult definitionValidation = ValidateStageDefinition(
+            newStageDefinition,
+            newRegionDefinition);
+
+        if (!definitionValidation.Succeeded)
+        {
+            return StoreDefinitionApplyResult(definitionValidation);
+        }
+
+        if (validateRequirements)
+        {
+            HWJ_StageDefinitionApplyResult requirementValidation = ValidateStageDefinitionRequirements(
+                newStageDefinition,
+                newRegionDefinition,
+                progressionData);
+
+            if (!requirementValidation.Succeeded)
+            {
+                return StoreDefinitionApplyResult(requirementValidation);
+            }
+        }
+
+        stageDefinition = newStageDefinition;
+        regionDefinition = newRegionDefinition;
+        stageId = NormalizeId(newStageDefinition.StageId);
+        currentRegionId = NormalizeId(newStageDefinition.RegionId);
+        nextStageId = NormalizeId(newStageDefinition.NextStageId);
+        currentStageHasBoss = newStageDefinition.HasBoss;
+        bossId = currentStageHasBoss ? NormalizeId(newStageDefinition.BossId) : string.Empty;
+        unlocksRegionOnClear = newStageDefinition.UnlocksRegionOnClear;
+        unlockRegionId = unlocksRegionOnClear ? NormalizeId(newStageDefinition.UnlockRegionId) : string.Empty;
+        nextRegionId = ResolveNextRegionId(newStageDefinition, newRegionDefinition);
+
+        if (resetProgressFlags)
+        {
+            ResetStageFlow(initialState, true);
+        }
+
+        return StoreDefinitionApplyResult(HWJ_StageDefinitionApplyResult.Success(
+            stageId,
+            currentRegionId,
+            "Stage definition applied to runtime stage progression."));
     }
 
     public void SetTransitionLocked(bool locked)
@@ -297,6 +387,265 @@ public class HWJ_StageProgressionSystem : MonoBehaviour
         return ForceSetState(resetState, "Stage flow reset.");
     }
 
+    private static HWJ_StageDefinitionApplyResult ValidateStageDefinition(
+        HWJ_StageDefinitionDataSO checkedStageDefinition,
+        HWJ_RegionDefinitionDataSO checkedRegionDefinition)
+    {
+        if (checkedStageDefinition == null)
+        {
+            return HWJ_StageDefinitionApplyResult.Fail(
+                HWJ_StageDefinitionApplyFailureCode.MissingStageDefinition,
+                null,
+                null,
+                null,
+                "Stage definition apply failed: missing stage definition.");
+        }
+
+        string checkedStageId = NormalizeId(checkedStageDefinition.StageId);
+        string checkedRegionId = NormalizeId(checkedStageDefinition.RegionId);
+
+        if (string.IsNullOrEmpty(checkedStageId))
+        {
+            return HWJ_StageDefinitionApplyResult.Fail(
+                HWJ_StageDefinitionApplyFailureCode.MissingStageId,
+                null,
+                checkedRegionId,
+                null,
+                "Stage definition apply failed: stage ID is empty.");
+        }
+
+        if (string.IsNullOrEmpty(checkedRegionId))
+        {
+            return HWJ_StageDefinitionApplyResult.Fail(
+                HWJ_StageDefinitionApplyFailureCode.MissingRegionId,
+                checkedStageId,
+                null,
+                null,
+                "Stage definition apply failed: region ID is empty.");
+        }
+
+        if (checkedRegionDefinition != null
+            && NormalizeId(checkedRegionDefinition.RegionId) != checkedRegionId)
+        {
+            return HWJ_StageDefinitionApplyResult.Fail(
+                HWJ_StageDefinitionApplyFailureCode.RegionDefinitionMismatch,
+                checkedStageId,
+                checkedRegionId,
+                NormalizeId(checkedRegionDefinition.RegionId),
+                "Stage definition apply failed: region definition does not match the stage region ID.");
+        }
+
+        if (checkedStageDefinition.HasBoss && string.IsNullOrEmpty(NormalizeId(checkedStageDefinition.BossId)))
+        {
+            return HWJ_StageDefinitionApplyResult.Fail(
+                HWJ_StageDefinitionApplyFailureCode.MissingBossId,
+                checkedStageId,
+                checkedRegionId,
+                null,
+                "Stage definition apply failed: stage has a boss but boss ID is empty.");
+        }
+
+        if (checkedStageDefinition.UnlocksRegionOnClear
+            && string.IsNullOrEmpty(NormalizeId(checkedStageDefinition.UnlockRegionId)))
+        {
+            return HWJ_StageDefinitionApplyResult.Fail(
+                HWJ_StageDefinitionApplyFailureCode.MissingUnlockRegionId,
+                checkedStageId,
+                checkedRegionId,
+                null,
+                "Stage definition apply failed: stage unlocks a region but unlock region ID is empty.");
+        }
+
+        return HWJ_StageDefinitionApplyResult.Success(
+            checkedStageId,
+            checkedRegionId,
+            "Stage definition is valid.");
+    }
+
+    private static HWJ_StageDefinitionApplyResult ValidateStageDefinitionRequirements(
+        HWJ_StageDefinitionDataSO checkedStageDefinition,
+        HWJ_RegionDefinitionDataSO checkedRegionDefinition,
+        HWJ_SaveProgressionData progressionData)
+    {
+        bool hasRequirements = HasConfiguredIds(checkedStageDefinition.RequiredClearedStageIds)
+            || HasConfiguredIds(checkedStageDefinition.RequiredUnlockedRegionIds)
+            || (checkedRegionDefinition != null
+                && (HasConfiguredIds(checkedRegionDefinition.RequiredClearedStageIds)
+                    || HasConfiguredIds(checkedRegionDefinition.RequiredUnlockedRegionIds)));
+
+        if (!hasRequirements)
+        {
+            return HWJ_StageDefinitionApplyResult.Success(
+                NormalizeId(checkedStageDefinition.StageId),
+                NormalizeId(checkedStageDefinition.RegionId),
+                "Stage definition has no gated requirements.");
+        }
+
+        if (progressionData == null)
+        {
+            return HWJ_StageDefinitionApplyResult.Fail(
+                HWJ_StageDefinitionApplyFailureCode.MissingProgressionData,
+                NormalizeId(checkedStageDefinition.StageId),
+                NormalizeId(checkedStageDefinition.RegionId),
+                null,
+                "Stage definition apply failed: progression data is required to validate stage requirements.");
+        }
+
+        HWJ_StageDefinitionApplyResult stageRequirementResult = ValidateRequiredIds(
+            checkedStageDefinition.RequiredClearedStageIds,
+            progressionData.clearedStageIds,
+            HWJ_StageDefinitionApplyFailureCode.MissingClearedStageRequirement,
+            NormalizeId(checkedStageDefinition.StageId),
+            NormalizeId(checkedStageDefinition.RegionId),
+            "Stage definition apply failed: required cleared stage is missing.");
+
+        if (!stageRequirementResult.Succeeded)
+        {
+            return stageRequirementResult;
+        }
+
+        HWJ_StageDefinitionApplyResult stageRegionRequirementResult = ValidateRequiredIds(
+            checkedStageDefinition.RequiredUnlockedRegionIds,
+            progressionData.unlockedRegionIds,
+            HWJ_StageDefinitionApplyFailureCode.MissingUnlockedRegionRequirement,
+            NormalizeId(checkedStageDefinition.StageId),
+            NormalizeId(checkedStageDefinition.RegionId),
+            "Stage definition apply failed: required unlocked region is missing.");
+
+        if (!stageRegionRequirementResult.Succeeded)
+        {
+            return stageRegionRequirementResult;
+        }
+
+        if (checkedRegionDefinition == null)
+        {
+            return HWJ_StageDefinitionApplyResult.Success(
+                NormalizeId(checkedStageDefinition.StageId),
+                NormalizeId(checkedStageDefinition.RegionId),
+                "Stage definition requirements are satisfied.");
+        }
+
+        HWJ_StageDefinitionApplyResult regionStageRequirementResult = ValidateRequiredIds(
+            checkedRegionDefinition.RequiredClearedStageIds,
+            progressionData.clearedStageIds,
+            HWJ_StageDefinitionApplyFailureCode.MissingClearedStageRequirement,
+            NormalizeId(checkedStageDefinition.StageId),
+            NormalizeId(checkedStageDefinition.RegionId),
+            "Stage definition apply failed: region required cleared stage is missing.");
+
+        if (!regionStageRequirementResult.Succeeded)
+        {
+            return regionStageRequirementResult;
+        }
+
+        HWJ_StageDefinitionApplyResult regionRequirementResult = ValidateRequiredIds(
+            checkedRegionDefinition.RequiredUnlockedRegionIds,
+            progressionData.unlockedRegionIds,
+            HWJ_StageDefinitionApplyFailureCode.MissingUnlockedRegionRequirement,
+            NormalizeId(checkedStageDefinition.StageId),
+            NormalizeId(checkedStageDefinition.RegionId),
+            "Stage definition apply failed: region required unlocked region is missing.");
+
+        if (!regionRequirementResult.Succeeded)
+        {
+            return regionRequirementResult;
+        }
+
+        return HWJ_StageDefinitionApplyResult.Success(
+            NormalizeId(checkedStageDefinition.StageId),
+            NormalizeId(checkedStageDefinition.RegionId),
+            "Stage definition requirements are satisfied.");
+    }
+
+    private static HWJ_StageDefinitionApplyResult ValidateRequiredIds(
+        string[] requiredIds,
+        System.Collections.Generic.List<string> ownedIds,
+        HWJ_StageDefinitionApplyFailureCode failureCode,
+        string checkedStageId,
+        string checkedRegionId,
+        string failureMessage)
+    {
+        if (requiredIds == null)
+        {
+            return HWJ_StageDefinitionApplyResult.Success(checkedStageId, checkedRegionId, "No required IDs.");
+        }
+
+        for (int i = 0; i < requiredIds.Length; i++)
+        {
+            string requiredId = NormalizeId(requiredIds[i]);
+
+            if (string.IsNullOrEmpty(requiredId))
+            {
+                continue;
+            }
+
+            if (!ContainsId(ownedIds, requiredId))
+            {
+                return HWJ_StageDefinitionApplyResult.Fail(
+                    failureCode,
+                    checkedStageId,
+                    checkedRegionId,
+                    requiredId,
+                    failureMessage);
+            }
+        }
+
+        return HWJ_StageDefinitionApplyResult.Success(checkedStageId, checkedRegionId, "Required IDs are satisfied.");
+    }
+
+    private static bool HasConfiguredIds(string[] ids)
+    {
+        if (ids == null)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < ids.Length; i++)
+        {
+            if (!string.IsNullOrEmpty(NormalizeId(ids[i])))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool ContainsId(System.Collections.Generic.List<string> ownedIds, string requiredId)
+    {
+        if (ownedIds == null || string.IsNullOrEmpty(requiredId))
+        {
+            return false;
+        }
+
+        for (int i = 0; i < ownedIds.Count; i++)
+        {
+            if (NormalizeId(ownedIds[i]) == requiredId)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static string ResolveNextRegionId(
+        HWJ_StageDefinitionDataSO checkedStageDefinition,
+        HWJ_RegionDefinitionDataSO checkedRegionDefinition)
+    {
+        if (checkedStageDefinition != null && checkedStageDefinition.UnlocksRegionOnClear)
+        {
+            return NormalizeId(checkedStageDefinition.UnlockRegionId);
+        }
+
+        if (checkedRegionDefinition != null)
+        {
+            return NormalizeId(checkedRegionDefinition.NextRegionId);
+        }
+
+        return string.Empty;
+    }
+
     private HWJ_StageFlowTransitionResult ForceSetState(HWJ_StageFlowState nextState, string reason)
     {
         HWJ_StageFlowState previousState = currentState;
@@ -490,6 +839,18 @@ public class HWJ_StageProgressionSystem : MonoBehaviour
         return result;
     }
 
+    private HWJ_StageDefinitionApplyResult StoreDefinitionApplyResult(HWJ_StageDefinitionApplyResult result)
+    {
+        lastDefinitionApplyFailureCode = result.FailureCode;
+        lastDefinitionApplyMessage = result.Message;
+        return result;
+    }
+
+    private static string NormalizeId(string id)
+    {
+        return string.IsNullOrWhiteSpace(id) ? string.Empty : id.Trim();
+    }
+
     private void ResolveReferences()
     {
         if (playerSoulSystem == null && HWJ_GameAccess.HasManager)
@@ -554,6 +915,8 @@ public class HWJ_StageProgressionSystem : MonoBehaviour
             this,
             stageId,
             nextRegionId,
+            bossId,
+            unlockRegionId,
             currentState,
             objectiveComplete,
             bossUnlocked,

@@ -35,6 +35,7 @@ public enum HWJ_BossFlowFailureCode
     BodyIdNotAllowed,
     BodyIdBlocked,
     AdditionalRuleFailed,
+    MissingRegionUnlockId,
     StageTransitionFailed
 }
 

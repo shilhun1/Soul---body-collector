@@ -11,6 +11,13 @@ public class HWJ_BossFlowSystem : MonoBehaviour
     [SerializeField] private HWJ_RootObjectDataResolver bossResolver;
     [SerializeField] private bool bossEntryTriggerActive = true;
 
+    [Header("Combat Death Bridge")]
+    [SerializeField] private bool autoCompleteBossFlowOnCombatDeath = true;
+    [SerializeField] private bool requireBossBattleStateForCombatDeath = true;
+    [SerializeField] private bool unlockRegionOnCombatDeath;
+    [SerializeField] private string combatDeathUnlockRegionId;
+    [SerializeField] private bool useStageDefinitionDefaultsOnCombatDeath = true;
+
     [Header("Player")]
     [SerializeField] private HWJ_RootObjectDataResolver playerResolver;
     [SerializeField] private HWJ_SoulSystem playerSoulSystem;
@@ -24,18 +31,31 @@ public class HWJ_BossFlowSystem : MonoBehaviour
     [SerializeField] private HWJ_BossFlowOperationType lastOperationType;
     [SerializeField] private HWJ_BossFlowFailureCode lastFailureCode;
     [SerializeField] private string lastFlowMessage;
+    [SerializeField] private string lastCombatDeathBridgeMessage;
 
     private HWJ_BossFlowResult lastFlowResult;
 
     public bool BossEntryTriggerActive => bossEntryTriggerActive;
+    public bool AutoCompleteBossFlowOnCombatDeath => autoCompleteBossFlowOnCombatDeath;
     public HWJ_BossFlowResult LastFlowResult => lastFlowResult;
     public HWJ_BossFlowOperationType LastOperationType => lastOperationType;
     public HWJ_BossFlowFailureCode LastFailureCode => lastFailureCode;
     public string LastFlowMessage => lastFlowMessage;
+    public string LastCombatDeathBridgeMessage => lastCombatDeathBridgeMessage;
 
     private void Awake()
     {
         ResolveReferences();
+    }
+
+    private void OnEnable()
+    {
+        HWJ_GameplayEvents.ActorDied += OnActorDied;
+    }
+
+    private void OnDisable()
+    {
+        HWJ_GameplayEvents.ActorDied -= OnActorDied;
     }
 
     private void Reset()
@@ -95,7 +115,8 @@ public class HWJ_BossFlowSystem : MonoBehaviour
     public HWJ_BossFlowResult TryMarkBossDefeated(
         string reason = null,
         bool unlockNextRegion = false,
-        string nextRegionId = null)
+        string nextRegionId = null,
+        bool useStageDefinitionDefaults = true)
     {
         ResolveReferences();
 
@@ -132,7 +153,18 @@ public class HWJ_BossFlowSystem : MonoBehaviour
             bossBrainSystem.StopBossEncounter();
         }
 
-        if (!unlockNextRegion)
+        if (!TryResolveBossDefeatRegionUnlock(
+            unlockNextRegion,
+            nextRegionId,
+            useStageDefinitionDefaults,
+            out bool shouldUnlockRegion,
+            out string resolvedNextRegionId,
+            out HWJ_BossFlowResult unlockConfigFailure))
+        {
+            return StoreResult(unlockConfigFailure);
+        }
+
+        if (!shouldUnlockRegion)
         {
             return StoreResult(HWJ_BossFlowResult.Success(
                 HWJ_BossFlowOperationType.MarkBossDefeated,
@@ -141,7 +173,7 @@ public class HWJ_BossFlowSystem : MonoBehaviour
         }
 
         HWJ_StageFlowTransitionResult regionResult = stageProgressionSystem.TryUnlockRegion(
-            nextRegionId,
+            resolvedNextRegionId,
             "Region unlocked after boss defeat.");
 
         if (!regionResult.Succeeded)
@@ -157,6 +189,121 @@ public class HWJ_BossFlowSystem : MonoBehaviour
             HWJ_BossFlowOperationType.UnlockRegionAfterBoss,
             "Boss defeated and next region unlocked.",
             regionResult));
+    }
+
+    private void OnActorDied(HWJ_DamageEvent damageEvent)
+    {
+        if (!autoCompleteBossFlowOnCombatDeath)
+        {
+            return;
+        }
+
+        if (!TryResolveBossDeathTarget(damageEvent, out HWJ_RootObjectDataResolver defeatedBossResolver))
+        {
+            return;
+        }
+
+        ResolveReferences();
+
+        if (bossResolver == null)
+        {
+            lastCombatDeathBridgeMessage = "Boss death bridge ignored: missing boss resolver.";
+            return;
+        }
+
+        if (defeatedBossResolver != bossResolver)
+        {
+            lastCombatDeathBridgeMessage = "Boss death bridge ignored: defeated boss does not match this flow.";
+            return;
+        }
+
+        if (stageProgressionSystem == null)
+        {
+            lastCombatDeathBridgeMessage = "Boss death bridge failed: missing stage progression system.";
+            StoreResult(HWJ_BossFlowResult.Fail(
+                HWJ_BossFlowOperationType.MarkBossDefeated,
+                HWJ_BossFlowFailureCode.MissingStageProgressionSystem,
+                lastCombatDeathBridgeMessage));
+            return;
+        }
+
+        if (stageProgressionSystem.BossDefeated)
+        {
+            lastCombatDeathBridgeMessage = "Boss death bridge ignored: boss was already marked defeated.";
+            return;
+        }
+
+        if (requireBossBattleStateForCombatDeath
+            && stageProgressionSystem.CurrentState != HWJ_StageFlowState.BossBattle)
+        {
+            lastCombatDeathBridgeMessage = "Boss death bridge ignored: stage is not in BossBattle state.";
+            return;
+        }
+
+        HWJ_BossFlowResult defeatResult = TryMarkBossDefeated(
+            "Boss defeated by combat death event.",
+            unlockRegionOnCombatDeath,
+            combatDeathUnlockRegionId,
+            useStageDefinitionDefaultsOnCombatDeath);
+        lastCombatDeathBridgeMessage = defeatResult.Message;
+    }
+
+    private static bool TryResolveBossDeathTarget(
+        HWJ_DamageEvent damageEvent,
+        out HWJ_RootObjectDataResolver defeatedBossResolver)
+    {
+        defeatedBossResolver = null;
+
+        if (!damageEvent.TargetDied || damageEvent.TargetStatus == null)
+        {
+            return false;
+        }
+
+        defeatedBossResolver = damageEvent.TargetStatus.GetComponent<HWJ_RootObjectDataResolver>();
+        return defeatedBossResolver != null && defeatedBossResolver.ObjectType == HWJ_ObjectType.Boss;
+    }
+
+    private bool TryResolveBossDefeatRegionUnlock(
+        bool unlockNextRegion,
+        string requestedNextRegionId,
+        bool useStageDefinitionDefaults,
+        out bool shouldUnlockRegion,
+        out string resolvedNextRegionId,
+        out HWJ_BossFlowResult failureResult)
+    {
+        shouldUnlockRegion = unlockNextRegion;
+        resolvedNextRegionId = NormalizeId(requestedNextRegionId);
+        failureResult = default(HWJ_BossFlowResult);
+
+        if (useStageDefinitionDefaults
+            && stageProgressionSystem != null
+            && stageProgressionSystem.UnlocksRegionOnClear)
+        {
+            shouldUnlockRegion = true;
+
+            if (string.IsNullOrEmpty(resolvedNextRegionId))
+            {
+                resolvedNextRegionId = NormalizeId(stageProgressionSystem.UnlockRegionId);
+            }
+        }
+
+        if (shouldUnlockRegion
+            && string.IsNullOrEmpty(resolvedNextRegionId)
+            && stageProgressionSystem != null)
+        {
+            resolvedNextRegionId = NormalizeId(stageProgressionSystem.NextRegionId);
+        }
+
+        if (shouldUnlockRegion && string.IsNullOrEmpty(resolvedNextRegionId))
+        {
+            failureResult = HWJ_BossFlowResult.Fail(
+                HWJ_BossFlowOperationType.UnlockRegionAfterBoss,
+                HWJ_BossFlowFailureCode.MissingRegionUnlockId,
+                "Boss flow failed: region unlock was requested but no next region ID was available.");
+            return false;
+        }
+
+        return true;
     }
 
     // Evaluation must not mutate stage or boss state because UI and trigger scripts can call it for previews.
@@ -517,8 +664,12 @@ public class HWJ_BossFlowSystem : MonoBehaviour
             return true;
         }
 
-        return !string.IsNullOrEmpty(requirements.additionalRuleExecutionCoreId)
-            && HWJ_GameAccess.TryGetRuleExecutionCore(requirements.additionalRuleExecutionCoreId, out executionCore);
+        if (string.IsNullOrEmpty(requirements.additionalRuleExecutionCoreId))
+        {
+            return false;
+        }
+
+        return HWJ_GameAccess.TryGetRuleExecutionCore(requirements.additionalRuleExecutionCoreId, out executionCore);
     }
 
     private bool TryGetBossData(out HWJ_BossTypeDataSO bossData)
@@ -681,6 +832,11 @@ public class HWJ_BossFlowSystem : MonoBehaviour
         }
 
         return false;
+    }
+
+    private static string NormalizeId(string id)
+    {
+        return string.IsNullOrWhiteSpace(id) ? string.Empty : id.Trim();
     }
 
     private static bool ContainsId(string[] ids, string id)

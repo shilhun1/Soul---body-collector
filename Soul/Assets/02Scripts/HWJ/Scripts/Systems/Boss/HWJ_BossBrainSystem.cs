@@ -155,11 +155,20 @@ public class HWJ_BossBrainSystem : MonoBehaviour
         groggyHitCount = 0;
         groggyHitWindowTimer = 0f;
         groggyTimer = Mathf.Max(0.01f, durationSeconds);
+        ApplyGroggyEntryEffects(TryGetBossData(out HWJ_BossTypeDataSO bossData) ? bossData.FSM : null);
         SetBossState(HWJ_BossFSMState.Groggy);
         StopHorizontalMovement();
     }
 
     public void NotifyDamageTaken(float damage)
+    {
+        NotifyDamageTaken(damage, false, false);
+    }
+
+    public void NotifyDamageTaken(
+        float damage,
+        bool hitReactionBlockedBySuperArmor,
+        bool hitReactionBlockedByLimit)
     {
         if (damage <= 0f || !TryGetBossData(out HWJ_BossTypeDataSO bossData))
         {
@@ -169,6 +178,16 @@ public class HWJ_BossBrainSystem : MonoBehaviour
         HWJ_BossFSMData fsm = bossData.FSM;
 
         if (currentState == HWJ_BossFSMState.Groggy || currentState == HWJ_BossFSMState.PhaseTransition)
+        {
+            return;
+        }
+
+        if (hitReactionBlockedBySuperArmor && !fsm.countGroggyHitsDuringSuperArmor)
+        {
+            return;
+        }
+
+        if (hitReactionBlockedByLimit && !fsm.countGroggyHitsWhileHitReactionLimited)
         {
             return;
         }
@@ -368,8 +387,22 @@ public class HWJ_BossBrainSystem : MonoBehaviour
         groggyHitCount = 0;
         groggyHitWindowTimer = 0f;
         groggyTimer = Mathf.Max(0.01f, fsm.groggyDurationSeconds);
+        ApplyGroggyEntryEffects(fsm);
         SetBossState(HWJ_BossFSMState.Groggy);
         StopHorizontalMovement();
+    }
+
+    private void ApplyGroggyEntryEffects(HWJ_BossFSMData fsm)
+    {
+        if (fsm == null || fsm.cancelActionsOnGroggy)
+        {
+            CancelCurrentBossActions();
+        }
+
+        if (fsm == null || fsm.clearHitReactionLimitOnGroggy)
+        {
+            runtimeStatus?.ClearHitReactionLimit();
+        }
     }
 
     private bool UpdateGroggy()

@@ -6,6 +6,7 @@ using UnityEngine;
 /// </summary>
 public class HWJ_PossessionSystem : MonoBehaviour
 {
+    [Header("Core References")]
     [SerializeField] private HWJ_RootObjectDataResolver ownerDataResolver;
     [SerializeField] private HWJ_SoulSystem soulSystem;
     [SerializeField] private HWJ_RuntimeStatusSystem runtimeStatus;
@@ -13,16 +14,25 @@ public class HWJ_PossessionSystem : MonoBehaviour
     [SerializeField] private HWJ_PossessedBodySystem possessedBodySystem;
     [SerializeField] private HWJ_RootObjectDataResolver possessedBodyResolver;
     [SerializeField] private HWJ_RootObjectDataResolver runtimePossessedBodyResolver;
+
+    [Space(8f)]
+    [Header("Possession Runtime")]
     [SerializeField] private bool moveOwnerToPossessedBody = true;
     [SerializeField] private bool copyPossessedBodyVisual = true;
     [SerializeField] private bool consumePossessedCorpse = true;
     [SerializeField] private bool deactivateConsumedCorpse = true;
     [SerializeField] private bool allowManualSoulExit = true;
+
+    [Space(8f)]
+    [Header("Rules")]
     [SerializeField] private bool useGameplayPossessionRule = true;
     [SerializeField] private HWJ_RuleExecutionCoreSO possessionExecutionCore;
     [SerializeField] private string possessionExecutionCoreId = "possession_execution";
     [SerializeField] private HWJ_GameplayRuleSO possessionRule;
     [SerializeField] private string possessionRuleId = "possession_can_start";
+
+    [Space(8f)]
+    [Header("Debug")]
     [SerializeField] private HWJ_PossessionFailureCode lastPossessionFailureCode;
     [SerializeField] private string lastPossessionResult;
 
@@ -69,7 +79,7 @@ public class HWJ_PossessionSystem : MonoBehaviour
 
         if (playerInput == null)
         {
-            playerInput = GetComponent<HWJ_PlayerInputSystem>();
+            ResolvePlayerInput();
         }
 
         if (possessedBodySystem == null)
@@ -82,6 +92,8 @@ public class HWJ_PossessionSystem : MonoBehaviour
 
     private void Update()
     {
+        ResolvePlayerInput();
+
         if (playerInput != null && playerInput.ExitPossessionPressedThisFrame)
         {
             TryExitPossessedBodyToSoul();
@@ -252,8 +264,12 @@ public class HWJ_PossessionSystem : MonoBehaviour
             return true;
         }
 
-        return !string.IsNullOrEmpty(possessionExecutionCoreId)
-            && HWJ_GameAccess.TryGetRuleExecutionCore(possessionExecutionCoreId, out executionCore);
+        if (string.IsNullOrEmpty(possessionExecutionCoreId))
+        {
+            return false;
+        }
+
+        return HWJ_GameAccess.TryGetRuleExecutionCore(possessionExecutionCoreId, out executionCore);
     }
 
     /// <summary>
@@ -435,12 +451,27 @@ public class HWJ_PossessionSystem : MonoBehaviour
 
         if (playerInput == null)
         {
-            playerInput = GetComponent<HWJ_PlayerInputSystem>();
+            ResolvePlayerInput();
         }
 
         if (possessedBodySystem == null)
         {
             possessedBodySystem = GetComponent<HWJ_PossessedBodySystem>();
+        }
+    }
+
+    private void ResolvePlayerInput()
+    {
+        if (playerInput != null)
+        {
+            return;
+        }
+
+        playerInput = GetComponent<HWJ_PlayerInputSystem>();
+
+        if (playerInput == null)
+        {
+            playerInput = HWJ_GameAccess.PlayerInput;
         }
     }
 

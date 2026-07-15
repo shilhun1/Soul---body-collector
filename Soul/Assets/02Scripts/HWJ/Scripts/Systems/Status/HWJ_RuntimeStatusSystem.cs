@@ -26,6 +26,9 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
     [SerializeField] private float hitStunEndTime;
     [SerializeField] private float invincibleEndTime;
     [SerializeField] private float hitReactionImmuneEndTime;
+    [SerializeField] private float hitReactionLimitEndTime;
+    [SerializeField] private float hitReactionWindowEndTime;
+    [SerializeField] private int hitReactionCountInWindow;
 
     private readonly Dictionary<int, float> nextDamageTimesBySource = new Dictionary<int, float>();
     private float maxHpBonus;
@@ -48,8 +51,9 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
     public bool IsHitStunned => Time.time < hitStunEndTime;
     public bool IsTemporarilyInvincible => Time.time < invincibleEndTime;
     public bool IsHitReactionImmune => Time.time < hitReactionImmuneEndTime;
+    public bool IsHitReactionLimited => Time.time < hitReactionLimitEndTime;
     public bool HasSuperArmor => HasDataSuperArmor() || (bossBrain != null && bossBrain.HasSuperArmor);
-    public bool ShouldIgnoreKnockback => HasSuperArmor || IsHitReactionImmune || ShouldDataIgnoreKnockback();
+    public bool ShouldIgnoreKnockback => HasSuperArmor || IsHitReactionImmune || IsHitReactionLimited || ShouldDataIgnoreKnockback();
     public bool CanMove => !IsDead && Time.time >= moveLockEndTime && !IsHitStunned;
     public bool CanAttack => !IsDead && Time.time >= attackLockEndTime && !IsHitStunned;
     public bool CanDash => !IsDead && Time.time >= dashLockEndTime && !IsHitStunned;
@@ -176,6 +180,13 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
     public void GrantInvincibility(float seconds)
     {
         invincibleEndTime = Mathf.Max(invincibleEndTime, Time.time + Mathf.Max(0f, seconds));
+    }
+
+    public void ClearHitReactionLimit()
+    {
+        hitReactionLimitEndTime = 0f;
+        hitReactionWindowEndTime = 0f;
+        hitReactionCountInWindow = 0;
     }
 
     public bool CanReceiveHitFrom(Component source)
@@ -580,9 +591,23 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
 
     private void ApplyHitReaction(float damage, HWJ_DamageData sourceDamage)
     {
-        bossBrain?.NotifyDamageTaken(damage);
+        bool reactionBlockedBySuperArmor = HasSuperArmor;
+        bool reactionBlockedByLimit = IsHitReactionLimited;
+        bossBrain?.NotifyDamageTaken(damage, reactionBlockedBySuperArmor, reactionBlockedByLimit);
 
-        if (HasSuperArmor)
+        if (bossBrain != null && bossBrain.IsGroggy)
+        {
+            return;
+        }
+
+        if (reactionBlockedBySuperArmor)
+        {
+            return;
+        }
+
+        HWJ_ReceivedDamageData receivedDamage = GetReceivedDamageData();
+
+        if (!TryConsumeHitReactionSlot(receivedDamage))
         {
             return;
         }
@@ -597,6 +622,42 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
 
         SetState(HWJ_RuntimeState.Hit);
         motionSystem?.PlayHit();
+    }
+
+    private bool TryConsumeHitReactionSlot(HWJ_ReceivedDamageData receivedDamage)
+    {
+        if (receivedDamage == null || receivedDamage.maxHitReactionsPerWindow <= 0)
+        {
+            return true;
+        }
+
+        if (IsHitReactionLimited)
+        {
+            return false;
+        }
+
+        float windowSeconds = Mathf.Max(0.01f, receivedDamage.hitReactionWindowSeconds);
+
+        if (Time.time >= hitReactionWindowEndTime)
+        {
+            hitReactionWindowEndTime = Time.time + windowSeconds;
+            hitReactionCountInWindow = 0;
+        }
+
+        if (hitReactionCountInWindow >= receivedDamage.maxHitReactionsPerWindow)
+        {
+            float immuneSeconds = Mathf.Max(0f, receivedDamage.hitReactionLimitImmuneSeconds);
+
+            if (immuneSeconds > 0f)
+            {
+                hitReactionLimitEndTime = Mathf.Max(hitReactionLimitEndTime, Time.time + immuneSeconds);
+            }
+
+            return false;
+        }
+
+        hitReactionCountInWindow++;
+        return true;
     }
 
     private void SavePlayerRuntimeSnapshotIfOwner()

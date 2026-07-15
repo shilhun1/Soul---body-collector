@@ -216,24 +216,64 @@ public class HWJ_BodyDecaySystem : MonoBehaviour
 
     public void ApplyBasicAttackDecay()
     {
-        if (!TryBeginActionDecay(out HWJ_BodyDecayData bodyDecay))
-        {
-            return;
-        }
-
-        ApplyDecayAmount(bodyDecay.basicAttackDecayAmount, "basic_attack", bodyDecay);
-        TryEnterSoulStateWhenDecayMaxed(bodyDecay);
-        SavePlayerRuntimeSnapshotIfOwner();
+        ApplyBasicAttackDecay(null);
     }
 
-    public void ApplySkillDecay()
+    public void ApplyBasicAttackDecay(HWJ_SkillActionDataSO skillAction)
+    {
+        ApplyBasicAttackDecay(skillAction, 0f);
+    }
+
+    public void ApplyBasicAttackDecay(HWJ_SkillActionDataSO skillAction, float chargeSeconds)
+    {
+        ApplyBasicAttackDecay(skillAction, chargeSeconds, true);
+    }
+
+    public void ApplyBasicAttackDecay(HWJ_SkillActionDataSO skillAction, float chargeSeconds, int comboStep)
+    {
+        ApplyBasicAttackDecay(skillAction, chargeSeconds, Mathf.Max(1, comboStep) > 1);
+    }
+
+    private void ApplyBasicAttackDecay(HWJ_SkillActionDataSO skillAction, float chargeSeconds, bool applyComboBodyDecayMultiplier)
     {
         if (!TryBeginActionDecay(out HWJ_BodyDecayData bodyDecay))
         {
             return;
         }
 
-        ApplyDecayAmount(bodyDecay.skillDecayAmount, "skill", bodyDecay);
+        ApplyDecayAmount(ResolveSkillActionDecayAmount(bodyDecay.basicAttackDecayAmount, skillAction, chargeSeconds, applyComboBodyDecayMultiplier), "basic_attack", bodyDecay);
+        TryEnterSoulStateWhenDecayMaxed(bodyDecay);
+        SavePlayerRuntimeSnapshotIfOwner();
+    }
+
+    public void ApplySkillDecay()
+    {
+        ApplySkillDecay(null);
+    }
+
+    public void ApplySkillDecay(HWJ_SkillActionDataSO skillAction)
+    {
+        ApplySkillDecay(skillAction, 0f);
+    }
+
+    public void ApplySkillDecay(HWJ_SkillActionDataSO skillAction, float chargeSeconds)
+    {
+        ApplySkillDecay(skillAction, chargeSeconds, true);
+    }
+
+    public void ApplySkillDecay(HWJ_SkillActionDataSO skillAction, float chargeSeconds, int comboStep)
+    {
+        ApplySkillDecay(skillAction, chargeSeconds, Mathf.Max(1, comboStep) > 1);
+    }
+
+    private void ApplySkillDecay(HWJ_SkillActionDataSO skillAction, float chargeSeconds, bool applyComboBodyDecayMultiplier)
+    {
+        if (!TryBeginActionDecay(out HWJ_BodyDecayData bodyDecay))
+        {
+            return;
+        }
+
+        ApplyDecayAmount(ResolveSkillActionDecayAmount(bodyDecay.skillDecayAmount, skillAction, chargeSeconds, applyComboBodyDecayMultiplier), "skill", bodyDecay);
         TryEnterSoulStateWhenDecayMaxed(bodyDecay);
         SavePlayerRuntimeSnapshotIfOwner();
     }
@@ -402,6 +442,42 @@ public class HWJ_BodyDecaySystem : MonoBehaviour
 
         SetCurrentDecayValue(currentDecayValue + finalAmount, bodyDecay);
         runtimeStateMessage = $"Body decay increased by {finalAmount:0.###}. Reason: {reason}.";
+    }
+
+    private static float ResolveSkillActionDecayAmount(
+        float defaultDecayAmount,
+        HWJ_SkillActionDataSO skillAction,
+        float chargeSeconds,
+        bool applyComboBodyDecayMultiplier)
+    {
+        float resolvedDecayAmount = Mathf.Max(0f, defaultDecayAmount);
+
+        if (skillAction == null)
+        {
+            return resolvedDecayAmount;
+        }
+
+        // SkillAction data can either replace the slot default or add extra decay for heavier moves.
+        if (skillAction.UsesCustomBodyDecayAmount)
+        {
+            resolvedDecayAmount = Mathf.Max(0f, skillAction.CustomBodyDecayAmount);
+        }
+
+        resolvedDecayAmount += Mathf.Max(0f, skillAction.AdditionalBodyDecayAmount);
+
+        if (applyComboBodyDecayMultiplier && skillAction.UsesComboBodyDecayMultiplier)
+        {
+            resolvedDecayAmount *= Mathf.Max(0f, skillAction.ComboBodyDecayMultiplier);
+        }
+
+        float chargeDecayAmount = Mathf.Max(0f, chargeSeconds) * Mathf.Max(0f, skillAction.ChargeBodyDecayPerSecond);
+
+        if (skillAction.MaxChargeBodyDecayAmount > 0f)
+        {
+            chargeDecayAmount = Mathf.Min(chargeDecayAmount, skillAction.MaxChargeBodyDecayAmount);
+        }
+
+        return resolvedDecayAmount + chargeDecayAmount;
     }
 
     private HWJ_DecayDangerLevel ResolveDangerLevel()
