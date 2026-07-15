@@ -98,7 +98,13 @@ public class HWJ_SpawnerSystem : MonoBehaviour
 
         for (int i = 0; i < count; i++)
         {
-            GameObject instance = SpawnOne(entry, point);
+            if (ShouldSkipSpawnBySavedProgression(entry, point, i))
+            {
+                SetLastSpawnResult($"Spawn skipped: reward already claimed for {entry.spawnId}:{i}.", false);
+                continue;
+            }
+
+            GameObject instance = SpawnOne(entry, point, i);
 
             if (instance == null)
             {
@@ -117,7 +123,7 @@ public class HWJ_SpawnerSystem : MonoBehaviour
         }
     }
 
-    private GameObject SpawnOne(HWJ_SpawnEntryData entry, HWJ_SpawnPoint point)
+    private GameObject SpawnOne(HWJ_SpawnEntryData entry, HWJ_SpawnPoint point, int spawnIndex)
     {
         GameObject prefab = entry.prefabOverride;
 
@@ -150,6 +156,7 @@ public class HWJ_SpawnerSystem : MonoBehaviour
         if (resolver != null && entry.rootObjectData != null)
         {
             resolver.SetRootObjectData(entry.rootObjectData);
+            AssignRuntimeSaveIdentity(instance, entry, point, spawnIndex, resolver);
             RefreshSpawnedRuntimeData(instance);
 
             if (entry.spawnPointType == HWJ_SpawnPointType.PlayerStart && HWJ_GameAccess.HasManager)
@@ -161,6 +168,79 @@ public class HWJ_SpawnerSystem : MonoBehaviour
         WireSpawnedObject(instance);
         SetLastSpawnResult($"Spawned {instance.name} from {entry.spawnId}.", false);
         return instance;
+    }
+
+    private bool ShouldSkipSpawnBySavedProgression(HWJ_SpawnEntryData entry, HWJ_SpawnPoint point, int spawnIndex)
+    {
+        if (entry == null || !entry.skipSpawnWhenRewardClaimed)
+        {
+            return false;
+        }
+
+        if (entry.rootObjectData == null
+            || (entry.rootObjectData.ObjectType != HWJ_ObjectType.Enemy
+                && entry.rootObjectData.ObjectType != HWJ_ObjectType.Boss))
+        {
+            return false;
+        }
+
+        if (!HWJ_SaveService.TryGetActiveService(out HWJ_SaveService activeSaveService))
+        {
+            return false;
+        }
+
+        string rootObjectId = HWJ_RuntimeSaveIdentity.NormalizeIdPart(ResolveRootObjectId(entry.rootObjectData));
+        string stableInstanceId = HWJ_RuntimeSaveIdentity.CreateSpawnStableId(
+            entry.spawnId,
+            point != null ? point.PointId : entry.spawnPointId,
+            rootObjectId,
+            spawnIndex);
+        string rewardClaimId = rootObjectId + ":" + stableInstanceId;
+        return activeSaveService.IsRewardClaimed(rewardClaimId);
+    }
+
+    private static void AssignRuntimeSaveIdentity(
+        GameObject instance,
+        HWJ_SpawnEntryData entry,
+        HWJ_SpawnPoint point,
+        int spawnIndex,
+        HWJ_RootObjectDataResolver resolver)
+    {
+        if (instance == null || entry == null)
+        {
+            return;
+        }
+
+        HWJ_RuntimeSaveIdentity saveIdentity = instance.GetComponent<HWJ_RuntimeSaveIdentity>();
+
+        if (saveIdentity == null)
+        {
+            saveIdentity = instance.AddComponent<HWJ_RuntimeSaveIdentity>();
+        }
+
+        string rootObjectId = resolver != null && resolver.RootObjectData != null
+            ? ResolveRootObjectId(resolver.RootObjectData)
+            : ResolveRootObjectId(entry.rootObjectData);
+        saveIdentity.AssignSpawnIdentity(
+            entry.spawnId,
+            point != null ? point.PointId : entry.spawnPointId,
+            rootObjectId,
+            spawnIndex);
+    }
+
+    private static string ResolveRootObjectId(HWJ_RootObjectDataSO rootObjectData)
+    {
+        if (rootObjectData == null)
+        {
+            return null;
+        }
+
+        if (rootObjectData.Identity != null && !string.IsNullOrEmpty(rootObjectData.Identity.objectId))
+        {
+            return rootObjectData.Identity.objectId;
+        }
+
+        return rootObjectData.name;
     }
 
     private void SetLastSpawnResult(string message, bool warning)

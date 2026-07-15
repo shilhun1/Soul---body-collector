@@ -18,6 +18,10 @@ public class HWJ_BossFSMData
     public float soulReturnCenterStoppingDistance = 0.2f;
     public bool superArmorDuringAttack = true;
     public bool superArmorDuringPhaseTransition = true;
+    public bool countGroggyHitsDuringSuperArmor = true;
+    public bool countGroggyHitsWhileHitReactionLimited = true;
+    public bool clearHitReactionLimitOnGroggy = true;
+    public bool cancelActionsOnGroggy = true;
     public int groggyHitCountThreshold = 5;
     public float groggyHitWindowSeconds = 3f;
     public float groggyDurationSeconds = 2.5f;

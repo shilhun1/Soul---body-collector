@@ -25,8 +25,9 @@ MonoBehaviour:
     attackPower: 10
     defense: 1
     attackSpeed: 1
+    bodyWeight: 1
   model:
-    modelPrefab: {fileID: 0}
+    modelPrefab: {fileID: 3849149947141442002, guid: 8e1c6250843dc3a48a3e89138548aec2, type: 3}
     animatorController: {fileID: 0}
     heartEffectSocketName: Heart
     hitEffectSocketName: Hit
@@ -38,12 +39,23 @@ MonoBehaviour:
     criticalMultiplier: 1.5
     knockbackPower: 5
     hitStunSeconds: 0
+    hitStopSeconds: 0
+    sameTargetHitCooldownSeconds: 0.08
   receivedDamage:
     damageMultiplier: 1
     invincibleSecondsAfterHit: 0.2
     isInvincible: 0
     ignoreTrapDamage: 0
     ignoreEnemyDamage: 0
+    hitStunSeconds: 0.18
+    hitReactionImmuneSeconds: 0
+    maxHitReactionsPerWindow: 0
+    hitReactionWindowSeconds: 1
+    hitReactionLimitImmuneSeconds: 0
+    knockbackWeightMultiplier: 1
+    hasSuperArmor: 0
+    ignoreHitStun: 0
+    ignoreKnockback: 0
   interaction:
     canInteract: 1
     canBeTargeted: 1
@@ -52,5 +64,5 @@ MonoBehaviour:
     experienceReward: 0
     skillPointReward: 0
     dropsStatOrb: 0
-    statOrbId: ""
+    statOrbId: 
   selectedTypeData: {fileID: 11400000, guid: d0023b4a893d7ce4d9297857c84b77df, type: 2}

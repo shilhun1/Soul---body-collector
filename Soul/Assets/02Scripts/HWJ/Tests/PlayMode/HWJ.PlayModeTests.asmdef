@@ -1,0 +1,19 @@
+{
+    "name": "HWJ.PlayModeTests",
+    "rootNamespace": "HWJ.Tests",
+    "references": [
+        "HWJ.Runtime"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ],
+    "noEngineReferences": false
+}

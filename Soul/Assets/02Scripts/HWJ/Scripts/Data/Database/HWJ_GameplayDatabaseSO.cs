@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -23,6 +25,7 @@ public class HWJ_GameplayDatabaseSO : ScriptableObject
     [Header("Condition And Rule Data")]
     [SerializeField] private HWJ_GameplayConditionSO[] conditions;
     [SerializeField] private HWJ_GameplayRuleSO[] gameplayRules;
+    [SerializeField] private HWJ_RuleExecutionCoreSO[] ruleExecutionCores;
 
     public HWJ_RootObjectDataSO[] RootObjects => rootObjects;
     public HWJ_ObjectPoolDataSO ObjectPoolData => objectPoolData;
@@ -35,6 +38,7 @@ public class HWJ_GameplayDatabaseSO : ScriptableObject
     public HWJ_GameOverDataSO[] GameOverWindows => gameOverWindows;
     public HWJ_GameplayConditionSO[] Conditions => conditions;
     public HWJ_GameplayRuleSO[] GameplayRules => gameplayRules;
+    public HWJ_RuleExecutionCoreSO[] RuleExecutionCores => ruleExecutionCores;
 
     /// <summary>
     /// RootObjectData의 Identity.objectId로 오브젝트 데이터를 찾습니다.
@@ -197,5 +201,296 @@ public class HWJ_GameplayDatabaseSO : ScriptableObject
         }
 
         return false;
+    }
+
+    public bool TryGetRuleExecutionCore(string executionCoreId, out HWJ_RuleExecutionCoreSO executionCore)
+    {
+        executionCore = null;
+
+        if (ruleExecutionCores == null)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < ruleExecutionCores.Length; i++)
+        {
+            if (ruleExecutionCores[i] != null && ruleExecutionCores[i].ExecutionCoreId == executionCoreId)
+            {
+                executionCore = ruleExecutionCores[i];
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public HWJ_GameDataRegistryReport ValidateRegistryIds()
+    {
+        List<HWJ_GameDataValidationEntry> entries = new List<HWJ_GameDataValidationEntry>();
+
+        ValidateStableIds(
+            entries,
+            "RootObject",
+            rootObjects,
+            "REQ-7",
+            "Identity.objectId",
+            data => data != null && data.Identity != null ? data.Identity.objectId : null);
+        ValidateStableIds(
+            entries,
+            "SpawnTable",
+            spawnTables,
+            "REQ-7",
+            "TableId",
+            data => data != null ? data.TableId : null);
+        ValidateStableIds(
+            entries,
+            "StatOrb",
+            statOrbs,
+            "REQ-7",
+            "OrbId",
+            data => data != null ? data.OrbId : null);
+        ValidateStableIds(
+            entries,
+            "LevelTable",
+            levelTables,
+            "REQ-7",
+            "TableId",
+            data => data != null ? data.TableId : null);
+        ValidateStableIds(
+            entries,
+            "SkillAction",
+            skillActions,
+            "REQ-7",
+            "SkillActionId",
+            data => data != null ? data.SkillActionId : null);
+        ValidateStableIds(
+            entries,
+            "BossPattern",
+            bossPatterns,
+            "REQ-7",
+            "PatternId",
+            data => data != null ? data.PatternId : null);
+        ValidateStableIds(
+            entries,
+            "HealthBar",
+            healthBars,
+            "REQ-7",
+            "HealthBarId",
+            data => data != null ? data.HealthBarId : null);
+        ValidateStableIds(
+            entries,
+            "GameOverWindow",
+            gameOverWindows,
+            "REQ-7",
+            "GameOverId",
+            data => data != null ? data.GameOverId : null);
+        ValidateStableIds(
+            entries,
+            "Condition",
+            conditions,
+            "REQ-7",
+            "ConditionId",
+            data => data != null ? data.ConditionId : null);
+        ValidateStableIds(
+            entries,
+            "GameplayRule",
+            gameplayRules,
+            "REQ-7",
+            "RuleId",
+            data => data != null ? data.RuleId : null);
+        ValidateStableIds(
+            entries,
+            "RuleExecutionCore",
+            ruleExecutionCores,
+            "REQ-7",
+            "ExecutionCoreId",
+            data => data != null ? data.ExecutionCoreId : null);
+        ValidateObjectPoolIds(entries);
+        ValidateSpawnEntryIds(entries);
+
+        return HWJ_GameDataRegistryReport.FromEntries(entries);
+    }
+
+    private static void ValidateStableIds<T>(
+        List<HWJ_GameDataValidationEntry> entries,
+        string dataCategory,
+        T[] assets,
+        string requirementId,
+        string fieldName,
+        Func<T, string> idSelector) where T : UnityEngine.Object
+    {
+        if (entries == null || assets == null)
+        {
+            return;
+        }
+
+        Dictionary<string, string> firstAssetById = new Dictionary<string, string>();
+
+        for (int i = 0; i < assets.Length; i++)
+        {
+            T asset = assets[i];
+
+            if (asset == null)
+            {
+                entries.Add(new HWJ_GameDataValidationEntry(
+                    HWJ_GameDataValidationSeverity.Error,
+                    "ID_NULL_ASSET",
+                    requirementId,
+                    dataCategory,
+                    $"Index {i}",
+                    fieldName,
+                    null,
+                    "Database list contains an empty asset reference.",
+                    "Remove the empty slot or assign a valid data asset."));
+                continue;
+            }
+
+            string id = idSelector != null ? idSelector(asset) : null;
+            AddIdValidation(entries, firstAssetById, dataCategory, asset.name, fieldName, id, requirementId);
+        }
+    }
+
+    private void ValidateObjectPoolIds(List<HWJ_GameDataValidationEntry> entries)
+    {
+        if (objectPoolData == null || objectPoolData.Entries == null)
+        {
+            return;
+        }
+
+        Dictionary<string, string> firstAssetById = new Dictionary<string, string>();
+        HWJ_PoolEntryData[] entriesData = objectPoolData.Entries;
+
+        for (int i = 0; i < entriesData.Length; i++)
+        {
+            HWJ_PoolEntryData entry = entriesData[i];
+            string assetName = $"{objectPoolData.name}[{i}]";
+
+            if (entry == null)
+            {
+                entries.Add(new HWJ_GameDataValidationEntry(
+                    HWJ_GameDataValidationSeverity.Error,
+                    "ID_NULL_ASSET",
+                    "REQ-7",
+                    "ObjectPoolEntry",
+                    assetName,
+                    "poolId",
+                    null,
+                    "Object pool list contains an empty entry.",
+                    "Remove the empty slot or assign a valid pool entry."));
+                continue;
+            }
+
+            AddIdValidation(
+                entries,
+                firstAssetById,
+                "ObjectPoolEntry",
+                assetName,
+                "poolId",
+                entry.poolId,
+                "REQ-7");
+        }
+    }
+
+    private void ValidateSpawnEntryIds(List<HWJ_GameDataValidationEntry> entries)
+    {
+        if (spawnTables == null)
+        {
+            return;
+        }
+
+        for (int tableIndex = 0; tableIndex < spawnTables.Length; tableIndex++)
+        {
+            HWJ_SpawnTableDataSO spawnTable = spawnTables[tableIndex];
+
+            if (spawnTable == null || spawnTable.Entries == null)
+            {
+                continue;
+            }
+
+            Dictionary<string, string> firstAssetById = new Dictionary<string, string>();
+            HWJ_SpawnEntryData[] spawnEntries = spawnTable.Entries;
+
+            for (int entryIndex = 0; entryIndex < spawnEntries.Length; entryIndex++)
+            {
+                HWJ_SpawnEntryData spawnEntry = spawnEntries[entryIndex];
+                string assetName = $"{spawnTable.name}[{entryIndex}]";
+
+                if (spawnEntry == null)
+                {
+                    entries.Add(new HWJ_GameDataValidationEntry(
+                        HWJ_GameDataValidationSeverity.Error,
+                        "ID_NULL_ASSET",
+                        "REQ-7",
+                        "SpawnEntry",
+                        assetName,
+                        "spawnId",
+                        null,
+                        "Spawn table contains an empty spawn entry.",
+                        "Remove the empty slot or assign a valid spawn entry."));
+                    continue;
+                }
+
+                AddIdValidation(
+                    entries,
+                    firstAssetById,
+                    "SpawnEntry",
+                    assetName,
+                    "spawnId",
+                    spawnEntry.spawnId,
+                    "REQ-7");
+            }
+        }
+    }
+
+    private static void AddIdValidation(
+        List<HWJ_GameDataValidationEntry> entries,
+        Dictionary<string, string> firstAssetById,
+        string dataCategory,
+        string assetName,
+        string fieldName,
+        string id,
+        string requirementId)
+    {
+        if (entries == null)
+        {
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(id))
+        {
+            entries.Add(new HWJ_GameDataValidationEntry(
+                HWJ_GameDataValidationSeverity.Error,
+                "ID_MISSING",
+                requirementId,
+                dataCategory,
+                assetName,
+                fieldName,
+                id,
+                "Stable data ID is empty.",
+                "Assign a non-empty stable string ID that will not change when the file name changes."));
+            return;
+        }
+
+        if (firstAssetById == null)
+        {
+            return;
+        }
+
+        if (firstAssetById.TryGetValue(id, out string firstAssetName))
+        {
+            entries.Add(new HWJ_GameDataValidationEntry(
+                HWJ_GameDataValidationSeverity.Error,
+                "ID_DUPLICATE",
+                requirementId,
+                dataCategory,
+                assetName,
+                fieldName,
+                id,
+                $"Stable data ID duplicates {firstAssetName}.",
+                "Assign a unique stable string ID."));
+            return;
+        }
+
+        firstAssetById[id] = assetName;
     }
 }

@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9f9420c3c43683d4f94c6346c6a3d319, type: 3}
+  m_Name: HWJ_Condition_TargetCorpseAvailable
+  m_EditorClassIdentifier: HWJ.Runtime::HWJ_PossessionConditionSO
+  conditionId: target_corpse_available
+  description: Target corpse must not have been consumed by a previous possession.
+  invertResult: 0
+  passWhenContextMissing: 0
+  requirement: 6
+  fallbackRange: 1.5

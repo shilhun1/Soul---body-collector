@@ -117,13 +117,54 @@ public class HWJ_SoulStateData
 /// 플레이어가 육신에 들어가 있을 때의 부패 수치를 관리합니다.
 /// BodyDecaySystem이 틱 감소, 피격 패널티, 영혼 상태 전환 조건으로 사용합니다.
 /// </summary>
+public enum HWJ_DecayDangerLevel
+{
+    Stable,
+    Warning,
+    Dangerous,
+    Critical,
+    Collapsed
+}
+
+[Serializable]
+public class HWJ_DecayDangerThresholdData
+{
+    public HWJ_DecayDangerLevel dangerLevel = HWJ_DecayDangerLevel.Warning;
+    public float ratio = 0.5f;
+}
+
 [Serializable]
 public class HWJ_BodyDecayData
 {
+    public float initialDecayValue;
     public float maxDecayValue = 120f;
     public float decayTickSeconds = 0.5f;
     public float decayAmountPerTick = 1f;
+    public float moveDecayPerSecond;
+    public float basicAttackDecayAmount;
+    public float skillDecayAmount;
+    public float actionDecayAmount;
     public float hitDecayPenalty;
+    public float decayResistance;
     public bool startDecayOnEnterBody = true;
+    public bool enterSoulStateWhenMaxed = true;
     public bool enterSoulStateWhenEmpty = true;
+    public HWJ_DecayDangerThresholdData[] dangerThresholds =
+    {
+        new HWJ_DecayDangerThresholdData
+        {
+            dangerLevel = HWJ_DecayDangerLevel.Warning,
+            ratio = 0.5f
+        },
+        new HWJ_DecayDangerThresholdData
+        {
+            dangerLevel = HWJ_DecayDangerLevel.Dangerous,
+            ratio = 0.75f
+        },
+        new HWJ_DecayDangerThresholdData
+        {
+            dangerLevel = HWJ_DecayDangerLevel.Critical,
+            ratio = 0.9f
+        }
+    };
 }

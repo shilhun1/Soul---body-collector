@@ -17,6 +17,21 @@ public class HWJ_GameplayRuleSO : ScriptableObject
         return rootCondition != null ? rootCondition.IsMet(context) : passWhenNoCondition;
     }
 
+    public bool TryEvaluate(HWJ_GameplayContext context, out HWJ_RuleEvaluationResult result)
+    {
+        if (rootCondition == null)
+        {
+            result = passWhenNoCondition
+                ? HWJ_RuleEvaluationResult.Pass(ruleId, null, "Rule passed because no root condition is set.")
+                : HWJ_RuleEvaluationResult.Fail(ruleId, null, "Rule failed because no root condition is set.");
+            return passWhenNoCondition;
+        }
+
+        bool passed = rootCondition.TryEvaluate(context, out result);
+        result.RuleId = ruleId;
+        return passed;
+    }
+
     public bool CanExecute(HWJ_GameplayContext context)
     {
         return IsSatisfied(context);

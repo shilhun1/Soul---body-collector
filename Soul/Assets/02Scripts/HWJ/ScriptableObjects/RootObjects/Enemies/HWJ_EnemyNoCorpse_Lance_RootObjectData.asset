@@ -25,12 +25,13 @@ MonoBehaviour:
     attackPower: 10
     defense: 0
     attackSpeed: 1
+    bodyWeight: 1
   model:
-    modelPrefab: {fileID: 0}
+    modelPrefab: {fileID: 2303228764535102291, guid: 143a5fe8c7a43874fbc40205aa66d085, type: 3}
     animatorController: {fileID: 0}
-    heartEffectSocketName: ""
-    hitEffectSocketName: ""
-    possessedEyeSocketName: ""
+    heartEffectSocketName: 
+    hitEffectSocketName: 
+    possessedEyeSocketName: 
   damage:
     damageType: 0
     baseDamage: 5
@@ -38,17 +39,27 @@ MonoBehaviour:
     criticalMultiplier: 1.5
     knockbackPower: 5
     hitStunSeconds: 0
+    hitStopSeconds: 0
+    sameTargetHitCooldownSeconds: 0.08
   receivedDamage:
     damageMultiplier: 1
     invincibleSecondsAfterHit: 0
     isInvincible: 0
     ignoreTrapDamage: 0
     ignoreEnemyDamage: 0
+    hitStunSeconds: 0.18
+    hitReactionImmuneSeconds: 0
+    maxHitReactionsPerWindow: 0
+    hitReactionWindowSeconds: 1
+    hitReactionLimitImmuneSeconds: 0
+    knockbackWeightMultiplier: 1
+    hasSuperArmor: 0
+    ignoreHitStun: 0
+    ignoreKnockback: 0
   interaction:
     canInteract: 0
     canBeTargeted: 1
     interactionRange: 0
-    interactionInputId: ""
   reward:
     experienceReward: 10
     skillPointReward: 0
