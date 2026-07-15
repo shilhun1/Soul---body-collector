@@ -3431,6 +3431,139 @@ public class HWJ_CoreSystemsPlayModeTests
     }
 
     [UnityTest]
+    public IEnumerator EnemyAttackSystem_UsesFixedOneTwoThreeSkillOrderBeforeCycleDelay()
+    {
+        GameObject player = CreatePlayerObject("EnemyFixedSkillOrderTarget", false, startAsSoul: false);
+        HWJ_EnemyTypeDataSO enemyData = CreateEnemyTypeData(true);
+        enemyData.State.attackRange = 0.5f;
+        enemyData.AI.defaultSkillCooldownSeconds = 0.1f;
+        enemyData.AI.skillCycleResetDelaySeconds = 0.15f;
+        enemyData.AI.skillCycleCount = 3;
+        enemyData.SkillCycle.skills = new[]
+        {
+            new HWJ_SkillEntryData { skillId = "skill.test.fixed_order_1", startsUnlocked = true },
+            new HWJ_SkillEntryData { skillId = "skill.test.fixed_order_2", startsUnlocked = true },
+            new HWJ_SkillEntryData { skillId = "skill.test.fixed_order_3", startsUnlocked = true }
+        };
+
+        HWJ_SkillActionDataSO firstSkill = CreateSkillActionData("skill.test.fixed_order_1", HWJ_SkillActionType.Buff);
+        HWJ_SkillActionDataSO secondSkill = CreateSkillActionData("skill.test.fixed_order_2", HWJ_SkillActionType.Buff);
+        HWJ_SkillActionDataSO thirdSkill = CreateSkillActionData("skill.test.fixed_order_3", HWJ_SkillActionType.Buff);
+        SetPrivateField(firstSkill, "range", 5f);
+        SetPrivateField(secondSkill, "range", 5f);
+        SetPrivateField(thirdSkill, "range", 5f);
+
+        GameObject enemy = CreateCombatObject(
+            "EnemyFixedSkillOrderUser",
+            HWJ_ObjectType.Enemy,
+            HWJ_Faction.Monster,
+            10f,
+            1f,
+            1f,
+            enemyData);
+        HWJ_SkillActionSystem skillActionSystem = enemy.AddComponent<HWJ_SkillActionSystem>();
+        SetPrivateField(skillActionSystem, "localSkillActions", new[] { firstSkill, secondSkill, thirdSkill });
+        HWJ_EnemyAttackSystem attackSystem = enemy.AddComponent<HWJ_EnemyAttackSystem>();
+        SetPrivateField(attackSystem, "skillWarningDelaySeconds", 0f);
+
+        player.transform.position = Vector3.zero;
+        enemy.transform.position = Vector3.right * 2f;
+        attackSystem.SetTarget(player.transform);
+
+        yield return null;
+
+        Assert.IsTrue(attackSystem.TryAutoAttack(), attackSystem.LastAttackResult);
+        yield return null;
+        Assert.IsFalse(skillActionSystem.IsSkillReady("skill.test.fixed_order_1"));
+        Assert.IsTrue(skillActionSystem.IsSkillReady("skill.test.fixed_order_2"));
+
+        Assert.IsFalse(attackSystem.TryAutoAttack(), "The second skill must wait for the fixed 3-second-equivalent sequence cooldown.");
+        yield return new WaitForSeconds(0.12f);
+
+        Assert.IsTrue(attackSystem.TryAutoAttack(), attackSystem.LastAttackResult);
+        yield return null;
+        Assert.IsFalse(skillActionSystem.IsSkillReady("skill.test.fixed_order_2"));
+        Assert.IsTrue(skillActionSystem.IsSkillReady("skill.test.fixed_order_3"));
+
+        yield return new WaitForSeconds(0.12f);
+        Assert.IsTrue(attackSystem.TryAutoAttack(), attackSystem.LastAttackResult);
+        yield return null;
+        Assert.IsFalse(skillActionSystem.IsSkillReady("skill.test.fixed_order_3"));
+
+        yield return new WaitForSeconds(0.05f);
+        Assert.IsFalse(attackSystem.TryAutoAttack(), "After the third skill, the cycle reset delay must block skill 1.");
+
+        yield return new WaitForSeconds(0.16f);
+        Assert.IsTrue(attackSystem.TryAutoAttack(), attackSystem.LastAttackResult);
+        yield return null;
+        Assert.IsFalse(skillActionSystem.IsSkillReady("skill.test.fixed_order_1"));
+
+        Object.Destroy(player);
+        Object.Destroy(enemy);
+        Object.Destroy(firstSkill);
+        Object.Destroy(secondSkill);
+        Object.Destroy(thirdSkill);
+    }
+
+    [UnityTest]
+    public IEnumerator EnemyAttackSystem_UsesBasicAttackOnlyWhenSkillIsNotBeingUsed()
+    {
+        GameObject player = CreatePlayerObject("EnemyBasicAttackFallbackTarget", false, startAsSoul: false);
+        HWJ_RuntimeStatusSystem playerStatus = player.GetComponent<HWJ_RuntimeStatusSystem>();
+        HWJ_EnemyTypeDataSO enemyData = CreateEnemyTypeData(true);
+        enemyData.State.attackRange = 2.5f;
+        enemyData.AI.defaultSkillCooldownSeconds = 0.5f;
+        enemyData.AI.basicAttackIntervalSeconds = 1.5f;
+        enemyData.AI.skillCycleCount = 3;
+        enemyData.SkillCycle.skills = new[]
+        {
+            new HWJ_SkillEntryData { skillId = "skill.test.basic_fallback_1", startsUnlocked = true },
+            new HWJ_SkillEntryData { skillId = "skill.test.basic_fallback_2", startsUnlocked = true },
+            new HWJ_SkillEntryData { skillId = "skill.test.basic_fallback_3", startsUnlocked = true }
+        };
+
+        HWJ_SkillActionDataSO firstSkill = CreateSkillActionData("skill.test.basic_fallback_1", HWJ_SkillActionType.Buff);
+        HWJ_SkillActionDataSO secondSkill = CreateSkillActionData("skill.test.basic_fallback_2", HWJ_SkillActionType.Buff);
+        HWJ_SkillActionDataSO thirdSkill = CreateSkillActionData("skill.test.basic_fallback_3", HWJ_SkillActionType.Buff);
+        SetPrivateField(firstSkill, "range", 5f);
+        SetPrivateField(secondSkill, "range", 5f);
+        SetPrivateField(thirdSkill, "range", 5f);
+
+        GameObject enemy = CreateCombatObject(
+            "EnemyBasicAttackFallbackUser",
+            HWJ_ObjectType.Enemy,
+            HWJ_Faction.Monster,
+            10f,
+            1f,
+            2f,
+            enemyData);
+        HWJ_SkillActionSystem skillActionSystem = enemy.AddComponent<HWJ_SkillActionSystem>();
+        SetPrivateField(skillActionSystem, "localSkillActions", new[] { firstSkill, secondSkill, thirdSkill });
+        HWJ_EnemyAttackSystem attackSystem = enemy.AddComponent<HWJ_EnemyAttackSystem>();
+        SetPrivateField(attackSystem, "skillWarningDelaySeconds", 0f);
+
+        player.transform.position = Vector3.zero;
+        enemy.transform.position = Vector3.right * 1f;
+        attackSystem.SetTarget(player.transform);
+
+        yield return null;
+
+        float hpBeforeSkill = playerStatus.CurrentHp;
+        Assert.IsTrue(attackSystem.TryAutoAttack(), attackSystem.LastAttackResult);
+        yield return null;
+        Assert.AreEqual(hpBeforeSkill, playerStatus.CurrentHp, 0.001f, "The buff skill should not apply basic attack damage.");
+
+        Assert.IsTrue(attackSystem.TryAutoAttack(), attackSystem.LastAttackResult);
+        Assert.Less(playerStatus.CurrentHp, hpBeforeSkill, "When the next skill is waiting, the monster should fall back to its basic attack.");
+
+        Object.Destroy(player);
+        Object.Destroy(enemy);
+        Object.Destroy(firstSkill);
+        Object.Destroy(secondSkill);
+        Object.Destroy(thirdSkill);
+    }
+
+    [UnityTest]
     public IEnumerator MonsterAISystem_StoresActionFailureReasonWhenAttackSystemMissing()
     {
         GameObject player = CreatePlayerObject("MonsterAIActionTarget", false, startAsSoul: false);

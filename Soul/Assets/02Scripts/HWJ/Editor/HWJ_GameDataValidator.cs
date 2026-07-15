@@ -296,10 +296,17 @@ public static class HWJ_GameDataValidator
             ValidateNonNegative(validationIssues, enemyType.AI.attackRecoverySeconds, "REQ-14", assetPath, "AI.attackRecoverySeconds", "ENEMY_AI_ATTACK_RECOVERY_SECONDS_NEGATIVE");
             ValidateNonNegative(validationIssues, enemyType.AI.repathSeconds, "REQ-14", assetPath, "AI.repathSeconds", "ENEMY_AI_REPATH_SECONDS_NEGATIVE");
             ValidateNonNegative(validationIssues, enemyType.AI.defaultSkillCooldownSeconds, "REQ-14", assetPath, "AI.defaultSkillCooldownSeconds", "ENEMY_AI_DEFAULT_SKILL_COOLDOWN_NEGATIVE");
+            ValidateNonNegative(validationIssues, enemyType.AI.basicAttackIntervalSeconds, "REQ-14", assetPath, "AI.basicAttackIntervalSeconds", "ENEMY_AI_BASIC_ATTACK_INTERVAL_NEGATIVE");
+            ValidateNonNegative(validationIssues, enemyType.AI.skillCycleResetDelaySeconds, "REQ-14", assetPath, "AI.skillCycleResetDelaySeconds", "ENEMY_AI_SKILL_CYCLE_RESET_DELAY_NEGATIVE");
 
             if (Mathf.Approximately(enemyType.AI.decisionIntervalSeconds, 0f))
             {
                 AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Warning, "ENEMY_AI_DECISION_INTERVAL_ZERO", "REQ-14", assetPath, "AI.decisionIntervalSeconds", "Enemy decision interval is 0 and can make AI evaluate every frame.", "Use a small positive interval such as 0.05 or 0.1 unless per-frame AI is intentional.");
+            }
+
+            if (enemyType.AI.skillCycleCount < 0)
+            {
+                AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "ENEMY_AI_SKILL_CYCLE_COUNT_NEGATIVE", "REQ-14", assetPath, "AI.skillCycleCount", "Enemy skill cycle count cannot be negative.", "Set skillCycleCount to 0 or a positive value. Use 3 for the fixed 1 -> 2 -> 3 monster skill loop.");
             }
 
             if (Mathf.Approximately(enemyType.AI.attackPrepareSeconds, 0f))
