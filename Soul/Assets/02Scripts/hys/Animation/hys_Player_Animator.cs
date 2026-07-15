@@ -26,12 +26,12 @@ public class hys_Player_Animator : MonoBehaviour
     [Header("Attack Animation Combo")]
     // 공격 데이터가 완성되기 전까지 애니메이션 전환만 임시로 관리합니다.
     [SerializeField] private bool useAnimationOnlyAttackCombo = true;
-    [SerializeField] private float firstAttackAnimationTime = 0.35f;
-    [SerializeField] private float secondAttackAnimationTime = 0.35f;
-    [SerializeField] private float comboInputOpenTime = 0.08f;
-    [SerializeField] private float comboInputCloseTime = 0.18f;
-    [SerializeField] private float comboInputGraceTime = 0.15f;
-    [SerializeField] private float comboLinkTime = 0.22f;
+    [SerializeField] private float firstAttackAnimationTime = 0.28f;
+    [SerializeField] private float secondAttackAnimationTime = 0.28f;
+    [SerializeField] private float comboInputOpenTime = 0f;
+    [SerializeField] private float comboInputCloseTime = 0.28f;
+    [SerializeField] private float comboInputGraceTime = 0.1f;
+    [SerializeField] private float comboLinkTime = 0.12f;
     [SerializeField] private bool playAttackStateDirectly;
     [SerializeField] private string firstAttackStateName = "hys_Sword_Attack1";
     [SerializeField] private string secondAttackStateName = "hys_Sword_Attack2";
@@ -126,7 +126,7 @@ public class hys_Player_Animator : MonoBehaviour
         SetAnimatorFloat(verticalSpeedHash, verticalVelocity);
 
         UpdateJumpTrigger();
-        UpdateSoulTrigger(isSoulState);
+        UpdateSoulTrigger(isSoulState, currentState);
         UpdateFacing(horizontalVelocity);
         UpdateActionStateTimer(currentState);
         TryReturnFromFinishedActionState();
@@ -189,7 +189,12 @@ public class hys_Player_Animator : MonoBehaviour
 
     private bool GetIsGroundedFromState()
     {
-        // 접지 직접 검사는 초기화 순서에 민감해서 상태값 기준으로만 판단합니다.
+        // 점프 전환이 멈추지 않도록 실제 바닥 체크 값을 Animator에 전달합니다.
+        if (playerMovement != null)
+        {
+            return playerMovement.Is_Grounded;
+        }
+
         if (playerState == null)
         {
             return true;
@@ -233,8 +238,14 @@ public class hys_Player_Animator : MonoBehaviour
         }
     }
 
-    private void UpdateSoulTrigger(bool isSoulState)
+    private void UpdateSoulTrigger(bool isSoulState, hys_PlayerState currentState)
     {
+        // 사망 애니메이션 중에는 SoulTrigger가 Die 모션을 끊지 않게 막습니다.
+        if (currentState == hys_PlayerState.Dead)
+        {
+            return;
+        }
+
         // 육신에서 유령 상태로 넘어가는 순간 Soul 모션을 실행합니다.
         if (!wasSoulState && isSoulState)
         {
@@ -257,9 +268,10 @@ public class hys_Player_Animator : MonoBehaviour
 
         bool attackPressed = IsAttackInputPressedForAnimation();
         if (currentState == hys_PlayerState.Attack &&
-            previousPlayerState != hys_PlayerState.Attack &&
-            animationAttackComboStep == 0)
+            animationAttackComboStep == 0 &&
+            (previousPlayerState != hys_PlayerState.Attack || attackPressed))
         {
+            // Attack 상태가 유지된 채 2타가 끝난 뒤에도 새 입력이 오면 다시 1타부터 시작합니다.
             StartAttackAnimationStep(1);
         }
 
@@ -271,17 +283,13 @@ public class hys_Player_Animator : MonoBehaviour
         float elapsedTime = Time.time - animationAttackStartTime;
         if (animationAttackComboStep == 1 && attackPressed)
         {
-            float generousComboCloseTime = Mathf.Max(comboInputCloseTime, firstAttackAnimationTime + comboInputGraceTime);
-            if (elapsedTime >= comboInputOpenTime && elapsedTime <= generousComboCloseTime)
-            {
-                // 1타 후반과 직후 입력까지 2타 예약으로 넉넉하게 받아줍니다.
-                queuedSecondAttackAnimation = true;
-            }
-            else if (elapsedTime > generousComboCloseTime)
-            {
-                // 충분히 늦은 입력만 현재 공격이 끝난 뒤 새 1타 애니메이션으로 처리합니다.
-                queuedRestartAttackAnimation = true;
-            }
+            // 연타 감각을 위해 2타 입력은 시간창을 기다리지 않고 바로 예약합니다.
+            queuedSecondAttackAnimation = true;
+        }
+        else if (animationAttackComboStep == 2 && attackPressed)
+        {
+            // 2타 중 입력은 다음 1타로 이어지게 해서 공격이 뚝 끊기지 않게 합니다.
+            queuedRestartAttackAnimation = true;
         }
 
         if (animationAttackComboStep == 1 && queuedSecondAttackAnimation && elapsedTime >= comboLinkTime)
@@ -293,7 +301,7 @@ public class hys_Player_Animator : MonoBehaviour
         float currentStepTime = animationAttackComboStep == 1 ? firstAttackAnimationTime : secondAttackAnimationTime;
         if (elapsedTime >= currentStepTime)
         {
-            if (animationAttackComboStep == 1 && queuedRestartAttackAnimation)
+            if (queuedRestartAttackAnimation)
             {
                 StartAttackAnimationStep(1);
             }

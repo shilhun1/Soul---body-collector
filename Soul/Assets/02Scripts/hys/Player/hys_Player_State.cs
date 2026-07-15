@@ -29,8 +29,8 @@ public class hys_Player_State : MonoBehaviour
     // 공격 중에는 이동 스크립트가 상태를 덮어쓰지 않도록 이동 불가로 봅니다.
     public bool CanMove => CanControl && currentState != hys_PlayerState.Attack;
 
-    // 대시/공격 중에는 중복 공격이 나가지 않게 막습니다.
-    public bool CanAttack => CanControl && currentState != hys_PlayerState.Dash && currentState != hys_PlayerState.Attack;
+    // 공격 중에도 다음 공격 입력을 받을 수 있게 열어두고, 대시는 별도 후딜 허용 로직에서 처리합니다.
+    public bool CanAttack => CanControl && currentState != hys_PlayerState.Dash;
 
     // 외부 스크립트가 플레이어 상태를 바꿀 때 사용하는 공통 함수입니다.
     public void SetState(hys_PlayerState nextState)

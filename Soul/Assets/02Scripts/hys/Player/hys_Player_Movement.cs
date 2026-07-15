@@ -13,35 +13,36 @@ public class hys_Player_Movement : MonoBehaviour
 
     [Header("Jump")]
     // 점프 시작 속도와 점프 감각 조절 값들입니다.
-    [SerializeField] private float jumpPower = 12f;
-    [SerializeField] private float jumpStartBoost = 1.12f;
+    [SerializeField] private float jumpPower = 13f;
+    [SerializeField] private float jumpStartBoost = 1.2f;
 
     // 상승/최상단/낙하 구간별 중력 배율입니다.
-    [SerializeField] private float risingGravityMultiplier = 1.35f;
-    [SerializeField] private float apexVelocityThreshold = 4f;
-    [SerializeField] private float apexGravityMultiplier = 4.5f;
+    [SerializeField] private float risingGravityMultiplier = 1.55f;
+    [SerializeField] private float apexVelocityThreshold = 5f;
+    [SerializeField] private float apexGravityMultiplier = 6.2f;
 
     // 최상단에서 오래 멈춰 보이지 않도록 아래 방향 속도를 살짝 넣는 값입니다.
-    [SerializeField] private float apexSnapVelocityThreshold = 0.8f;
-    [SerializeField] private float apexSnapFallSpeed = 4f;
+    [SerializeField] private float apexSnapVelocityThreshold = 1.6f;
+    [SerializeField] private float apexSnapFallSpeed = 7f;
 
     // 점프 입력 허용 횟수와 입력 보정 시간입니다.
     [SerializeField] private int maxJumpCount = 2;
     [SerializeField] private float jumpBufferTime = 0.15f;
     [SerializeField] private float coyoteTime = 0.12f;
-    [SerializeField] private float fallGravityMultiplier = 3.2f;
-    [SerializeField] private float maxFallSpeed = 30f;
+    [SerializeField] private float fallGravityMultiplier = 4.8f;
+    [SerializeField] private float maxFallSpeed = 42f;
 
     [Header("Dash")]
     // 대시 속도, 지속 시간, 쿨타임, 입력 버퍼 값입니다.
     [SerializeField] private float dashSpeed = 18f;
-    [SerializeField] private float dashDuration = 0.12f;
+    [SerializeField] private float dashDuration = 0.3f;
     // 대쉬 종료 직전 몇 프레임을 피격 가능 구간으로 둘지 정합니다.
     [SerializeField, Range(2, 3)] private int dashInvincibilityEndLeadFrames = 3;
     [SerializeField, Min(1f)] private float dashAnimationFrameRate = 60f;
     [SerializeField] private float dashEndSpeedMultiplier = 0.05f;
     [SerializeField] private float dashEndSmoothTime = 0.02f;
     [SerializeField] private float dashCooldown = 0.16f;
+    [SerializeField] private float dashPostGravityLockTime = 0.2f;
     [SerializeField] private float dashInputBufferTime = 0.25f;
     [SerializeField] private int maxDashCount = 2;
     [SerializeField] private bool canAirDash = true;
@@ -81,6 +82,7 @@ public class hys_Player_Movement : MonoBehaviour
     private float jumpBufferCounter;
     private float coyoteCounter;
     private float dashBufferCounter;
+    private float dashGravityLockEndTime;
     private float defaultGravityScale;
     private int jumpCount;
     private int dashCount;
@@ -109,6 +111,12 @@ public class hys_Player_Movement : MonoBehaviour
 
     // 공격 방향 계산에 사용하는 마지막 좌우 방향입니다.
     public float LastMoveDirection => lastMoveDirection;
+
+    // 공격 종료 후 공중 상태로 돌아갈 때 현재 Y 속도를 확인합니다.
+    public float VerticalVelocity => rb != null ? rb.linearVelocity.y : 0f;
+
+    // 공격 종료 후 서 있거나 달리는 상태를 고를 때 현재 이동 입력을 확인합니다.
+    public bool HasMoveInput => Mathf.Abs(moveInput) > 0.01f;
 
     // 대쉬 시작 순간 저장한 방향으로, 대쉬 중 반대 입력이 들어와도 바뀌지 않습니다.
     public float DashDirection => dashDirection;
@@ -183,17 +191,25 @@ public class hys_Player_Movement : MonoBehaviour
 
         if (Is_Dashing)
         {
+            // 대쉬 중에는 점프/낙하 중력 보정이 다시 들어와도 높이가 변하지 않게 고정합니다.
+            rb.gravityScale = 0f;
+
             // 후딜레이 이동 허용 옵션을 켠 경우에만 좌우 입력을 적용합니다.
             if (Is_DashEnding && allowMoveDuringDashRecovery)
             {
-                rb.linearVelocity = new Vector2(moveInput * moveSpeed, rb.linearVelocity.y);
+                rb.linearVelocity = new Vector2(moveInput * moveSpeed, 0f);
+            }
+            else
+            {
+                rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0f);
             }
 
             return;
         }
 
+        bool canMoveWhileAttacking = playerState != null && playerState.CurrentState == hys_PlayerState.Attack;
         if ((Is_Landing && !allowMoveDuringLanding) ||
-            (playerState != null && !playerState.CanMove))
+            (playerState != null && !playerState.CanMove && !canMoveWhileAttacking))
         {
             return;
         }
@@ -291,6 +307,7 @@ public class hys_Player_Movement : MonoBehaviour
 
         if (isGrounded)
         {
+            dashGravityLockEndTime = 0f;
             coyoteCounter = coyoteTime;
 
             if (!isDashCoolingDown)
@@ -368,7 +385,8 @@ public class hys_Player_Movement : MonoBehaviour
             InterruptDashRecovery(true);
         }
 
-        if (playerState != null && !playerState.CanMove)
+        bool canJumpWhileAttacking = playerState != null && playerState.CurrentState == hys_PlayerState.Attack;
+        if (playerState != null && !playerState.CanMove && !canJumpWhileAttacking)
         {
             return false;
         }
@@ -507,6 +525,7 @@ public class hys_Player_Movement : MonoBehaviour
         // 대쉬 시작 방향을 저장하고 고정 시간 동안 입력과 무관하게 같은 방향으로 이동합니다.
         dashCount++;
         dashVersion++;
+        dashGravityLockEndTime = 0f;
         dashDirection = Mathf.Approximately(lastMoveDirection, 0f) ? 1f : Mathf.Sign(lastMoveDirection);
         Is_Dashing = true;
         Is_DashEnding = false;
@@ -535,20 +554,27 @@ public class hys_Player_Movement : MonoBehaviour
 
         DisableDashInvincibility();
         Is_DashEnding = true;
-        rb.gravityScale = defaultGravityScale;
+        rb.gravityScale = 0f;
+        rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0f);
 
-        // DashEnd 후딜레이 중 기본값은 감속만 허용하며, 옵션으로 이동을 열 수 있습니다.
+        // DashEnd 후딜레이 중에도 높이가 내려가지 않도록 중력과 y속도를 잠깐 고정합니다.
         float endTime = Time.time + dashEndSmoothTime;
         float startSpeed = dashDirection * dashSpeed;
         float endSpeed = dashDirection * dashSpeed * dashEndSpeedMultiplier;
 
         while (Time.time < endTime)
         {
+            rb.gravityScale = 0f;
+
             if (!allowMoveDuringDashRecovery)
             {
                 float t = 1f - ((endTime - Time.time) / Mathf.Max(0.01f, dashEndSmoothTime));
                 float currentSpeed = Mathf.Lerp(startSpeed, endSpeed, t);
-                rb.linearVelocity = new Vector2(currentSpeed, rb.linearVelocity.y);
+                rb.linearVelocity = new Vector2(currentSpeed, 0f);
+            }
+            else
+            {
+                rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0f);
             }
 
             yield return null;
@@ -556,9 +582,20 @@ public class hys_Player_Movement : MonoBehaviour
 
         if (!allowMoveDuringDashRecovery)
         {
-            rb.linearVelocity = new Vector2(endSpeed, rb.linearVelocity.y);
+            rb.linearVelocity = new Vector2(endSpeed, 0f);
         }
 
+        if (!IsGrounded() && dashCount < maxDashCount)
+        {
+            // 공중 1단 대쉬 후 2단 대쉬를 누르기 전까지 높이가 처지지 않게 잠깐 고정합니다.
+            dashGravityLockEndTime = Time.time + dashPostGravityLockTime;
+        }
+        else
+        {
+            dashGravityLockEndTime = 0f;
+        }
+
+        rb.gravityScale = ShouldHoldDashGravity() ? 0f : defaultGravityScale;
         Is_Dashing = false;
         Is_DashEnding = false;
         DisableDashInvincibility();
@@ -605,6 +642,7 @@ public class hys_Player_Movement : MonoBehaviour
             dashCooldownRoutine = null;
         }
 
+        dashGravityLockEndTime = 0f;
         rb.gravityScale = defaultGravityScale;
         Is_Dashing = false;
         Is_DashEnding = false;
@@ -636,8 +674,10 @@ public class hys_Player_Movement : MonoBehaviour
     private void ApplyBetterFallGravity()
     {
         // 상승, 최상단, 낙하 구간의 중력을 다르게 적용해서 점프 감각을 만듭니다.
-        if (Is_Dashing)
+        if (Is_Dashing || ShouldHoldDashGravity())
         {
+            rb.gravityScale = 0f;
+            rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0f);
             return;
         }
 
@@ -816,6 +856,12 @@ public class hys_Player_Movement : MonoBehaviour
         }
     }
 
+    private bool ShouldHoldDashGravity()
+    {
+        // 공중 대쉬 사이의 짧은 대기 시간에 중력이 들어가 2단 대쉬 높이가 달라지는 것을 막습니다.
+        return Time.time < dashGravityLockEndTime;
+    }
+
     private bool IsPassPlatform(Collider2D target)
     {
         // Pass 태그 또는 PlatformEffector2D를 가진 One Way Platform을 통과 대상으로 봅니다.
@@ -875,7 +921,7 @@ public class hys_Player_Movement : MonoBehaviour
     private void UpdateMoveState()
     {
         // 현재 속도와 접지 상태에 맞춰 플레이어 상태를 갱신합니다.
-        if (playerState == null || !playerState.CanControl)
+        if (playerState == null || !playerState.CanControl || playerState.CurrentState == hys_PlayerState.Attack)
         {
             return;
         }
