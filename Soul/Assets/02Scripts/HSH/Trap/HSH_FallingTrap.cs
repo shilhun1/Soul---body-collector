@@ -32,7 +32,7 @@ public class HSH_FallingTrap : MonoBehaviour
 
             foreach (RaycastHit2D hit in hits)
             {
-                // 맞은 것들 중에 플레이어(Player)가 있다면?
+                // 맞은 것들 중에 플레이어(Player)가 있다면? (함정 발동은 플레이어에게만)
                 if (hit.collider != null && hit.collider.CompareTag("Player"))
                 {
                     // 중력을 켜서 돌을 떨어뜨립니다!
@@ -43,54 +43,74 @@ public class HSH_FallingTrap : MonoBehaviour
         }
     }
 
-    // 감지 센서(Trigger)에 플레이어가 들어왔을 때 (기존 방식 유지)
+    // 감지 센서(Trigger)에 플레이어나 적이 들어왔을 때 (기존 방식 유지)
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.CompareTag("Player"))
+        if (collision.CompareTag("Player") || collision.CompareTag("Enemy"))
         {
-            // 중력을 활성화하여 돌을 떨어뜨림
+            // 중력을 활성화하여 돌을 떨어뜨림 (플레이어만 발동시킴)
             if (rb != null && rb.gravityScale == 0f)
             {
-                rb.gravityScale = fallGravity;
+                if (collision.CompareTag("Player"))
+                {
+                    rb.gravityScale = fallGravity;
+                }
             }
             else
             {
-                // 이미 떨어지는 중이거나 땅에 닿은 상태에서 플레이어(유령 등)와 겹쳤다면 데미지
-                ApplyDamage(collision.gameObject);
+                // 이미 떨어지는 중이거나 땅에 닿은 상태에서 부딪혔다면 데미지와 넉백
+                ApplyDamageAndKnockback(collision.gameObject);
             }
         }
     }
 
-    // 돌이 플레이어와 실제로 부딪혔을 때
+    // 돌이 실제로 부딪혔을 때
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        if (collision.gameObject.CompareTag("Player"))
+        if (collision.gameObject.CompareTag("Player") || collision.gameObject.CompareTag("Enemy"))
         {
             Debug.Log("hit");
-            ApplyDamage(collision.gameObject);
+            ApplyDamageAndKnockback(collision.gameObject);
         }
     }
 
-    private void ApplyDamage(GameObject player)
+    private void ApplyDamageAndKnockback(GameObject target)
     {
-
-
-        // 2. UI 체력바도 깎습니다.
-        HSH_BarUI[] barUIs = FindObjectsOfType<HSH_BarUI>(true); // 꺼져있는 UI도 찾음
-        bool isDamaged = false;
-
-        foreach (var barUI in barUIs)
+        // 영혼 상태일 경우 데미지 및 넉백 무시
+        HWJ_SoulSystem soulSystem = target.GetComponentInParent<HWJ_SoulSystem>();
+        if (soulSystem != null && soulSystem.CurrentState != HWJ_SoulRuntimeState.Body)
         {
-            if (barUI.currentType == HSH_BarUI.BarType.HP || barUI.currentType == HSH_BarUI.BarType.GhostHP)
-            {
-                barUI.DecreaseValue(damage);
-                isDamaged = true;
-            }
+            return;
         }
 
-        if (isDamaged)
+        // 1. 데미지 처리
+        HWJ_RuntimeStatusSystem statusSystem = target.GetComponentInParent<HWJ_RuntimeStatusSystem>();
+        if (statusSystem != null)
         {
-            Debug.Log($"[FallingTrap] 플레이어가 낙석에 맞았습니다! 데미지: {damage}");
+            statusSystem.ApplyDamage(damage);
+            Debug.Log($"[{gameObject.name}] {target.name}에게 데미지: {damage}");
+        }
+
+        // 2. 넉백 처리
+        float knockbackPower = 10f; 
+        Vector2 knockbackDir = (target.transform.position - transform.position).normalized;
+        knockbackDir.y += 0.5f; // 약간 위로 뜨게 설정
+        knockbackDir = knockbackDir.normalized;
+
+        hys_Player_Hit playerHit = target.GetComponentInParent<hys_Player_Hit>();
+        if (playerHit != null)
+        {
+            playerHit.ApplyKnockback(knockbackDir * knockbackPower);
+        }
+        else
+        {
+            HWJ_KnockbackSystem knockbackSystem = target.GetComponentInParent<HWJ_KnockbackSystem>();
+            if (knockbackSystem == null)
+            {
+                Rigidbody2D parentRb = target.GetComponentInParent<Rigidbody2D>();
+                knockbackSystem = (parentRb != null) ? parentRb.gameObject.AddComponent<HWJ_KnockbackSystem>() : target.AddComponent<HWJ_KnockbackSystem>();
+            }
+            knockbackSystem.PlayKnockback(knockbackDir, knockbackPower, 0.25f);
         }
     }
 

@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 91c4e52d5a9d4c0fb42d8e5fa87a4011, type: 3}
+  m_Name: HWJ_RuleExecutionCore_CommonDamage
+  m_EditorClassIdentifier: HWJ.Runtime::HWJ_RuleExecutionCoreSO
+  executionCoreId: common_damage_execution
+  description: Runs the common shared rule check required before damage is applied.
+  executionPolicy: 0
+  passWhenNoRules: 0
+  ignoreDisabledRules: 1
+  rules:
+  - entryId: damage_can_apply_common
+    enabled: 1
+    rule:
+      rule: {fileID: 11400000, guid: aa000003000000000000000000000001, type: 2}
+      ruleId: damage_can_apply_common
+      passWhenRuleMissing: 0

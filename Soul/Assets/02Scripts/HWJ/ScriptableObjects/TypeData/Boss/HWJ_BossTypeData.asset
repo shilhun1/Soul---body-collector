@@ -49,7 +49,19 @@ MonoBehaviour:
     canUsePlatformDrop: 0
   skillCycle:
     skills: []
-  phases: []
+  phases:
+  - phaseId: phase_1
+    startHpRatio: 1
+    skillSet:
+      skills: []
+    stageEventId:
+    changesStage: 0
+  - phaseId: phase_2
+    startHpRatio: 0.5
+    skillSet:
+      skills: []
+    stageEventId:
+    changesStage: 0
   phaseTransform:
     canTransform: 0
     transformHpRatio: 0.5

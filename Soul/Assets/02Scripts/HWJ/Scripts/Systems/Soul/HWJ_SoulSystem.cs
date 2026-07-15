@@ -21,7 +21,9 @@ public class HWJ_SoulSystem : MonoBehaviour
     [SerializeField] private HWJ_RootObjectDataResolver dataResolver;
     [SerializeField] private HWJ_PossessionSystem possessionSystem;
     [SerializeField] private HWJ_RuntimeStatusSystem runtimeStatus;
+    [SerializeField] private bool initializeStateFromPlayerData = true;
     [SerializeField] private HWJ_SoulRuntimeState currentState = HWJ_SoulRuntimeState.Body;
+    [SerializeField] private HWJ_PlayerExistenceState currentExistenceState = HWJ_PlayerExistenceState.Possessed;
     [SerializeField] private float bodyToSoulTransitionSeconds = 2.5f;
     [SerializeField] private float soulDeadlineTimer;
 
@@ -29,10 +31,16 @@ public class HWJ_SoulSystem : MonoBehaviour
     private bool refillSoulHpAfterTransition;
 
     public HWJ_SoulRuntimeState CurrentState => currentState;
+    public HWJ_PlayerExistenceState CurrentExistenceState => currentExistenceState;
     public float SoulDeadlineTimer => soulDeadlineTimer;
     public float BodyToSoulTransitionTimer => bodyToSoulTransitionTimer;
     public bool IsControlLocked => currentState == HWJ_SoulRuntimeState.BodyToSoul
         || currentState == HWJ_SoulRuntimeState.Dead;
+    public bool IsSpiritExistence => currentExistenceState == HWJ_PlayerExistenceState.Spirit;
+    public bool IsPossessedExistence => currentExistenceState == HWJ_PlayerExistenceState.Possessed;
+    public bool IsTransitioningExistence => currentExistenceState == HWJ_PlayerExistenceState.Possessing
+        || currentExistenceState == HWJ_PlayerExistenceState.Collapsing
+        || currentExistenceState == HWJ_PlayerExistenceState.Transitioning;
 
     private void Awake()
     {
@@ -51,7 +59,10 @@ public class HWJ_SoulSystem : MonoBehaviour
             runtimeStatus = GetComponent<HWJ_RuntimeStatusSystem>();
         }
 
-        if (currentState == HWJ_SoulRuntimeState.Soul && soulDeadlineTimer <= 0f)
+        InitializeStartStateFromData();
+        SyncExistenceStateFromSoulState(false);
+
+        if (currentState == HWJ_SoulRuntimeState.Soul && soulDeadlineTimer <= 0f && ShouldResetSoulDeadlineOnAwake())
         {
             ResetSoulDeadlineTimer();
         }
@@ -106,7 +117,7 @@ public class HWJ_SoulSystem : MonoBehaviour
     {
         runtimeStatus?.CacheCurrentHpForActiveState();
         possessionSystem?.ClearPossessedBody(false);
-        currentState = HWJ_SoulRuntimeState.BodyToSoul;
+        SetSoulState(HWJ_SoulRuntimeState.BodyToSoul);
         bodyToSoulTransitionTimer = bodyToSoulTransitionSeconds;
         soulDeadlineTimer = 0f;
         refillSoulHpAfterTransition = refillSoulHp;
@@ -120,7 +131,7 @@ public class HWJ_SoulSystem : MonoBehaviour
     public void EnterBodyState()
     {
         runtimeStatus?.CacheCurrentHpForActiveState();
-        currentState = HWJ_SoulRuntimeState.Body;
+        SetSoulState(HWJ_SoulRuntimeState.Body);
         bodyToSoulTransitionTimer = 0f;
         soulDeadlineTimer = 0f;
         ApplyRuntimeState();
@@ -133,20 +144,61 @@ public class HWJ_SoulSystem : MonoBehaviour
     public void EnterDeadState()
     {
         runtimeStatus?.CacheCurrentHpForActiveState();
-        currentState = HWJ_SoulRuntimeState.Dead;
+        SetSoulState(HWJ_SoulRuntimeState.Dead);
         bodyToSoulTransitionTimer = 0f;
         soulDeadlineTimer = 0f;
         ApplyRuntimeState();
     }
 
+    /// <summary>
+    /// 저장 데이터에서 읽은 영혼/육신 상태를 복원합니다.
+    /// PlayerExistenceState는 별도 저장값을 직접 신뢰하지 않고 SoulRuntimeState에서 다시 계산합니다.
+    /// </summary>
+    public void RestoreSoulSnapshot(HWJ_RuntimeBodySnapshot snapshot)
+    {
+        SetSoulState(snapshot.soulState);
+        bodyToSoulTransitionTimer = Mathf.Max(0f, snapshot.bodyToSoulTransitionTimer);
+        soulDeadlineTimer = Mathf.Max(0f, snapshot.soulDeadlineTimer);
+        refillSoulHpAfterTransition = false;
+        ApplyRuntimeState();
+    }
+
     private void CompleteBodyToSoulTransition()
     {
-        currentState = HWJ_SoulRuntimeState.Soul;
+        SetSoulState(HWJ_SoulRuntimeState.Soul);
         bodyToSoulTransitionTimer = 0f;
         ResetSoulDeadlineTimer();
         runtimeStatus?.RefreshCurrentHpFromData(refillSoulHpAfterTransition);
         refillSoulHpAfterTransition = false;
         ApplyRuntimeState();
+    }
+
+    private void InitializeStartStateFromData()
+    {
+        if (!initializeStateFromPlayerData || !TryGetSoulStateData(out HWJ_SoulStateData soulState))
+        {
+            return;
+        }
+
+        if (!soulState.startAsSoul || currentState != HWJ_SoulRuntimeState.Body)
+        {
+            return;
+        }
+
+        currentState = HWJ_SoulRuntimeState.Soul;
+        bodyToSoulTransitionTimer = 0f;
+        soulDeadlineTimer = 0f;
+
+        if (soulState.startSoulDeadlineImmediately)
+        {
+            ResetSoulDeadlineTimer();
+        }
+    }
+
+    private bool ShouldResetSoulDeadlineOnAwake()
+    {
+        return !TryGetSoulStateData(out HWJ_SoulStateData soulState)
+            || soulState.startSoulDeadlineImmediately;
     }
 
     /// <summary>
@@ -196,5 +248,60 @@ public class HWJ_SoulSystem : MonoBehaviour
                 runtimeStatus.SetState(HWJ_RuntimeState.Dead);
                 break;
         }
+    }
+
+    private void SetSoulState(HWJ_SoulRuntimeState nextState)
+    {
+        if (currentState == nextState)
+        {
+            return;
+        }
+
+        HWJ_SoulRuntimeState previousState = currentState;
+        currentState = nextState;
+        HWJ_GameplayEvents.RaiseSoulStateChanged(
+            new HWJ_SoulStateChangedEvent(this, previousState, currentState));
+        SyncExistenceStateFromSoulState(true);
+    }
+
+    private void SyncExistenceStateFromSoulState(bool raiseEvent)
+    {
+        SetExistenceState(MapSoulStateToExistenceState(currentState), raiseEvent);
+    }
+
+    private static HWJ_PlayerExistenceState MapSoulStateToExistenceState(HWJ_SoulRuntimeState soulState)
+    {
+        switch (soulState)
+        {
+            case HWJ_SoulRuntimeState.Body:
+                return HWJ_PlayerExistenceState.Possessed;
+            case HWJ_SoulRuntimeState.BodyToSoul:
+                return HWJ_PlayerExistenceState.Collapsing;
+            case HWJ_SoulRuntimeState.Soul:
+                return HWJ_PlayerExistenceState.Spirit;
+            case HWJ_SoulRuntimeState.Dead:
+                return HWJ_PlayerExistenceState.Dead;
+            default:
+                return HWJ_PlayerExistenceState.None;
+        }
+    }
+
+    private void SetExistenceState(HWJ_PlayerExistenceState nextState, bool raiseEvent)
+    {
+        if (currentExistenceState == nextState)
+        {
+            return;
+        }
+
+        HWJ_PlayerExistenceState previousState = currentExistenceState;
+        currentExistenceState = nextState;
+
+        if (!raiseEvent)
+        {
+            return;
+        }
+
+        HWJ_GameplayEvents.RaisePlayerExistenceStateChanged(
+            new HWJ_PlayerExistenceStateChangedEvent(this, previousState, currentExistenceState));
     }
 }

@@ -82,31 +82,51 @@ public class HSH_WindTrap : MonoBehaviour
     private void OnTriggerEnter2D(Collider2D collision)
     {
         // 발사기가 아닌 '투사체'일 때만 데미지를 줌
-        if (!isSpawner && collision.CompareTag("Player"))
+        if (!isSpawner && (collision.CompareTag("Player") || collision.CompareTag("Enemy")))
         {
-            ApplyDamage(collision.gameObject);
+            ApplyDamageAndKnockback(collision.gameObject);
             // 원한다면 맞춘 후 바람 삭제 가능
             // Destroy(gameObject);
         }
     }
 
-    private void ApplyDamage(GameObject player)
+    private void ApplyDamageAndKnockback(GameObject target)
     {
-        HSH_BarUI[] barUIs = FindObjectsOfType<HSH_BarUI>(true);
-        bool isDamaged = false;
-
-        foreach (var barUI in barUIs)
+        // 영혼 상태일 경우 데미지 및 넉백 무시
+        HWJ_SoulSystem soulSystem = target.GetComponentInParent<HWJ_SoulSystem>();
+        if (soulSystem != null && soulSystem.CurrentState != HWJ_SoulRuntimeState.Body)
         {
-            if (barUI.currentType == HSH_BarUI.BarType.HP || barUI.currentType == HSH_BarUI.BarType.GhostHP)
-            {
-                barUI.DecreaseValue(damage);
-                isDamaged = true;
-            }
+            return;
         }
 
-        if (isDamaged)
+        // 1. 데미지 처리
+        HWJ_RuntimeStatusSystem statusSystem = target.GetComponentInParent<HWJ_RuntimeStatusSystem>();
+        if (statusSystem != null)
         {
-            Debug.Log($"[WindTrap] 플레이어가 바람에 맞았습니다! 데미지: {damage}");
+            statusSystem.ApplyDamage(damage);
+            Debug.Log($"[{gameObject.name}] {target.name}에게 데미지: {damage}");
+        }
+
+        // 2. 넉백 처리
+        float knockbackPower = 10f; 
+        Vector2 knockbackDir = (target.transform.position - transform.position).normalized;
+        knockbackDir.y += 0.5f; // 약간 위로 뜨게 설정
+        knockbackDir = knockbackDir.normalized;
+
+        hys_Player_Hit playerHit = target.GetComponentInParent<hys_Player_Hit>();
+        if (playerHit != null)
+        {
+            playerHit.ApplyKnockback(knockbackDir * knockbackPower);
+        }
+        else
+        {
+            HWJ_KnockbackSystem knockbackSystem = target.GetComponentInParent<HWJ_KnockbackSystem>();
+            if (knockbackSystem == null)
+            {
+                Rigidbody2D parentRb = target.GetComponentInParent<Rigidbody2D>();
+                knockbackSystem = (parentRb != null) ? parentRb.gameObject.AddComponent<HWJ_KnockbackSystem>() : target.AddComponent<HWJ_KnockbackSystem>();
+            }
+            knockbackSystem.PlayKnockback(knockbackDir, knockbackPower, 0.25f);
         }
     }
 

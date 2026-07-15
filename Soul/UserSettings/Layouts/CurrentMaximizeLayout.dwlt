@@ -530,7 +530,7 @@ MonoBehaviour:
       sizeOverridden: 0
     - dockPosition: 1
       containerId: overlay-container--right
-      displayed: 0
+      displayed: 1
       id: Scene View/Tilemap Focus
       index: 5
       contents: '{"m_Layout":4,"m_Collapsed":false,"m_Folded":false,"m_Floating":false,"m_FloatingSnapOffset":{"x":48.0,"y":48.0},"m_SnapOffsetDelta":{"x":0.0,"y":0.0},"m_FloatingSnapCorner":0,"m_Size":{"x":0.0,"y":0.0},"m_SizeOverridden":false}'
@@ -847,13 +847,13 @@ MonoBehaviour:
       m_Size: {x: 1, y: 1}
     zGrid:
       m_Fade:
-        m_Target: 1
+        m_Target: 0
         speed: 2
-        m_Value: 1
+        m_Value: 0
       m_Color: {r: 0.5, g: 0.5, b: 0.5, a: 0.4}
       m_Pivot: {x: 0, y: 0, z: 0}
       m_Size: {x: 1, y: 1}
-    m_ShowGrid: 1
+    m_ShowGrid: 0
     m_GridAxis: 1
     m_gridOpacity: 0.5
   m_Rotation:
@@ -1369,8 +1369,8 @@ MonoBehaviour:
     - m_Data: 57450
     m_RenameOverlay:
       m_UserAcceptedRename: 0
-      m_Name: 
-      m_OriginalName: 
+      m_Name: other_and_decorative
+      m_OriginalName: other_and_decorative
       m_EditFieldRect:
         serializedVersion: 2
         x: 0
@@ -1378,10 +1378,10 @@ MonoBehaviour:
         width: 0
         height: 0
       m_UserData:
-        m_Data: 0
+        m_Data: 72702
       m_IsWaitingForDelay: 0
       m_IsRenaming: 0
-      m_OriginalEventType: 11
+      m_OriginalEventType: 0
       m_IsRenamingFilename: 1
       m_TrimLeadingAndTrailingWhitespace: 0
       m_ClientGUIView: {fileID: 12}

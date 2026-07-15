@@ -13,8 +13,11 @@ public class HSH_CameraViewer : MonoBehaviour
     [Tooltip("화면 오른쪽 위 모서리로부터의 여백 (x: 왼쪽으로, y: 아래쪽으로)")]
     public Vector2 padding = new Vector2(-20, -20);
 
+    [Header("UI 대상 캔버스")]
+    [Tooltip("화면을 띄울 대상 캔버스 (비워두면 씬에 있는 캔버스를 자동으로 찾습니다)")]
+    public Canvas targetCanvas;
+
     private RenderTexture renderTexture;
-    private GameObject canvasObj;
     private GameObject rawImageObj;
 
     private void Start()
@@ -34,20 +37,35 @@ public class HSH_CameraViewer : MonoBehaviour
         renderTexture = new RenderTexture(Mathf.RoundToInt(viewSize.x), Mathf.RoundToInt(viewSize.y), 16);
         captureCamera.targetTexture = renderTexture;
 
-        // 2. 화면에 띄울 UI Canvas 자동 생성
-        canvasObj = new GameObject("HSH_PiPCanvas");
-        Canvas canvas = canvasObj.AddComponent<Canvas>();
-        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-        canvas.sortingOrder = 100; // UI가 다른 것들보다 가장 위에 보이도록 설정
-        canvasObj.AddComponent<CanvasScaler>();
-        canvasObj.AddComponent<GraphicRaycaster>();
+        CreateUI();
+    }
 
-        // 씬이 넘어가도 유지하고 싶다면 아래 주석을 해제하세요.
-        // DontDestroyOnLoad(canvasObj);
+    private void Update()
+    {
+        // 씬이 이동되어 캔버스와 함께 UI가 파괴되었다면 다시 생성합니다.
+        if (rawImageObj == null)
+        {
+            targetCanvas = null; // 이전 씬의 캔버스가 파괴되었을 수 있으므로 초기화
+            CreateUI();
+        }
+    }
+
+    private void CreateUI()
+    {
+        // 2. 화면에 띄울 UI Canvas 가져오기
+        if (targetCanvas == null)
+        {
+            targetCanvas = FindAnyObjectByType<Canvas>();
+        }
+
+        if (targetCanvas == null)
+        {
+            return; // 캔버스가 아직 없다면 다음 프레임에 다시 시도
+        }
 
         // 3. RawImage 생성하여 오른쪽 위에 배치
         rawImageObj = new GameObject("PiPRawImage");
-        rawImageObj.transform.SetParent(canvasObj.transform, false);
+        rawImageObj.transform.SetParent(targetCanvas.transform, false);
 
         RawImage rawImage = rawImageObj.AddComponent<RawImage>();
         rawImage.texture = renderTexture; // 카메라가 찍고 있는 텍스처를 UI에 연결
@@ -66,7 +84,7 @@ public class HSH_CameraViewer : MonoBehaviour
 
     private void OnDestroy()
     {
-        // 스크립트가 파괴될 때 생성했던 오브젝트들과 메모리를 정리합니다.
+        // 스크립트가 파괴될 때 메모리와 생성했던 이미지를 정리합니다.
         if (captureCamera != null && captureCamera.targetTexture == renderTexture)
         {
             captureCamera.targetTexture = null;
@@ -75,9 +93,9 @@ public class HSH_CameraViewer : MonoBehaviour
         {
             renderTexture.Release();
         }
-        if (canvasObj != null)
+        if (rawImageObj != null)
         {
-            Destroy(canvasObj);
+            Destroy(rawImageObj); // 캔버스는 남겨두고 내가 만든 RawImage만 파괴
         }
     }
 }

@@ -20,12 +20,25 @@ MonoBehaviour:
   hitRange: 1.2
   durationSeconds: 0.35
   cooldownSeconds: 2.5
+  hitStartSeconds: 0.08
+  hitActiveSeconds: 0.08
+  recoverySeconds: 0.18
+  movementLockSeconds: 0.18
+  dashCancelStartSeconds: 0.12
+  canDashCancel: 1
   moveDistance: 30
   moveSpeed: 24
   hitCount: 1
   hitIntervalSeconds: 0
+  usesCustomBodyDecayAmount: 0
+  customBodyDecayAmount: 0
+  additionalBodyDecayAmount: 0
+  usesComboBodyDecayMultiplier: 0
+  comboBodyDecayMultiplier: 1
+  chargeBodyDecayPerSecond: 0
+  maxChargeBodyDecayAmount: 0
   motionKey: Sword_SwordWave
   motionSequenceKeys: []
   motionStepIntervalSeconds: 0.12
-  projectilePrefab: {fileID: 0}
+  projectilePrefab: {fileID: 6123444099088108134, guid: 9cf4f102adaf7694bae11e7010bab686, type: 3}
   actionEffectPrefab: {fileID: 0}

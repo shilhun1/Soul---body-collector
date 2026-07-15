@@ -24,11 +24,11 @@ MonoBehaviour:
     isPossessableBody: 0
     guaranteesStatOrb: 0
   tracking:
-    trackingRange: 0
+    trackingRange: 8
     loseTargetRange: 0
   ai:
     aiProfileId: ""
-    decisionIntervalSeconds: 0
+    decisionIntervalSeconds: 0.1
     behaviorTreeId: ""
   navigation:
     stoppingDistance: 0
@@ -62,6 +62,36 @@ MonoBehaviour:
       startsUnlocked: 1
       cooldownSeconds: 2.5
       useIntervalSeconds: 1
+  playerPossessionSkillSet:
+    skills:
+    - skillId: player_sword_reap_slash
+      requiredWeaponType: 3
+      unlockLevel: 1
+      requiredSkillPoint: 0
+      startsUnlocked: 1
+      cooldownSeconds: 3
+      useIntervalSeconds: 3
+    - skillId: player_sword_dash_slash
+      requiredWeaponType: 3
+      unlockLevel: 11
+      requiredSkillPoint: 0
+      startsUnlocked: 1
+      cooldownSeconds: 4.5
+      useIntervalSeconds: 4.5
+    - skillId: player_sword_force_slash
+      requiredWeaponType: 3
+      unlockLevel: 21
+      requiredSkillPoint: 0
+      startsUnlocked: 1
+      cooldownSeconds: 9
+      useIntervalSeconds: 9
+    - skillId: player_sword_final_slash
+      requiredWeaponType: 3
+      unlockLevel: 25
+      requiredSkillPoint: 0
+      startsUnlocked: 1
+      cooldownSeconds: 15
+      useIntervalSeconds: 15
   possessionBody:
     canPossess: 0
     canBePossessed: 0

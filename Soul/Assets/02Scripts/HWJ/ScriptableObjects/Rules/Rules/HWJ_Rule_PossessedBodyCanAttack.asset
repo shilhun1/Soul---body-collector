@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5ed0cc71524b29c4097f6300acefbeeb, type: 3}
+  m_Name: HWJ_Rule_PossessedBodyCanAttack
+  m_EditorClassIdentifier: Assembly-CSharp::HWJ_GameplayRuleSO
+  ruleId: possessed_body_can_attack
+  description: Reusable production rule for player attacks while controlling a corpse body.
+  passWhenNoCondition: 0
+  rootCondition: {fileID: 11400000, guid: e4d41b44ce2d403c838b807935fa8e0c, type: 2}

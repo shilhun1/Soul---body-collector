@@ -31,6 +31,7 @@ public class HSH_BarUI : MonoBehaviour
     public Color expColor = Color.yellow;
 
     [SerializeField] private HWJ_RuntimeStatusSystem statusSystem;
+    [SerializeField] private HWJ_SoulSystem soulSystem;
     private bool temp = true;
 
     private void Start()
@@ -48,7 +49,13 @@ public class HSH_BarUI : MonoBehaviour
             if (player != null)
             {
                 statusSystem = player.GetComponent<HWJ_RuntimeStatusSystem>();
+                soulSystem = player.GetComponent<HWJ_SoulSystem>();
             }
+        }
+        
+        if (soulSystem == null && statusSystem != null)
+        {
+            soulSystem = statusSystem.GetComponent<HWJ_SoulSystem>();
         }
         
         UpdateColor();
@@ -74,8 +81,37 @@ public class HSH_BarUI : MonoBehaviour
             if (player != null)
             {
                 statusSystem = player.GetComponent<HWJ_RuntimeStatusSystem>();
+                soulSystem = player.GetComponent<HWJ_SoulSystem>();
             }
         }
+
+        // 인스펙터에서 statusSystem만 수동으로 할당했을 경우, soulSystem이 평생 null이 되는 버그 방지
+        // if (soulSystem == null && statusSystem != null)
+        // {
+        //     soulSystem = statusSystem.GetComponent<HWJ_SoulSystem>();
+        // }
+
+        // 플레이어의 Soul 상태에 맞춰 체력바 타입 자동 변경 (경험치 바는 제외)
+        if (soulSystem != null && currentType != BarType.Exp)
+        {
+            if (soulSystem.CurrentState == HWJ_SoulRuntimeState.Soul)
+            {
+                if (currentType != BarType.GhostHP)
+                {
+                    currentType = BarType.GhostHP;
+                    UpdateColor();
+                }
+            }
+            else // 영혼 상태가 아닐 때 (기본 몸 또는 빙의 중일 때)
+            {
+                if (currentType == BarType.GhostHP)
+                {
+                    currentType = BarType.HP;
+                    UpdateColor();
+                }
+            }
+        }
+
         // 씬 이동이나 다른 스크립트에서 체력을 변경했을 때도 실시간으로 반영되도록 Update에서 값을 확인합니다.
         CheckState();
         UpdateSlider();
@@ -108,17 +144,18 @@ public class HSH_BarUI : MonoBehaviour
     {
         if (statusSystem != null)
         {
-            if(currentType == BarType.HP){
+            if (currentType == BarType.HP)
+            {
                 statusSystem.ApplyDamage(amount);
             }
-            if(currentType == BarType.GhostHP){
-                statusSystem.ApplyDamage(amount);
-            }
-            
+            // 고스트 체력(GhostHP)은 함정 데미지 등 외부 요인으로 감소시키지 않음
         }
         else
         {
-            currentValue -= amount;
+            if (currentType != BarType.GhostHP)
+            {
+                currentValue -= amount;
+            }
         }
         
 
@@ -127,77 +164,132 @@ public class HSH_BarUI : MonoBehaviour
     }
 
     private bool hasTriggeredGameOver = false;
+    private bool hasTimerStarted = false;
 
-    // HP가 다 달게된다면(0 이하) GhostHP로 변경하거나, Exp가 꽉 차면 레벨업
+    /// <summary>
+    /// 매 프레임 호출되어 바의 현재값(currentValue)과 최대값(maxValue)을 갱신하고,
+    /// 값에 따른 상태 변화(게임오버, 바 타입 전환, 레벨업 등)를 처리합니다.
+    /// 
+    /// [데이터 흐름 정리]
+    /// - BarType.HP (빙의 상태의 체력):
+    ///   → HWJ_RuntimeStatusSystem.CurrentHp / MaxHp 에서 직접 가져옵니다.
+    ///   → 빙의체가 데미지를 받으면 내부적으로 부패도(Decay)가 깎이지만,
+    ///     CurrentHp 프로퍼티가 현재 활성 상태의 체력을 자동으로 반환하므로 그대로 사용합니다.
+    ///
+    /// - BarType.GhostHP (영혼 상태의 잔여 시간):
+    ///   → HWJ_SoulSystem.SoulDeadlineTimer 에서 남은 시간(초)을 가져옵니다.
+    ///   → 최대 시간은 HWJ_PlayerTypeDataSO.SoulState.possessionDeadlineSeconds 이며,
+    ///     HWJ_SoulSystem의 private 필드인 dataResolver를 리플렉션으로 접근하여 가져옵니다.
+    ///   → 영혼 상태에서 시간이 0이 되면 SoulSystem이 Dead 상태로 전환하고,
+    ///     이를 감지하여 게임오버 UI를 표시합니다.
+    ///
+    /// - BarType.Exp (경험치):
+    ///   → 외부에서 SetValues / IncreaseValue 등으로 직접 설정하므로 여기서는 갱신하지 않습니다.
+    /// </summary>
     private void CheckState()
     {
-        // 1. 현재 연동된 데이터(체력/경험치)를 가져옵니다.
+        // ===== [1단계] 현재 바 타입에 맞는 실시간 데이터를 가져옵니다 =====
         if (statusSystem != null)
         {
-            if (currentType == BarType.HP || currentType == BarType.GhostHP)
+            // [HP 바] 빙의 상태일 때의 체력
+            if (currentType == BarType.HP)
             {
                 currentValue = statusSystem.CurrentHp;
                 maxValue = statusSystem.MaxHp;
-                
             }
-            // TODO: 나중에 경험치(Exp) 시스템이 추가된다면 이 곳 주석을 해제하고 연동하세요.
-            // else if (currentType == BarType.Exp)
-            // {
-            //     currentValue = ExpSystem.CurrentExp;
-            //     maxValue = ExpSystem.MaxExp;
-            // }
+            // [GhostHP 바] 영혼 상태일 때의 시간 카운트다운
+            else if (currentType == BarType.GhostHP)
+            {
+                Debug.Log("실행");
+                if (soulSystem != null)
+                {
+                    Debug.Log("실행2");
+                    // 유저님의 요청대로 가장 심플하게 값만 대입합니다. (리플렉션 및 조건문 제거)
+                    maxValue = 10f;
+                    currentValue = soulSystem.SoulDeadlineTimer;
+                }
+            }
+            // [Exp 바] 경험치
         }
         
-        // 2. 값에 따른 상태 변화(게임오버, 레벨업 등)를 처리합니다.
-        if (currentType == BarType.HP && currentValue <= 0 && maxValue > 0)
+        // ===== [2단계] 게임오버 조건을 확인합니다 =====
+        bool isGameOver = false;
+
+        // 조건 1: SoulSystem이 Dead 상태 
+        if (soulSystem != null && soulSystem.CurrentState == HWJ_SoulRuntimeState.Dead)
         {
-            currentType = BarType.GhostHP;
-            UpdateColor();
-            Debug.Log("HP가 모두 닳아서 GhostHP 타입으로 변경되었습니다!");
+            isGameOver = true;
         }
-        else if(currentType == BarType.GhostHP && currentValue <= 0 && temp == true){
-            
-            currentValue = 100;
-            if (statusSystem != null)
+
+        // 조건 2: UI에서 카운트다운한 영혼 시간이 다 됨
+        if (currentType == BarType.GhostHP && hasTimerStarted && currentValue <= 0)
+        {
+            isGameOver = true;
+            if (soulSystem != null && soulSystem.CurrentState != HWJ_SoulRuntimeState.Dead)
             {
-                statusSystem.Heal(100);
+                // UI 타이머가 끝났을 때 HWJ 시스템에도 Dead 상태를 강제로 알리기 위해 리플렉션 호출
+                var method = typeof(HWJ_SoulSystem).GetMethod("EnterDeadState", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                if (method != null)
+                {
+                    method.Invoke(soulSystem, null);
+                }
             }
-            Debug.Log("temp  true");
-            temp = false;
-            Debug.Log("temp  false");
-            
         }
-        else if (currentType == BarType.GhostHP && currentValue <= 0 && maxValue > 0)
+        else if (currentType != BarType.GhostHP)
         {
-            
+            // 영혼 상태가 아닐 때는 타이머 시작 플래그를 초기화
+            hasTimerStarted = false;
+        }
+
+        // ===== [3단계] 게임오버 처리 또는 상태 전환을 수행합니다 =====
+        if (isGameOver)
+        {
+            // hasTriggeredGameOver 플래그로 게임오버 UI가 중복 호출되는 것을 방지합니다.
             if (!hasTriggeredGameOver)
             {
                 hasTriggeredGameOver = true;
                 Debug.Log("GhostHP가 모두 닳았습니다! 게임 오버!");
-                
+
                 if (gameOverUI != null)
                 {
                     gameOverUI.ShowGameOver();
                 }
+                else if (HSH_GameOverUI.Instance != null)
+                {
+                    HSH_GameOverUI.Instance.ShowGameOver();
+                }
+                else
+                {
+                    Debug.LogError("GameOverUI를 찾을 수 없습니다!");
+                }
             }
         }
-        else if (currentType == BarType.Exp && currentValue >= maxValue && maxValue > 0)
+        else
         {
-            // 경험치가 가득 찼으므로 레벨업!
-            if (levelTextUI != null)
+            // 게임오버가 아닌 상태에서는 플래그를 초기화
+            hasTriggeredGameOver = false;
+
+            // [경험치 레벨업 처리] 경험치가 최대값 이상이면 레벨업을 수행합니다.
+            if (currentType == BarType.Exp && currentValue >= maxValue && maxValue > 0)
             {
-                levelTextUI.LevelUp();
+                // 레벨 텍스트 UI에 레벨업을 알립니다.
+                if (levelTextUI != null)
+                {
+                    levelTextUI.LevelUp();
+                }
+
+                // 남은 초과 경험치를 다음 레벨로 이월합니다.
+                currentValue -= maxValue;
+                if (currentValue < 0) currentValue = 0;
+
+                // TODO: 레벨업 시 다음 레벨의 요구 경험치(maxValue)를 증가시킬 수 있습니다.
+
+                Debug.Log("경험치가 가득 차서 레벨업을 진행합니다!");
             }
-
-            // 남은 초과 경험치를 이월
-            currentValue -= maxValue;
-            if (currentValue < 0) currentValue = 0;
-
-            // TODO: 레벨업 시 다음 레벨의 요구 경험치(maxValue)를 증가시킬 수 있습니다.
-            
-            Debug.Log("경험치가 가득 차서 레벨업을 진행합니다!");
         }
-        else if (currentValue < 0)
+
+        // 최종 보정: 값이 음수가 되지 않도록 0으로 클램핑합니다.
+        if (currentValue < 0)
         {
             currentValue = 0;
         }

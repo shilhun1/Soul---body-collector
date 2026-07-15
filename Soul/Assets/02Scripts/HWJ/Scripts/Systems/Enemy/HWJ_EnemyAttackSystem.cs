@@ -243,7 +243,9 @@ public class HWJ_EnemyAttackSystem : MonoBehaviour
         isPreparingSkill = true;
         runtimeStatus?.SetState(HWJ_RuntimeState.Attack);
         skillActionSystem?.BlockNavigationForSkill(skillWarningDelaySeconds + 0.05f, false);
-        ShowSkillWarning(skillAction, skillTarget);
+        float lockedDirectionX = ResolveTargetDirection(skillTarget);
+        Vector2 lockedDirection = new Vector2(lockedDirectionX, 0f);
+        ShowSkillWarning(skillAction, lockedDirectionX);
 
         float delaySeconds = Mathf.Max(0f, skillWarningDelaySeconds);
 
@@ -260,7 +262,9 @@ public class HWJ_EnemyAttackSystem : MonoBehaviour
             yield break;
         }
 
-        if (skillActionSystem != null && skillActionSystem.TryUseSkillEntry(skillEntry, skillTarget))
+        float cooldownSeconds = ResolveMonsterSkillCooldownSeconds(skillEntry, skillAction);
+
+        if (skillActionSystem != null && skillActionSystem.TryUseSkill(skillAction, skillTarget, cooldownSeconds, lockedDirection))
         {
             lastDamageApplied = skillActionSystem.LastDamageApplied;
             lastAttackResult = skillActionSystem.LastSkillResult;
@@ -275,6 +279,29 @@ public class HWJ_EnemyAttackSystem : MonoBehaviour
         nextAttackTime = Time.time + Mathf.Max(0f, useIntervalSeconds);
         isPreparingSkill = false;
         skillPrepareRoutine = null;
+    }
+
+    private float ResolveMonsterSkillCooldownSeconds(HWJ_SkillEntryData skillEntry, HWJ_SkillActionDataSO skillAction)
+    {
+        if (skillEntry != null && skillEntry.cooldownSeconds > 0f)
+        {
+            return skillEntry.cooldownSeconds;
+        }
+
+        if (skillAction != null && skillAction.CooldownSeconds > 0f)
+        {
+            return skillAction.CooldownSeconds;
+        }
+
+        if (dataResolver != null
+            && dataResolver.TryGetTypeData(out HWJ_EnemyTypeDataSO enemyData)
+            && enemyData.AI != null
+            && enemyData.AI.defaultSkillCooldownSeconds > 0f)
+        {
+            return enemyData.AI.defaultSkillCooldownSeconds;
+        }
+
+        return 0f;
     }
 
     private bool CanCompletePreparedSkill(HWJ_SkillActionDataSO skillAction, Transform skillTarget)
@@ -303,18 +330,6 @@ public class HWJ_EnemyAttackSystem : MonoBehaviour
             return false;
         }
 
-        float skillRange = skillAction != null && skillAction.Range > 0f
-            ? skillAction.Range
-            : GetAttackRange();
-
-        float distance = Vector2.Distance(transform.position, skillTarget.position);
-
-        if (distance > skillRange)
-        {
-            lastAttackResult = "Skill canceled: target moved out of range.";
-            return false;
-        }
-
         if (skillActionSystem != null
             && skillAction != null
             && !skillActionSystem.IsSkillReady(skillAction.SkillActionId))
@@ -326,14 +341,14 @@ public class HWJ_EnemyAttackSystem : MonoBehaviour
         return true;
     }
 
-    private void ShowSkillWarning(HWJ_SkillActionDataSO skillAction, Transform skillTarget)
+    private void ShowSkillWarning(HWJ_SkillActionDataSO skillAction, float lockedDirectionX)
     {
         if (!showSkillWarning || skillAction == null || skillWarningDelaySeconds <= 0f)
         {
             return;
         }
 
-        float direction = ResolveTargetDirection(skillTarget);
+        float direction = lockedDirectionX == 0f ? ResolveTargetDirection(null) : lockedDirectionX;
         Color warningColor = GetWarningColor(skillAction);
 
         switch (skillAction.ActionType)

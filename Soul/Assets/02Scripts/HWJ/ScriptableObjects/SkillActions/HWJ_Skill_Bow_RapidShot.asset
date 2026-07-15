@@ -1,0 +1,47 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a6a8eded0c744166a37dfeef997b499e, type: 3}
+  m_Name: HWJ_Skill_Bow_RapidShot
+  m_EditorClassIdentifier: Assembly-CSharp::HWJ_SkillActionDataSO
+  skillActionId: bow_rapid_shot
+  actionType: 2
+  requiredWeaponType: 5
+  damageMultiplier: 0.75
+  range: 8.5
+  hitRange: 0.65
+  durationSeconds: 0.18
+  cooldownSeconds: 2.3
+  hitStartSeconds: 0.05
+  hitActiveSeconds: 0.2
+  recoverySeconds: 0.22
+  movementLockSeconds: 0.58
+  dashCancelStartSeconds: 0.32
+  canDashCancel: 1
+  moveDistance: 8.5
+  moveSpeed: 23
+  hitCount: 3
+  hitIntervalSeconds: 0.11
+  usesCustomBodyDecayAmount: 0
+  customBodyDecayAmount: 0
+  additionalBodyDecayAmount: 0
+  usesComboBodyDecayMultiplier: 0
+  comboBodyDecayMultiplier: 1
+  chargeBodyDecayPerSecond: 0
+  maxChargeBodyDecayAmount: 0
+  motionKey: Bow_RapidShot
+  motionSequenceKeys:
+  - Bow_RapidShot1
+  - Bow_RapidShot2
+  - Bow_RapidShot3
+  motionStepIntervalSeconds: 0.11
+  projectilePrefab: {fileID: 5062887714543854764, guid: 528dff6452e5a154f8ac9bc4630ff040, type: 3}
+  actionEffectPrefab: {fileID: 0}

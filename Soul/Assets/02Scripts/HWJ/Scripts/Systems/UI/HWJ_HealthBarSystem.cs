@@ -79,7 +79,7 @@ public class HWJ_HealthBarSystem : MonoBehaviour
             }
 
             float maxDecay = playerData.BodyDecay.maxDecayValue;
-            return maxDecay > 0f ? Mathf.Clamp01(bodyDecaySystem.CurrentDecayValue / maxDecay) : 0f;
+            return maxDecay > 0f ? bodyDecaySystem.RemainingDecayRatio : 0f;
         }
 
         if (runtimeStatus != null && runtimeStatus.MaxHp > 0f)

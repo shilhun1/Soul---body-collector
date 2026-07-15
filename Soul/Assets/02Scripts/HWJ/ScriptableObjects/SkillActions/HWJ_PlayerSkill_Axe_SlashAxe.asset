@@ -1,0 +1,58 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a6a8eded0c744166a37dfeef997b499e, type: 3}
+  m_Name: HWJ_PlayerSkill_Axe_SlashAxe
+  m_EditorClassIdentifier: Assembly-CSharp::HWJ_SkillActionDataSO
+  skillActionId: player_axe_slash_axe
+  sourceSkillId: 1302
+  displayName: "Slash Axe"
+  skillDescription: "도끼를 사선으로 휘두르며 공격한다."
+  effectId: ""
+  soundId: ""
+  actionType: 1
+  requiredWeaponType: 6
+  authoredAttackPower: 28
+  damageMultiplier: 2.8
+  range: 3
+  hitRange: 3
+  durationSeconds: 1.58
+  cooldownSeconds: 5
+  hitStartSeconds: 0.9
+  hitActiveSeconds: 0.08
+  recoverySeconds: 0.6
+  movementLockSeconds: 1.5
+  dashCancelStartSeconds: 0.9
+  canDashCancel: 1
+  moveDistance: 0
+  moveSpeed: 0
+  hitCount: 1
+  hitIntervalSeconds: 0
+  causesKnockback: 1
+  knockbackDistance: 0.6
+  causesStagger: 0
+  staggerSeconds: 0
+  launchesTarget: 0
+  launchHeight: 0
+  grantsInvincibility: 0
+  invincibilitySeconds: 0
+  usesCustomBodyDecayAmount: 0
+  customBodyDecayAmount: 0
+  additionalBodyDecayAmount: 0
+  usesComboBodyDecayMultiplier: 0
+  comboBodyDecayMultiplier: 1
+  chargeBodyDecayPerSecond: 0
+  maxChargeBodyDecayAmount: 0
+  motionKey: PlayerSkill_Axe_SlashAxe
+  motionSequenceKeys: []
+  motionStepIntervalSeconds: 0.12
+  projectilePrefab: {fileID: 0}
+  actionEffectPrefab: {fileID: 0}

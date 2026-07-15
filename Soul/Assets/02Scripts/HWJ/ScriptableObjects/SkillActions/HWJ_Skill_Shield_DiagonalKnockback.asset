@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a6a8eded0c744166a37dfeef997b499e, type: 3}
+  m_Name: HWJ_Skill_Shield_DiagonalKnockback
+  m_EditorClassIdentifier: Assembly-CSharp::HWJ_SkillActionDataSO
+  skillActionId: shield_diagonal_knockback
+  actionType: 1
+  requiredWeaponType: 7
+  damageMultiplier: 1.1
+  range: 2.2
+  hitRange: 2.2
+  durationSeconds: 0.48
+  cooldownSeconds: 2.1
+  hitStartSeconds: 0.16
+  hitActiveSeconds: 0.1
+  recoverySeconds: 0.28
+  movementLockSeconds: 0.5
+  dashCancelStartSeconds: 0.35
+  canDashCancel: 1
+  moveDistance: 0
+  moveSpeed: 0
+  hitCount: 1
+  hitIntervalSeconds: 0
+  motionKey: Shield_DiagonalKnockback
+  motionSequenceKeys: []
+  motionStepIntervalSeconds: 0.12
+  projectilePrefab: {fileID: 0}
+  actionEffectPrefab: {fileID: 0}

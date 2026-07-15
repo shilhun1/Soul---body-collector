@@ -16,8 +16,8 @@ MonoBehaviour:
   actionType: 1
   requiredWeaponType: 0
   damageMultiplier: 1
-  range: 0
-  hitRange: 0
+  range: 2
+  hitRange: 2
   durationSeconds: 0
   cooldownSeconds: 0
   hitStartSeconds: 0.08

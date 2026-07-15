@@ -1,0 +1,58 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a6a8eded0c744166a37dfeef997b499e, type: 3}
+  m_Name: HWJ_PlayerSkill_Lance_RapidStinger
+  m_EditorClassIdentifier: Assembly-CSharp::HWJ_SkillActionDataSO
+  skillActionId: player_lance_rapid_stinger
+  sourceSkillId: 1203
+  displayName: "Rapid Stinger"
+  skillDescription: "창으로 적을 여러번 찌른다."
+  effectId: ""
+  soundId: ""
+  actionType: 1
+  requiredWeaponType: 4
+  authoredAttackPower: 25
+  damageMultiplier: 2.5
+  range: 4
+  hitRange: 4
+  durationSeconds: 2.06
+  cooldownSeconds: 4.5
+  hitStartSeconds: 1.6
+  hitActiveSeconds: 0.36
+  recoverySeconds: 0.1
+  movementLockSeconds: 1.96
+  dashCancelStartSeconds: 1.6
+  canDashCancel: 1
+  moveDistance: 0
+  moveSpeed: 0
+  hitCount: 5
+  hitIntervalSeconds: 0.08
+  causesKnockback: 1
+  knockbackDistance: 0.6
+  causesStagger: 1
+  staggerSeconds: 0.65
+  launchesTarget: 0
+  launchHeight: 0
+  grantsInvincibility: 0
+  invincibilitySeconds: 0
+  usesCustomBodyDecayAmount: 0
+  customBodyDecayAmount: 0
+  additionalBodyDecayAmount: 0
+  usesComboBodyDecayMultiplier: 0
+  comboBodyDecayMultiplier: 1
+  chargeBodyDecayPerSecond: 0
+  maxChargeBodyDecayAmount: 0
+  motionKey: PlayerSkill_Lance_RapidStinger
+  motionSequenceKeys: []
+  motionStepIntervalSeconds: 0.12
+  projectilePrefab: {fileID: 0}
+  actionEffectPrefab: {fileID: 0}

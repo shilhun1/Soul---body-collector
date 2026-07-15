@@ -57,6 +57,11 @@ public class HSH_GameOverUI : MonoBehaviour
         // 멈췄던 시간을 다시 흐르게 되돌림
         Time.timeScale = 1f;
         
+        if (gameOverPanel != null)
+        {
+            gameOverPanel.SetActive(false);
+        }
+        
         // 현재 활성화된 씬을 처음부터 다시 로드
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
@@ -69,6 +74,11 @@ public class HSH_GameOverUI : MonoBehaviour
     {
         // 멈췄던 시간을 다시 흐르게 되돌림
         Time.timeScale = 1f;
+        
+        if (gameOverPanel != null)
+        {
+            gameOverPanel.SetActive(false);
+        }
         
         // OnClick 칸에 직접 적은 씬 이름으로 이동
         SceneManager.LoadScene(targetSceneName);
