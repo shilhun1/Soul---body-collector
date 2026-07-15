@@ -120,6 +120,25 @@ public class HWJ_SkillActionSystem : MonoBehaviour
 
     public bool TryUseSkill(HWJ_SkillActionDataSO skillAction, Transform target, float cooldownOverride)
     {
+        return TryUseSkillInternal(skillAction, target, cooldownOverride, false, Vector2.zero);
+    }
+
+    public bool TryUseSkill(
+        HWJ_SkillActionDataSO skillAction,
+        Transform target,
+        float cooldownOverride,
+        Vector2 lockedDirection)
+    {
+        return TryUseSkillInternal(skillAction, target, cooldownOverride, true, lockedDirection);
+    }
+
+    private bool TryUseSkillInternal(
+        HWJ_SkillActionDataSO skillAction,
+        Transform target,
+        float cooldownOverride,
+        bool useLockedDirection,
+        Vector2 lockedDirection)
+    {
         CacheReferences();
         lastDamageApplied = 0f;
 
@@ -173,7 +192,7 @@ public class HWJ_SkillActionSystem : MonoBehaviour
             nextUseTimes[skillAction.SkillActionId] = Time.time + Mathf.Max(0f, cooldownSeconds);
         }
 
-        ExecuteSkill(skillAction, target);
+        ExecuteSkill(skillAction, target, useLockedDirection, lockedDirection);
         return true;
     }
 
@@ -327,7 +346,11 @@ public class HWJ_SkillActionSystem : MonoBehaviour
         return HWJ_GameAccess.TryGetSkillAction(skillActionId, out skillAction);
     }
 
-    private void ExecuteSkill(HWJ_SkillActionDataSO skillAction, Transform target)
+    private void ExecuteSkill(
+        HWJ_SkillActionDataSO skillAction,
+        Transform target,
+        bool useLockedDirection,
+        Vector2 lockedDirection)
     {
         if (skillAction == null)
         {
@@ -347,13 +370,14 @@ public class HWJ_SkillActionSystem : MonoBehaviour
         switch (skillAction.ActionType)
         {
             case HWJ_SkillActionType.Projectile:
-                ExecuteProjectileSkill(skillAction, target);
+                ExecuteProjectileSkill(skillAction, target, useLockedDirection, lockedDirection);
                 break;
             case HWJ_SkillActionType.Dash:
-                ExecuteDashSkill(skillAction, target);
+                ExecuteDashSkill(skillAction, target, useLockedDirection, lockedDirection);
                 break;
             case HWJ_SkillActionType.Melee:
             case HWJ_SkillActionType.Area:
+                FaceLockedDirection(useLockedDirection, lockedDirection);
                 ExecuteAreaDamage(skillAction, true);
                 break;
             case HWJ_SkillActionType.Buff:
@@ -367,19 +391,28 @@ public class HWJ_SkillActionSystem : MonoBehaviour
         }
     }
 
-    private void ExecuteProjectileSkill(HWJ_SkillActionDataSO skillAction, Transform target)
+    private void ExecuteProjectileSkill(
+        HWJ_SkillActionDataSO skillAction,
+        Transform target,
+        bool useLockedDirection,
+        Vector2 lockedDirection)
     {
         if (projectileRoutine != null)
         {
             StopCoroutine(projectileRoutine);
         }
 
-        projectileRoutine = StartCoroutine(ProjectileSkillRoutine(skillAction, target));
+        projectileRoutine = StartCoroutine(ProjectileSkillRoutine(skillAction, target, useLockedDirection, lockedDirection));
     }
 
-    private IEnumerator ProjectileSkillRoutine(HWJ_SkillActionDataSO skillAction, Transform target)
+    private IEnumerator ProjectileSkillRoutine(
+        HWJ_SkillActionDataSO skillAction,
+        Transform target,
+        bool useLockedDirection,
+        Vector2 lockedDirection)
     {
         PlaySkillMotion(skillAction);
+        Vector2 resolvedDirection = ResolveSkillDirectionWithLock(target, useLockedDirection, lockedDirection);
         float chargeSeconds = Mathf.Max(0f, skillAction.DurationSeconds);
 
         int projectileCount = Mathf.Max(1, skillAction.HitCount);
@@ -398,7 +431,7 @@ public class HWJ_SkillActionSystem : MonoBehaviour
 
         for (int i = 0; i < projectileCount; i++)
         {
-            FireProjectile(skillAction, ResolveSkillDirection(target));
+            FireProjectile(skillAction, resolvedDirection);
 
             if (i < projectileCount - 1 && shotIntervalSeconds > 0f)
             {
@@ -425,7 +458,11 @@ public class HWJ_SkillActionSystem : MonoBehaviour
         lastSkillResult = $"Fired fallback projectile skill {skillAction.SkillActionId}.";
     }
 
-    private void ExecuteDashSkill(HWJ_SkillActionDataSO skillAction, Transform target)
+    private void ExecuteDashSkill(
+        HWJ_SkillActionDataSO skillAction,
+        Transform target,
+        bool useLockedDirection,
+        Vector2 lockedDirection)
     {
         PlaySkillMotion(skillAction);
 
@@ -434,10 +471,14 @@ public class HWJ_SkillActionSystem : MonoBehaviour
             StopCoroutine(movementRoutine);
         }
 
-        movementRoutine = StartCoroutine(DashSkillRoutine(skillAction, target));
+        movementRoutine = StartCoroutine(DashSkillRoutine(skillAction, target, useLockedDirection, lockedDirection));
     }
 
-    private IEnumerator DashSkillRoutine(HWJ_SkillActionDataSO skillAction, Transform target)
+    private IEnumerator DashSkillRoutine(
+        HWJ_SkillActionDataSO skillAction,
+        Transform target,
+        bool useLockedDirection,
+        Vector2 lockedDirection)
     {
         float moveDistance = Mathf.Max(0f, skillAction.MoveDistance);
         float moveSpeed = Mathf.Max(MinimumDashSpeed, skillAction.MoveSpeed);
@@ -449,7 +490,7 @@ public class HWJ_SkillActionSystem : MonoBehaviour
             yield break;
         }
 
-        Vector2 direction = ResolveSkillDirection(target);
+        Vector2 direction = ResolveSkillDirectionWithLock(target, useLockedDirection, lockedDirection);
         float duration = Mathf.Max(0.01f, moveDistance / moveSpeed);
         float endTime = Time.time + duration;
         float movedDistance = 0f;
@@ -723,6 +764,17 @@ public class HWJ_SkillActionSystem : MonoBehaviour
 
     private Vector2 ResolveSkillDirection(Transform target)
     {
+        return ResolveSkillDirectionWithLock(target, false, Vector2.zero);
+    }
+
+    private Vector2 ResolveSkillDirectionWithLock(Transform target, bool useLockedDirection, Vector2 lockedDirection)
+    {
+        if (useLockedDirection && lockedDirection.sqrMagnitude > 0.0001f)
+        {
+            Vector2 normalizedDirection = lockedDirection.normalized;
+            return new Vector2(normalizedDirection.x == 0f ? GetFacingDirection() : Mathf.Sign(normalizedDirection.x), 0f);
+        }
+
         if (target != null)
         {
             float xDirection = Mathf.Sign(target.position.x - transform.position.x);
@@ -730,6 +782,31 @@ public class HWJ_SkillActionSystem : MonoBehaviour
         }
 
         return new Vector2(GetFacingDirection(), 0f);
+    }
+
+    private void FaceLockedDirection(bool useLockedDirection, Vector2 lockedDirection)
+    {
+        if (!useLockedDirection || lockedDirection.sqrMagnitude <= 0.0001f)
+        {
+            return;
+        }
+
+        float directionX = Mathf.Sign(lockedDirection.x);
+
+        if (directionX == 0f)
+        {
+            return;
+        }
+
+        if (motionSystem != null)
+        {
+            motionSystem.FaceDirection(directionX);
+            return;
+        }
+
+        Vector3 scale = transform.localScale;
+        scale.x = Mathf.Abs(scale.x) * directionX;
+        transform.localScale = scale;
     }
 
     private float GetFacingDirection()
