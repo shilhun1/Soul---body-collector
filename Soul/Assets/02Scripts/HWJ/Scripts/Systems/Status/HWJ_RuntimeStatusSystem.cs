@@ -7,27 +7,78 @@ using UnityEngine;
 /// </summary>
 public class HWJ_RuntimeStatusSystem : MonoBehaviour
 {
+    [Header("연결 컴포넌트")]
+    [Tooltip("현재 오브젝트의 런타임 데이터 접근 창구입니다. 빙의, 저장, 전투 시스템이 같은 런타임 상태를 공유할 때 사용합니다.")]
+    [InspectorName("런타임 컨텍스트")]
     [SerializeField] private HWJ_RuntimeObjectContext runtimeContext;
+    [Tooltip("RootObjectDataSO를 읽는 컴포넌트입니다. 최대 체력, 공격력, 방어력 같은 원본 데이터를 여기서 가져옵니다.")]
+    [InspectorName("데이터 리졸버")]
     [SerializeField] private HWJ_RootObjectDataResolver dataResolver;
+    [Tooltip("플레이어가 어떤 육신에 빙의 중인지 확인하고, 빙의한 육신의 스탯을 가져올 때 사용합니다.")]
+    [InspectorName("빙의 시스템")]
     [SerializeField] private HWJ_PossessionSystem possessionSystem;
+    [Tooltip("플레이어의 영혼, 육신, 사망 상태를 확인하는 시스템입니다.")]
+    [InspectorName("영혼 시스템")]
     [SerializeField] private HWJ_SoulSystem soulSystem;
+    [Tooltip("빙의한 육신의 부패 진행 상태와 붕괴 조건을 확인할 때 사용합니다.")]
+    [InspectorName("육신 부패 시스템")]
     [SerializeField] private HWJ_BodyDecaySystem bodyDecaySystem;
+    [Tooltip("현재 빙의한 육신의 런타임 HP와 육신 전용 상태를 관리하는 시스템입니다.")]
+    [InspectorName("빙의 육신 시스템")]
     [SerializeField] private HWJ_PossessedBodySystem possessedBodySystem;
+    [Tooltip("HP 또는 부패도 조건으로 육신이 무너질 때 입력 차단과 영혼 복귀를 처리하는 시스템입니다.")]
+    [InspectorName("육신 붕괴 시스템")]
     [SerializeField] private HWJ_CollapseSystem collapseSystem;
+    [Tooltip("이동, 점프, 대쉬 같은 캐릭터 움직임 잠금 상태를 반영할 때 사용하는 시스템입니다.")]
+    [InspectorName("움직임 시스템")]
     [SerializeField] private HWJ_CharacterMotionSystem motionSystem;
+    [Tooltip("보스 전용 슈퍼아머, 그로기, 페이즈 상태를 반영할 때 사용합니다. 일반 플레이어와 몬스터는 비워둘 수 있습니다.")]
+    [InspectorName("보스 두뇌 시스템")]
     [SerializeField] private HWJ_BossBrainSystem bossBrain;
+
+    [Header("현재 런타임 상태")]
+    [Tooltip("현재 캐릭터 상태입니다. Idle, Move, Attack, Dead 같은 전투/행동 상태 판정에 사용됩니다.")]
+    [InspectorName("현재 상태")]
     [SerializeField] private HWJ_RuntimeState currentState = HWJ_RuntimeState.Idle;
+    [Tooltip("현재 조작 중인 몸의 HP입니다. 육신 상태에서는 육신 HP, 영혼 상태에서는 영혼 HP와 동기화됩니다.")]
+    [InspectorName("현재 HP")]
     [SerializeField] private float currentHp;
+    [Tooltip("영혼 상태일 때 유지되는 HP 값입니다. 씬 이동이나 빙의 해제 후 영혼 체력을 유지할 때 사용합니다.")]
+    [InspectorName("영혼 HP")]
     [SerializeField] private float soulHp;
+    [Tooltip("빙의한 육신의 HP 값입니다. 육신에서 빠져나가거나 씬을 넘어갈 때 현재 육신 상태를 보존하는 데 사용합니다.")]
+    [InspectorName("빙의 육신 HP")]
     [SerializeField] private float possessedBodyHp;
+
+    [Header("행동 잠금 시간")]
+    [Tooltip("이 시간보다 현재 시간이 작으면 이동할 수 없습니다. 피격, 붕괴 연출, 전환 연출에서 사용합니다.")]
+    [InspectorName("이동 잠금 종료 시간")]
     [SerializeField] private float moveLockEndTime;
+    [Tooltip("이 시간보다 현재 시간이 작으면 공격할 수 없습니다. 공격 후딜, 피격, 스킬 잠금에서 사용합니다.")]
+    [InspectorName("공격 잠금 종료 시간")]
     [SerializeField] private float attackLockEndTime;
+    [Tooltip("이 시간보다 현재 시간이 작으면 대쉬할 수 없습니다. 대쉬 쿨타임이나 피격 중 조작 차단에 사용합니다.")]
+    [InspectorName("대쉬 잠금 종료 시간")]
     [SerializeField] private float dashLockEndTime;
+
+    [Header("피격/무적 상태")]
+    [Tooltip("이 시간보다 현재 시간이 작으면 히트스턴 상태입니다. 히트스턴 중에는 이동, 공격, 대쉬가 차단됩니다.")]
+    [InspectorName("히트스턴 종료 시간")]
     [SerializeField] private float hitStunEndTime;
+    [Tooltip("이 시간보다 현재 시간이 작으면 임시 무적 상태입니다. 연속 피격 방지에 사용합니다.")]
+    [InspectorName("무적 종료 시간")]
     [SerializeField] private float invincibleEndTime;
+    [Tooltip("이 시간보다 현재 시간이 작으면 피격 리액션과 넉백을 무시합니다. 슈퍼아머와 별도로 짧은 면역을 줄 때 사용합니다.")]
+    [InspectorName("피격 리액션 면역 종료 시간")]
     [SerializeField] private float hitReactionImmuneEndTime;
+    [Tooltip("짧은 시간에 너무 많이 맞았을 때 추가 피격 리액션을 제한하는 종료 시간입니다.")]
+    [InspectorName("연속 피격 제한 종료 시간")]
     [SerializeField] private float hitReactionLimitEndTime;
+    [Tooltip("연속 피격 횟수를 계산하는 시간 창의 종료 시간입니다.")]
+    [InspectorName("연속 피격 계산 창 종료 시간")]
     [SerializeField] private float hitReactionWindowEndTime;
+    [Tooltip("현재 피격 계산 창 안에서 발생한 피격 리액션 횟수입니다.")]
+    [InspectorName("연속 피격 횟수")]
     [SerializeField] private int hitReactionCountInWindow;
 
     private readonly Dictionary<int, float> nextDamageTimesBySource = new Dictionary<int, float>();
