@@ -7,27 +7,43 @@ using UnityEngine;
 /// </summary>
 public class HWJ_EnemyAttackSystem : MonoBehaviour
 {
+    private const int DefaultMonsterSkillCycleCount = 3;
+    private const float DefaultMonsterSkillCooldownSeconds = 3f;
+    private const float DefaultMonsterSkillCycleDelaySeconds = 5f;
+    private const float DefaultMonsterBasicAttackIntervalSeconds = 1.5f;
+
+    [Header("참조")]
     [SerializeField] private HWJ_RootObjectDataResolver dataResolver;
     [SerializeField] private HWJ_RuntimeStatusSystem runtimeStatus;
     [SerializeField] private HWJ_CombatExecutionSystem combatExecutionSystem;
     [SerializeField] private HWJ_SkillActionSystem skillActionSystem;
     [SerializeField] private HWJ_MonsterAISystem monsterAI;
+    [Header("타겟")]
     [SerializeField] private Transform target;
     [SerializeField] private bool autoFindPlayerTarget = true;
+    [SerializeField] private bool autoAttackWhenNoBehaviorDriver = true;
     [SerializeField] private bool attackOnlyBodyState = true;
+    [Header("스킬 예고")]
     [SerializeField] private bool useSkillCycle = true;
     [SerializeField] private bool showSkillWarning = true;
     [SerializeField] private float skillWarningDelaySeconds = 1f;
     [SerializeField] private Color skillWarningColor = new Color(1f, 0.15f, 0.05f, 0.85f);
     [SerializeField] private float skillWarningLineWidth = 0.06f;
+    [Header("기본 공격과 스킬 순서")]
     [SerializeField] private float fallbackAttackRange = 1.2f;
-    [SerializeField] private float fallbackAttackIntervalSeconds = 1f;
+    [SerializeField] private float fallbackAttackIntervalSeconds = DefaultMonsterBasicAttackIntervalSeconds;
+    [SerializeField] private int fallbackSkillCycleCount = DefaultMonsterSkillCycleCount;
+    [SerializeField] private float fallbackMonsterSkillCooldownSeconds = DefaultMonsterSkillCooldownSeconds;
+    [SerializeField] private float fallbackSkillCycleDelaySeconds = DefaultMonsterSkillCycleDelaySeconds;
     [SerializeField] private float targetSearchIntervalSeconds = 0.5f;
+    [Header("디버그")]
     [SerializeField] private string lastAttackResult;
     [SerializeField] private float lastDamageApplied;
 
-    private float nextAttackTime;
+    private float nextBasicAttackTime;
+    private float nextSkillTime;
     private float nextTargetSearchTime;
+    private int nextSkillCycleIndex;
     private bool isPreparingSkill;
     private Coroutine skillPrepareRoutine;
 
@@ -57,7 +73,10 @@ public class HWJ_EnemyAttackSystem : MonoBehaviour
             nextTargetSearchTime = Time.time + targetSearchIntervalSeconds;
         }
 
-        TryAutoAttack();
+        if (autoAttackWhenNoBehaviorDriver)
+        {
+            TryAutoAttack();
+        }
     }
 
     public void SetTarget(Transform target)
@@ -94,6 +113,12 @@ public class HWJ_EnemyAttackSystem : MonoBehaviour
             return false;
         }
 
+        if (skillActionSystem != null && skillActionSystem.IsNavigationBlocked)
+        {
+            lastAttackResult = "Attack waiting: skill action is active.";
+            return false;
+        }
+
         if (target == null)
         {
             lastAttackResult = "Attack failed: missing target.";
@@ -103,12 +128,6 @@ public class HWJ_EnemyAttackSystem : MonoBehaviour
         if (attackOnlyBodyState && !CanAttackTargetState())
         {
             lastAttackResult = "Attack failed: target is not in body state.";
-            return false;
-        }
-
-        if (Time.time < nextAttackTime)
-        {
-            lastAttackResult = "Attack failed: global attack interval.";
             return false;
         }
 
@@ -122,22 +141,32 @@ public class HWJ_EnemyAttackSystem : MonoBehaviour
 
         float distance = Vector2.Distance(transform.position, target.position);
 
-        if (TryUseSkillCycle(distance, out float skillUseInterval))
+        if (TryUseSkillCycle(distance))
         {
-            nextAttackTime = Time.time + skillUseInterval;
             runtimeStatus?.SetState(HWJ_RuntimeState.Attack);
             return true;
+        }
+
+        string skillCycleFailureResult = lastAttackResult;
+
+        if (Time.time < nextBasicAttackTime)
+        {
+            lastAttackResult = "Basic attack failed: attack interval.";
+            return false;
         }
 
         float attackRange = GetAttackRange();
 
         if (distance > attackRange)
         {
-            lastAttackResult = "Attack failed: target out of range.";
+            lastAttackResult = !string.IsNullOrEmpty(skillCycleFailureResult)
+                && skillCycleFailureResult.StartsWith("Skill", System.StringComparison.Ordinal)
+                ? $"{skillCycleFailureResult} Basic fallback failed: target out of range."
+                : "Attack failed: target out of range.";
             return false;
         }
 
-        nextAttackTime = Time.time + GetAttackIntervalSeconds();
+        nextBasicAttackTime = Time.time + GetAttackIntervalSeconds();
         runtimeStatus?.SetState(HWJ_RuntimeState.Attack);
 
         if (combatExecutionSystem != null && combatExecutionSystem.TryExecuteAttackTo(targetResolver))
@@ -153,17 +182,23 @@ public class HWJ_EnemyAttackSystem : MonoBehaviour
         return false;
     }
 
-    private bool TryUseSkillCycle(float distanceToTarget, out float useIntervalSeconds)
+    private bool TryUseSkillCycle(float distanceToTarget)
     {
-        useIntervalSeconds = GetAttackIntervalSeconds();
-
-        if (!useSkillCycle || skillActionSystem == null)
+        if (!useSkillCycle)
         {
+            lastAttackResult = "Skill skipped: fixed skill cycle disabled.";
+            return false;
+        }
+
+        if (skillActionSystem == null)
+        {
+            lastAttackResult = "Skill skipped: missing skill action system.";
             return false;
         }
 
         if (dataResolver == null || !dataResolver.TryGetTypeData(out HWJ_EnemyTypeDataSO enemyData))
         {
+            lastAttackResult = "Skill skipped: missing enemy type data.";
             return false;
         }
 
@@ -171,52 +206,64 @@ public class HWJ_EnemyAttackSystem : MonoBehaviour
 
         if (skillCycle == null || skillCycle.skills == null)
         {
+            lastAttackResult = "Skill skipped: missing fixed skill cycle data.";
             return false;
         }
 
-        for (int i = 0; i < skillCycle.skills.Length; i++)
+        int skillCycleCount = GetSkillCycleCount(skillCycle);
+
+        if (skillCycleCount <= 0)
         {
-            HWJ_SkillEntryData skillEntry = skillCycle.skills[i];
-
-            if (!CanTrySkillEntry(skillEntry))
-            {
-                continue;
-            }
-
-            if (!skillActionSystem.TryGetSkillAction(skillEntry.skillId, out HWJ_SkillActionDataSO skillAction))
-            {
-                continue;
-            }
-
-            float skillRange = skillAction.Range > 0f ? skillAction.Range : GetAttackRange();
-
-            if (distanceToTarget > skillRange)
-            {
-                continue;
-            }
-
-            if (!skillActionSystem.IsSkillReady(skillEntry.skillId))
-            {
-                continue;
-            }
-
-            useIntervalSeconds = skillEntry.useIntervalSeconds > 0f
-                ? skillEntry.useIntervalSeconds
-                : GetAttackIntervalSeconds();
-            StartPreparedSkill(skillEntry, skillAction, target, useIntervalSeconds);
-            useIntervalSeconds += Mathf.Max(0f, skillWarningDelaySeconds);
-            lastAttackResult = $"Preparing skill {skillEntry.skillId}.";
-            return true;
+            lastAttackResult = "Skill skipped: fixed skill cycle is empty.";
+            return false;
         }
 
-        return false;
+        if (Time.time < nextSkillTime)
+        {
+            lastAttackResult = "Skill waiting: fixed skill sequence cooldown.";
+            return false;
+        }
+
+        nextSkillCycleIndex = Mathf.Clamp(nextSkillCycleIndex, 0, skillCycleCount - 1);
+        HWJ_SkillEntryData skillEntry = skillCycle.skills[nextSkillCycleIndex];
+
+        if (!CanTrySkillEntry(skillEntry))
+        {
+            lastAttackResult = $"Skill failed: invalid fixed skill slot {nextSkillCycleIndex + 1}.";
+            return false;
+        }
+
+        if (!skillActionSystem.TryGetSkillAction(skillEntry.skillId, out HWJ_SkillActionDataSO skillAction))
+        {
+            lastAttackResult = $"Skill failed: missing action data for fixed skill slot {nextSkillCycleIndex + 1}.";
+            return false;
+        }
+
+        float skillRange = skillAction.Range > 0f ? skillAction.Range : GetAttackRange();
+
+        if (distanceToTarget > skillRange)
+        {
+            lastAttackResult = $"Skill failed: fixed skill slot {nextSkillCycleIndex + 1} target out of range.";
+            return false;
+        }
+
+        if (!skillActionSystem.IsSkillReady(skillEntry.skillId))
+        {
+            lastAttackResult = $"Skill failed: fixed skill slot {nextSkillCycleIndex + 1} cooldown.";
+            return false;
+        }
+
+        StartPreparedSkill(skillEntry, skillAction, target, nextSkillCycleIndex, skillCycleCount);
+        lastAttackResult = $"Preparing fixed skill {nextSkillCycleIndex + 1}: {skillEntry.skillId}.";
+        return true;
     }
 
     private void StartPreparedSkill(
         HWJ_SkillEntryData skillEntry,
         HWJ_SkillActionDataSO skillAction,
         Transform skillTarget,
-        float useIntervalSeconds)
+        int skillCycleIndex,
+        int skillCycleCount)
     {
         if (skillPrepareRoutine != null)
         {
@@ -227,7 +274,8 @@ public class HWJ_EnemyAttackSystem : MonoBehaviour
             skillEntry,
             skillAction,
             skillTarget,
-            useIntervalSeconds));
+            skillCycleIndex,
+            skillCycleCount));
     }
 
     /// <summary>
@@ -238,11 +286,12 @@ public class HWJ_EnemyAttackSystem : MonoBehaviour
         HWJ_SkillEntryData skillEntry,
         HWJ_SkillActionDataSO skillAction,
         Transform skillTarget,
-        float useIntervalSeconds)
+        int skillCycleIndex,
+        int skillCycleCount)
     {
         isPreparingSkill = true;
         runtimeStatus?.SetState(HWJ_RuntimeState.Attack);
-        skillActionSystem?.BlockNavigationForSkill(skillWarningDelaySeconds + 0.05f, false);
+        skillActionSystem?.BlockNavigationForSkill(Mathf.Max(0f, skillWarningDelaySeconds), false);
         float lockedDirectionX = ResolveTargetDirection(skillTarget);
         Vector2 lockedDirection = new Vector2(lockedDirectionX, 0f);
         ShowSkillWarning(skillAction, lockedDirectionX);
@@ -268,6 +317,7 @@ public class HWJ_EnemyAttackSystem : MonoBehaviour
         {
             lastDamageApplied = skillActionSystem.LastDamageApplied;
             lastAttackResult = skillActionSystem.LastSkillResult;
+            RegisterCompletedSkillCycleStep(skillCycleIndex, skillCycleCount, cooldownSeconds);
         }
         else
         {
@@ -276,7 +326,6 @@ public class HWJ_EnemyAttackSystem : MonoBehaviour
                 : "Skill failed: missing skill action system.";
         }
 
-        nextAttackTime = Time.time + Mathf.Max(0f, useIntervalSeconds);
         isPreparingSkill = false;
         skillPrepareRoutine = null;
     }
@@ -301,7 +350,66 @@ public class HWJ_EnemyAttackSystem : MonoBehaviour
             return enemyData.AI.defaultSkillCooldownSeconds;
         }
 
-        return 0f;
+        return Mathf.Max(0f, fallbackMonsterSkillCooldownSeconds);
+    }
+
+    private float ResolveSkillCycleDelaySeconds()
+    {
+        if (dataResolver != null
+            && dataResolver.TryGetTypeData(out HWJ_EnemyTypeDataSO enemyData)
+            && enemyData.AI != null
+            && enemyData.AI.skillCycleResetDelaySeconds > 0f)
+        {
+            return enemyData.AI.skillCycleResetDelaySeconds;
+        }
+
+        return Mathf.Max(0f, fallbackSkillCycleDelaySeconds);
+    }
+
+    private int GetSkillCycleCount(HWJ_SkillSetData skillCycle)
+    {
+        if (skillCycle == null || skillCycle.skills == null)
+        {
+            return 0;
+        }
+
+        int requestedCount = DefaultMonsterSkillCycleCount;
+
+        if (dataResolver != null
+            && dataResolver.TryGetTypeData(out HWJ_EnemyTypeDataSO enemyData)
+            && enemyData.AI != null
+            && enemyData.AI.skillCycleCount > 0)
+        {
+            requestedCount = enemyData.AI.skillCycleCount;
+        }
+        else if (fallbackSkillCycleCount > 0)
+        {
+            requestedCount = fallbackSkillCycleCount;
+        }
+
+        return Mathf.Clamp(requestedCount, 0, skillCycle.skills.Length);
+    }
+
+    private void RegisterCompletedSkillCycleStep(int skillCycleIndex, int skillCycleCount, float cooldownSeconds)
+    {
+        if (skillCycleCount <= 0)
+        {
+            nextSkillCycleIndex = 0;
+            nextSkillTime = Time.time;
+            return;
+        }
+
+        bool isLastSkillInCycle = skillCycleIndex >= skillCycleCount - 1;
+
+        if (isLastSkillInCycle)
+        {
+            nextSkillCycleIndex = 0;
+            nextSkillTime = Time.time + ResolveSkillCycleDelaySeconds();
+            return;
+        }
+
+        nextSkillCycleIndex = Mathf.Clamp(skillCycleIndex + 1, 0, skillCycleCount - 1);
+        nextSkillTime = Time.time + Mathf.Max(0f, cooldownSeconds);
     }
 
     private bool CanCompletePreparedSkill(HWJ_SkillActionDataSO skillAction, Transform skillTarget)
@@ -508,14 +616,15 @@ public class HWJ_EnemyAttackSystem : MonoBehaviour
 
     private float GetAttackIntervalSeconds()
     {
-        float attackSpeed = runtimeStatus != null ? runtimeStatus.AttackSpeed : 0f;
-
-        if (attackSpeed > 0f)
+        if (dataResolver != null
+            && dataResolver.TryGetTypeData(out HWJ_EnemyTypeDataSO enemyData)
+            && enemyData.AI != null
+            && enemyData.AI.basicAttackIntervalSeconds > 0f)
         {
-            return 1f / attackSpeed;
+            return enemyData.AI.basicAttackIntervalSeconds;
         }
 
-        return fallbackAttackIntervalSeconds;
+        return Mathf.Max(0f, fallbackAttackIntervalSeconds);
     }
 
     private bool CanAttackTargetState()
@@ -577,6 +686,11 @@ public class HWJ_EnemyAttackSystem : MonoBehaviour
         if (combatExecutionSystem == null)
         {
             combatExecutionSystem = GetComponent<HWJ_CombatExecutionSystem>();
+
+            if (combatExecutionSystem == null)
+            {
+                combatExecutionSystem = gameObject.AddComponent<HWJ_CombatExecutionSystem>();
+            }
         }
 
         if (skillActionSystem == null)

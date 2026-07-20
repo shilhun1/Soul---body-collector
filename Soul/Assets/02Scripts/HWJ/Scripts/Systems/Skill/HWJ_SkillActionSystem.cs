@@ -889,7 +889,23 @@ public class HWJ_SkillActionSystem : MonoBehaviour
             playerSkillUnlock = GetComponent<HWJ_SkillUnlockSystem>();
         }
 
-        if (playerSkillUnlock == null || !playerSkillUnlock.HasSkillDefinition(skillActionId))
+        if (playerSkillUnlock == null)
+        {
+            return true;
+        }
+
+        if (playerSkillUnlock.HasSkillNodeDefinitionForSkillAction(skillActionId))
+        {
+            if (playerSkillUnlock.IsSkillActionUnlockedBySkillNodeProgress(skillActionId))
+            {
+                return true;
+            }
+
+            lastSkillResult = $"Skill failed: {skillActionId} skill node is locked.";
+            return false;
+        }
+
+        if (!playerSkillUnlock.HasSkillDefinition(skillActionId))
         {
             return true;
         }

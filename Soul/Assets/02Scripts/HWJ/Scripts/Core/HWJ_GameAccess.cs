@@ -67,6 +67,18 @@ public static class HWJ_GameAccess
         return HasManager && Manager.TryGetSkillAction(skillActionId, out skillActionData);
     }
 
+    public static bool TryGetSkillNode(string nodeId, out HWJ_SkillNodeDataSO skillNodeData)
+    {
+        skillNodeData = null;
+        return HasManager && Manager.TryGetSkillNode(nodeId, out skillNodeData);
+    }
+
+    public static bool TryGetSkillNodeBySkillAction(string skillActionId, out HWJ_SkillNodeDataSO skillNodeData)
+    {
+        skillNodeData = null;
+        return HasManager && Manager.TryGetSkillNodeBySkillAction(skillActionId, out skillNodeData);
+    }
+
     public static bool TryGetGameplayRule(string ruleId, out HWJ_GameplayRuleSO gameplayRule)
     {
         gameplayRule = null;

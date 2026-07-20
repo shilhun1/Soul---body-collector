@@ -187,6 +187,18 @@ public class HWJ_InteractionData
     public float interactionRange;
 }
 
+[Serializable]
+public class HWJ_StatOrbRewardEntry
+{
+    [InspectorName("스탯 구슬 ID")]
+    [Tooltip("랜덤 후보로 사용할 StatOrbDataSO의 고정 ID입니다.")]
+    public string statOrbId;
+
+    [InspectorName("가중치")]
+    [Tooltip("랜덤 선택 가중치입니다. 0 이하면 후보에서 제외됩니다.")]
+    public int weight = 1;
+}
+
 /// <summary>
 /// 적이나 보스를 처치했을 때 지급할 보상 정보를 관리합니다.
 /// 경험치, 스킬 포인트, 능력치 구슬 드롭 시스템에서 사용합니다.
@@ -201,10 +213,32 @@ public class HWJ_RewardData
     [InspectorName("스킬 포인트 보상")]
     [Tooltip("처치 또는 완료 시 지급할 스킬 포인트입니다.")]
     public int skillPointReward;
+    [InspectorName("경험치 구슬로 지급")]
+    [Tooltip("켜면 경험치를 즉시 지급하지 않고 경험치 구슬 프리팹으로 생성합니다. 프리팹이 없으면 즉시 지급으로 처리합니다.")]
+    public bool dropsExperienceOrb;
+    [InspectorName("경험치 구슬 프리팹")]
+    [Tooltip("경험치를 담아 생성할 구슬 프리팹입니다. HWJ_ExperienceOrbPickupSystem이 없으면 생성 시 자동으로 붙입니다.")]
+    public GameObject experienceOrbPrefab;
+    [InspectorName("경험치 구슬 생성 반경")]
+    [Tooltip("처치 위치에서 경험치 구슬이 살짝 흩어져 생성되는 반경입니다.")]
+    public float experienceOrbSpawnRadius;
     [InspectorName("스탯 구슬 드롭")]
     [Tooltip("켜면 스탯 구슬 보상을 드롭합니다.")]
     public bool dropsStatOrb;
+    [InspectorName("스탯 구슬 드롭 확률")]
+    [Tooltip("스탯 구슬이 드롭될 확률입니다. 파워 몬스터 확정 플래그가 켜진 적은 이 값을 무시하고 100%로 처리합니다.")]
+    [Range(0f, 1f)]
+    public float statOrbDropChance = 1f;
+    [InspectorName("스탯 구슬 생성 반경")]
+    [Tooltip("처치 위치에서 스탯 구슬이 살짝 흩어져 생성되는 반경입니다.")]
+    public float statOrbSpawnRadius = 0.75f;
     [InspectorName("스탯 구슬 ID")]
-    [Tooltip("드롭할 StatOrbDataSO의 ID입니다.")]
+    [Tooltip("고정으로 드롭할 StatOrbDataSO의 ID입니다. 랜덤 후보가 있으면 랜덤 후보를 우선 사용합니다.")]
     public string statOrbId;
+    [InspectorName("랜덤 스탯 구슬 후보")]
+    [Tooltip("여러 구슬 중 하나를 랜덤으로 드롭할 때 사용합니다.")]
+    public HWJ_StatOrbRewardEntry[] statOrbCandidates;
+    [InspectorName("후보 없을 때 전체 구슬 사용")]
+    [Tooltip("켜면 고정 ID와 랜덤 후보가 비어 있을 때 GameplayDatabase에 등록된 모든 StatOrbDataSO 중 하나를 고릅니다.")]
+    public bool useAllRegisteredStatOrbsWhenEmpty;
 }

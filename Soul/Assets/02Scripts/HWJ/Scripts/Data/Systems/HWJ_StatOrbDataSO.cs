@@ -20,6 +20,9 @@ public class HWJ_StatOrbDataSO : ScriptableObject
     [Tooltip("증가시킬 수치입니다.")]
     [InspectorName("증가량")]
     [SerializeField] private float amount;
+    [Tooltip("같은 구슬을 영구 성장으로 몇 번까지 중첩 적용할 수 있는지 정합니다.")]
+    [InspectorName("최대 중첩 횟수")]
+    [SerializeField] private int maxStackCount = 1;
     [Tooltip("켜면 스테이지/씬이 바뀌어도 유지되는 영구 성장으로 사용합니다.")]
     [InspectorName("영구 적용")]
     [SerializeField] private bool isPermanent = true;
@@ -38,6 +41,8 @@ public class HWJ_StatOrbDataSO : ScriptableObject
     public string DisplayName => displayName;
     public HWJ_StatOrbType OrbType => orbType;
     public float Amount => amount;
+    public int ConfiguredMaxStackCount => maxStackCount;
+    public int MaxStackCount => Mathf.Max(1, maxStackCount);
     public bool IsPermanent => isPermanent;
     public float DurationSeconds => durationSeconds;
     public GameObject OrbPrefab => orbPrefab;

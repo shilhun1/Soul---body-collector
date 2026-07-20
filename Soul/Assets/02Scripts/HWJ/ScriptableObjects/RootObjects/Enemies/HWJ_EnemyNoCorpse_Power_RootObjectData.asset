@@ -1,0 +1,75 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5886d2e199e90b44e8180bfd0e5de850, type: 3}
+  m_Name: HWJ_EnemyNoCorpse_Power_RootObjectData
+  m_EditorClassIdentifier: Assembly-CSharp::HWJ_RootObjectDataSO
+  identity:
+    objectId: enemy_nocorpse_power
+    displayName: Power No-Corpse Enemy
+    objectType: 1
+    faction: 3
+    weaponType: 0
+  status:
+    level: 1
+    maxHp: 120
+    moveSpeed: 3
+    attackPower: 12
+    defense: 1
+    attackSpeed: 1
+    bodyWeight: 1.2
+  model:
+    modelPrefab: {fileID: 5507318490182486705, guid: 0c2a5a6886842d64ead24b6c97ccf13c, type: 3}
+    animatorController: {fileID: 0}
+    heartEffectSocketName: 
+    hitEffectSocketName: 
+    possessedEyeSocketName: 
+  damage:
+    damageType: 0
+    baseDamage: 6
+    criticalChance: 0
+    criticalMultiplier: 1.5
+    knockbackPower: 4
+    hitStunSeconds: 0
+    hitStopSeconds: 0
+    sameTargetHitCooldownSeconds: 0.08
+  receivedDamage:
+    damageMultiplier: 1
+    invincibleSecondsAfterHit: 0
+    isInvincible: 0
+    ignoreTrapDamage: 0
+    ignoreEnemyDamage: 0
+    hitStunSeconds: 0.18
+    hitReactionImmuneSeconds: 0
+    maxHitReactionsPerWindow: 0
+    hitReactionWindowSeconds: 1
+    hitReactionLimitImmuneSeconds: 0
+    knockbackWeightMultiplier: 1.2
+    hasSuperArmor: 0
+    ignoreHitStun: 0
+    ignoreKnockback: 0
+  interaction:
+    canInteract: 0
+    canBeTargeted: 1
+    interactionRange: 0
+  reward:
+    experienceReward: 10
+    skillPointReward: 0
+    dropsExperienceOrb: 1
+    experienceOrbPrefab: {fileID: 0}
+    experienceOrbSpawnRadius: 0.75
+    dropsStatOrb: 1
+    statOrbDropChance: 1
+    statOrbSpawnRadius: 0.75
+    statOrbId: 
+    statOrbCandidates: []
+    useAllRegisteredStatOrbsWhenEmpty: 1
+  selectedTypeData: {fileID: 11400000, guid: bb000000000000000000000000000007, type: 2}

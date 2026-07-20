@@ -450,6 +450,7 @@ public class HWJ_SaveService : MonoBehaviour
         HWJ_PossessedBodySystem possessedBodyState = playerRuntimeContext.PossessedBodySystem;
         HWJ_LevelUpSystem levelProgressState = playerRuntimeContext.LevelProgressState;
         HWJ_SkillUnlockSystem skillUnlockState = playerRuntimeContext.SkillUnlockState;
+        HWJ_StatOrbProgressSystem statOrbProgressState = playerRuntimeContext.StatOrbProgressState;
 
         if (bodyData.hasActivePossessedBody)
         {
@@ -504,6 +505,7 @@ public class HWJ_SaveService : MonoBehaviour
             possessionState?.ClearPossessedBody(false, false, false);
         }
 
+        statOrbProgressState?.RestoreStatOrbStacks(growthData.statOrbStacks, statusState, gameplayDatabase);
         soulState?.RestoreSoulSnapshot(bodyData.ToRuntimeSnapshot());
         statusState?.RestoreHpSnapshot(statData.currentHp, statData.soulHp, statData.possessedBodyHp);
         decayState?.RestoreDecaySnapshot(bodyData.currentDecayValue);
@@ -518,7 +520,9 @@ public class HWJ_SaveService : MonoBehaviour
             growthData.currentLevel,
             growthData.currentExperience,
             growthData.skillPoint);
-        skillUnlockState?.RestoreUnlockedSkills(growthData.unlockedSkillIds);
+        skillUnlockState?.RestoreUnlockedSkills(
+            growthData.unlockedSkillIds,
+            growthData.unlockedSkillNodeIds);
         return HWJ_SaveOperationResult.Success(
             slotId,
             filePath,

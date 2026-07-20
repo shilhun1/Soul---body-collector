@@ -8,6 +8,24 @@ using UnityEngine.TestTools;
 
 public class HWJ_CoreSystemsPlayModeTests
 {
+    [UnitySetUp]
+    public IEnumerator HWJ_ResetPlayModeStateBeforeEachTest()
+    {
+        ResetStaticPlayModeState();
+        DestroyExistingHwjRuntimeObjects();
+        yield return null;
+        ResetStaticPlayModeState();
+    }
+
+    [UnityTearDown]
+    public IEnumerator HWJ_ResetPlayModeStateAfterEachTest()
+    {
+        ResetStaticPlayModeState();
+        DestroyExistingHwjRuntimeObjects();
+        yield return null;
+        ResetStaticPlayModeState();
+    }
+
     [UnityTest]
     public IEnumerator CombatSystem_AppliesDamageWithoutMutatingSourceData()
     {
@@ -361,6 +379,338 @@ public class HWJ_CoreSystemsPlayModeTests
         Object.Destroy(source);
         Object.Destroy(lightTarget);
         Object.Destroy(heavyTarget);
+    }
+
+    [UnityTest]
+    public IEnumerator LevelUpSystem_UsesPerLevelSkillPointRewards()
+    {
+        GameObject player = new GameObject("LevelRewardPlayer");
+        HWJ_LevelUpSystem level = player.AddComponent<HWJ_LevelUpSystem>();
+        HWJ_LevelUpDataSO levelData = CreateLevelUpData(
+            "test.level.variable.skill.point",
+            5,
+            1,
+            new[] { 10, 20, 30, 40 },
+            new[] { 1, 1, 1, 2 });
+        level.SetLevelUpData(levelData);
+        int skillPointChangedCount = 0;
+        HWJ_SkillPointChangedEvent lastSkillPointEvent = default(HWJ_SkillPointChangedEvent);
+
+        void OnSkillPointChanged(HWJ_SkillPointChangedEvent skillPointEvent)
+        {
+            skillPointChangedCount++;
+            lastSkillPointEvent = skillPointEvent;
+        }
+
+        HWJ_GameplayEvents.SkillPointChanged += OnSkillPointChanged;
+        try
+        {
+            yield return null;
+
+            level.AddExperience(100);
+
+            Assert.AreEqual(5, level.CurrentLevel);
+            Assert.AreEqual(0, level.CurrentExperience);
+            Assert.AreEqual(5, level.SkillPoint);
+            Assert.AreEqual(1, skillPointChangedCount);
+            Assert.AreEqual(0, lastSkillPointEvent.PreviousSkillPoint);
+            Assert.AreEqual(5, lastSkillPointEvent.CurrentSkillPoint);
+            Assert.AreEqual(HWJ_SkillPointChangeReason.LevelUpReward, lastSkillPointEvent.Reason);
+        }
+        finally
+        {
+            HWJ_GameplayEvents.SkillPointChanged -= OnSkillPointChanged;
+            Object.Destroy(player);
+            Object.Destroy(levelData);
+        }
+    }
+
+    [UnityTest]
+    public IEnumerator ExperienceOrbPickupSystem_CollectAddsExperienceOnce()
+    {
+        GameObject player = new GameObject("ExperienceOrbPlayer");
+        HWJ_LevelUpSystem level = player.AddComponent<HWJ_LevelUpSystem>();
+        HWJ_LevelUpDataSO levelData = CreateLevelUpData("test.level.experience.orb", 3, 1, new[] { 10, 20 });
+        level.SetLevelUpData(levelData);
+
+        GameObject orb = new GameObject("ExperienceOrb");
+        HWJ_ExperienceOrbPickupSystem pickup = orb.AddComponent<HWJ_ExperienceOrbPickupSystem>();
+        pickup.Initialize(15, level, player.transform);
+
+        yield return null;
+
+        Assert.IsTrue(pickup.TryCollect(player));
+        Assert.AreEqual(2, level.CurrentLevel);
+        Assert.AreEqual(5, level.CurrentExperience);
+        Assert.IsTrue(level.TryGetRequiredExperienceForCurrentLevel(out int requiredExperience));
+        Assert.AreEqual(20, requiredExperience);
+        Assert.AreEqual(0.25f, level.CurrentExperienceRatio, 0.001f);
+        Assert.IsFalse(pickup.TryCollect(player));
+        Assert.AreEqual(2, level.CurrentLevel);
+        Assert.AreEqual(5, level.CurrentExperience);
+
+        Object.Destroy(player);
+        Object.Destroy(orb);
+        Object.Destroy(levelData);
+    }
+
+    [UnityTest]
+    public IEnumerator StatOrbProgressSystem_AppliesPermanentStatOrbOnlyUntilMaxStack()
+    {
+        GameObject player = CreateCombatObject(
+            "StatOrbStackPlayer",
+            HWJ_ObjectType.Player,
+            HWJ_Faction.Player,
+            20f,
+            5f,
+            5f,
+            CreatePlayerTypeData(true));
+        HWJ_RuntimeStatusSystem status = player.GetComponent<HWJ_RuntimeStatusSystem>();
+        HWJ_StatOrbProgressSystem progress = player.AddComponent<HWJ_StatOrbProgressSystem>();
+        HWJ_StatOrbDataSO statOrb = CreateStatOrbData(
+            "stat.test.attack.stack",
+            HWJ_StatOrbType.AttackPower,
+            2f,
+            2);
+        int stackChangedCount = 0;
+        HWJ_StatOrbStackChangedEvent lastStackEvent = default(HWJ_StatOrbStackChangedEvent);
+
+        void OnStatOrbStackChanged(HWJ_StatOrbStackChangedEvent stackEvent)
+        {
+            stackChangedCount++;
+            lastStackEvent = stackEvent;
+        }
+
+        HWJ_GameplayEvents.StatOrbStackChanged += OnStatOrbStackChanged;
+        try
+        {
+            yield return null;
+
+            Assert.IsTrue(status.TryApplyStatOrb(statOrb));
+            Assert.IsTrue(status.TryApplyStatOrb(statOrb));
+            Assert.IsFalse(status.TryApplyStatOrb(statOrb));
+            Assert.AreEqual(2, progress.GetStackCount(statOrb.OrbId));
+            Assert.AreEqual(9f, status.AttackPower, 0.001f);
+            Assert.AreEqual(2, stackChangedCount);
+            Assert.AreEqual(statOrb.OrbId, lastStackEvent.StatOrbId);
+            Assert.AreEqual(1, lastStackEvent.PreviousStackCount);
+            Assert.AreEqual(2, lastStackEvent.CurrentStackCount);
+            Assert.AreEqual(2, lastStackEvent.MaxStackCount);
+            Assert.IsFalse(lastStackEvent.RestoredFromSave);
+        }
+        finally
+        {
+            HWJ_GameplayEvents.StatOrbStackChanged -= OnStatOrbStackChanged;
+            Object.Destroy(player);
+            Object.Destroy(statOrb);
+        }
+    }
+
+    [UnityTest]
+    public IEnumerator SaveService_CapturesAndRestoresStatOrbStacks()
+    {
+        const string statOrbId = "stat.save.attack.stack";
+        GameObject sourcePlayer = CreatePlayerObject("StatOrbSaveSourcePlayer", true);
+        HWJ_StatOrbProgressSystem sourceProgress = sourcePlayer.AddComponent<HWJ_StatOrbProgressSystem>();
+        HWJ_RuntimeStatusSystem sourceStatus = sourcePlayer.GetComponent<HWJ_RuntimeStatusSystem>();
+        HWJ_StatOrbDataSO statOrb = CreateStatOrbData(
+            statOrbId,
+            HWJ_StatOrbType.AttackPower,
+            2f,
+            5);
+        HWJ_GameplayDatabaseSO runtimeDatabase = ScriptableObject.CreateInstance<HWJ_GameplayDatabaseSO>();
+        SetPrivateField(runtimeDatabase, "statOrbs", new[] { statOrb });
+
+        yield return null;
+
+        Assert.IsTrue(sourceStatus.TryApplyStatOrb(statOrb));
+        Assert.IsTrue(sourceStatus.TryApplyStatOrb(statOrb));
+        Assert.AreEqual(2, sourceProgress.GetStackCount(statOrbId));
+
+        GameObject sourceSaveObject = new GameObject("StatOrbSaveSourceService");
+        HWJ_SaveService sourceSaveService = sourceSaveObject.AddComponent<HWJ_SaveService>();
+        sourceSaveService.SetRuntimeSources(
+            sourcePlayer.GetComponent<HWJ_RuntimeObjectContext>(),
+            null,
+            runtimeDatabase);
+
+        HWJ_SaveOperationResult captureResult = sourceSaveService.TryCreateCurrentSaveData(
+            out HWJ_GameSaveData saveData,
+            "stat_orb_stack_roundtrip");
+
+        Assert.IsTrue(captureResult.Succeeded, captureResult.Message);
+        Assert.NotNull(saveData.player.growth.statOrbStacks);
+        Assert.AreEqual(1, saveData.player.growth.statOrbStacks.Count);
+        Assert.AreEqual(statOrbId, saveData.player.growth.statOrbStacks[0].statOrbId);
+        Assert.AreEqual(2, saveData.player.growth.statOrbStacks[0].stackCount);
+
+        GameObject loadedPlayer = CreatePlayerObject("StatOrbSaveLoadedPlayer", true);
+        HWJ_StatOrbProgressSystem loadedProgress = loadedPlayer.AddComponent<HWJ_StatOrbProgressSystem>();
+        HWJ_RuntimeStatusSystem loadedStatus = loadedPlayer.GetComponent<HWJ_RuntimeStatusSystem>();
+        GameObject loadedSaveObject = new GameObject("StatOrbSaveLoadedService");
+        HWJ_SaveService loadedSaveService = loadedSaveObject.AddComponent<HWJ_SaveService>();
+        loadedSaveService.SetRuntimeSources(
+            loadedPlayer.GetComponent<HWJ_RuntimeObjectContext>(),
+            null,
+            runtimeDatabase);
+
+        yield return null;
+
+        HWJ_SaveOperationResult applyResult = loadedSaveService.ApplySaveDataToRuntime(saveData);
+
+        Assert.IsTrue(applyResult.Succeeded, applyResult.Message);
+        Assert.AreEqual(2, loadedProgress.GetStackCount(statOrbId));
+        Assert.AreEqual(9f, loadedStatus.AttackPower, 0.001f);
+
+        sourceSaveObject.SetActive(false);
+        loadedSaveObject.SetActive(false);
+        Object.Destroy(sourceSaveObject);
+        Object.Destroy(loadedSaveObject);
+        Object.Destroy(sourcePlayer);
+        Object.Destroy(loadedPlayer);
+        Object.Destroy(runtimeDatabase);
+        Object.Destroy(statOrb);
+    }
+
+    [UnityTest]
+    public IEnumerator RewardUtility_GuaranteedPowerMonsterDropsRegisteredRandomStatOrb()
+    {
+        GameObject player = CreateCombatObject(
+            "PowerMonsterRewardPlayer",
+            HWJ_ObjectType.Player,
+            HWJ_Faction.Player,
+            20f,
+            5f,
+            5f,
+            CreatePlayerTypeData(true));
+        player.AddComponent<HWJ_StatOrbProgressSystem>();
+        HWJ_StatOrbDataSO attackOrb = CreateStatOrbData(
+            "stat.reward.power.attack",
+            HWJ_StatOrbType.AttackPower,
+            2f,
+            10);
+        HWJ_StatOrbDataSO defenseOrb = CreateStatOrbData(
+            "stat.reward.power.defense",
+            HWJ_StatOrbType.Defense,
+            1f,
+            10);
+        HWJ_GameplayDatabaseSO runtimeDatabase = ScriptableObject.CreateInstance<HWJ_GameplayDatabaseSO>();
+        SetPrivateField(runtimeDatabase, "statOrbs", new[] { attackOrb, defenseOrb });
+        HWJ_GameManager manager = CreateGameManagerWithDatabase(runtimeDatabase);
+        HWJ_EnemyTypeDataSO powerEnemyType = CreateEnemyTypeData(true);
+        SetPrivateField(powerEnemyType.Role, "guaranteesStatOrb", true);
+        GameObject enemy = CreateCombatObject(
+            "PowerMonsterRewardEnemy",
+            HWJ_ObjectType.Enemy,
+            HWJ_Faction.Monster,
+            5f,
+            0f,
+            0f,
+            powerEnemyType);
+
+        yield return null;
+
+        HWJ_RewardGrantResult rewardResult = HWJ_RewardUtility.TryGrantKillRewardDetailed(
+            enemy.GetComponent<HWJ_RootObjectDataResolver>(),
+            player.GetComponent<HWJ_RootObjectDataResolver>(),
+            enemy.transform.position);
+
+        Assert.IsTrue(rewardResult.Succeeded, rewardResult.Message);
+        Assert.IsTrue(rewardResult.StatOrbGranted);
+        Assert.AreEqual(1, player.GetComponent<HWJ_StatOrbProgressSystem>().StackEntryCount);
+
+        Object.Destroy(manager.gameObject);
+        Object.Destroy(player);
+        Object.Destroy(enemy);
+        Object.Destroy(runtimeDatabase);
+        Object.Destroy(attackOrb);
+        Object.Destroy(defenseOrb);
+        Object.Destroy(powerEnemyType);
+    }
+
+    [UnityTest]
+    public IEnumerator RewardUtility_RandomStatOrbCandidateSpawnsPickupInitializedWithSelectedData()
+    {
+        const string statOrbId = "stat.reward.spawn.attack";
+        GameObject player = CreateCombatObject(
+            "RandomStatOrbSpawnPlayer",
+            HWJ_ObjectType.Player,
+            HWJ_Faction.Player,
+            20f,
+            5f,
+            5f,
+            CreatePlayerTypeData(true));
+        player.AddComponent<HWJ_StatOrbProgressSystem>();
+        HWJ_RuntimeStatusSystem playerStatus = player.GetComponent<HWJ_RuntimeStatusSystem>();
+        GameObject statOrbPrefab = new GameObject("RuntimeStatOrbPrefab");
+        statOrbPrefab.AddComponent<HWJ_StatOrbPickupSystem>();
+        HWJ_StatOrbDataSO statOrb = CreateStatOrbData(
+            statOrbId,
+            HWJ_StatOrbType.AttackPower,
+            2f,
+            10);
+        SetPrivateField(statOrb, "orbPrefab", statOrbPrefab);
+        HWJ_GameplayDatabaseSO runtimeDatabase = ScriptableObject.CreateInstance<HWJ_GameplayDatabaseSO>();
+        SetPrivateField(runtimeDatabase, "statOrbs", new[] { statOrb });
+        HWJ_GameManager manager = CreateGameManagerWithDatabase(runtimeDatabase);
+        GameObject enemy = CreateCombatObject(
+            "RandomStatOrbSpawnEnemy",
+            HWJ_ObjectType.Enemy,
+            HWJ_Faction.Monster,
+            5f,
+            0f,
+            0f,
+            CreateEnemyTypeData(true));
+        HWJ_RewardData rewardData = enemy.GetComponent<HWJ_RootObjectDataResolver>().Reward;
+        rewardData.dropsStatOrb = true;
+        rewardData.statOrbDropChance = 1f;
+        rewardData.statOrbSpawnRadius = 0f;
+        rewardData.statOrbCandidates = new[]
+        {
+            new HWJ_StatOrbRewardEntry
+            {
+                statOrbId = statOrbId,
+                weight = 1
+            }
+        };
+
+        yield return null;
+
+        HWJ_RewardGrantResult rewardResult = HWJ_RewardUtility.TryGrantKillRewardDetailed(
+            enemy.GetComponent<HWJ_RootObjectDataResolver>(),
+            player.GetComponent<HWJ_RootObjectDataResolver>(),
+            enemy.transform.position);
+
+        Assert.IsTrue(rewardResult.Succeeded, rewardResult.Message);
+        Assert.IsTrue(rewardResult.StatOrbGranted);
+        Assert.AreEqual(5f, playerStatus.AttackPower, 0.001f);
+
+        HWJ_StatOrbPickupSystem[] pickups = Object.FindObjectsByType<HWJ_StatOrbPickupSystem>(
+            FindObjectsInactive.Include,
+            FindObjectsSortMode.None);
+        HWJ_StatOrbPickupSystem spawnedPickup = null;
+
+        for (int i = 0; i < pickups.Length; i++)
+        {
+            if (pickups[i] != null && pickups[i].gameObject != statOrbPrefab)
+            {
+                spawnedPickup = pickups[i];
+                break;
+            }
+        }
+
+        Assert.NotNull(spawnedPickup);
+        Assert.AreSame(statOrb, spawnedPickup.StatOrbData);
+        Assert.IsTrue(spawnedPickup.TryCollect(playerStatus));
+        Assert.AreEqual(7f, playerStatus.AttackPower, 0.001f);
+
+        Object.Destroy(manager.gameObject);
+        Object.Destroy(player);
+        Object.Destroy(enemy);
+        Object.Destroy(statOrbPrefab);
+        Object.Destroy(spawnedPickup.gameObject);
+        Object.Destroy(runtimeDatabase);
+        Object.Destroy(statOrb);
     }
 
     [UnityTest]
@@ -835,6 +1185,96 @@ public class HWJ_CoreSystemsPlayModeTests
     }
 
     [UnityTest]
+    public IEnumerator SaveService_RoundTripRestoresSkillNodeUnlocksSeparately()
+    {
+        const string skillNodeId = "S_NODE_SAVE_ROUNDTRIP";
+        const string skillActionId = "skill.save.node.roundtrip";
+
+        GameObject sourcePlayer = CreatePlayerObject("SkillNodeSaveSourcePlayer", true);
+        HWJ_LevelUpSystem sourceLevel = sourcePlayer.AddComponent<HWJ_LevelUpSystem>();
+        HWJ_LevelUpDataSO sourceLevelData = CreateLevelUpData("test.level.skill_node.save.source", 3, 1, new[] { 10, 20 });
+        sourceLevel.SetLevelUpData(sourceLevelData);
+        HWJ_SkillUnlockSystem sourceUnlock = sourcePlayer.AddComponent<HWJ_SkillUnlockSystem>();
+        HWJ_SkillActionDataSO skillAction = CreateSkillActionData(skillActionId, HWJ_SkillActionType.Buff);
+        HWJ_SkillNodeDataSO skillNode = CreateSkillNodeData(
+            skillNodeId,
+            "1101",
+            HWJ_WeaponType.Sword,
+            1,
+            null,
+            1,
+            1,
+            skillAction);
+        HWJ_GameplayDatabaseSO runtimeDatabase = ScriptableObject.CreateInstance<HWJ_GameplayDatabaseSO>();
+        SetPrivateField(runtimeDatabase, "skillActions", new[] { skillAction });
+        SetPrivateField(runtimeDatabase, "skillNodes", new[] { skillNode });
+        SetPrivateField(sourceUnlock, "gameplayDatabase", runtimeDatabase);
+
+        yield return null;
+
+        HWJ_SkillUnlockResult unlockResult = sourceUnlock.TryUnlockSkillNode(skillNodeId, false);
+
+        Assert.IsTrue(unlockResult.Succeeded, unlockResult.Message);
+        Assert.IsTrue(sourceUnlock.IsSkillNodeUnlocked(skillNodeId));
+        Assert.IsTrue(sourceUnlock.IsSkillActionUnlockedBySkillNodeProgress(skillActionId));
+        Assert.AreEqual(0, sourceUnlock.GetUnlockedSkillIds().Length);
+        CollectionAssert.Contains(sourceUnlock.GetUnlockedSkillNodeIds(), skillNodeId);
+
+        GameObject sourceSaveObject = new GameObject("SkillNodeSaveSourceService");
+        HWJ_SaveService sourceSaveService = sourceSaveObject.AddComponent<HWJ_SaveService>();
+        sourceSaveService.SetRuntimeSources(
+            sourcePlayer.GetComponent<HWJ_RuntimeObjectContext>(),
+            null,
+            runtimeDatabase);
+
+        HWJ_SaveOperationResult captureResult = sourceSaveService.TryCreateCurrentSaveData(
+            out HWJ_GameSaveData saveData,
+            "skill_node_roundtrip");
+
+        Assert.IsTrue(captureResult.Succeeded, captureResult.Message);
+        Assert.NotNull(saveData);
+        CollectionAssert.Contains(saveData.player.growth.unlockedSkillNodeIds, skillNodeId);
+        Assert.IsFalse(saveData.player.growth.unlockedSkillIds.Contains(skillNodeId));
+        Assert.IsFalse(saveData.player.growth.unlockedSkillIds.Contains(skillActionId));
+
+        GameObject loadedPlayer = CreatePlayerObject("SkillNodeSaveLoadedPlayer", true);
+        HWJ_LevelUpSystem loadedLevel = loadedPlayer.AddComponent<HWJ_LevelUpSystem>();
+        HWJ_LevelUpDataSO loadedLevelData = CreateLevelUpData("test.level.skill_node.save.loaded", 3, 1, new[] { 10, 20 });
+        loadedLevel.SetLevelUpData(loadedLevelData);
+        HWJ_SkillUnlockSystem loadedUnlock = loadedPlayer.AddComponent<HWJ_SkillUnlockSystem>();
+        SetPrivateField(loadedUnlock, "gameplayDatabase", runtimeDatabase);
+
+        GameObject loadedSaveObject = new GameObject("SkillNodeSaveLoadedService");
+        HWJ_SaveService loadedSaveService = loadedSaveObject.AddComponent<HWJ_SaveService>();
+        loadedSaveService.SetRuntimeSources(
+            loadedPlayer.GetComponent<HWJ_RuntimeObjectContext>(),
+            null,
+            runtimeDatabase);
+
+        yield return null;
+
+        HWJ_SaveOperationResult applyResult = loadedSaveService.ApplySaveDataToRuntime(saveData);
+
+        Assert.IsTrue(applyResult.Succeeded, applyResult.Message);
+        Assert.AreEqual(0, loadedUnlock.GetUnlockedSkillIds().Length);
+        CollectionAssert.Contains(loadedUnlock.GetUnlockedSkillNodeIds(), skillNodeId);
+        Assert.IsTrue(loadedUnlock.IsSkillNodeUnlocked(skillNodeId));
+        Assert.IsTrue(loadedUnlock.IsSkillActionUnlockedBySkillNodeProgress(skillActionId));
+
+        sourceSaveObject.SetActive(false);
+        loadedSaveObject.SetActive(false);
+        Object.Destroy(sourceSaveObject);
+        Object.Destroy(loadedSaveObject);
+        Object.Destroy(sourcePlayer);
+        Object.Destroy(loadedPlayer);
+        Object.Destroy(sourceLevelData);
+        Object.Destroy(loadedLevelData);
+        Object.Destroy(skillAction);
+        Object.Destroy(skillNode);
+        Object.Destroy(runtimeDatabase);
+    }
+
+    [UnityTest]
     public IEnumerator SaveMigrationService_CurrentSchemaSkipsMigration()
     {
         HWJ_GameSaveData saveData = new HWJ_GameSaveData
@@ -862,6 +1302,7 @@ public class HWJ_CoreSystemsPlayModeTests
         HWJ_GameSaveData legacySaveData = CreateValidSaveDataForValidation("migration.legacy");
         legacySaveData.schemaVersion = 0;
         legacySaveData.player.growth.unlockedSkillIds = null;
+        legacySaveData.player.growth.unlockedSkillNodeIds = null;
         legacySaveData.progression.defeatedEnemyRewardIds = null;
 
         yield return null;
@@ -877,6 +1318,8 @@ public class HWJ_CoreSystemsPlayModeTests
         Assert.AreSame(legacySaveData, migrationResult.SaveData);
         Assert.AreEqual(HWJ_SaveSchema.CurrentVersion, legacySaveData.schemaVersion);
         Assert.NotNull(legacySaveData.player.growth.unlockedSkillIds);
+        Assert.NotNull(legacySaveData.player.growth.unlockedSkillNodeIds);
+        Assert.NotNull(legacySaveData.player.growth.statOrbStacks);
         Assert.NotNull(legacySaveData.progression.defeatedEnemyRewardIds);
     }
 
@@ -1096,7 +1539,10 @@ public class HWJ_CoreSystemsPlayModeTests
         AssertSnapshotFieldsCoveredBySaveDto<HWJ_RuntimeStatSnapshot, HWJ_SaveRuntimeStatData>();
         AssertSnapshotFieldsCoveredBySaveDto<HWJ_RuntimeBodySnapshot, HWJ_SaveBodyRuntimeData>();
         AssertSnapshotFieldsCoveredBySaveDto<HWJ_RuntimeStageFlowSnapshot, HWJ_SaveStageRuntimeData>();
-        AssertSnapshotFieldsCoveredBySaveDto<HWJ_RuntimeGrowthSnapshot, HWJ_SaveGrowthRuntimeData>("unlockedSkillIds");
+        AssertSnapshotFieldsCoveredBySaveDto<HWJ_RuntimeGrowthSnapshot, HWJ_SaveGrowthRuntimeData>(
+            "unlockedSkillIds",
+            "unlockedSkillNodeIds",
+            "statOrbStacks");
         AssertRuntimeObjectSnapshotMappingContract();
     }
 
@@ -1111,6 +1557,7 @@ public class HWJ_CoreSystemsPlayModeTests
         HWJ_GameSaveData legacySaveData = CreateValidSaveDataForValidation(saveSlotId);
         legacySaveData.schemaVersion = 0;
         legacySaveData.player.growth.unlockedSkillIds = null;
+        legacySaveData.player.growth.unlockedSkillNodeIds = null;
         legacySaveData.progression.defeatedEnemyRewardIds = null;
 
         if (!string.IsNullOrEmpty(directoryPath))
@@ -1131,6 +1578,8 @@ public class HWJ_CoreSystemsPlayModeTests
         Assert.NotNull(loadedSaveData);
         Assert.AreEqual(HWJ_SaveSchema.CurrentVersion, loadedSaveData.schemaVersion);
         Assert.NotNull(loadedSaveData.player.growth.unlockedSkillIds);
+        Assert.NotNull(loadedSaveData.player.growth.unlockedSkillNodeIds);
+        Assert.NotNull(loadedSaveData.player.growth.statOrbStacks);
         Assert.NotNull(loadedSaveData.progression.defeatedEnemyRewardIds);
 
         saveObject.SetActive(false);
@@ -1260,7 +1709,9 @@ public class HWJ_CoreSystemsPlayModeTests
         levelProgress.SetLevelUpData(levelData);
         HWJ_SkillUnlockSystem unlockState = player.AddComponent<HWJ_SkillUnlockSystem>();
         int skillUnlockedCount = 0;
+        int skillPointChangedCount = 0;
         HWJ_SkillUnlockedEvent lastSkillEvent = default(HWJ_SkillUnlockedEvent);
+        HWJ_SkillPointChangedEvent lastSkillPointEvent = default(HWJ_SkillPointChangedEvent);
 
         void OnSkillUnlocked(HWJ_SkillUnlockedEvent skillEvent)
         {
@@ -1268,44 +1719,63 @@ public class HWJ_CoreSystemsPlayModeTests
             lastSkillEvent = skillEvent;
         }
 
+        void OnSkillPointChanged(HWJ_SkillPointChangedEvent skillPointEvent)
+        {
+            skillPointChangedCount++;
+            lastSkillPointEvent = skillPointEvent;
+        }
+
         HWJ_GameplayEvents.SkillUnlocked += OnSkillUnlocked;
+        HWJ_GameplayEvents.SkillPointChanged += OnSkillPointChanged;
+        try
+        {
+            yield return null;
 
-        yield return null;
+            Assert.IsTrue(unlockState.IsSkillUnlocked("skill.test.start"));
+            Assert.IsFalse(unlockState.IsSkillUnlocked("skill.test.level2"));
+            Assert.IsFalse(unlockState.IsSkillUnlocked("skill.test.manual"));
 
-        Assert.IsTrue(unlockState.IsSkillUnlocked("skill.test.start"));
-        Assert.IsFalse(unlockState.IsSkillUnlocked("skill.test.level2"));
-        Assert.IsFalse(unlockState.IsSkillUnlocked("skill.test.manual"));
+            levelProgress.AddExperience(10);
 
-        levelProgress.AddExperience(10);
+            Assert.AreEqual(2, levelProgress.CurrentLevel);
+            Assert.AreEqual(1, levelProgress.SkillPoint);
+            Assert.AreEqual(1, skillPointChangedCount);
+            Assert.AreEqual(HWJ_SkillPointChangeReason.LevelUpReward, lastSkillPointEvent.Reason);
+            Assert.AreEqual(1, lastSkillPointEvent.CurrentSkillPoint);
+            Assert.IsTrue(unlockState.IsSkillUnlocked("skill.test.level2"));
+            Assert.IsFalse(unlockState.IsSkillUnlocked("skill.test.manual"));
+            Assert.AreEqual(1, skillUnlockedCount);
+            Assert.AreEqual("skill.test.level2", lastSkillEvent.SkillId);
+            Assert.IsFalse(lastSkillEvent.SpentSkillPoint);
 
-        Assert.AreEqual(2, levelProgress.CurrentLevel);
-        Assert.AreEqual(1, levelProgress.SkillPoint);
-        Assert.IsTrue(unlockState.IsSkillUnlocked("skill.test.level2"));
-        Assert.IsFalse(unlockState.IsSkillUnlocked("skill.test.manual"));
-        Assert.AreEqual(1, skillUnlockedCount);
-        Assert.AreEqual("skill.test.level2", lastSkillEvent.SkillId);
-        Assert.IsFalse(lastSkillEvent.SpentSkillPoint);
+            HWJ_SkillUnlockResult manualResult = unlockState.TryUnlockSkill("skill.test.manual");
 
-        HWJ_SkillUnlockResult manualResult = unlockState.TryUnlockSkill("skill.test.manual");
+            Assert.IsTrue(manualResult.Succeeded);
+            Assert.AreEqual(HWJ_SkillUnlockFailureCode.None, manualResult.FailureCode);
+            Assert.AreEqual(0, levelProgress.SkillPoint);
+            Assert.AreEqual(2, skillPointChangedCount);
+            Assert.AreEqual(HWJ_SkillPointChangeReason.SkillUnlockSpend, lastSkillPointEvent.Reason);
+            Assert.AreEqual(1, lastSkillPointEvent.PreviousSkillPoint);
+            Assert.AreEqual(0, lastSkillPointEvent.CurrentSkillPoint);
+            Assert.IsTrue(unlockState.IsSkillUnlocked("skill.test.manual"));
+            Assert.AreEqual(2, skillUnlockedCount);
+            Assert.AreEqual("skill.test.manual", lastSkillEvent.SkillId);
+            Assert.IsTrue(lastSkillEvent.SpentSkillPoint);
 
-        Assert.IsTrue(manualResult.Succeeded);
-        Assert.AreEqual(HWJ_SkillUnlockFailureCode.None, manualResult.FailureCode);
-        Assert.AreEqual(0, levelProgress.SkillPoint);
-        Assert.IsTrue(unlockState.IsSkillUnlocked("skill.test.manual"));
-        Assert.AreEqual(2, skillUnlockedCount);
-        Assert.AreEqual("skill.test.manual", lastSkillEvent.SkillId);
-        Assert.IsTrue(lastSkillEvent.SpentSkillPoint);
+            HWJ_SkillUnlockResult duplicateResult = unlockState.TryUnlockSkill("skill.test.manual");
 
-        HWJ_SkillUnlockResult duplicateResult = unlockState.TryUnlockSkill("skill.test.manual");
-
-        Assert.IsFalse(duplicateResult.Succeeded);
-        Assert.AreEqual(HWJ_SkillUnlockFailureCode.AlreadyUnlocked, duplicateResult.FailureCode);
-        Assert.AreEqual(0, levelProgress.SkillPoint);
-        Assert.AreEqual(2, skillUnlockedCount);
-
-        HWJ_GameplayEvents.SkillUnlocked -= OnSkillUnlocked;
-        Object.Destroy(player);
-        Object.Destroy(levelData);
+            Assert.IsFalse(duplicateResult.Succeeded);
+            Assert.AreEqual(HWJ_SkillUnlockFailureCode.AlreadyUnlocked, duplicateResult.FailureCode);
+            Assert.AreEqual(0, levelProgress.SkillPoint);
+            Assert.AreEqual(2, skillUnlockedCount);
+        }
+        finally
+        {
+            HWJ_GameplayEvents.SkillUnlocked -= OnSkillUnlocked;
+            HWJ_GameplayEvents.SkillPointChanged -= OnSkillPointChanged;
+            Object.Destroy(player);
+            Object.Destroy(levelData);
+        }
     }
 
     [UnityTest]
@@ -3411,6 +3881,7 @@ public class HWJ_CoreSystemsPlayModeTests
         HWJ_EnemyAttackSystem attackSystem = enemy.AddComponent<HWJ_EnemyAttackSystem>();
         SetPrivateField(attackSystem, "skillWarningDelaySeconds", 0f);
         SetPrivateField(attackSystem, "fallbackAttackIntervalSeconds", 0f);
+        SetPrivateField(attackSystem, "autoAttackWhenNoBehaviorDriver", false);
 
         player.transform.position = Vector3.zero;
         enemy.transform.position = Vector3.right * 2f;
@@ -3428,6 +3899,143 @@ public class HWJ_CoreSystemsPlayModeTests
         Object.Destroy(player);
         Object.Destroy(enemy);
         Object.Destroy(skillAction);
+    }
+
+    [UnityTest]
+    public IEnumerator EnemyAttackSystem_UsesFixedOneTwoThreeSkillOrderBeforeCycleDelay()
+    {
+        GameObject player = CreatePlayerObject("EnemyFixedSkillOrderTarget", false, startAsSoul: false);
+        HWJ_EnemyTypeDataSO enemyData = CreateEnemyTypeData(true);
+        const float fixedSkillCooldownSeconds = 0.1f;
+        const float fixedSkillCycleResetDelaySeconds = 0.5f;
+        enemyData.State.attackRange = 0.5f;
+        enemyData.AI.defaultSkillCooldownSeconds = fixedSkillCooldownSeconds;
+        enemyData.AI.skillCycleResetDelaySeconds = fixedSkillCycleResetDelaySeconds;
+        enemyData.AI.skillCycleCount = 3;
+        enemyData.SkillCycle.skills = new[]
+        {
+            new HWJ_SkillEntryData { skillId = "skill.test.fixed_order_1", startsUnlocked = true },
+            new HWJ_SkillEntryData { skillId = "skill.test.fixed_order_2", startsUnlocked = true },
+            new HWJ_SkillEntryData { skillId = "skill.test.fixed_order_3", startsUnlocked = true }
+        };
+
+        HWJ_SkillActionDataSO firstSkill = CreateSkillActionData("skill.test.fixed_order_1", HWJ_SkillActionType.Buff);
+        HWJ_SkillActionDataSO secondSkill = CreateSkillActionData("skill.test.fixed_order_2", HWJ_SkillActionType.Buff);
+        HWJ_SkillActionDataSO thirdSkill = CreateSkillActionData("skill.test.fixed_order_3", HWJ_SkillActionType.Buff);
+        SetPrivateField(firstSkill, "range", 5f);
+        SetPrivateField(secondSkill, "range", 5f);
+        SetPrivateField(thirdSkill, "range", 5f);
+
+        GameObject enemy = CreateCombatObject(
+            "EnemyFixedSkillOrderUser",
+            HWJ_ObjectType.Enemy,
+            HWJ_Faction.Monster,
+            10f,
+            1f,
+            1f,
+            enemyData);
+        HWJ_SkillActionSystem skillActionSystem = enemy.AddComponent<HWJ_SkillActionSystem>();
+        SetPrivateField(skillActionSystem, "localSkillActions", new[] { firstSkill, secondSkill, thirdSkill });
+        HWJ_EnemyAttackSystem attackSystem = enemy.AddComponent<HWJ_EnemyAttackSystem>();
+        SetPrivateField(attackSystem, "skillWarningDelaySeconds", 0f);
+        SetPrivateField(attackSystem, "autoAttackWhenNoBehaviorDriver", false);
+
+        player.transform.position = Vector3.zero;
+        enemy.transform.position = Vector3.right * 2f;
+        attackSystem.SetTarget(player.transform);
+
+        yield return null;
+
+        Assert.IsTrue(attackSystem.TryAutoAttack(), attackSystem.LastAttackResult);
+        yield return null;
+        Assert.IsFalse(skillActionSystem.IsSkillReady("skill.test.fixed_order_1"));
+        Assert.IsTrue(skillActionSystem.IsSkillReady("skill.test.fixed_order_2"));
+
+        Assert.IsFalse(attackSystem.TryAutoAttack(), "The second skill must wait for the fixed 3-second-equivalent sequence cooldown.");
+        yield return new WaitForSeconds(fixedSkillCooldownSeconds + 0.02f);
+
+        Assert.IsTrue(attackSystem.TryAutoAttack(), attackSystem.LastAttackResult);
+        yield return null;
+        Assert.IsFalse(skillActionSystem.IsSkillReady("skill.test.fixed_order_2"));
+        Assert.IsTrue(skillActionSystem.IsSkillReady("skill.test.fixed_order_3"));
+
+        yield return new WaitForSeconds(fixedSkillCooldownSeconds + 0.02f);
+        Assert.IsTrue(attackSystem.TryAutoAttack(), attackSystem.LastAttackResult);
+        yield return null;
+        Assert.IsFalse(skillActionSystem.IsSkillReady("skill.test.fixed_order_3"));
+
+        yield return new WaitForSeconds(0.05f);
+        Assert.IsFalse(attackSystem.TryAutoAttack(), "After the third skill, the cycle reset delay must block skill 1.");
+
+        yield return new WaitForSeconds(fixedSkillCycleResetDelaySeconds + 0.02f);
+        Assert.IsTrue(attackSystem.TryAutoAttack(), attackSystem.LastAttackResult);
+        yield return null;
+        Assert.IsFalse(skillActionSystem.IsSkillReady("skill.test.fixed_order_1"));
+
+        Object.Destroy(player);
+        Object.Destroy(enemy);
+        Object.Destroy(firstSkill);
+        Object.Destroy(secondSkill);
+        Object.Destroy(thirdSkill);
+    }
+
+    [UnityTest]
+    public IEnumerator EnemyAttackSystem_UsesBasicAttackOnlyWhenSkillIsNotBeingUsed()
+    {
+        GameObject player = CreatePlayerObject("EnemyBasicAttackFallbackTarget", false, startAsSoul: false);
+        HWJ_RuntimeStatusSystem playerStatus = player.GetComponent<HWJ_RuntimeStatusSystem>();
+        HWJ_EnemyTypeDataSO enemyData = CreateEnemyTypeData(true);
+        enemyData.State.attackRange = 2.5f;
+        enemyData.AI.defaultSkillCooldownSeconds = 0.5f;
+        enemyData.AI.basicAttackIntervalSeconds = 1.5f;
+        enemyData.AI.skillCycleCount = 3;
+        enemyData.SkillCycle.skills = new[]
+        {
+            new HWJ_SkillEntryData { skillId = "skill.test.basic_fallback_1", startsUnlocked = true },
+            new HWJ_SkillEntryData { skillId = "skill.test.basic_fallback_2", startsUnlocked = true },
+            new HWJ_SkillEntryData { skillId = "skill.test.basic_fallback_3", startsUnlocked = true }
+        };
+
+        HWJ_SkillActionDataSO firstSkill = CreateSkillActionData("skill.test.basic_fallback_1", HWJ_SkillActionType.Buff);
+        HWJ_SkillActionDataSO secondSkill = CreateSkillActionData("skill.test.basic_fallback_2", HWJ_SkillActionType.Buff);
+        HWJ_SkillActionDataSO thirdSkill = CreateSkillActionData("skill.test.basic_fallback_3", HWJ_SkillActionType.Buff);
+        SetPrivateField(firstSkill, "range", 5f);
+        SetPrivateField(secondSkill, "range", 5f);
+        SetPrivateField(thirdSkill, "range", 5f);
+
+        GameObject enemy = CreateCombatObject(
+            "EnemyBasicAttackFallbackUser",
+            HWJ_ObjectType.Enemy,
+            HWJ_Faction.Monster,
+            10f,
+            1f,
+            2f,
+            enemyData);
+        HWJ_SkillActionSystem skillActionSystem = enemy.AddComponent<HWJ_SkillActionSystem>();
+        SetPrivateField(skillActionSystem, "localSkillActions", new[] { firstSkill, secondSkill, thirdSkill });
+        HWJ_EnemyAttackSystem attackSystem = enemy.AddComponent<HWJ_EnemyAttackSystem>();
+        SetPrivateField(attackSystem, "skillWarningDelaySeconds", 0f);
+        SetPrivateField(attackSystem, "autoAttackWhenNoBehaviorDriver", false);
+
+        player.transform.position = Vector3.zero;
+        enemy.transform.position = Vector3.right * 1f;
+        attackSystem.SetTarget(player.transform);
+
+        yield return null;
+
+        float hpBeforeSkill = playerStatus.CurrentHp;
+        Assert.IsTrue(attackSystem.TryAutoAttack(), attackSystem.LastAttackResult);
+        yield return null;
+        Assert.AreEqual(hpBeforeSkill, playerStatus.CurrentHp, 0.001f, "The buff skill should not apply basic attack damage.");
+
+        Assert.IsTrue(attackSystem.TryAutoAttack(), attackSystem.LastAttackResult);
+        Assert.Less(playerStatus.CurrentHp, hpBeforeSkill, "When the next skill is waiting, the monster should fall back to its basic attack.");
+
+        Object.Destroy(player);
+        Object.Destroy(enemy);
+        Object.Destroy(firstSkill);
+        Object.Destroy(secondSkill);
+        Object.Destroy(thirdSkill);
     }
 
     [UnityTest]
@@ -3619,6 +4227,64 @@ public class HWJ_CoreSystemsPlayModeTests
         gameObject.AddComponent<HWJ_RuntimeStatusSystem>();
         gameObject.AddComponent<HWJ_CombatSystem>();
         return gameObject;
+    }
+
+    private static HWJ_GameManager CreateGameManagerWithDatabase(HWJ_GameplayDatabaseSO database)
+    {
+        GameObject managerObject = new GameObject("RuntimeDatabaseGameManager");
+        managerObject.SetActive(false);
+        HWJ_GameManager manager = managerObject.AddComponent<HWJ_GameManager>();
+        SetPrivateField(manager, "database", database);
+        SetPrivateField(manager, "dontDestroyOnLoad", false);
+        SetPrivateField(manager, "autoFindPlayerResolverInScene", false);
+        managerObject.SetActive(true);
+        manager.ResolveSceneReferences();
+        manager.ApplyDatabaseLinks();
+        return manager;
+    }
+
+    private static void ResetStaticPlayModeState()
+    {
+        Time.timeScale = 1f;
+        HWJ_GameplayEvents.ClearAllSubscribers();
+    }
+
+    private static void DestroyExistingHwjRuntimeObjects()
+    {
+        HashSet<GameObject> objectsToDestroy = new HashSet<GameObject>();
+        MonoBehaviour[] behaviours = Resources.FindObjectsOfTypeAll<MonoBehaviour>();
+
+        for (int i = 0; i < behaviours.Length; i++)
+        {
+            MonoBehaviour behaviour = behaviours[i];
+
+            if (behaviour == null || behaviour.gameObject == null)
+            {
+                continue;
+            }
+
+            if (!behaviour.gameObject.scene.IsValid())
+            {
+                continue;
+            }
+
+            string behaviourTypeName = behaviour.GetType().Name;
+
+            if (!behaviourTypeName.StartsWith("HWJ_", System.StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            objectsToDestroy.Add(behaviour.gameObject);
+        }
+
+        foreach (GameObject runtimeObject in objectsToDestroy)
+        {
+            if (runtimeObject != null)
+            {
+                Object.Destroy(runtimeObject);
+            }
+        }
     }
 
     private static HWJ_RootObjectDataSO CreateRootObjectData(
@@ -3903,16 +4569,59 @@ public class HWJ_CoreSystemsPlayModeTests
         return skillAction;
     }
 
+    private static HWJ_SkillNodeDataSO CreateSkillNodeData(
+        string nodeId,
+        string possessedBodyId,
+        HWJ_WeaponType weaponType,
+        int skillStep,
+        string prerequisiteNodeId,
+        int requiredLevel,
+        int skillPointCost,
+        HWJ_SkillActionDataSO skillAction)
+    {
+        HWJ_SkillNodeDataSO skillNode = ScriptableObject.CreateInstance<HWJ_SkillNodeDataSO>();
+        SetPrivateField(skillNode, "nodeId", nodeId);
+        SetPrivateField(skillNode, "possessedBodyId", possessedBodyId);
+        SetPrivateField(skillNode, "weaponType", weaponType);
+        SetPrivateField(skillNode, "skillStep", skillStep);
+        SetPrivateField(skillNode, "skillDisplayName", nodeId);
+        SetPrivateField(skillNode, "prerequisiteNodeId", prerequisiteNodeId);
+        SetPrivateField(skillNode, "requiredLevel", requiredLevel);
+        SetPrivateField(skillNode, "skillPointCost", skillPointCost);
+        SetPrivateField(skillNode, "skillActionId", skillAction != null ? skillAction.SkillActionId : null);
+        SetPrivateField(skillNode, "skillAction", skillAction);
+        SetPrivateField(skillNode, "description", "PlayMode skill node save regression data.");
+        return skillNode;
+    }
+
+    private static HWJ_StatOrbDataSO CreateStatOrbData(
+        string statOrbId,
+        HWJ_StatOrbType statOrbType,
+        float amount,
+        int maxStackCount)
+    {
+        HWJ_StatOrbDataSO statOrbData = ScriptableObject.CreateInstance<HWJ_StatOrbDataSO>();
+        SetPrivateField(statOrbData, "orbId", statOrbId);
+        SetPrivateField(statOrbData, "displayName", statOrbId);
+        SetPrivateField(statOrbData, "orbType", statOrbType);
+        SetPrivateField(statOrbData, "amount", amount);
+        SetPrivateField(statOrbData, "maxStackCount", maxStackCount);
+        SetPrivateField(statOrbData, "isPermanent", true);
+        return statOrbData;
+    }
+
     private static HWJ_LevelUpDataSO CreateLevelUpData(
         string tableId,
         int maxLevel,
         int skillPointPerLevel,
-        int[] experienceToNextLevel)
+        int[] experienceToNextLevel,
+        int[] skillPointRewardsByLevelUp = null)
     {
         HWJ_LevelUpDataSO levelData = ScriptableObject.CreateInstance<HWJ_LevelUpDataSO>();
         SetPrivateField(levelData, "tableId", tableId);
         SetPrivateField(levelData, "maxLevel", maxLevel);
         SetPrivateField(levelData, "skillPointPerLevel", skillPointPerLevel);
+        SetPrivateField(levelData, "skillPointRewardsByLevelUp", skillPointRewardsByLevelUp);
         SetPrivateField(levelData, "experienceToNextLevel", experienceToNextLevel);
         return levelData;
     }

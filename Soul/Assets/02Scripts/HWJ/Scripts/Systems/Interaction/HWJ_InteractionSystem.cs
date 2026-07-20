@@ -13,6 +13,7 @@ public class HWJ_InteractionSystem : MonoBehaviour
     [SerializeField] private HWJ_BodyDiscoverySystem bodyDiscoverySystem;
     [SerializeField] private HWJ_PlayerInputSystem playerInput;
     [SerializeField] private HWJ_SoulSystem soulSystem;
+    [SerializeField] private HWJ_LevelUpSystem levelUpSystem;
 
     [Space(8f)]
     [Header("Interaction Runtime")]
@@ -54,6 +55,11 @@ public class HWJ_InteractionSystem : MonoBehaviour
         if (soulSystem == null)
         {
             soulSystem = GetComponent<HWJ_SoulSystem>();
+        }
+
+        if (levelUpSystem == null)
+        {
+            levelUpSystem = GetComponent<HWJ_LevelUpSystem>();
         }
     }
 
@@ -125,6 +131,14 @@ public class HWJ_InteractionSystem : MonoBehaviour
         if (targetObject == null)
         {
             return false;
+        }
+
+        HWJ_ExperienceOrbPickupSystem experienceOrb = targetObject.GetComponent<HWJ_ExperienceOrbPickupSystem>();
+
+        if (experienceOrb != null && experienceOrb.TryCollect(levelUpSystem))
+        {
+            lastInteractionResult = $"Collected {targetObject.name}.";
+            return true;
         }
 
         HWJ_StatOrbPickupSystem statOrb = targetObject.GetComponent<HWJ_StatOrbPickupSystem>();

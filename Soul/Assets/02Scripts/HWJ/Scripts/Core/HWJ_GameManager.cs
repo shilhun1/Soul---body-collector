@@ -27,6 +27,7 @@ public class HWJ_GameManager : MonoBehaviour
     [SerializeField] private HWJ_PlayerInputSystem playerInput;
     [SerializeField] private HWJ_RuntimeStatusSystem playerStatus;
     [SerializeField] private HWJ_LevelUpSystem playerLevel;
+    [SerializeField] private HWJ_StatOrbProgressSystem playerStatOrbProgress;
     [SerializeField] private HWJ_SoulSystem playerSoul;
     [SerializeField] private HWJ_BodyDecaySystem playerBodyDecay;
     [SerializeField] private HWJ_PossessionSystem playerPossession;
@@ -49,6 +50,8 @@ public class HWJ_GameManager : MonoBehaviour
     [SerializeField] private int savedLevel;
     [SerializeField] private int savedExperience;
     [SerializeField] private int savedSkillPoint;
+    [SerializeField] private bool hasPlayerStatOrbSnapshot;
+    [SerializeField] private HWJ_RuntimeStatOrbStackSnapshot[] savedStatOrbStacks = new HWJ_RuntimeStatOrbStackSnapshot[0];
     [SerializeField] private bool hasPlayerPossessionSnapshot;
     [SerializeField] private bool savedHasActivePossessedBody;
     [SerializeField] private string savedPossessedRootObjectId;
@@ -73,6 +76,7 @@ public class HWJ_GameManager : MonoBehaviour
     public HWJ_PlayerInputSystem PlayerInput => playerInput;
     public HWJ_RuntimeStatusSystem PlayerStatus => playerStatus;
     public HWJ_LevelUpSystem PlayerLevel => playerLevel;
+    public HWJ_StatOrbProgressSystem PlayerStatOrbProgress => playerStatOrbProgress;
     public HWJ_SoulSystem PlayerSoul => playerSoul;
     public HWJ_BodyDecaySystem PlayerBodyDecay => playerBodyDecay;
     public HWJ_PossessionSystem PlayerPossession => playerPossession;
@@ -265,6 +269,7 @@ public class HWJ_GameManager : MonoBehaviour
 
         playerStatus = resolver.GetComponent<HWJ_RuntimeStatusSystem>();
         playerLevel = resolver.GetComponent<HWJ_LevelUpSystem>();
+        playerStatOrbProgress = resolver.GetComponent<HWJ_StatOrbProgressSystem>();
         playerSoul = resolver.GetComponent<HWJ_SoulSystem>();
         playerBodyDecay = resolver.GetComponent<HWJ_BodyDecaySystem>();
         playerPossession = resolver.GetComponent<HWJ_PossessionSystem>();
@@ -281,6 +286,7 @@ public class HWJ_GameManager : MonoBehaviour
 
         // These components are required for the current vertical slice: spirit, possession, decay, collapse, and rediscovery.
         EnsureComponent<HWJ_RuntimeStatusSystem>(playerObject);
+        EnsureComponent<HWJ_StatOrbProgressSystem>(playerObject);
         EnsureComponent<HWJ_SoulSystem>(playerObject);
         EnsureComponent<HWJ_PossessedBodySystem>(playerObject);
         EnsureComponent<HWJ_PossessionSystem>(playerObject);
@@ -325,6 +331,7 @@ public class HWJ_GameManager : MonoBehaviour
 
         playerStatus = null;
         playerLevel = null;
+        playerStatOrbProgress = null;
         playerSoul = null;
         playerBodyDecay = null;
         playerPossession = null;
@@ -373,11 +380,27 @@ public class HWJ_GameManager : MonoBehaviour
             savedSkillPoint = playerLevel.SkillPoint;
             hasPlayerGrowthSnapshot = true;
         }
+
+        if (playerStatOrbProgress == null && playerResolver != null)
+        {
+            playerStatOrbProgress = playerResolver.GetComponent<HWJ_StatOrbProgressSystem>();
+        }
+
+        if (playerStatOrbProgress != null)
+        {
+            savedStatOrbStacks = playerStatOrbProgress.CreateSnapshot();
+            hasPlayerStatOrbSnapshot = true;
+        }
     }
 
     private void ApplyPlayerRuntimeSnapshot()
     {
         ApplyPlayerPossessionSnapshot();
+
+        if (playerStatOrbProgress != null && hasPlayerStatOrbSnapshot)
+        {
+            playerStatOrbProgress.RestoreStatOrbStacks(savedStatOrbStacks, playerStatus, database);
+        }
 
         if (playerStatus != null && hasPlayerRuntimeSnapshot)
         {
@@ -538,6 +561,18 @@ public class HWJ_GameManager : MonoBehaviour
     {
         skillActionData = null;
         return database != null && database.TryGetSkillAction(skillActionId, out skillActionData);
+    }
+
+    public bool TryGetSkillNode(string nodeId, out HWJ_SkillNodeDataSO skillNodeData)
+    {
+        skillNodeData = null;
+        return database != null && database.TryGetSkillNode(nodeId, out skillNodeData);
+    }
+
+    public bool TryGetSkillNodeBySkillAction(string skillActionId, out HWJ_SkillNodeDataSO skillNodeData)
+    {
+        skillNodeData = null;
+        return database != null && database.TryGetSkillNodeBySkillAction(skillActionId, out skillNodeData);
     }
 
     public bool TryGetGameplayRule(string ruleId, out HWJ_GameplayRuleSO gameplayRule)

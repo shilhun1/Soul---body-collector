@@ -152,26 +152,40 @@ public struct HWJ_RuntimeStageFlowSnapshot
 }
 
 [Serializable]
+public struct HWJ_RuntimeStatOrbStackSnapshot
+{
+    public string statOrbId;
+    public int stackCount;
+}
+
+[Serializable]
 public struct HWJ_RuntimeGrowthSnapshot
 {
     public int currentLevel;
     public int currentExperience;
     public int skillPoint;
     public string[] unlockedSkillIds;
+    public string[] unlockedSkillNodeIds;
+    public HWJ_RuntimeStatOrbStackSnapshot[] statOrbStacks;
 
     /// <summary>
     /// 현재 성장 런타임 값을 저장 DTO로 옮기기 쉬운 값 타입으로 복사합니다.
     /// </summary>
     public static HWJ_RuntimeGrowthSnapshot FromSystems(
         HWJ_LevelUpSystem level,
-        HWJ_SkillUnlockSystem unlockStateSource)
+        HWJ_SkillUnlockSystem unlockStateSource,
+        HWJ_StatOrbProgressSystem statOrbProgressSource = null)
     {
         return new HWJ_RuntimeGrowthSnapshot
         {
             currentLevel = level != null ? level.CurrentLevel : 1,
             currentExperience = level != null ? level.CurrentExperience : 0,
             skillPoint = level != null ? level.SkillPoint : 0,
-            unlockedSkillIds = unlockStateSource != null ? unlockStateSource.GetUnlockedSkillIds() : new string[0]
+            unlockedSkillIds = unlockStateSource != null ? unlockStateSource.GetUnlockedSkillIds() : new string[0],
+            unlockedSkillNodeIds = unlockStateSource != null ? unlockStateSource.GetUnlockedSkillNodeIds() : new string[0],
+            statOrbStacks = statOrbProgressSource != null
+                ? statOrbProgressSource.CreateSnapshot()
+                : new HWJ_RuntimeStatOrbStackSnapshot[0]
         };
     }
 }

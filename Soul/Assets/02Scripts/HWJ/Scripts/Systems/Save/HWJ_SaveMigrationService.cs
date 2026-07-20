@@ -18,6 +18,7 @@ public static class HWJ_SaveMigrationService
                 "Save migration failed: save data is null.");
         }
 
+        int originalSourceVersion = saveData.schemaVersion;
         int sourceVersion = saveData.schemaVersion;
         int targetVersion = HWJ_SaveSchema.CurrentVersion;
 
@@ -36,9 +37,44 @@ public static class HWJ_SaveMigrationService
                 $"Save migration failed: schema {sourceVersion} is newer than runtime schema {targetVersion}.");
         }
 
-        if (sourceVersion == PrototypeSchemaVersion && targetVersion == 1)
+        if (sourceVersion == PrototypeSchemaVersion)
         {
-            return MigratePrototypeSchemaToVersionOne(saveData, sourceVersion, targetVersion);
+            HWJ_SaveMigrationResult prototypeMigrationResult = MigratePrototypeSchemaToVersionOne(saveData, sourceVersion);
+
+            if (!prototypeMigrationResult.Succeeded)
+            {
+                return prototypeMigrationResult;
+            }
+
+            sourceVersion = 1;
+        }
+
+        if (sourceVersion == 1 && targetVersion >= 2)
+        {
+            HWJ_SaveMigrationResult versionTwoMigrationResult = MigrateVersionOneToVersionTwo(
+                saveData,
+                originalSourceVersion);
+
+            if (!versionTwoMigrationResult.Succeeded)
+            {
+                return versionTwoMigrationResult;
+            }
+
+            sourceVersion = 2;
+        }
+
+        if (sourceVersion == 2 && targetVersion >= 3)
+        {
+            return MigrateVersionTwoToVersionThree(saveData, originalSourceVersion, targetVersion);
+        }
+
+        if (sourceVersion == targetVersion)
+        {
+            return HWJ_SaveMigrationResult.MigratedSave(
+                saveData,
+                originalSourceVersion,
+                targetVersion,
+                $"Save migration completed: schema {originalSourceVersion} data was upgraded to schema {targetVersion}.");
         }
 
         return HWJ_SaveMigrationResult.Fail(
@@ -51,11 +87,42 @@ public static class HWJ_SaveMigrationService
 
     private static HWJ_SaveMigrationResult MigratePrototypeSchemaToVersionOne(
         HWJ_GameSaveData saveData,
-        int sourceVersion,
-        int targetVersion)
+        int sourceVersion)
     {
         // Version 0 is the prototype DTO shape before schema enforcement. It used the same serializable
         // blocks, but missing nested objects/lists were common in hand-authored or partial test saves.
+        saveData.EnsureDefaults();
+        saveData.schemaVersion = 1;
+
+        return HWJ_SaveMigrationResult.MigratedSave(
+            saveData,
+            sourceVersion,
+            1,
+            "Save migration completed: schema 0 prototype data was upgraded to schema 1.");
+    }
+
+    private static HWJ_SaveMigrationResult MigrateVersionOneToVersionTwo(
+        HWJ_GameSaveData saveData,
+        int sourceVersion)
+    {
+        // Version 2 separates unlocked skill node IDs from legacy unlocked skill IDs.
+        // Actual ID classification needs the gameplay database, so load apply handles mixed legacy lists.
+        saveData.EnsureDefaults();
+        saveData.schemaVersion = 2;
+
+        return HWJ_SaveMigrationResult.MigratedSave(
+            saveData,
+            sourceVersion,
+            2,
+            "Save migration completed: schema 1 growth data was upgraded to schema 2.");
+    }
+
+    private static HWJ_SaveMigrationResult MigrateVersionTwoToVersionThree(
+        HWJ_GameSaveData saveData,
+        int sourceVersion,
+        int targetVersion)
+    {
+        // Version 3 adds permanent stat orb stack progress to growth data.
         saveData.EnsureDefaults();
         saveData.schemaVersion = targetVersion;
 
@@ -63,6 +130,6 @@ public static class HWJ_SaveMigrationService
             saveData,
             sourceVersion,
             targetVersion,
-            "Save migration completed: schema 0 prototype data was upgraded to schema 1.");
+            "Save migration completed: schema 2 stat orb progress data was upgraded to schema 3.");
     }
 }

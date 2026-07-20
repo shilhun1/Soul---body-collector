@@ -16,6 +16,7 @@ MonoBehaviour:
   displayName: Max HP Small
   orbType: 0
   amount: 10
+  maxStackCount: 5
   isPermanent: 1
   durationSeconds: 0
   orbPrefab: {fileID: 297027250797698565, guid: 9f2db3f723709e941b8cb58854e485b1, type: 3}

@@ -16,6 +16,15 @@ public class HWJ_LevelUpSystem : MonoBehaviour
     public int CurrentLevel => currentLevel;
     public int CurrentExperience => currentExperience;
     public int SkillPoint => skillPoint;
+    public float CurrentExperienceRatio
+    {
+        get
+        {
+            return TryGetRequiredExperienceForCurrentLevel(out int requiredExperience)
+                ? Mathf.Clamp01((float)currentExperience / requiredExperience)
+                : 1f;
+        }
+    }
 
     private void Awake()
     {
@@ -37,6 +46,7 @@ public class HWJ_LevelUpSystem : MonoBehaviour
 
         int previousExperience = currentExperience;
         int previousLevel = currentLevel;
+        int previousSkillPoint = skillPoint;
         currentExperience += amount;
 
         while (currentLevel < levelUpData.MaxLevel
@@ -45,7 +55,7 @@ public class HWJ_LevelUpSystem : MonoBehaviour
         {
             currentExperience -= requiredExperience;
             currentLevel++;
-            skillPoint += levelUpData.SkillPointPerLevel;
+            skillPoint += levelUpData.GetSkillPointRewardForReachedLevel(currentLevel);
         }
 
         HWJ_GameplayEvents.RaiseExperienceChanged(
@@ -53,6 +63,7 @@ public class HWJ_LevelUpSystem : MonoBehaviour
 
         if (previousLevel != currentLevel)
         {
+            RaiseSkillPointChangedIfNeeded(previousSkillPoint, HWJ_SkillPointChangeReason.LevelUpReward);
             HWJ_GameplayEvents.RaisePlayerLevelChanged(
                 new HWJ_PlayerLevelChangedEvent(this, previousLevel, currentLevel, skillPoint));
         }
@@ -65,7 +76,9 @@ public class HWJ_LevelUpSystem : MonoBehaviour
             return;
         }
 
+        int previousSkillPoint = skillPoint;
         skillPoint += amount;
+        RaiseSkillPointChangedIfNeeded(previousSkillPoint, HWJ_SkillPointChangeReason.DirectReward);
     }
 
     public void AddReward(HWJ_RewardData rewardData)
@@ -79,6 +92,19 @@ public class HWJ_LevelUpSystem : MonoBehaviour
         AddSkillPoint(rewardData.skillPointReward);
     }
 
+    public bool TryGetRequiredExperienceForCurrentLevel(out int requiredExperience)
+    {
+        EnsureLevelData();
+
+        if (levelUpData == null)
+        {
+            requiredExperience = 0;
+            return false;
+        }
+
+        return levelUpData.TryGetRequiredExperience(currentLevel, out requiredExperience);
+    }
+
     /// <summary>
     /// 스킬 해금이나 강화에 스킬 포인트를 사용합니다.
     /// 포인트가 부족하면 false를 반환합니다.
@@ -90,7 +116,9 @@ public class HWJ_LevelUpSystem : MonoBehaviour
             return false;
         }
 
+        int previousSkillPoint = skillPoint;
         skillPoint -= amount;
+        RaiseSkillPointChangedIfNeeded(previousSkillPoint, HWJ_SkillPointChangeReason.SkillUnlockSpend);
         return true;
     }
 
@@ -104,9 +132,22 @@ public class HWJ_LevelUpSystem : MonoBehaviour
         EnsureLevelData();
 
         int maxLevel = levelUpData != null ? Mathf.Max(1, levelUpData.MaxLevel) : int.MaxValue;
+        int previousSkillPoint = this.skillPoint;
         currentLevel = Mathf.Clamp(level, 1, maxLevel);
         currentExperience = Mathf.Max(0, experience);
         this.skillPoint = Mathf.Max(0, skillPoint);
+        RaiseSkillPointChangedIfNeeded(previousSkillPoint, HWJ_SkillPointChangeReason.Restore);
+    }
+
+    private void RaiseSkillPointChangedIfNeeded(int previousSkillPoint, HWJ_SkillPointChangeReason reason)
+    {
+        if (previousSkillPoint == skillPoint)
+        {
+            return;
+        }
+
+        HWJ_GameplayEvents.RaiseSkillPointChanged(
+            new HWJ_SkillPointChangedEvent(this, previousSkillPoint, skillPoint, reason));
     }
 
     private void EnsureLevelData()
