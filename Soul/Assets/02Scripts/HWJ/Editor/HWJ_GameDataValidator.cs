@@ -111,6 +111,7 @@ public static class HWJ_GameDataValidator
     {
         Dictionary<string, string> firstPathById = new Dictionary<string, string>();
         HWJ_RootObjectDataSO[] rootObjects = LoadAssets<HWJ_RootObjectDataSO>();
+        HashSet<string> statOrbIds = CollectStatOrbIds();
 
         for (int i = 0; i < rootObjects.Length; i++)
         {
@@ -180,10 +181,79 @@ public static class HWJ_GameDataValidator
                 AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Warning, "MODEL_PREFAB_MISSING", "REQ-14", assetPath, "Model.modelPrefab", "RootObjectData has no model prefab.", "Assign the prefab used by spawners and scene setup.");
             }
 
-            if (rootObject.Reward != null && rootObject.Reward.dropsStatOrb && string.IsNullOrWhiteSpace(rootObject.Reward.statOrbId))
+            if (rootObject.Reward != null)
             {
-                AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "STAT_ORB_REWARD_ID_MISSING", "REQ-14", assetPath, "Reward.statOrbId", "Reward is configured to drop a stat orb but statOrbId is empty.", "Set statOrbId to an existing stat orb ID.");
+                ValidateRewardData(validationIssues, rootObject.Reward, statOrbIds, assetPath);
             }
+        }
+    }
+
+    private static void ValidateRewardData(
+        List<HWJ_EditorValidationIssue> validationIssues,
+        HWJ_RewardData rewardData,
+        HashSet<string> statOrbIds,
+        string assetPath)
+    {
+        if (rewardData.dropsStatOrb)
+        {
+            bool hasFixedStatOrbId = !string.IsNullOrWhiteSpace(rewardData.statOrbId);
+            bool hasRandomCandidates = rewardData.statOrbCandidates != null && rewardData.statOrbCandidates.Length > 0;
+
+            if (!hasFixedStatOrbId && !hasRandomCandidates && !rewardData.useAllRegisteredStatOrbsWhenEmpty)
+            {
+                AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "STAT_ORB_REWARD_SOURCE_MISSING", "REQ-14", assetPath, "Reward.statOrbId", "Reward is configured to drop a stat orb but has no fixed ID, random candidates, or database fallback.", "Set statOrbId, add statOrbCandidates, or enable useAllRegisteredStatOrbsWhenEmpty.");
+            }
+        }
+
+        if (rewardData.statOrbDropChance < 0f || rewardData.statOrbDropChance > 1f)
+        {
+            AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "STAT_ORB_DROP_CHANCE_INVALID", "REQ-14", assetPath, "Reward.statOrbDropChance", "Stat orb drop chance must be between 0 and 1.", "Clamp statOrbDropChance into 0..1.");
+        }
+
+        if (rewardData.statOrbSpawnRadius < 0f)
+        {
+            AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "STAT_ORB_SPAWN_RADIUS_NEGATIVE", "REQ-14", assetPath, "Reward.statOrbSpawnRadius", "Stat orb spawn radius cannot be negative.", "Set statOrbSpawnRadius to 0 or a positive value.");
+        }
+
+        if (!string.IsNullOrWhiteSpace(rewardData.statOrbId)
+            && statOrbIds != null
+            && !statOrbIds.Contains(rewardData.statOrbId.Trim()))
+        {
+            AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "STAT_ORB_REWARD_ID_UNKNOWN", "REQ-14", assetPath, "Reward.statOrbId", $"Stat orb ID '{rewardData.statOrbId}' does not exist.", "Use an OrbId from a HWJ_StatOrbDataSO asset.");
+        }
+
+        if (rewardData.statOrbCandidates != null)
+        {
+            for (int i = 0; i < rewardData.statOrbCandidates.Length; i++)
+            {
+                HWJ_StatOrbRewardEntry candidate = rewardData.statOrbCandidates[i];
+                string fieldPrefix = $"Reward.statOrbCandidates[{i}]";
+
+                if (candidate == null)
+                {
+                    AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "STAT_ORB_CANDIDATE_NULL", "REQ-14", assetPath, fieldPrefix, "Stat orb random candidate slot is empty.", "Remove the empty slot or assign candidate values.");
+                    continue;
+                }
+
+                if (string.IsNullOrWhiteSpace(candidate.statOrbId))
+                {
+                    AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "STAT_ORB_CANDIDATE_ID_MISSING", "REQ-14", assetPath, fieldPrefix + ".statOrbId", "Stat orb random candidate ID is empty.", "Set statOrbId to an existing stat orb ID.");
+                }
+                else if (statOrbIds != null && !statOrbIds.Contains(candidate.statOrbId.Trim()))
+                {
+                    AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "STAT_ORB_CANDIDATE_ID_UNKNOWN", "REQ-14", assetPath, fieldPrefix + ".statOrbId", $"Stat orb candidate ID '{candidate.statOrbId}' does not exist.", "Use an OrbId from a HWJ_StatOrbDataSO asset.");
+                }
+
+                if (candidate.weight <= 0)
+                {
+                    AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "STAT_ORB_CANDIDATE_WEIGHT_INVALID", "REQ-14", assetPath, fieldPrefix + ".weight", "Stat orb candidate weight must be greater than 0.", "Set weight to at least 1.");
+                }
+            }
+        }
+
+        if (rewardData.dropsExperienceOrb && rewardData.experienceOrbPrefab == null)
+        {
+            AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "EXPERIENCE_ORB_PREFAB_MISSING", "REQ-14", assetPath, "Reward.experienceOrbPrefab", "Reward is configured to drop an experience orb but the orb prefab is missing.", "Assign a prefab with HWJ_ExperienceOrbPickupSystem or disable dropsExperienceOrb.");
         }
     }
 
@@ -916,12 +986,45 @@ public static class HWJ_GameDataValidator
             }
 
             SerializedObject serializedLevelTable = new SerializedObject(levelTable);
+            SerializedProperty skillPointPerLevel = serializedLevelTable.FindProperty("skillPointPerLevel");
+            SerializedProperty skillPointRewardsByLevelUp = serializedLevelTable.FindProperty("skillPointRewardsByLevelUp");
             SerializedProperty experienceArray = serializedLevelTable.FindProperty("experienceToNextLevel");
+            int expectedTransitionCount = Mathf.Max(0, levelTable.MaxLevel - 1);
+
+            if (skillPointPerLevel != null && skillPointPerLevel.intValue < 0)
+            {
+                AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "LEVEL_SKILL_POINT_PER_LEVEL_NEGATIVE", "REQ-14", assetPath, "skillPointPerLevel", "Skill point per level cannot be negative.", "Set skillPointPerLevel to 0 or higher.");
+            }
+
+            if (skillPointRewardsByLevelUp != null && skillPointRewardsByLevelUp.isArray)
+            {
+                if (expectedTransitionCount > 0
+                    && skillPointRewardsByLevelUp.arraySize > 0
+                    && skillPointRewardsByLevelUp.arraySize < expectedTransitionCount)
+                {
+                    AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Warning, "LEVEL_SKILL_POINT_TABLE_SHORT", "REQ-14", assetPath, "skillPointRewardsByLevelUp", "Skill point reward table is shorter than the level transition count.", "Fill one skill point reward value per level transition or leave the table empty to use skillPointPerLevel.");
+                }
+
+                for (int rewardIndex = 0; rewardIndex < skillPointRewardsByLevelUp.arraySize; rewardIndex++)
+                {
+                    int skillPointReward = skillPointRewardsByLevelUp.GetArrayElementAtIndex(rewardIndex).intValue;
+
+                    if (skillPointReward < 0)
+                    {
+                        AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "LEVEL_SKILL_POINT_REWARD_NEGATIVE", "REQ-14", assetPath, $"skillPointRewardsByLevelUp[{rewardIndex}]", "Skill point reward cannot be negative.", "Set the reward to 0 or higher.");
+                    }
+                }
+            }
 
             if (experienceArray == null || !experienceArray.isArray || experienceArray.arraySize == 0)
             {
                 AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Warning, "EXPERIENCE_TABLE_EMPTY", "REQ-14", assetPath, "experienceToNextLevel", "Experience table is empty.", "Add experience requirements for each level transition.");
                 continue;
+            }
+
+            if (expectedTransitionCount > 0 && experienceArray.arraySize < expectedTransitionCount)
+            {
+                AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Warning, "EXPERIENCE_TABLE_SHORT", "REQ-14", assetPath, "experienceToNextLevel", "Experience table is shorter than the level transition count.", "Fill one experience requirement per level transition.");
             }
 
             int previousExperience = 0;
@@ -1014,6 +1117,11 @@ public static class HWJ_GameDataValidator
             if (Mathf.Approximately(statOrb.Amount, 0f))
             {
                 AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Warning, "STAT_ORB_AMOUNT_ZERO", "REQ-14", assetPath, "amount", "Stat orb amount is 0.", "Set a non-zero amount unless this orb is intentionally cosmetic.");
+            }
+
+            if (statOrb.ConfiguredMaxStackCount <= 0)
+            {
+                AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "STAT_ORB_STACK_LIMIT_INVALID", "REQ-14", assetPath, "maxStackCount", "Stat orb max stack count must be greater than 0.", "Set maxStackCount to at least 1.");
             }
 
             if (statOrb.OrbPrefab == null)
@@ -3238,6 +3346,22 @@ public static class HWJ_GameDataValidator
         }
 
         return playerSkillIds;
+    }
+
+    private static HashSet<string> CollectStatOrbIds()
+    {
+        HashSet<string> statOrbIds = new HashSet<string>();
+        HWJ_StatOrbDataSO[] statOrbs = LoadAssets<HWJ_StatOrbDataSO>();
+
+        for (int i = 0; i < statOrbs.Length; i++)
+        {
+            if (statOrbs[i] != null && !string.IsNullOrWhiteSpace(statOrbs[i].OrbId))
+            {
+                statOrbIds.Add(statOrbs[i].OrbId.Trim());
+            }
+        }
+
+        return statOrbIds;
     }
 
     private static HashSet<string> CollectGameplayRuleIds()

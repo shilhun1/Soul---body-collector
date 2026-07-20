@@ -1,19 +1,19 @@
 using UnityEngine;
 
 /// <summary>
-/// 씬에 배치된 능력치 구슬의 상호작용 컴포넌트입니다.
-/// StatOrbDataSO를 RuntimeStatusSystem에 적용하고, 수집 후 오브젝트를 제거합니다.
+/// Experience reward orb that can move toward a target and grants XP once collected.
+/// The orb stores runtime XP only; definition data remains on the defeated object's RewardData.
 /// </summary>
-public class HWJ_StatOrbPickupSystem : MonoBehaviour
+public class HWJ_ExperienceOrbPickupSystem : MonoBehaviour
 {
-    [Header("능력치 구슬")]
-    [SerializeField] private HWJ_StatOrbDataSO statOrbData;
-    [SerializeField] private HWJ_ObjectPoolSystem objectPool;
+    [Header("경험치 구슬")]
+    [SerializeField] private int experienceAmount;
     [SerializeField] private bool destroyOnCollect = true;
+    [SerializeField] private GameObject collectEffectPrefab;
 
     [Header("흡수 이동")]
     [SerializeField] private Transform targetTransform;
-    [SerializeField] private HWJ_RuntimeStatusSystem targetStatus;
+    [SerializeField] private HWJ_LevelUpSystem targetLevelSystem;
     [SerializeField] private bool moveToTarget = true;
     [SerializeField] private float attractionStartDistance = 3f;
     [SerializeField] private float collectDistance = 0.35f;
@@ -26,7 +26,7 @@ public class HWJ_StatOrbPickupSystem : MonoBehaviour
     private float spawnedTime;
     private float currentMoveSpeed;
 
-    public HWJ_StatOrbDataSO StatOrbData => statOrbData;
+    public int ExperienceAmount => Mathf.Max(0, experienceAmount);
     public bool IsCollected => isCollected;
 
     private void OnEnable()
@@ -49,7 +49,7 @@ public class HWJ_StatOrbPickupSystem : MonoBehaviour
             return;
         }
 
-        if (!moveToTarget || targetTransform == null || targetStatus == null)
+        if (!moveToTarget || targetTransform == null || targetLevelSystem == null)
         {
             return;
         }
@@ -63,7 +63,7 @@ public class HWJ_StatOrbPickupSystem : MonoBehaviour
 
         if (distance <= collectDistance)
         {
-            TryCollect(targetStatus);
+            TryCollect(targetLevelSystem);
             return;
         }
 
@@ -90,18 +90,18 @@ public class HWJ_StatOrbPickupSystem : MonoBehaviour
     }
 
     public void Initialize(
-        HWJ_StatOrbDataSO data,
-        HWJ_RuntimeStatusSystem status,
+        int amount,
+        HWJ_LevelUpSystem levelSystem,
         Transform target,
-        HWJ_ObjectPoolSystem pool = null)
+        GameObject collectEffect = null)
     {
-        statOrbData = data;
-        targetStatus = status;
+        experienceAmount = Mathf.Max(0, amount);
+        targetLevelSystem = levelSystem;
         targetTransform = target;
 
-        if (pool != null)
+        if (collectEffect != null)
         {
-            objectPool = pool;
+            collectEffectPrefab = collectEffect;
         }
 
         spawnedTime = Time.time;
@@ -116,34 +116,25 @@ public class HWJ_StatOrbPickupSystem : MonoBehaviour
             return false;
         }
 
-        HWJ_RuntimeStatusSystem collectorStatus = collector.GetComponent<HWJ_RuntimeStatusSystem>();
+        HWJ_LevelUpSystem levelSystem = collector.GetComponent<HWJ_LevelUpSystem>();
 
-        if (collectorStatus == null)
+        if (levelSystem == null)
         {
-            collectorStatus = collector.GetComponentInParent<HWJ_RuntimeStatusSystem>();
+            levelSystem = collector.GetComponentInParent<HWJ_LevelUpSystem>();
         }
 
-        return TryCollect(collectorStatus);
+        return TryCollect(levelSystem);
     }
 
-    /// <summary>
-    /// 대상 런타임 상태에 구슬 효과를 적용합니다.
-    /// 플레이어뿐 아니라 버프를 받을 수 있는 다른 오브젝트에도 재사용할 수 있습니다.
-    /// </summary>
-    public bool TryCollect(HWJ_RuntimeStatusSystem collectorStatus)
+    public bool TryCollect(HWJ_LevelUpSystem levelSystem)
     {
-        if (isCollected || statOrbData == null || collectorStatus == null)
-        {
-            return false;
-        }
-
-        if (!collectorStatus.TryApplyStatOrb(statOrbData))
+        if (isCollected || levelSystem == null || ExperienceAmount <= 0)
         {
             return false;
         }
 
         isCollected = true;
-
+        levelSystem.AddExperience(ExperienceAmount);
         SpawnCollectEffect();
 
         if (destroyOnCollect)
@@ -156,22 +147,16 @@ public class HWJ_StatOrbPickupSystem : MonoBehaviour
 
     private void SpawnCollectEffect()
     {
-        if (statOrbData == null || statOrbData.CollectEffectPrefab == null)
+        if (collectEffectPrefab == null)
         {
             return;
         }
 
-        if (objectPool != null)
-        {
-            objectPool.Spawn(statOrbData.CollectEffectPrefab, transform.position, Quaternion.identity);
-            return;
-        }
-
-        GameObject effectObject = HWJ_GameAccess.Spawn(statOrbData.CollectEffectPrefab, transform.position, Quaternion.identity);
+        GameObject effectObject = HWJ_GameAccess.Spawn(collectEffectPrefab, transform.position, Quaternion.identity);
 
         if (effectObject == null)
         {
-            Instantiate(statOrbData.CollectEffectPrefab, transform.position, Quaternion.identity);
+            Instantiate(collectEffectPrefab, transform.position, Quaternion.identity);
         }
     }
 
@@ -182,12 +167,6 @@ public class HWJ_StatOrbPickupSystem : MonoBehaviour
         if (poolableObject != null)
         {
             poolableObject.ReturnToPool();
-            return;
-        }
-
-        if (objectPool != null)
-        {
-            objectPool.Despawn(gameObject);
             return;
         }
 

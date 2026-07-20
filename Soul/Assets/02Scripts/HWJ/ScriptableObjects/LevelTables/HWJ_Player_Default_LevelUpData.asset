@@ -13,15 +13,65 @@ MonoBehaviour:
   m_Name: HWJ_Player_Default_LevelUpData
   m_EditorClassIdentifier: Assembly-CSharp::HWJ_LevelUpDataSO
   tableId: player_default_level
-  maxLevel: 10
+  maxLevel: 30
   skillPointPerLevel: 1
+  skillPointRewardsByLevelUp:
+  - 1
+  - 1
+  - 1
+  - 2
+  - 1
+  - 1
+  - 1
+  - 1
+  - 2
+  - 1
+  - 1
+  - 1
+  - 1
+  - 2
+  - 1
+  - 1
+  - 1
+  - 1
+  - 2
+  - 1
+  - 1
+  - 1
+  - 1
+  - 2
+  - 1
+  - 1
+  - 1
+  - 1
+  - 2
   experienceToNextLevel:
-  - 30
-  - 60
   - 100
-  - 150
-  - 210
-  - 280
-  - 360
-  - 450
-  - 550
+  - 282
+  - 519
+  - 800
+  - 1121
+  - 1480
+  - 1875
+  - 2305
+  - 2768
+  - 3264
+  - 3791
+  - 4350
+  - 4939
+  - 5558
+  - 6206
+  - 6883
+  - 7588
+  - 8321
+  - 9081
+  - 9868
+  - 10681
+  - 11521
+  - 12386
+  - 13277
+  - 14192
+  - 15132
+  - 16097
+  - 17085
+  - 18098

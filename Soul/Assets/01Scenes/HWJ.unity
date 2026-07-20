@@ -1256,6 +1256,7 @@ MonoBehaviour:
   playerInput: {fileID: 0}
   playerStatus: {fileID: 2087133897}
   playerLevel: {fileID: 0}
+  playerStatOrbProgress: {fileID: 0}
   playerSoul: {fileID: 2087133896}
   playerBodyDecay: {fileID: 2087133895}
   playerPossession: {fileID: 2087133894}
@@ -1272,6 +1273,8 @@ MonoBehaviour:
   savedLevel: 0
   savedExperience: 0
   savedSkillPoint: 0
+  hasPlayerStatOrbSnapshot: 0
+  savedStatOrbStacks: []
   hasPlayerPossessionSnapshot: 0
   savedHasActivePossessedBody: 0
   savedPossessedRootObjectId: 
@@ -1443,6 +1446,7 @@ GameObject:
   - component: {fileID: 2087133903}
   - component: {fileID: 2087133902}
   - component: {fileID: 2087133901}
+  - component: {fileID: 2087133904}
   m_Layer: 0
   m_Name: HWJ_Player
   m_TagString: Untagged
@@ -1525,6 +1529,7 @@ MonoBehaviour:
   bodyDiscoverySystem: {fileID: 0}
   playerInput: {fileID: 0}
   soulSystem: {fileID: 0}
+  levelUpSystem: {fileID: 0}
   interactionTargetLayer:
     serializedVersion: 2
     m_Bits: 0
@@ -1672,6 +1677,7 @@ MonoBehaviour:
   runtimeStatus: {fileID: 0}
   playerInput: {fileID: 0}
   possessedBodySystem: {fileID: 0}
+  skillUnlockSystem: {fileID: 0}
   possessedBodyResolver: {fileID: 0}
   runtimePossessedBodyResolver: {fileID: 0}
   moveOwnerToPossessedBody: 1
@@ -1931,6 +1937,24 @@ MonoBehaviour:
       defense: 0
       attackSpeed: 0
   runtimeStateMessage: 
+--- !u!114 &2087133904
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2087133885}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 860aca9d6b7b46c4b1100595d2747986, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: HWJ.Runtime::HWJ_LevelUpSystem
+  levelUpData: {fileID: 0}
+  levelTableId: player_default_level
+  loadLevelDataFromDatabase: 1
+  currentLevel: 1
+  currentExperience: 0
+  skillPoint: 0
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

@@ -13,6 +13,7 @@ public class HWJ_RuntimeObjectContext : MonoBehaviour
     [SerializeField] private HWJ_SkillActionSystem skillActionSystem;
     [SerializeField] private HWJ_LevelUpSystem levelProgressState;
     [SerializeField] private HWJ_SkillUnlockSystem skillUnlockState;
+    [SerializeField] private HWJ_StatOrbProgressSystem statOrbProgressState;
 
     public HWJ_RootObjectDataResolver DataResolver
     {
@@ -104,6 +105,15 @@ public class HWJ_RuntimeObjectContext : MonoBehaviour
         }
     }
 
+    public HWJ_StatOrbProgressSystem StatOrbProgressState
+    {
+        get
+        {
+            ResolveReferences();
+            return statOrbProgressState;
+        }
+    }
+
     public HWJ_RootObjectDataSO RootObjectData => DataResolver != null ? DataResolver.RootObjectData : null;
     public HWJ_ObjectType ObjectType => DataResolver != null ? DataResolver.ObjectType : HWJ_ObjectType.Player;
     public HWJ_Faction Faction => DataResolver != null && DataResolver.Identity != null ? DataResolver.Identity.faction : HWJ_Faction.Neutral;
@@ -177,7 +187,7 @@ public class HWJ_RuntimeObjectContext : MonoBehaviour
             sourceReceivedDamageData = GetEffectiveReceivedDamageData(),
             runtimeStats = HWJ_RuntimeStatSnapshot.FromStatus(runtimeStatus),
             runtimeBody = HWJ_RuntimeBodySnapshot.FromSystems(soulSystem, possessionSystem, bodyDecaySystem, possessedBodySystem),
-            runtimeGrowth = HWJ_RuntimeGrowthSnapshot.FromSystems(levelProgressState, skillUnlockState)
+            runtimeGrowth = HWJ_RuntimeGrowthSnapshot.FromSystems(levelProgressState, skillUnlockState, statOrbProgressState)
         };
     }
 
@@ -231,6 +241,11 @@ public class HWJ_RuntimeObjectContext : MonoBehaviour
         if (skillUnlockState == null)
         {
             skillUnlockState = GetComponent<HWJ_SkillUnlockSystem>();
+        }
+
+        if (statOrbProgressState == null)
+        {
+            statOrbProgressState = GetComponent<HWJ_StatOrbProgressSystem>();
         }
     }
 }

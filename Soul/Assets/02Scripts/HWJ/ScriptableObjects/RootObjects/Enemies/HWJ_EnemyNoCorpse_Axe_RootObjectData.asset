@@ -61,7 +61,7 @@ MonoBehaviour:
     canBeTargeted: 1
     interactionRange: 0
   reward:
-    experienceReward: 10
+    experienceReward: 25
     skillPointReward: 0
     dropsStatOrb: 1
     statOrbId: stat_attack_power_small
