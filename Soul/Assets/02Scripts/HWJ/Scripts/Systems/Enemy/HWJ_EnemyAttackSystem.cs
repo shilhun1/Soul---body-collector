@@ -21,6 +21,7 @@ public class HWJ_EnemyAttackSystem : MonoBehaviour
     [Header("타겟")]
     [SerializeField] private Transform target;
     [SerializeField] private bool autoFindPlayerTarget = true;
+    [SerializeField] private bool autoAttackWhenNoBehaviorDriver = true;
     [SerializeField] private bool attackOnlyBodyState = true;
     [Header("스킬 예고")]
     [SerializeField] private bool useSkillCycle = true;
@@ -72,7 +73,10 @@ public class HWJ_EnemyAttackSystem : MonoBehaviour
             nextTargetSearchTime = Time.time + targetSearchIntervalSeconds;
         }
 
-        TryAutoAttack();
+        if (autoAttackWhenNoBehaviorDriver)
+        {
+            TryAutoAttack();
+        }
     }
 
     public void SetTarget(Transform target)
@@ -143,6 +147,8 @@ public class HWJ_EnemyAttackSystem : MonoBehaviour
             return true;
         }
 
+        string skillCycleFailureResult = lastAttackResult;
+
         if (Time.time < nextBasicAttackTime)
         {
             lastAttackResult = "Basic attack failed: attack interval.";
@@ -153,7 +159,10 @@ public class HWJ_EnemyAttackSystem : MonoBehaviour
 
         if (distance > attackRange)
         {
-            lastAttackResult = "Attack failed: target out of range.";
+            lastAttackResult = !string.IsNullOrEmpty(skillCycleFailureResult)
+                && skillCycleFailureResult.StartsWith("Skill", System.StringComparison.Ordinal)
+                ? $"{skillCycleFailureResult} Basic fallback failed: target out of range."
+                : "Attack failed: target out of range.";
             return false;
         }
 
@@ -175,13 +184,21 @@ public class HWJ_EnemyAttackSystem : MonoBehaviour
 
     private bool TryUseSkillCycle(float distanceToTarget)
     {
-        if (!useSkillCycle || skillActionSystem == null)
+        if (!useSkillCycle)
         {
+            lastAttackResult = "Skill skipped: fixed skill cycle disabled.";
+            return false;
+        }
+
+        if (skillActionSystem == null)
+        {
+            lastAttackResult = "Skill skipped: missing skill action system.";
             return false;
         }
 
         if (dataResolver == null || !dataResolver.TryGetTypeData(out HWJ_EnemyTypeDataSO enemyData))
         {
+            lastAttackResult = "Skill skipped: missing enemy type data.";
             return false;
         }
 
@@ -189,6 +206,7 @@ public class HWJ_EnemyAttackSystem : MonoBehaviour
 
         if (skillCycle == null || skillCycle.skills == null)
         {
+            lastAttackResult = "Skill skipped: missing fixed skill cycle data.";
             return false;
         }
 
@@ -196,6 +214,7 @@ public class HWJ_EnemyAttackSystem : MonoBehaviour
 
         if (skillCycleCount <= 0)
         {
+            lastAttackResult = "Skill skipped: fixed skill cycle is empty.";
             return false;
         }
 
@@ -313,6 +332,16 @@ public class HWJ_EnemyAttackSystem : MonoBehaviour
 
     private float ResolveMonsterSkillCooldownSeconds(HWJ_SkillEntryData skillEntry, HWJ_SkillActionDataSO skillAction)
     {
+        if (skillEntry != null && skillEntry.cooldownSeconds > 0f)
+        {
+            return skillEntry.cooldownSeconds;
+        }
+
+        if (skillAction != null && skillAction.CooldownSeconds > 0f)
+        {
+            return skillAction.CooldownSeconds;
+        }
+
         if (dataResolver != null
             && dataResolver.TryGetTypeData(out HWJ_EnemyTypeDataSO enemyData)
             && enemyData.AI != null
@@ -321,17 +350,7 @@ public class HWJ_EnemyAttackSystem : MonoBehaviour
             return enemyData.AI.defaultSkillCooldownSeconds;
         }
 
-        if (fallbackMonsterSkillCooldownSeconds > 0f)
-        {
-            return fallbackMonsterSkillCooldownSeconds;
-        }
-
-        if (skillEntry != null && skillEntry.cooldownSeconds > 0f)
-        {
-            return skillEntry.cooldownSeconds;
-        }
-
-        return skillAction != null ? Mathf.Max(0f, skillAction.CooldownSeconds) : 0f;
+        return Mathf.Max(0f, fallbackMonsterSkillCooldownSeconds);
     }
 
     private float ResolveSkillCycleDelaySeconds()

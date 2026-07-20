@@ -61,7 +61,7 @@ MonoBehaviour:
     canBeTargeted: 1
     interactionRange: 0
   reward:
-    experienceReward: 10
+    experienceReward: 30
     skillPointReward: 0
     dropsStatOrb: 1
     statOrbId: stat_defense_small

@@ -115,6 +115,14 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
 
     private void Awake()
     {
+        ResolveReferences();
+        soulHp = SoulMaxHp;
+        possessedBodyHp = MaxHp;
+        currentHp = GetStoredHpForActiveState();
+    }
+
+    private void ResolveReferences()
+    {
         if (runtimeContext == null)
         {
             runtimeContext = GetComponent<HWJ_RuntimeObjectContext>();
@@ -161,10 +169,6 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
         {
             bossBrain = GetComponent<HWJ_BossBrainSystem>();
         }
-
-        soulHp = SoulMaxHp;
-        possessedBodyHp = MaxHp;
-        currentHp = GetStoredHpForActiveState();
     }
 
     /// <summary>
@@ -264,6 +268,8 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
 
     public void ApplyDamage(float damage, Component source, HWJ_DamageData sourceDamage)
     {
+        ResolveReferences();
+
         if (IsDead || damage <= 0f || !CanReceiveHitFrom(source))
         {
             return;
@@ -302,6 +308,8 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
     /// </summary>
     public void Heal(float amount)
     {
+        ResolveReferences();
+
         if (IsDead)
         {
             return;
@@ -317,6 +325,8 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
     /// </summary>
     public void RefreshCurrentHpFromData(bool refillToMax)
     {
+        ResolveReferences();
+
         if (soulSystem == null)
         {
             currentHp = refillToMax ? MaxHp : Mathf.Min(currentHp, MaxHp);
@@ -350,6 +360,8 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
 
     public void RestoreHpSnapshot(float restoredCurrentHp, float restoredSoulHp, float restoredPossessedBodyHp)
     {
+        ResolveReferences();
+
         float bodyMaxHp = Mathf.Max(0f, MaxHp);
         float soulMaxHp = Mathf.Max(0f, SoulMaxHp);
 
@@ -383,6 +395,8 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
     /// </summary>
     public void CacheCurrentHpForActiveState()
     {
+        ResolveReferences();
+
         if (soulSystem == null)
         {
             return;
@@ -410,8 +424,60 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
     /// 능력치 구슬 데이터를 런타임 보너스로 적용합니다.
     /// ScriptableObject 원본 스탯은 수정하지 않기 때문에 데이터 오염을 막을 수 있습니다.
     /// </summary>
+    public bool CanApplyStatOrb(HWJ_StatOrbDataSO statOrbData)
+    {
+        ResolveReferences();
+
+        if (statOrbData == null)
+        {
+            return false;
+        }
+
+        HWJ_StatOrbProgressSystem statOrbProgressSystem = GetComponent<HWJ_StatOrbProgressSystem>();
+        return statOrbProgressSystem == null || statOrbProgressSystem.CanApplyStatOrb(statOrbData);
+    }
+
+    public bool TryApplyStatOrb(HWJ_StatOrbDataSO statOrbData)
+    {
+        ResolveReferences();
+
+        if (statOrbData == null)
+        {
+            return false;
+        }
+
+        HWJ_StatOrbProgressSystem statOrbProgressSystem = GetComponent<HWJ_StatOrbProgressSystem>();
+
+        if (statOrbProgressSystem != null)
+        {
+            return statOrbProgressSystem.TryApplyStatOrb(statOrbData, this, out _);
+        }
+
+        ApplyStatOrbBonus(statOrbData, false);
+        return true;
+    }
+
     public void ApplyStatOrb(HWJ_StatOrbDataSO statOrbData)
     {
+        TryApplyStatOrb(statOrbData);
+    }
+
+    public void ClearStatOrbBonuses()
+    {
+        ResolveReferences();
+
+        maxHpBonus = 0f;
+        moveSpeedBonus = 0f;
+        attackPowerBonus = 0f;
+        defenseBonus = 0f;
+        attackSpeedBonus = 0f;
+        RefreshCurrentHpFromData(false);
+    }
+
+    public void ApplyStatOrbBonus(HWJ_StatOrbDataSO statOrbData, bool preserveCurrentHp)
+    {
+        ResolveReferences();
+
         if (statOrbData == null)
         {
             return;
@@ -421,8 +487,15 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
         {
             case HWJ_StatOrbType.MaxHp:
                 maxHpBonus += statOrbData.Amount;
-                currentHp = Mathf.Min(MaxHp, currentHp + statOrbData.Amount);
-                CacheCurrentHpForActiveState();
+                if (preserveCurrentHp)
+                {
+                    RefreshCurrentHpFromData(false);
+                }
+                else
+                {
+                    currentHp = Mathf.Min(MaxHp, currentHp + statOrbData.Amount);
+                    CacheCurrentHpForActiveState();
+                }
                 break;
             case HWJ_StatOrbType.MoveSpeed:
                 moveSpeedBonus += statOrbData.Amount;
