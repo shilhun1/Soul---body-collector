@@ -56,3 +56,5 @@
     *   버튼의 OnClick 이벤트 등에 연결하여 지정된 씬 이름이나 인덱스로 씬을 안전하게 로드할 수 있게 도와줍니다.
 *   **HSH_StatProgressUi & HSH_StealBodyUi**
     *   능력치 흡수 코어나 빙의 가능한 시체 근처에 다가갔을 때, 어떤 상호작용 키를 눌러야 하는지 월드 공간에 안내하는 팝업 UI입니다. 리플렉션을 사용하여 TextMeshPro와의 호환성을 확보했습니다.
+*   **HSH_SkillResetter** *(추가일: 2026-07-20)*
+    *   Smiling Eclipse (Skill Tree Maker Importer) 에셋의 저장 데이터를 안전하게 초기화하는 유틸리티 스크립트입니다. PlayerPrefs에 저장된 특정 스킬트리의 진행도(레벨, 해금 상태) 키만 찾아서 지우며, 스킬 포인트(CurrencyData)를 기본값으로 재설정하는 기능도 포함되어 있습니다. UI 초기화 버튼에 연결하여 사용합니다.

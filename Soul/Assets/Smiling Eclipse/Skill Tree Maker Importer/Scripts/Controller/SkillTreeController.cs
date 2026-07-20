@@ -100,12 +100,14 @@ namespace SmilingEclipse.STMImporter
                 SkillNode node = dataXnode[data];
                 foreach (var childData in data.childNodes)
                 {
+                    if (childData == null) continue;
                     SkillNode childNode = dataXnode[childData];
                     node.childNodes.Add(childNode);
 
                 }
                 foreach (var parentData in data.parentNodes)
                 {
+                    if (parentData == null) continue;
                     SkillNode parentNode = dataXnode[parentData];
                     node.parentNodes.Add(parentNode);
                 }
