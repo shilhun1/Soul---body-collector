@@ -373,7 +373,14 @@ public static class HWJ_SaveDataRuntimeValidator
             return Fail(HWJ_SaveDataValidationFailureCode.NegativeSkillPoint, "player.growth.skillPoint", "Skill point cannot be negative.");
         }
 
-        return ValidateStableIdList(growthData.unlockedSkillIds, "player.growth.unlockedSkillIds");
+        HWJ_SaveDataValidationResult unlockedSkillResult = ValidateStableIdList(growthData.unlockedSkillIds, "player.growth.unlockedSkillIds");
+
+        if (!unlockedSkillResult.Succeeded)
+        {
+            return unlockedSkillResult;
+        }
+
+        return ValidateStableIdList(growthData.unlockedSkillNodeIds, "player.growth.unlockedSkillNodeIds");
     }
 
     private static HWJ_SaveDataValidationResult ValidateStageData(HWJ_SaveStageRuntimeData stageData)

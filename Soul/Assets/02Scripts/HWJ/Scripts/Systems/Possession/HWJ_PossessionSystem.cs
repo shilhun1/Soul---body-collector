@@ -12,6 +12,7 @@ public class HWJ_PossessionSystem : MonoBehaviour
     [SerializeField] private HWJ_RuntimeStatusSystem runtimeStatus;
     [SerializeField] private HWJ_PlayerInputSystem playerInput;
     [SerializeField] private HWJ_PossessedBodySystem possessedBodySystem;
+    [SerializeField] private HWJ_SkillUnlockSystem skillUnlockSystem;
     [SerializeField] private HWJ_RootObjectDataResolver possessedBodyResolver;
     [SerializeField] private HWJ_RootObjectDataResolver runtimePossessedBodyResolver;
 
@@ -85,6 +86,11 @@ public class HWJ_PossessionSystem : MonoBehaviour
         if (possessedBodySystem == null)
         {
             possessedBodySystem = GetComponent<HWJ_PossessedBodySystem>();
+        }
+
+        if (skillUnlockSystem == null)
+        {
+            skillUnlockSystem = GetComponent<HWJ_SkillUnlockSystem>();
         }
 
         CacheOwnerVisual();
@@ -458,6 +464,11 @@ public class HWJ_PossessionSystem : MonoBehaviour
         {
             possessedBodySystem = GetComponent<HWJ_PossessedBodySystem>();
         }
+
+        if (skillUnlockSystem == null)
+        {
+            skillUnlockSystem = GetComponent<HWJ_SkillUnlockSystem>();
+        }
     }
 
     private void ResolvePlayerInput()
@@ -718,7 +729,7 @@ public class HWJ_PossessionSystem : MonoBehaviour
                 continue;
             }
 
-            if (!skill.startsUnlocked)
+            if (!IsPossessedSkillEntryUnlocked(skill))
             {
                 continue;
             }
@@ -733,6 +744,60 @@ public class HWJ_PossessionSystem : MonoBehaviour
         }
 
         return false;
+    }
+
+    public HWJ_SkillNodeDataSO[] GetCurrentPossessedSkillNodes()
+    {
+        if (!HasActivePossessedBody)
+        {
+            return new HWJ_SkillNodeDataSO[0];
+        }
+
+        if (skillUnlockSystem == null)
+        {
+            skillUnlockSystem = GetComponent<HWJ_SkillUnlockSystem>();
+        }
+
+        return skillUnlockSystem != null
+            ? skillUnlockSystem.GetSkillNodesForWeapon(CurrentWeaponType)
+            : new HWJ_SkillNodeDataSO[0];
+    }
+
+    public bool TryGetCurrentPossessedSkillNodeAt(int slotIndex, out HWJ_SkillNodeDataSO skillNode)
+    {
+        skillNode = null;
+
+        if (slotIndex < 0)
+        {
+            return false;
+        }
+
+        HWJ_SkillNodeDataSO[] skillNodes = GetCurrentPossessedSkillNodes();
+
+        if (slotIndex >= skillNodes.Length)
+        {
+            return false;
+        }
+
+        skillNode = skillNodes[slotIndex];
+        return skillNode != null;
+    }
+
+    private bool IsPossessedSkillEntryUnlocked(HWJ_SkillEntryData skill)
+    {
+        if (skill == null || string.IsNullOrEmpty(skill.skillId))
+        {
+            return false;
+        }
+
+        if (skillUnlockSystem == null)
+        {
+            skillUnlockSystem = GetComponent<HWJ_SkillUnlockSystem>();
+        }
+
+        return skillUnlockSystem != null
+            ? skillUnlockSystem.IsSkillEntryUnlocked(skill)
+            : skill.startsUnlocked;
     }
 
     /// <summary>

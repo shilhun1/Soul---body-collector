@@ -13,7 +13,11 @@ public enum HWJ_SkillUnlockFailureCode
     AlreadyUnlocked,
     LevelTooLow,
     MissingLevelSystem,
-    NotEnoughSkillPoint
+    NotEnoughSkillPoint,
+    MissingGameplayDatabase,
+    MissingSkillNodeId,
+    SkillNodeNotFound,
+    PreviousSkillNodeLocked
 }
 
 /// <summary>
@@ -26,6 +30,7 @@ public readonly struct HWJ_SkillUnlockResult
     public readonly HWJ_SkillUnlockFailureCode FailureCode;
     public readonly string SkillId;
     public readonly HWJ_SkillEntryData DefinitionEntry;
+    public readonly HWJ_SkillNodeDataSO SkillNode;
     public readonly int SkillPointCost;
     public readonly int RemainingSkillPoint;
     public readonly string Message;
@@ -35,6 +40,7 @@ public readonly struct HWJ_SkillUnlockResult
         HWJ_SkillUnlockFailureCode failureCode,
         string skillId,
         HWJ_SkillEntryData definitionEntry,
+        HWJ_SkillNodeDataSO skillNode,
         int skillPointCost,
         int remainingSkillPoint,
         string message)
@@ -43,6 +49,7 @@ public readonly struct HWJ_SkillUnlockResult
         FailureCode = failureCode;
         SkillId = skillId;
         DefinitionEntry = definitionEntry;
+        SkillNode = skillNode;
         SkillPointCost = skillPointCost;
         RemainingSkillPoint = remainingSkillPoint;
         Message = message;
@@ -53,13 +60,15 @@ public readonly struct HWJ_SkillUnlockResult
         HWJ_SkillEntryData definitionEntry,
         int skillPointCost,
         int remainingSkillPoint,
-        string message)
+        string message,
+        HWJ_SkillNodeDataSO skillNode = null)
     {
         return new HWJ_SkillUnlockResult(
             true,
             HWJ_SkillUnlockFailureCode.None,
             skillId,
             definitionEntry,
+            skillNode,
             skillPointCost,
             remainingSkillPoint,
             message);
@@ -71,13 +80,15 @@ public readonly struct HWJ_SkillUnlockResult
         HWJ_SkillEntryData definitionEntry,
         int skillPointCost,
         int remainingSkillPoint,
-        string message)
+        string message,
+        HWJ_SkillNodeDataSO skillNode = null)
     {
         return new HWJ_SkillUnlockResult(
             false,
             failureCode,
             skillId,
             definitionEntry,
+            skillNode,
             skillPointCost,
             remainingSkillPoint,
             message);
@@ -90,16 +101,30 @@ public readonly struct HWJ_SkillUnlockResult
 /// </summary>
 public class HWJ_SkillUnlockSystem : MonoBehaviour
 {
+    [Header("기존 스킬 해금")]
     [SerializeField] private HWJ_RootObjectDataResolver ownerDataResolver;
     [SerializeField] private HWJ_LevelUpSystem playerLevelProgress;
     [SerializeField] private bool initializeStartingSkillsOnAwake = true;
     [SerializeField] private bool autoUnlockLevelSkills = true;
     [SerializeField] private bool autoUnlockOnlyFreeSkills = true;
+
+    [Header("스킬 노드 해금")]
+    [SerializeField] private HWJ_GameplayDatabaseSO gameplayDatabase;
+    [SerializeField] private bool useSkillNodeProgress = true;
+    [SerializeField] private bool autoUnlockFreeStartingSkillNodes = true;
+    [SerializeField] private int cachedCommonUnlockedSkillStep;
+    [SerializeField] private string lastSkillNodeMessage;
+
+    [Header("저장 가능한 해금 ID")]
     [SerializeField] private List<string> unlockedSkillIds = new List<string>();
+    [SerializeField] private List<string> unlockedSkillNodeIds = new List<string>();
     [SerializeField] private string lastUnlockMessage;
 
     public string LastUnlockMessage => lastUnlockMessage;
+    public string LastSkillNodeMessage => lastSkillNodeMessage;
     public int UnlockedSkillCount => unlockedSkillIds.Count;
+    public int UnlockedSkillNodeCount => unlockedSkillNodeIds.Count;
+    public int CommonUnlockedSkillStep => GetUnlockedCommonSkillNodeStep();
 
     private void Awake()
     {
@@ -124,12 +149,133 @@ public class HWJ_SkillUnlockSystem : MonoBehaviour
 
     public bool IsSkillUnlocked(string skillId)
     {
-        return !string.IsNullOrEmpty(skillId) && unlockedSkillIds.Contains(skillId);
+        if (string.IsNullOrEmpty(skillId))
+        {
+            return false;
+        }
+
+        if (unlockedSkillIds.Contains(skillId))
+        {
+            return true;
+        }
+
+        return IsSkillNodeUnlocked(skillId) || IsSkillActionUnlockedBySkillNodeProgress(skillId);
     }
 
     public bool HasSkillDefinition(string skillId)
     {
         return TryFindSkillEntry(skillId, out _);
+    }
+
+    public bool HasSkillNodeDefinitionForSkillAction(string skillActionId)
+    {
+        return TryGetSkillNodeForSkillAction(skillActionId, out _);
+    }
+
+    public bool TryGetSkillNodeForSkillAction(string skillActionId, out HWJ_SkillNodeDataSO skillNode)
+    {
+        skillNode = null;
+
+        if (string.IsNullOrEmpty(skillActionId) || !ResolveGameplayDatabase())
+        {
+            return false;
+        }
+
+        return gameplayDatabase.TryGetSkillNodeBySkillAction(skillActionId, out skillNode);
+    }
+
+    public bool IsSkillActionUnlockedBySkillNodeProgress(string skillActionId)
+    {
+        if (!useSkillNodeProgress || !TryGetSkillNodeForSkillAction(skillActionId, out HWJ_SkillNodeDataSO skillNode))
+        {
+            return false;
+        }
+
+        return IsSkillNodeUnlocked(skillNode);
+    }
+
+    public bool IsSkillEntryUnlocked(HWJ_SkillEntryData skillEntry)
+    {
+        if (skillEntry == null || string.IsNullOrEmpty(skillEntry.skillId))
+        {
+            return false;
+        }
+
+        if (HasSkillNodeDefinitionForSkillAction(skillEntry.skillId))
+        {
+            return IsSkillActionUnlockedBySkillNodeProgress(skillEntry.skillId);
+        }
+
+        if (HasSkillDefinition(skillEntry.skillId))
+        {
+            return IsSkillUnlocked(skillEntry.skillId);
+        }
+
+        return skillEntry.startsUnlocked;
+    }
+
+    public HWJ_SkillNodeDataSO[] GetSkillNodesForWeapon(HWJ_WeaponType weaponType)
+    {
+        if (!TryGetSkillNodeList(out HWJ_SkillNodeDataSO[] skillNodeList))
+        {
+            return new HWJ_SkillNodeDataSO[0];
+        }
+
+        List<HWJ_SkillNodeDataSO> matchedNodes = new List<HWJ_SkillNodeDataSO>();
+
+        for (int i = 0; i < skillNodeList.Length; i++)
+        {
+            HWJ_SkillNodeDataSO skillNode = skillNodeList[i];
+
+            if (skillNode != null && skillNode.MatchesWeapon(weaponType))
+            {
+                matchedNodes.Add(skillNode);
+            }
+        }
+
+        return matchedNodes.ToArray();
+    }
+
+    public bool IsSkillNodeUnlocked(string nodeId)
+    {
+        if (string.IsNullOrEmpty(nodeId))
+        {
+            return false;
+        }
+
+        if (unlockedSkillNodeIds.Contains(nodeId))
+        {
+            return true;
+        }
+
+        if (!useSkillNodeProgress || !ResolveGameplayDatabase())
+        {
+            return false;
+        }
+
+        return gameplayDatabase.TryGetSkillNode(nodeId, out HWJ_SkillNodeDataSO skillNode)
+            && IsSkillNodeUnlocked(skillNode);
+    }
+
+    public bool IsSkillNodeUnlocked(HWJ_SkillNodeDataSO skillNode)
+    {
+        if (skillNode == null || string.IsNullOrEmpty(skillNode.NodeId))
+        {
+            return false;
+        }
+
+        if (unlockedSkillNodeIds.Contains(skillNode.NodeId))
+        {
+            return true;
+        }
+
+        if (!useSkillNodeProgress)
+        {
+            return false;
+        }
+
+        int skillStep = skillNode.SkillStep;
+        return skillStep > 0 && skillStep <= GetUnlockedCommonSkillNodeStep();
     }
 
     /// <summary>
@@ -140,25 +286,38 @@ public class HWJ_SkillUnlockSystem : MonoBehaviour
         return unlockedSkillIds.ToArray();
     }
 
+    public string[] GetUnlockedSkillNodeIds()
+    {
+        return unlockedSkillNodeIds.ToArray();
+    }
+
     /// <summary>
     /// 저장 데이터에서 복원한 스킬 ID 목록을 런타임 상태에 다시 넣습니다.
     /// </summary>
     public void RestoreUnlockedSkills(IEnumerable<string> skillIds)
     {
-        unlockedSkillIds.Clear();
+        RestoreUnlockedSkills(skillIds, null);
+    }
 
-        if (skillIds == null)
+    public void RestoreUnlockedSkills(IEnumerable<string> skillIds, IEnumerable<string> skillNodeIds)
+    {
+        unlockedSkillIds.Clear();
+        unlockedSkillNodeIds.Clear();
+
+        RestoreUnlockedSkillIds(skillIds, true);
+        RestoreUnlockedSkillNodeIds(skillNodeIds);
+        cachedCommonUnlockedSkillStep = GetUnlockedCommonSkillNodeStep();
+
+        int restoredSkillCount = unlockedSkillIds.Count;
+        int restoredSkillNodeCount = unlockedSkillNodeIds.Count;
+
+        if (restoredSkillCount <= 0 && restoredSkillNodeCount <= 0)
         {
             lastUnlockMessage = "Restored empty unlocked skill list.";
             return;
         }
 
-        foreach (string skillId in skillIds)
-        {
-            AddUnlockedSkillId(skillId);
-        }
-
-        lastUnlockMessage = $"Restored {unlockedSkillIds.Count} unlocked skills.";
+        lastUnlockMessage = $"Restored {restoredSkillCount} skills and {restoredSkillNodeCount} skill nodes.";
     }
 
     /// <summary>
@@ -170,29 +329,74 @@ public class HWJ_SkillUnlockSystem : MonoBehaviour
 
         int unlockedCount = 0;
 
-        if (!TryGetPlayerData(out HWJ_PlayerTypeDataSO playerTypeData)
-            || playerTypeData.SkillSet == null
-            || playerTypeData.SkillSet.skills == null)
+        if (TryGetPlayerData(out HWJ_PlayerTypeDataSO playerTypeData)
+            && playerTypeData.SkillSet != null
+            && playerTypeData.SkillSet.skills != null)
+        {
+            for (int i = 0; i < playerTypeData.SkillSet.skills.Length; i++)
+            {
+                HWJ_SkillEntryData definitionEntry = playerTypeData.SkillSet.skills[i];
+
+                if (!IsAutoUnlockEligible(definitionEntry))
+                {
+                    continue;
+                }
+
+                if (UnlockWithoutCost(definitionEntry, "Skill unlocked by starting data or level.").Succeeded)
+                {
+                    unlockedCount++;
+                }
+            }
+        }
+        else
         {
             lastUnlockMessage = "Skill refresh skipped: missing player skill set.";
+        }
+
+        unlockedCount += RefreshStartingAndLevelUnlockedSkillNodes();
+        return unlockedCount;
+    }
+
+    public int RefreshStartingAndLevelUnlockedSkillNodes()
+    {
+        ResolveReferences();
+
+        if (!useSkillNodeProgress || !autoUnlockFreeStartingSkillNodes)
+        {
             return 0;
         }
 
-        for (int i = 0; i < playerTypeData.SkillSet.skills.Length; i++)
+        if (!TryGetSkillNodeList(out HWJ_SkillNodeDataSO[] skillNodeList))
         {
-            HWJ_SkillEntryData definitionEntry = playerTypeData.SkillSet.skills[i];
+            lastSkillNodeMessage = "Skill node refresh skipped: missing gameplay database or skill nodes.";
+            return 0;
+        }
 
-            if (!IsAutoUnlockEligible(definitionEntry))
+        int unlockedCount = 0;
+
+        for (int i = 0; i < skillNodeList.Length; i++)
+        {
+            HWJ_SkillNodeDataSO skillNode = skillNodeList[i];
+
+            if (!IsAutoUnlockEligible(skillNode))
             {
                 continue;
             }
 
-            if (UnlockWithoutCost(definitionEntry, "Skill unlocked by starting data or level.").Succeeded)
+            if (AddUnlockedSkillNodeId(skillNode.NodeId))
             {
                 unlockedCount++;
+                RaiseUnlocked(
+                    skillNode.NodeId,
+                    null,
+                    0,
+                    "Skill node unlocked by starting data.",
+                    skillNode);
             }
         }
 
+        cachedCommonUnlockedSkillStep = GetUnlockedCommonSkillNodeStep();
+        lastSkillNodeMessage = $"Refreshed starting skill nodes. Added {unlockedCount}.";
         return unlockedCount;
     }
 
@@ -203,6 +407,153 @@ public class HWJ_SkillUnlockSystem : MonoBehaviour
     public HWJ_SkillUnlockResult TryUnlockSkill(string skillId)
     {
         return TryUnlockSkill(skillId, true);
+    }
+
+    public HWJ_SkillUnlockResult TryUnlockSkillNode(string nodeId)
+    {
+        return TryUnlockSkillNode(nodeId, true);
+    }
+
+    public HWJ_SkillUnlockResult TryUnlockSkillNode(string nodeId, bool spendSkillPoint)
+    {
+        ResolveReferences();
+
+        if (string.IsNullOrEmpty(nodeId))
+        {
+            return SetLastResult(HWJ_SkillUnlockResult.Fail(
+                HWJ_SkillUnlockFailureCode.MissingSkillNodeId,
+                nodeId,
+                null,
+                0,
+                GetRemainingSkillPoint(),
+                "Skill node unlock failed: missing node id."));
+        }
+
+        if (!ResolveGameplayDatabase())
+        {
+            return SetLastResult(HWJ_SkillUnlockResult.Fail(
+                HWJ_SkillUnlockFailureCode.MissingGameplayDatabase,
+                nodeId,
+                null,
+                0,
+                GetRemainingSkillPoint(),
+                "Skill node unlock failed: missing gameplay database."));
+        }
+
+        if (!gameplayDatabase.TryGetSkillNode(nodeId, out HWJ_SkillNodeDataSO skillNode))
+        {
+            return SetLastResult(HWJ_SkillUnlockResult.Fail(
+                HWJ_SkillUnlockFailureCode.SkillNodeNotFound,
+                nodeId,
+                null,
+                0,
+                GetRemainingSkillPoint(),
+                $"Skill node unlock failed: {nodeId} is not registered.",
+                null));
+        }
+
+        if (IsSkillNodeUnlocked(skillNode))
+        {
+            return SetLastResult(HWJ_SkillUnlockResult.Fail(
+                HWJ_SkillUnlockFailureCode.AlreadyUnlocked,
+                nodeId,
+                null,
+                skillNode.SkillPointCost,
+                GetRemainingSkillPoint(),
+                $"Skill node unlock failed: {nodeId} is already unlocked.",
+                skillNode));
+        }
+
+        if (GetCurrentLevel() < skillNode.RequiredLevel)
+        {
+            return SetLastResult(HWJ_SkillUnlockResult.Fail(
+                HWJ_SkillUnlockFailureCode.LevelTooLow,
+                nodeId,
+                null,
+                skillNode.SkillPointCost,
+                GetRemainingSkillPoint(),
+                $"Skill node unlock failed: {nodeId} requires level {skillNode.RequiredLevel}.",
+                skillNode));
+        }
+
+        if (!IsPreviousSkillNodeRequirementMet(skillNode))
+        {
+            return SetLastResult(HWJ_SkillUnlockResult.Fail(
+                HWJ_SkillUnlockFailureCode.PreviousSkillNodeLocked,
+                nodeId,
+                null,
+                skillNode.SkillPointCost,
+                GetRemainingSkillPoint(),
+                $"Skill node unlock failed: {nodeId} requires previous node {skillNode.PrerequisiteNodeId}.",
+                skillNode));
+        }
+
+        int skillPointCost = skillNode.SkillPointCost;
+
+        if (spendSkillPoint && skillPointCost > 0)
+        {
+            if (playerLevelProgress == null)
+            {
+                return SetLastResult(HWJ_SkillUnlockResult.Fail(
+                    HWJ_SkillUnlockFailureCode.MissingLevelSystem,
+                    nodeId,
+                    null,
+                    skillPointCost,
+                    0,
+                    $"Skill node unlock failed: {nodeId} requires a level system.",
+                    skillNode));
+            }
+
+            if (!playerLevelProgress.TrySpendSkillPoint(skillPointCost))
+            {
+                return SetLastResult(HWJ_SkillUnlockResult.Fail(
+                    HWJ_SkillUnlockFailureCode.NotEnoughSkillPoint,
+                    nodeId,
+                    null,
+                    skillPointCost,
+                    playerLevelProgress.SkillPoint,
+                    $"Skill node unlock failed: {nodeId} requires {skillPointCost} skill points.",
+                    skillNode));
+            }
+        }
+
+        if (!AddUnlockedSkillNodeId(skillNode.NodeId))
+        {
+            return SetLastResult(HWJ_SkillUnlockResult.Fail(
+                HWJ_SkillUnlockFailureCode.AlreadyUnlocked,
+                nodeId,
+                null,
+                skillPointCost,
+                GetRemainingSkillPoint(),
+                $"Skill node unlock failed: {nodeId} is already unlocked.",
+                skillNode));
+        }
+
+        cachedCommonUnlockedSkillStep = GetUnlockedCommonSkillNodeStep();
+        lastSkillNodeMessage = $"Skill node unlocked: {nodeId}. Common step {cachedCommonUnlockedSkillStep}.";
+
+        return RaiseUnlocked(
+            skillNode.NodeId,
+            null,
+            skillPointCost,
+            skillPointCost > 0 ? "Skill node unlocked by spending skill points." : "Skill node unlocked.",
+            skillNode);
+    }
+
+    public HWJ_SkillUnlockResult TryUnlockSkillNodeForSkillAction(string skillActionId, bool spendSkillPoint = true)
+    {
+        if (!TryGetSkillNodeForSkillAction(skillActionId, out HWJ_SkillNodeDataSO skillNode))
+        {
+            return SetLastResult(HWJ_SkillUnlockResult.Fail(
+                HWJ_SkillUnlockFailureCode.SkillNodeNotFound,
+                skillActionId,
+                null,
+                0,
+                GetRemainingSkillPoint(),
+                $"Skill node unlock failed: no node is linked to {skillActionId}."));
+        }
+
+        return TryUnlockSkillNode(skillNode.NodeId, spendSkillPoint);
     }
 
     public HWJ_SkillUnlockResult TryUnlockSkill(string skillId, bool spendSkillPoint)
@@ -353,14 +704,16 @@ public class HWJ_SkillUnlockSystem : MonoBehaviour
         string skillId,
         HWJ_SkillEntryData definitionEntry,
         int skillPointCost,
-        string message)
+        string message,
+        HWJ_SkillNodeDataSO skillNode = null)
     {
         HWJ_SkillUnlockResult unlockResult = HWJ_SkillUnlockResult.Success(
             skillId,
             definitionEntry,
             skillPointCost,
             GetRemainingSkillPoint(),
-            message);
+            message,
+            skillNode);
         SetLastResult(unlockResult);
 
         HWJ_GameplayEvents.RaiseSkillUnlocked(
@@ -392,6 +745,162 @@ public class HWJ_SkillUnlockSystem : MonoBehaviour
         return true;
     }
 
+    private bool AddUnlockedSkillNodeId(string skillNodeId)
+    {
+        if (string.IsNullOrEmpty(skillNodeId) || unlockedSkillNodeIds.Contains(skillNodeId))
+        {
+            return false;
+        }
+
+        unlockedSkillNodeIds.Add(skillNodeId);
+        return true;
+    }
+
+    private int RestoreUnlockedSkillIds(IEnumerable<string> skillIds, bool classifyKnownSkillNodes)
+    {
+        if (skillIds == null)
+        {
+            return 0;
+        }
+
+        int restoredCount = 0;
+
+        foreach (string skillId in skillIds)
+        {
+            if (string.IsNullOrEmpty(skillId))
+            {
+                continue;
+            }
+
+            // Older saves stored skill node IDs in the legacy skill list. Runtime separates them here.
+            if (classifyKnownSkillNodes && IsKnownSkillNodeId(skillId))
+            {
+                if (AddUnlockedSkillNodeId(skillId))
+                {
+                    restoredCount++;
+                }
+
+                continue;
+            }
+
+            if (AddUnlockedSkillId(skillId))
+            {
+                restoredCount++;
+            }
+        }
+
+        return restoredCount;
+    }
+
+    private int RestoreUnlockedSkillNodeIds(IEnumerable<string> skillNodeIds)
+    {
+        if (skillNodeIds == null)
+        {
+            return 0;
+        }
+
+        int restoredCount = 0;
+
+        foreach (string skillNodeId in skillNodeIds)
+        {
+            if (AddUnlockedSkillNodeId(skillNodeId))
+            {
+                restoredCount++;
+            }
+        }
+
+        return restoredCount;
+    }
+
+    private bool IsKnownSkillNodeId(string skillNodeId)
+    {
+        return !string.IsNullOrEmpty(skillNodeId)
+            && ResolveGameplayDatabase()
+            && gameplayDatabase.TryGetSkillNode(skillNodeId, out _);
+    }
+
+    public int GetUnlockedCommonSkillNodeStep()
+    {
+        if (!useSkillNodeProgress || !TryGetSkillNodeList(out HWJ_SkillNodeDataSO[] skillNodeList))
+        {
+            cachedCommonUnlockedSkillStep = 0;
+            return cachedCommonUnlockedSkillStep;
+        }
+
+        int highestUnlockedStep = 0;
+
+        for (int i = 0; i < skillNodeList.Length; i++)
+        {
+            HWJ_SkillNodeDataSO skillNode = skillNodeList[i];
+
+            if (skillNode == null || string.IsNullOrEmpty(skillNode.NodeId))
+            {
+                continue;
+            }
+
+            bool nodeDirectlyUnlocked = unlockedSkillNodeIds.Contains(skillNode.NodeId);
+            bool nodeStartsUnlocked = IsAutoUnlockedStartingSkillNode(skillNode);
+
+            if (!nodeDirectlyUnlocked && !nodeStartsUnlocked)
+            {
+                continue;
+            }
+
+            highestUnlockedStep = Mathf.Max(highestUnlockedStep, skillNode.SkillStep);
+        }
+
+        cachedCommonUnlockedSkillStep = highestUnlockedStep;
+        return cachedCommonUnlockedSkillStep;
+    }
+
+    private bool IsAutoUnlockedStartingSkillNode(HWJ_SkillNodeDataSO skillNode)
+    {
+        return useSkillNodeProgress
+            && autoUnlockFreeStartingSkillNodes
+            && skillNode != null
+            && skillNode.IsFreeStartingNode
+            && GetCurrentLevel() >= skillNode.RequiredLevel;
+    }
+
+    private bool IsPreviousSkillNodeRequirementMet(HWJ_SkillNodeDataSO skillNode)
+    {
+        if (skillNode == null)
+        {
+            return false;
+        }
+
+        if (!skillNode.HasPrerequisite)
+        {
+            return true;
+        }
+
+        return IsSkillNodeUnlocked(skillNode.PrerequisiteNodeId);
+    }
+
+    private bool TryGetSkillNodeList(out HWJ_SkillNodeDataSO[] skillNodeList)
+    {
+        skillNodeList = null;
+
+        if (!ResolveGameplayDatabase() || gameplayDatabase.SkillNodes == null)
+        {
+            return false;
+        }
+
+        skillNodeList = gameplayDatabase.SkillNodes;
+        return skillNodeList.Length > 0;
+    }
+
+    private bool ResolveGameplayDatabase()
+    {
+        if (gameplayDatabase != null)
+        {
+            return true;
+        }
+
+        gameplayDatabase = HWJ_GameAccess.Database;
+        return gameplayDatabase != null;
+    }
+
     private bool IsAutoUnlockEligible(HWJ_SkillEntryData definitionEntry)
     {
         if (definitionEntry == null || string.IsNullOrEmpty(definitionEntry.skillId))
@@ -420,6 +929,21 @@ public class HWJ_SkillUnlockSystem : MonoBehaviour
         }
 
         return definitionEntry.unlockLevel > 0 && IsLevelRequirementMet(definitionEntry);
+    }
+
+    private bool IsAutoUnlockEligible(HWJ_SkillNodeDataSO skillNode)
+    {
+        if (skillNode == null || string.IsNullOrEmpty(skillNode.NodeId))
+        {
+            return false;
+        }
+
+        if (unlockedSkillNodeIds.Contains(skillNode.NodeId))
+        {
+            return false;
+        }
+
+        return IsAutoUnlockedStartingSkillNode(skillNode);
     }
 
     private bool IsLevelRequirementMet(HWJ_SkillEntryData definitionEntry)
@@ -503,5 +1027,7 @@ public class HWJ_SkillUnlockSystem : MonoBehaviour
         {
             playerLevelProgress = GetComponent<HWJ_LevelUpSystem>();
         }
+
+        ResolveGameplayDatabase();
     }
 }

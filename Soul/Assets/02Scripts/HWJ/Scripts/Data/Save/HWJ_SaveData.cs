@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 public static class HWJ_SaveSchema
 {
-    public const int CurrentVersion = 1;
+    public const int CurrentVersion = 2;
 }
 
 /// <summary>
@@ -164,12 +164,18 @@ public class HWJ_SaveGrowthRuntimeData
     public int currentExperience;
     public int skillPoint;
     public List<string> unlockedSkillIds = new List<string>();
+    public List<string> unlockedSkillNodeIds = new List<string>();
 
     public void EnsureLists()
     {
         if (unlockedSkillIds == null)
         {
             unlockedSkillIds = new List<string>();
+        }
+
+        if (unlockedSkillNodeIds == null)
+        {
+            unlockedSkillNodeIds = new List<string>();
         }
     }
 }
@@ -476,6 +482,9 @@ public static class HWJ_SaveDataFactory
             skillPoint = snapshot.skillPoint,
             unlockedSkillIds = snapshot.unlockedSkillIds != null
                 ? new List<string>(snapshot.unlockedSkillIds)
+                : new List<string>(),
+            unlockedSkillNodeIds = snapshot.unlockedSkillNodeIds != null
+                ? new List<string>(snapshot.unlockedSkillNodeIds)
                 : new List<string>()
         };
         growthData.EnsureLists();
