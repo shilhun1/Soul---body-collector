@@ -13,5 +13,7 @@ MonoBehaviour:
   m_Name: Currency_Skill Points
   m_EditorClassIdentifier: Assembly-CSharp::SkillPoints
   saveAndLoad: 1
-  basePoints: 200
-  points: 45
+  basePoints: 100
+  points: 66
+  prefix: 'Points: '
+  currencyName: Points
