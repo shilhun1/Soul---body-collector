@@ -30,6 +30,9 @@ public class HWJ_GameplayDatabaseSO : ScriptableObject
     [Tooltip("플레이어, 몬스터, 보스가 실행하는 스킬 액션 목록입니다.")]
     [InspectorName("스킬 액션 목록")]
     [SerializeField] private HWJ_SkillActionDataSO[] skillActions;
+    [Tooltip("빙의 육신별 스킬 해금 노드 목록입니다. 실행 스킬과 분리해서 해금 조건만 관리합니다.")]
+    [InspectorName("스킬 노드 목록")]
+    [SerializeField] private HWJ_SkillNodeDataSO[] skillNodes;
     [Tooltip("보스 패턴 데이터 목록입니다.")]
     [InspectorName("보스 패턴 목록")]
     [SerializeField] private HWJ_BossPatternDataSO[] bossPatterns;
@@ -57,6 +60,7 @@ public class HWJ_GameplayDatabaseSO : ScriptableObject
     public HWJ_StatOrbDataSO[] StatOrbs => statOrbs;
     public HWJ_LevelUpDataSO[] LevelTables => levelTables;
     public HWJ_SkillActionDataSO[] SkillActions => skillActions;
+    public HWJ_SkillNodeDataSO[] SkillNodes => skillNodes;
     public HWJ_BossPatternDataSO[] BossPatterns => bossPatterns;
     public HWJ_HealthBarDataSO[] HealthBars => healthBars;
     public HWJ_GameOverDataSO[] GameOverWindows => gameOverWindows;
@@ -157,6 +161,48 @@ public class HWJ_GameplayDatabaseSO : ScriptableObject
             if (skillActions[i] != null && skillActions[i].SkillActionId == skillActionId)
             {
                 skillAction = skillActions[i];
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public bool TryGetSkillNode(string nodeId, out HWJ_SkillNodeDataSO skillNode)
+    {
+        skillNode = null;
+
+        if (skillNodes == null)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < skillNodes.Length; i++)
+        {
+            if (skillNodes[i] != null && skillNodes[i].NodeId == nodeId)
+            {
+                skillNode = skillNodes[i];
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public bool TryGetSkillNodeBySkillAction(string skillActionId, out HWJ_SkillNodeDataSO skillNode)
+    {
+        skillNode = null;
+
+        if (skillNodes == null)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < skillNodes.Length; i++)
+        {
+            if (skillNodes[i] != null && skillNodes[i].MatchesSkillAction(skillActionId))
+            {
+                skillNode = skillNodes[i];
                 return true;
             }
         }
@@ -287,6 +333,13 @@ public class HWJ_GameplayDatabaseSO : ScriptableObject
             "REQ-7",
             "SkillActionId",
             data => data != null ? data.SkillActionId : null);
+        ValidateStableIds(
+            entries,
+            "SkillNode",
+            skillNodes,
+            "REQ-SKILL-NODE",
+            "NodeId",
+            data => data != null ? data.NodeId : null);
         ValidateStableIds(
             entries,
             "BossPattern",

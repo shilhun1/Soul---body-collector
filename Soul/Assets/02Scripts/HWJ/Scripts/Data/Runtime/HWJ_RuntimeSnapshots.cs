@@ -158,6 +158,7 @@ public struct HWJ_RuntimeGrowthSnapshot
     public int currentExperience;
     public int skillPoint;
     public string[] unlockedSkillIds;
+    public string[] unlockedSkillNodeIds;
 
     /// <summary>
     /// 현재 성장 런타임 값을 저장 DTO로 옮기기 쉬운 값 타입으로 복사합니다.
@@ -171,7 +172,8 @@ public struct HWJ_RuntimeGrowthSnapshot
             currentLevel = level != null ? level.CurrentLevel : 1,
             currentExperience = level != null ? level.CurrentExperience : 0,
             skillPoint = level != null ? level.SkillPoint : 0,
-            unlockedSkillIds = unlockStateSource != null ? unlockStateSource.GetUnlockedSkillIds() : new string[0]
+            unlockedSkillIds = unlockStateSource != null ? unlockStateSource.GetUnlockedSkillIds() : new string[0],
+            unlockedSkillNodeIds = unlockStateSource != null ? unlockStateSource.GetUnlockedSkillNodeIds() : new string[0]
         };
     }
 }

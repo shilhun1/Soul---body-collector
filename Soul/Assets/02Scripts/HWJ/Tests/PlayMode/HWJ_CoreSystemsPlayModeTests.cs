@@ -835,6 +835,96 @@ public class HWJ_CoreSystemsPlayModeTests
     }
 
     [UnityTest]
+    public IEnumerator SaveService_RoundTripRestoresSkillNodeUnlocksSeparately()
+    {
+        const string skillNodeId = "S_NODE_SAVE_ROUNDTRIP";
+        const string skillActionId = "skill.save.node.roundtrip";
+
+        GameObject sourcePlayer = CreatePlayerObject("SkillNodeSaveSourcePlayer", true);
+        HWJ_LevelUpSystem sourceLevel = sourcePlayer.AddComponent<HWJ_LevelUpSystem>();
+        HWJ_LevelUpDataSO sourceLevelData = CreateLevelUpData("test.level.skill_node.save.source", 3, 1, new[] { 10, 20 });
+        sourceLevel.SetLevelUpData(sourceLevelData);
+        HWJ_SkillUnlockSystem sourceUnlock = sourcePlayer.AddComponent<HWJ_SkillUnlockSystem>();
+        HWJ_SkillActionDataSO skillAction = CreateSkillActionData(skillActionId, HWJ_SkillActionType.Buff);
+        HWJ_SkillNodeDataSO skillNode = CreateSkillNodeData(
+            skillNodeId,
+            "1101",
+            HWJ_WeaponType.Sword,
+            1,
+            null,
+            1,
+            1,
+            skillAction);
+        HWJ_GameplayDatabaseSO runtimeDatabase = ScriptableObject.CreateInstance<HWJ_GameplayDatabaseSO>();
+        SetPrivateField(runtimeDatabase, "skillActions", new[] { skillAction });
+        SetPrivateField(runtimeDatabase, "skillNodes", new[] { skillNode });
+        SetPrivateField(sourceUnlock, "gameplayDatabase", runtimeDatabase);
+
+        yield return null;
+
+        HWJ_SkillUnlockResult unlockResult = sourceUnlock.TryUnlockSkillNode(skillNodeId, false);
+
+        Assert.IsTrue(unlockResult.Succeeded, unlockResult.Message);
+        Assert.IsTrue(sourceUnlock.IsSkillNodeUnlocked(skillNodeId));
+        Assert.IsTrue(sourceUnlock.IsSkillActionUnlockedBySkillNodeProgress(skillActionId));
+        Assert.AreEqual(0, sourceUnlock.GetUnlockedSkillIds().Length);
+        CollectionAssert.Contains(sourceUnlock.GetUnlockedSkillNodeIds(), skillNodeId);
+
+        GameObject sourceSaveObject = new GameObject("SkillNodeSaveSourceService");
+        HWJ_SaveService sourceSaveService = sourceSaveObject.AddComponent<HWJ_SaveService>();
+        sourceSaveService.SetRuntimeSources(
+            sourcePlayer.GetComponent<HWJ_RuntimeObjectContext>(),
+            null,
+            runtimeDatabase);
+
+        HWJ_SaveOperationResult captureResult = sourceSaveService.TryCreateCurrentSaveData(
+            out HWJ_GameSaveData saveData,
+            "skill_node_roundtrip");
+
+        Assert.IsTrue(captureResult.Succeeded, captureResult.Message);
+        Assert.NotNull(saveData);
+        CollectionAssert.Contains(saveData.player.growth.unlockedSkillNodeIds, skillNodeId);
+        Assert.IsFalse(saveData.player.growth.unlockedSkillIds.Contains(skillNodeId));
+        Assert.IsFalse(saveData.player.growth.unlockedSkillIds.Contains(skillActionId));
+
+        GameObject loadedPlayer = CreatePlayerObject("SkillNodeSaveLoadedPlayer", true);
+        HWJ_LevelUpSystem loadedLevel = loadedPlayer.AddComponent<HWJ_LevelUpSystem>();
+        HWJ_LevelUpDataSO loadedLevelData = CreateLevelUpData("test.level.skill_node.save.loaded", 3, 1, new[] { 10, 20 });
+        loadedLevel.SetLevelUpData(loadedLevelData);
+        HWJ_SkillUnlockSystem loadedUnlock = loadedPlayer.AddComponent<HWJ_SkillUnlockSystem>();
+        SetPrivateField(loadedUnlock, "gameplayDatabase", runtimeDatabase);
+
+        GameObject loadedSaveObject = new GameObject("SkillNodeSaveLoadedService");
+        HWJ_SaveService loadedSaveService = loadedSaveObject.AddComponent<HWJ_SaveService>();
+        loadedSaveService.SetRuntimeSources(
+            loadedPlayer.GetComponent<HWJ_RuntimeObjectContext>(),
+            null,
+            runtimeDatabase);
+
+        yield return null;
+
+        HWJ_SaveOperationResult applyResult = loadedSaveService.ApplySaveDataToRuntime(saveData);
+
+        Assert.IsTrue(applyResult.Succeeded, applyResult.Message);
+        Assert.AreEqual(0, loadedUnlock.GetUnlockedSkillIds().Length);
+        CollectionAssert.Contains(loadedUnlock.GetUnlockedSkillNodeIds(), skillNodeId);
+        Assert.IsTrue(loadedUnlock.IsSkillNodeUnlocked(skillNodeId));
+        Assert.IsTrue(loadedUnlock.IsSkillActionUnlockedBySkillNodeProgress(skillActionId));
+
+        sourceSaveObject.SetActive(false);
+        loadedSaveObject.SetActive(false);
+        Object.Destroy(sourceSaveObject);
+        Object.Destroy(loadedSaveObject);
+        Object.Destroy(sourcePlayer);
+        Object.Destroy(loadedPlayer);
+        Object.Destroy(sourceLevelData);
+        Object.Destroy(loadedLevelData);
+        Object.Destroy(skillAction);
+        Object.Destroy(skillNode);
+        Object.Destroy(runtimeDatabase);
+    }
+
+    [UnityTest]
     public IEnumerator SaveMigrationService_CurrentSchemaSkipsMigration()
     {
         HWJ_GameSaveData saveData = new HWJ_GameSaveData
@@ -862,6 +952,7 @@ public class HWJ_CoreSystemsPlayModeTests
         HWJ_GameSaveData legacySaveData = CreateValidSaveDataForValidation("migration.legacy");
         legacySaveData.schemaVersion = 0;
         legacySaveData.player.growth.unlockedSkillIds = null;
+        legacySaveData.player.growth.unlockedSkillNodeIds = null;
         legacySaveData.progression.defeatedEnemyRewardIds = null;
 
         yield return null;
@@ -877,6 +968,7 @@ public class HWJ_CoreSystemsPlayModeTests
         Assert.AreSame(legacySaveData, migrationResult.SaveData);
         Assert.AreEqual(HWJ_SaveSchema.CurrentVersion, legacySaveData.schemaVersion);
         Assert.NotNull(legacySaveData.player.growth.unlockedSkillIds);
+        Assert.NotNull(legacySaveData.player.growth.unlockedSkillNodeIds);
         Assert.NotNull(legacySaveData.progression.defeatedEnemyRewardIds);
     }
 
@@ -1096,7 +1188,9 @@ public class HWJ_CoreSystemsPlayModeTests
         AssertSnapshotFieldsCoveredBySaveDto<HWJ_RuntimeStatSnapshot, HWJ_SaveRuntimeStatData>();
         AssertSnapshotFieldsCoveredBySaveDto<HWJ_RuntimeBodySnapshot, HWJ_SaveBodyRuntimeData>();
         AssertSnapshotFieldsCoveredBySaveDto<HWJ_RuntimeStageFlowSnapshot, HWJ_SaveStageRuntimeData>();
-        AssertSnapshotFieldsCoveredBySaveDto<HWJ_RuntimeGrowthSnapshot, HWJ_SaveGrowthRuntimeData>("unlockedSkillIds");
+        AssertSnapshotFieldsCoveredBySaveDto<HWJ_RuntimeGrowthSnapshot, HWJ_SaveGrowthRuntimeData>(
+            "unlockedSkillIds",
+            "unlockedSkillNodeIds");
         AssertRuntimeObjectSnapshotMappingContract();
     }
 
@@ -1111,6 +1205,7 @@ public class HWJ_CoreSystemsPlayModeTests
         HWJ_GameSaveData legacySaveData = CreateValidSaveDataForValidation(saveSlotId);
         legacySaveData.schemaVersion = 0;
         legacySaveData.player.growth.unlockedSkillIds = null;
+        legacySaveData.player.growth.unlockedSkillNodeIds = null;
         legacySaveData.progression.defeatedEnemyRewardIds = null;
 
         if (!string.IsNullOrEmpty(directoryPath))
@@ -1131,6 +1226,7 @@ public class HWJ_CoreSystemsPlayModeTests
         Assert.NotNull(loadedSaveData);
         Assert.AreEqual(HWJ_SaveSchema.CurrentVersion, loadedSaveData.schemaVersion);
         Assert.NotNull(loadedSaveData.player.growth.unlockedSkillIds);
+        Assert.NotNull(loadedSaveData.player.growth.unlockedSkillNodeIds);
         Assert.NotNull(loadedSaveData.progression.defeatedEnemyRewardIds);
 
         saveObject.SetActive(false);
@@ -4034,6 +4130,31 @@ public class HWJ_CoreSystemsPlayModeTests
         SetPrivateField(skillAction, "skillActionId", skillActionId);
         SetPrivateField(skillAction, "actionType", actionType);
         return skillAction;
+    }
+
+    private static HWJ_SkillNodeDataSO CreateSkillNodeData(
+        string nodeId,
+        string possessedBodyId,
+        HWJ_WeaponType weaponType,
+        int skillStep,
+        string prerequisiteNodeId,
+        int requiredLevel,
+        int skillPointCost,
+        HWJ_SkillActionDataSO skillAction)
+    {
+        HWJ_SkillNodeDataSO skillNode = ScriptableObject.CreateInstance<HWJ_SkillNodeDataSO>();
+        SetPrivateField(skillNode, "nodeId", nodeId);
+        SetPrivateField(skillNode, "possessedBodyId", possessedBodyId);
+        SetPrivateField(skillNode, "weaponType", weaponType);
+        SetPrivateField(skillNode, "skillStep", skillStep);
+        SetPrivateField(skillNode, "skillDisplayName", nodeId);
+        SetPrivateField(skillNode, "prerequisiteNodeId", prerequisiteNodeId);
+        SetPrivateField(skillNode, "requiredLevel", requiredLevel);
+        SetPrivateField(skillNode, "skillPointCost", skillPointCost);
+        SetPrivateField(skillNode, "skillActionId", skillAction != null ? skillAction.SkillActionId : null);
+        SetPrivateField(skillNode, "skillAction", skillAction);
+        SetPrivateField(skillNode, "description", "PlayMode skill node save regression data.");
+        return skillNode;
     }
 
     private static HWJ_LevelUpDataSO CreateLevelUpData(

@@ -540,6 +540,18 @@ public class HWJ_GameManager : MonoBehaviour
         return database != null && database.TryGetSkillAction(skillActionId, out skillActionData);
     }
 
+    public bool TryGetSkillNode(string nodeId, out HWJ_SkillNodeDataSO skillNodeData)
+    {
+        skillNodeData = null;
+        return database != null && database.TryGetSkillNode(nodeId, out skillNodeData);
+    }
+
+    public bool TryGetSkillNodeBySkillAction(string skillActionId, out HWJ_SkillNodeDataSO skillNodeData)
+    {
+        skillNodeData = null;
+        return database != null && database.TryGetSkillNodeBySkillAction(skillActionId, out skillNodeData);
+    }
+
     public bool TryGetGameplayRule(string ruleId, out HWJ_GameplayRuleSO gameplayRule)
     {
         gameplayRule = null;

@@ -48,6 +48,7 @@ public static class HWJ_GameDataValidator
         ValidateRootObjects(validationIssues);
         ValidateObjectTypeData(validationIssues, skillActionIds, rootObjectIds, playerSkillIds, ruleExecutionCoreIds);
         ValidateSkillActions(validationIssues);
+        ValidateSkillNodes(validationIssues, skillActionIds);
         ValidateLevelTables(validationIssues);
         ValidateSpawnTables(validationIssues);
         ValidateStatOrbs(validationIssues);
@@ -626,6 +627,174 @@ public static class HWJ_GameDataValidator
 
             ValidateSkillActionTiming(validationIssues, skillAction, assetPath);
         }
+    }
+
+    private static void ValidateSkillNodes(
+        List<HWJ_EditorValidationIssue> validationIssues,
+        HashSet<string> skillActionIds)
+    {
+        Dictionary<string, string> firstPathByNodeId = new Dictionary<string, string>();
+        Dictionary<string, HWJ_SkillNodeDataSO> nodeById = new Dictionary<string, HWJ_SkillNodeDataSO>();
+        Dictionary<string, string> assetPathByNodeId = new Dictionary<string, string>();
+        HWJ_SkillNodeDataSO[] skillNodes = LoadAssets<HWJ_SkillNodeDataSO>();
+
+        for (int i = 0; i < skillNodes.Length; i++)
+        {
+            HWJ_SkillNodeDataSO skillNode = skillNodes[i];
+
+            if (skillNode == null)
+            {
+                continue;
+            }
+
+            string assetPath = GetAssetPath(skillNode);
+            ValidateStableId(validationIssues, firstPathByNodeId, "REQ-SKILL-NODE", assetPath, "NodeId", skillNode.NodeId);
+
+            if (!string.IsNullOrWhiteSpace(skillNode.NodeId) && !nodeById.ContainsKey(skillNode.NodeId))
+            {
+                nodeById.Add(skillNode.NodeId, skillNode);
+                assetPathByNodeId.Add(skillNode.NodeId, assetPath);
+            }
+
+            if (string.IsNullOrWhiteSpace(skillNode.PossessedBodyId))
+            {
+                AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "SKILL_NODE_BODY_ID_MISSING", "REQ-SKILL-NODE", assetPath, "possessedBodyId", "Skill node has no possessed body ID.", "Assign the planning body ID such as 1101, 1201, 1301, 1401, or 1501.");
+            }
+
+            if (skillNode.WeaponType == HWJ_WeaponType.None)
+            {
+                AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "SKILL_NODE_WEAPON_NONE", "REQ-SKILL-NODE", assetPath, "weaponType", "Skill node has no weapon type, so it cannot be matched to the possessed body weapon.", "Choose Sword, Lance, Axe, Bow, Shield, or another concrete weapon type.");
+            }
+
+            if (skillNode.AuthoredSkillStep <= 0)
+            {
+                AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "SKILL_NODE_STEP_INVALID", "REQ-SKILL-NODE", assetPath, "skillStep", "Skill node step must be greater than 0.", "Set the common unlock step to 1 or higher.");
+            }
+
+            if (skillNode.AuthoredRequiredLevel <= 0)
+            {
+                AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "SKILL_NODE_REQUIRED_LEVEL_INVALID", "REQ-SKILL-NODE", assetPath, "requiredLevel", "Skill node required level must be greater than 0.", "Set requiredLevel to 1 or higher.");
+            }
+
+            if (skillNode.AuthoredSkillPointCost < 0)
+            {
+                AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "SKILL_NODE_COST_NEGATIVE", "REQ-SKILL-NODE", assetPath, "skillPointCost", "Skill node cost cannot be negative.", "Set skillPointCost to 0 or a positive number.");
+            }
+
+            string resolvedSkillActionId = skillNode.SkillActionId;
+
+            if (string.IsNullOrWhiteSpace(resolvedSkillActionId))
+            {
+                AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "SKILL_NODE_ACTION_ID_MISSING", "REQ-SKILL-NODE", assetPath, "skillActionId", "Skill node is not linked to a skill action ID.", "Assign skillActionId or a HWJ_SkillActionDataSO asset.");
+            }
+            else if (skillActionIds != null && !skillActionIds.Contains(resolvedSkillActionId))
+            {
+                AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "SKILL_NODE_ACTION_ID_UNKNOWN", "REQ-SKILL-NODE", assetPath, "skillActionId", $"Skill node references unknown skill action ID '{resolvedSkillActionId}'.", "Create a matching HWJ_SkillActionDataSO, register the correct action asset, or update the ID.");
+            }
+
+            if (skillNode.SkillAction != null
+                && !string.IsNullOrWhiteSpace(skillNode.AuthoredSkillActionId)
+                && skillNode.SkillAction.SkillActionId != skillNode.AuthoredSkillActionId)
+            {
+                AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Warning, "SKILL_NODE_ACTION_ID_ASSET_MISMATCH", "REQ-SKILL-NODE", assetPath, "skillActionId", "Skill node has both a skill action asset and a different typed skillActionId. Runtime uses the asset ID first.", "Make the typed skillActionId match the linked asset ID, or clear the typed ID.");
+            }
+
+            if (skillNode.AuthoredSkillStep == 1 && skillNode.HasPrerequisite)
+            {
+                AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Warning, "SKILL_NODE_STEP_ONE_PREREQUISITE", "REQ-SKILL-NODE", assetPath, "prerequisiteNodeId", "Step 1 skill node has a prerequisite. Starting nodes are expected to have none.", "Clear prerequisiteNodeId or change the skill step.");
+            }
+
+            if (skillNode.AuthoredSkillStep > 1 && !skillNode.HasPrerequisite)
+            {
+                AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Warning, "SKILL_NODE_HIGH_STEP_NO_PREREQUISITE", "REQ-SKILL-NODE", assetPath, "prerequisiteNodeId", "Skill node above step 1 has no prerequisite.", "Assign the previous node ID unless this node is intentionally independent.");
+            }
+        }
+
+        ValidateSkillNodePrerequisites(validationIssues, nodeById, assetPathByNodeId);
+    }
+
+    private static void ValidateSkillNodePrerequisites(
+        List<HWJ_EditorValidationIssue> validationIssues,
+        Dictionary<string, HWJ_SkillNodeDataSO> nodeById,
+        Dictionary<string, string> assetPathByNodeId)
+    {
+        if (nodeById == null)
+        {
+            return;
+        }
+
+        foreach (KeyValuePair<string, HWJ_SkillNodeDataSO> pair in nodeById)
+        {
+            HWJ_SkillNodeDataSO skillNode = pair.Value;
+
+            if (skillNode == null || !skillNode.HasPrerequisite)
+            {
+                continue;
+            }
+
+            string assetPath = GetAssetPath(skillNode);
+            if (assetPathByNodeId != null && assetPathByNodeId.TryGetValue(pair.Key, out string storedAssetPath))
+            {
+                assetPath = storedAssetPath;
+            }
+
+            string prerequisiteNodeId = skillNode.PrerequisiteNodeId;
+
+            if (prerequisiteNodeId == skillNode.NodeId)
+            {
+                AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "SKILL_NODE_PREREQUISITE_SELF", "REQ-SKILL-NODE", assetPath, "prerequisiteNodeId", "Skill node points to itself as a prerequisite.", "Assign a previous node ID or clear the prerequisite.");
+                continue;
+            }
+
+            if (!nodeById.TryGetValue(prerequisiteNodeId, out HWJ_SkillNodeDataSO prerequisiteNode) || prerequisiteNode == null)
+            {
+                AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "SKILL_NODE_PREREQUISITE_MISSING", "REQ-SKILL-NODE", assetPath, "prerequisiteNodeId", $"Prerequisite skill node '{prerequisiteNodeId}' does not exist.", "Create the prerequisite node asset or update prerequisiteNodeId.");
+                continue;
+            }
+
+            if (prerequisiteNode.SkillStep >= skillNode.SkillStep)
+            {
+                AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Warning, "SKILL_NODE_PREREQUISITE_STEP_ORDER", "REQ-SKILL-NODE", assetPath, "skillStep", "Prerequisite node step is not lower than the current node step.", "Use a prerequisite from an earlier common unlock step.");
+            }
+
+            if (HasSkillNodeCycle(skillNode, nodeById))
+            {
+                AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "SKILL_NODE_PREREQUISITE_CYCLE", "REQ-SKILL-NODE", assetPath, "prerequisiteNodeId", "Skill node prerequisite chain contains a cycle.", "Break the cycle by assigning a one-way previous node chain.");
+            }
+        }
+    }
+
+    private static bool HasSkillNodeCycle(
+        HWJ_SkillNodeDataSO startNode,
+        Dictionary<string, HWJ_SkillNodeDataSO> nodeById)
+    {
+        if (startNode == null || nodeById == null)
+        {
+            return false;
+        }
+
+        HashSet<string> visitedNodeIds = new HashSet<string>();
+        HWJ_SkillNodeDataSO currentNode = startNode;
+
+        while (currentNode != null && currentNode.HasPrerequisite)
+        {
+            if (string.IsNullOrWhiteSpace(currentNode.NodeId))
+            {
+                return false;
+            }
+
+            if (!visitedNodeIds.Add(currentNode.NodeId))
+            {
+                return true;
+            }
+
+            if (!nodeById.TryGetValue(currentNode.PrerequisiteNodeId, out currentNode))
+            {
+                return false;
+            }
+        }
+
+        return false;
     }
 
     private static void ValidateSkillActionTiming(

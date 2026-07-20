@@ -518,7 +518,9 @@ public class HWJ_SaveService : MonoBehaviour
             growthData.currentLevel,
             growthData.currentExperience,
             growthData.skillPoint);
-        skillUnlockState?.RestoreUnlockedSkills(growthData.unlockedSkillIds);
+        skillUnlockState?.RestoreUnlockedSkills(
+            growthData.unlockedSkillIds,
+            growthData.unlockedSkillNodeIds);
         return HWJ_SaveOperationResult.Success(
             slotId,
             filePath,
