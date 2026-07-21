@@ -658,7 +658,7 @@ public class HWJ_PlayerMovementSystem : MonoBehaviour
         {
             Collider2D ownedCollider = ownedColliders[i];
 
-            if (ownedCollider == null)
+            if (ownedCollider == null || ownedCollider.isTrigger)
             {
                 continue;
             }
@@ -850,7 +850,7 @@ public class HWJ_PlayerMovementSystem : MonoBehaviour
             {
                 Collider2D targetCollider = targetColliders[j];
 
-                if (targetCollider == null || targetCollider == ownedCollider)
+                if (targetCollider == null || targetCollider.isTrigger || targetCollider == ownedCollider)
                 {
                     continue;
                 }

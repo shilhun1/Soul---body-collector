@@ -47,6 +47,12 @@ public class HWJ_BossPatternDataSO : ScriptableObject
     [Tooltip("켜면 1스테이지 보스 전용 특수 실행 로직을 사용합니다.")]
     [InspectorName("1스테이지 특수 실행")]
     [SerializeField] private bool useStageOneSpecialExecution = true;
+    [Tooltip("Enable this when a boss-specific executor such as the mid boss pattern system should run this pattern.")]
+    [InspectorName("Use Custom Pattern Executor")]
+    [SerializeField] private bool useCustomPatternExecutor;
+    [Tooltip("Executor key used to route this pattern to the matching boss-specific executor.")]
+    [InspectorName("Custom Executor Key")]
+    [SerializeField] private string customPatternExecutorKey;
     [Tooltip("이 패턴이 실행할 SkillActionDataSO 목록입니다.")]
     [InspectorName("실행 스킬 목록")]
     [SerializeField] private HWJ_SkillActionDataSO[] skillActions;
@@ -63,6 +69,8 @@ public class HWJ_BossPatternDataSO : ScriptableObject
     public int Weight => weight;
     public string AnimationId => animationId;
     public bool UseStageOneSpecialExecution => useStageOneSpecialExecution;
+    public bool UseCustomPatternExecutor => useCustomPatternExecutor;
+    public string CustomPatternExecutorKey => customPatternExecutorKey;
     public HWJ_SkillActionDataSO[] SkillActions => skillActions;
 
     /// <summary>

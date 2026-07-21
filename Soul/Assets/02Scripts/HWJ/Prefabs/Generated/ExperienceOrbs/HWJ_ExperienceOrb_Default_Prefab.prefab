@@ -141,6 +141,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d402c4be4b254c7890dd4aa642851621, type: 3}
   m_Name:
   m_EditorClassIdentifier:
+  collectDelaySeconds: 1
   experienceAmount: 0
   destroyOnCollect: 1
   collectEffectPrefab: {fileID: 0}

@@ -9,7 +9,7 @@ using UnityEngine;
 public class HWJ_StatOrbPickupSystem : MonoBehaviour
 {
     [Header("구슬 먹는 시간")]
-    [SerializeField] private float collectDelaySeconds = 1f;
+    [SerializeField] private float collectDelaySeconds;
 
     [Header("능력치 구슬")]
     [SerializeField] private HWJ_StatOrbDataSO statOrbData;

@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class HWJ_Stage1BossPatternSystem : MonoBehaviour
+public class HWJ_Stage1BossPatternSystem : MonoBehaviour, HWJ_IBossSpecialPatternExecutor
 {
     [Header("References")]
     [SerializeField] private HWJ_BossBrainSystem bossBrain;
@@ -66,6 +66,7 @@ public class HWJ_Stage1BossPatternSystem : MonoBehaviour
     private bool pattern5Used;
     private bool phase2TransitionLaserUsed;
 
+    public string ExecutorKey => "stage1_boss";
     public bool IsPatternRunning => activePatternRoutine != null;
 
     private void Awake()
@@ -91,6 +92,14 @@ public class HWJ_Stage1BossPatternSystem : MonoBehaviour
             default:
                 return patternNumber >= 1 && patternNumber <= 5;
         }
+    }
+
+    public bool CanUsePattern(HWJ_BossPatternDataSO pattern, Transform target)
+    {
+        return pattern != null
+            && pattern.UseStageOneSpecialExecution
+            && pattern.PatternNumber > 0
+            && CanUsePattern(pattern.PatternNumber, target);
     }
 
     public bool TryExecutePattern(int patternNumber, Transform target)
@@ -121,6 +130,13 @@ public class HWJ_Stage1BossPatternSystem : MonoBehaviour
             default:
                 return false;
         }
+    }
+
+    public bool TryExecutePattern(HWJ_BossPatternDataSO pattern, Transform target)
+    {
+        return pattern != null
+            && pattern.UseStageOneSpecialExecution
+            && TryExecutePattern(pattern.PatternNumber, target);
     }
 
     public bool TryExecutePhaseTwoTransitionLaser(Transform target, out float totalSeconds)

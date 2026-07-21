@@ -11,8 +11,10 @@ public class HWJ_BossPatternSystem : MonoBehaviour
     [SerializeField] private HWJ_RuntimeStatusSystem runtimeStatus;
     [SerializeField] private HWJ_SkillActionSystem skillActionSystem;
     [SerializeField] private HWJ_Stage1BossPatternSystem stageOnePatternSystem;
+    [SerializeField] private MonoBehaviour[] specialPatternExecutors;
     [SerializeField] private HWJ_BossPatternDataSO[] patterns;
     [SerializeField] private bool autoUsePatterns;
+    [SerializeField] private bool preventSamePatternRepeat = true;
     [SerializeField] private bool useGameplayPatternRule = true;
     [SerializeField] private HWJ_RuleExecutionCoreSO bossPatternExecutionCore;
     [SerializeField] private string bossPatternExecutionCoreId = "boss_pattern_execution";
@@ -21,8 +23,12 @@ public class HWJ_BossPatternSystem : MonoBehaviour
     [SerializeField] private string lastPatternResult;
 
     private readonly Dictionary<string, float> nextUseTimes = new Dictionary<string, float>();
+    private readonly List<HWJ_IBossSpecialPatternExecutor> cachedSpecialPatternExecutors =
+        new List<HWJ_IBossSpecialPatternExecutor>();
+    private string lastExecutedPatternKey;
 
     public string LastPatternResult => lastPatternResult;
+    public bool IsSpecialPatternRunning => IsAnySpecialPatternRunning();
 
     private void Awake()
     {
@@ -45,6 +51,8 @@ public class HWJ_BossPatternSystem : MonoBehaviour
         {
             stageOnePatternSystem = GetComponent<HWJ_Stage1BossPatternSystem>();
         }
+
+        RefreshSpecialPatternExecutors();
     }
 
     private void Update()
@@ -108,11 +116,9 @@ public class HWJ_BossPatternSystem : MonoBehaviour
 
         bool executed = false;
 
-        if (pattern.UseStageOneSpecialExecution
-            && pattern.PatternNumber > 0
-            && stageOnePatternSystem != null)
+        if (pattern.UseCustomPatternExecutor || pattern.UseStageOneSpecialExecution)
         {
-            executed = stageOnePatternSystem.TryExecutePattern(pattern.PatternNumber, target);
+            executed = TryExecuteSpecialPattern(pattern, target);
         }
 
         if (!executed && pattern.SkillActions != null && skillActionSystem != null)
@@ -130,6 +136,7 @@ public class HWJ_BossPatternSystem : MonoBehaviour
             if (!string.IsNullOrEmpty(patternKey))
             {
                 nextUseTimes[patternKey] = Time.time + pattern.EffectiveCooldownSeconds;
+                lastExecutedPatternKey = patternKey;
             }
         }
 
@@ -248,10 +255,8 @@ public class HWJ_BossPatternSystem : MonoBehaviour
                 continue;
             }
 
-            if (pattern.UseStageOneSpecialExecution
-                && pattern.PatternNumber > 0
-                && stageOnePatternSystem != null
-                && !stageOnePatternSystem.CanUsePattern(pattern.PatternNumber, target))
+            if ((pattern.UseCustomPatternExecutor || pattern.UseStageOneSpecialExecution)
+                && !CanUseSpecialPattern(pattern, target))
             {
                 continue;
             }
@@ -270,6 +275,13 @@ public class HWJ_BossPatternSystem : MonoBehaviour
 
             string patternKey = GetPatternKey(pattern);
 
+            if (preventSamePatternRepeat
+                && !string.IsNullOrEmpty(patternKey)
+                && patternKey == lastExecutedPatternKey)
+            {
+                continue;
+            }
+
             if (!string.IsNullOrEmpty(patternKey)
                 && nextUseTimes.TryGetValue(patternKey, out float nextUseTime)
                 && Time.time < nextUseTime)
@@ -282,6 +294,101 @@ public class HWJ_BossPatternSystem : MonoBehaviour
         }
 
         return false;
+    }
+
+    public void CancelActiveSpecialPatterns()
+    {
+        RefreshSpecialPatternExecutors();
+
+        for (int i = 0; i < cachedSpecialPatternExecutors.Count; i++)
+        {
+            cachedSpecialPatternExecutors[i]?.CancelActivePattern();
+        }
+    }
+
+    private bool TryExecuteSpecialPattern(HWJ_BossPatternDataSO pattern, Transform target)
+    {
+        RefreshSpecialPatternExecutors();
+
+        for (int i = 0; i < cachedSpecialPatternExecutors.Count; i++)
+        {
+            HWJ_IBossSpecialPatternExecutor executor = cachedSpecialPatternExecutors[i];
+
+            if (executor != null
+                && executor.CanUsePattern(pattern, target)
+                && executor.TryExecutePattern(pattern, target))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private bool CanUseSpecialPattern(HWJ_BossPatternDataSO pattern, Transform target)
+    {
+        RefreshSpecialPatternExecutors();
+
+        for (int i = 0; i < cachedSpecialPatternExecutors.Count; i++)
+        {
+            HWJ_IBossSpecialPatternExecutor executor = cachedSpecialPatternExecutors[i];
+
+            if (executor != null && executor.CanUsePattern(pattern, target))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private bool IsAnySpecialPatternRunning()
+    {
+        RefreshSpecialPatternExecutors();
+
+        for (int i = 0; i < cachedSpecialPatternExecutors.Count; i++)
+        {
+            if (cachedSpecialPatternExecutors[i] != null && cachedSpecialPatternExecutors[i].IsPatternRunning)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void RefreshSpecialPatternExecutors()
+    {
+        cachedSpecialPatternExecutors.Clear();
+
+        AddSpecialPatternExecutor(stageOnePatternSystem);
+
+        MonoBehaviour[] localComponents = GetComponents<MonoBehaviour>();
+
+        for (int i = 0; i < localComponents.Length; i++)
+        {
+            AddSpecialPatternExecutor(localComponents[i] as HWJ_IBossSpecialPatternExecutor);
+        }
+
+        if (specialPatternExecutors == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < specialPatternExecutors.Length; i++)
+        {
+            AddSpecialPatternExecutor(specialPatternExecutors[i] as HWJ_IBossSpecialPatternExecutor);
+        }
+    }
+
+    private void AddSpecialPatternExecutor(HWJ_IBossSpecialPatternExecutor executor)
+    {
+        if (executor == null || cachedSpecialPatternExecutors.Contains(executor))
+        {
+            return;
+        }
+
+        cachedSpecialPatternExecutors.Add(executor);
     }
 
     private HWJ_BossPatternDataSO[] GetAvailablePatterns()

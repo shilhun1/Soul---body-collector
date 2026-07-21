@@ -1153,7 +1153,9 @@ public static class HWJ_GameDataValidator
                 AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "BOSS_PATTERN_HP_RATIO_INVALID", "REQ-12", assetPath, "hpRatio", "Boss pattern HP ratio must be between 0 and 1.", "Clamp hpRatio into 0..1.");
             }
 
-            if (bossPattern.SkillActions == null || bossPattern.SkillActions.Length == 0)
+            bool patternUsesCustomCode = bossPattern.UseCustomPatternExecutor || bossPattern.UseStageOneSpecialExecution;
+
+            if ((bossPattern.SkillActions == null || bossPattern.SkillActions.Length == 0) && !patternUsesCustomCode)
             {
                 AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Warning, "BOSS_PATTERN_SKILLS_EMPTY", "REQ-12", assetPath, "skillActions", "Boss pattern has no skill actions.", "Assign at least one skill action or confirm this pattern is handled fully by custom code.");
             }

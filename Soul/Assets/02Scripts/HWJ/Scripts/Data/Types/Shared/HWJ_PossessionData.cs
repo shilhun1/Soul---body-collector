@@ -33,4 +33,11 @@ public class HWJ_PossessionData
     [InspectorName("몸 능력치 로드")]
     [Tooltip("켜면 빙의한 몸의 스탯과 무기 데이터를 플레이어 런타임에 적용합니다.")]
     public bool loadsBodyStatsToPlayer = true;
+    [Header("빙의 육신 부패 오버라이드")]
+    [InspectorName("빙의 부패값 덮어쓰기")]
+    [Tooltip("켜면 플레이어 기본 부패값 대신 이 몸 전용 부패값을 사용합니다.")]
+    public bool overrideBodyDecayOnPossession;
+    [InspectorName("빙의 전용 부패값")]
+    [Tooltip("이 몸에 빙의하고 있는 동안만 사용하는 부패값입니다. 중간보스처럼 더 오래 쓸 수 있는 몸에 사용합니다.")]
+    public HWJ_BodyDecayData possessedBodyDecayOverride = new HWJ_BodyDecayData();
 }

@@ -10,49 +10,49 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5886d2e199e90b44e8180bfd0e5de850, type: 3}
-  m_Name: HWJ_EnemyCorpse_Sword_RootObjectData
-  m_EditorClassIdentifier: Assembly-CSharp::HWJ_RootObjectDataSO
+  m_Name: HWJ_MidBoss1_RootObjectData
+  m_EditorClassIdentifier: HWJ.Runtime::HWJ_RootObjectDataSO
   identity:
-    objectId: enemy_corpse_sword
-    displayName: Sword Corpse Enemy
-    objectType: 1
+    objectId: boss.mid.01.captain
+    displayName: 1스테이지 중간보스 1
+    objectType: 3
     faction: 3
-    weaponType: 0
+    weaponType: 3
   status:
     level: 1
-    maxHp: 100
-    moveSpeed: 3
-    attackPower: 10
-    defense: 0
+    maxHp: 7500
+    moveSpeed: 15
+    attackPower: 100
+    defense: 40
     attackSpeed: 1
-    bodyWeight: 1
+    bodyWeight: 6
   model:
-    modelPrefab: {fileID: 4794448013920627777, guid: 2e97c5d0a24983f44a2e025f47d8d7fe, type: 3}
+    modelPrefab: {fileID: 776630100000000001, guid: 9d7b7e93f5734f82b07bb02a77526cda, type: 3}
     animatorController: {fileID: 0}
-    heartEffectSocketName: 
-    hitEffectSocketName: 
-    possessedEyeSocketName: 
+    heartEffectSocketName: Heart
+    hitEffectSocketName: Hit
+    possessedEyeSocketName: Eyes
   damage:
     damageType: 0
-    baseDamage: 5
+    baseDamage: 100
     criticalChance: 0
     criticalMultiplier: 1.5
-    knockbackPower: 5
-    hitStunSeconds: 0
-    hitStopSeconds: 0
+    knockbackPower: 8
+    hitStunSeconds: 0.15
+    hitStopSeconds: 0.04
     sameTargetHitCooldownSeconds: 0.08
   receivedDamage:
     damageMultiplier: 1
-    invincibleSecondsAfterHit: 0
+    invincibleSecondsAfterHit: 0.08
     isInvincible: 0
     ignoreTrapDamage: 0
     ignoreEnemyDamage: 0
-    hitStunSeconds: 0.18
-    hitReactionImmuneSeconds: 0
+    hitStunSeconds: 0.12
+    hitReactionImmuneSeconds: 0.05
     maxHitReactionsPerWindow: 0
     hitReactionWindowSeconds: 1
     hitReactionLimitImmuneSeconds: 0
-    knockbackWeightMultiplier: 1
+    knockbackWeightMultiplier: 4
     hasSuperArmor: 0
     ignoreHitStun: 0
     ignoreKnockback: 0
@@ -61,15 +61,15 @@ MonoBehaviour:
     canBeTargeted: 1
     interactionRange: 0
   reward:
-    experienceReward: 15
-    skillPointReward: 0
+    experienceReward: 250
+    skillPointReward: 1
     dropsExperienceOrb: 0
     experienceOrbPrefab: {fileID: 0}
-    experienceOrbSpawnRadius: 0
-    dropsStatOrb: 1
-    statOrbDropChance: 1
+    experienceOrbSpawnRadius: 0.75
+    dropsStatOrb: 0
+    statOrbDropChance: 0
     statOrbSpawnRadius: 0.75
-    statOrbId: stat_attack_power_small
+    statOrbId:
     statOrbCandidates: []
     useAllRegisteredStatOrbsWhenEmpty: 0
-  selectedTypeData: {fileID: 11400000, guid: aa000000000000000000000000000001, type: 2}
+  selectedTypeData: {fileID: 11400000, guid: a9067aeb08e14156931f57b025b8a2fd, type: 2}

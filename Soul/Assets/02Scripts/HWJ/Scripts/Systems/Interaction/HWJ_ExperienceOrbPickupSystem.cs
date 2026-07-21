@@ -7,7 +7,7 @@ using UnityEngine;
 public class HWJ_ExperienceOrbPickupSystem : MonoBehaviour
 {
     [Header("구슬 먹는 시간")]
-    [SerializeField] private float collectDelaySeconds = 1f;
+    [SerializeField] private float collectDelaySeconds;
 
     [Header("경험치 구슬")]
     [SerializeField] private int experienceAmount;
