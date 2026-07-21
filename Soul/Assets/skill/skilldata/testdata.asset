@@ -22,5 +22,7 @@ MonoBehaviour:
   maxLevel: 5
   nodeIndex: 1
   scale: 1
-  childNodes: []
+  childNodes:
+  - {fileID: 11400000, guid: 0add01871370d9642bf388b8a64bb82b, type: 2}
+  - {fileID: 11400000, guid: 05a6acdd0e1ed4b42af2edec5df631c3, type: 2}
   parentNodes: []

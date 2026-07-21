@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Testskillpoint
   m_EditorClassIdentifier: Assembly-CSharp::SmilingEclipse.STMImporter.CurrencyData
   saveAndLoad: 1
-  basePoints: 0
-  points: 0
+  basePoints: 100
+  points: 100
   prefix: 'Points: '
   currencyName: Points

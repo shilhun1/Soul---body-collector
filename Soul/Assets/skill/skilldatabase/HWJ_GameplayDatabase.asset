@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4380a43501204a2c89cd4af0c3e48d66, type: 3}
+  m_Name: HWJ_GameplayDatabase
+  m_EditorClassIdentifier: HWJ.Runtime::HWJ_GameplayDatabaseSO
+  rootObjects: []
+  objectPoolData: {fileID: 0}
+  spawnTables: []
+  statOrbs: []
+  levelTables: []
+  skillActions: []
+  skillNodes:
+  - {fileID: 11400000, guid: fb75a96665709124b9042a7205f51acb, type: 2}
+  bossPatterns: []
+  healthBars: []
+  gameOverWindows: []
+  conditions: []
+  gameplayRules: []
+  ruleExecutionCores: []
