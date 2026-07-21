@@ -6,6 +6,9 @@ using UnityEngine;
 /// </summary>
 public class HWJ_ExperienceOrbPickupSystem : MonoBehaviour
 {
+    [Header("구슬 먹는 시간")]
+    [SerializeField] private float collectDelaySeconds = 1f;
+
     [Header("경험치 구슬")]
     [SerializeField] private int experienceAmount;
     [SerializeField] private bool destroyOnCollect = true;
@@ -128,7 +131,7 @@ public class HWJ_ExperienceOrbPickupSystem : MonoBehaviour
 
     public bool TryCollect(HWJ_LevelUpSystem levelSystem)
     {
-        if (isCollected || levelSystem == null || ExperienceAmount <= 0)
+        if (!CancollectNow() || isCollected || levelSystem == null || ExperienceAmount <= 0)
         {
             return false;
         }
@@ -143,6 +146,10 @@ public class HWJ_ExperienceOrbPickupSystem : MonoBehaviour
         }
 
         return true;
+    }
+    private bool CancollectNow()
+    {
+        return Time.time - spawnedTime >= Mathf.Max(0f, collectDelaySeconds);
     }
 
     private void SpawnCollectEffect()
