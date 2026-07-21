@@ -18,7 +18,7 @@ MonoBehaviour:
   skillStep: 2
   skillDisplayName: Flame Slash
   prerequisiteNodeId: A_NODE_01
-  requiredLevel: 11
+  requiredLevel: 1
   skillPointCost: 5
   skillActionId: player_axe_flame_slash
   skillAction: {fileID: 11400000, guid: 5a2b10a930436f8cde0f8bb059a7af87, type: 2}

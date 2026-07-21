@@ -25,3 +25,4 @@ MonoBehaviour:
   childNodes: []
   parentNodes:
   - {fileID: 11400000, guid: 13097656cfe802b44a594280c0c25e8f, type: 2}
+  hwjSkillData: {fileID: 11400000, guid: 4c4b16d69e2e4391afcfe49cf08eb668, type: 2}

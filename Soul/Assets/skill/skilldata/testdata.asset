@@ -26,3 +26,4 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 0add01871370d9642bf388b8a64bb82b, type: 2}
   - {fileID: 11400000, guid: 05a6acdd0e1ed4b42af2edec5df631c3, type: 2}
   parentNodes: []
+  hwjSkillData: {fileID: 11400000, guid: ae7b7fefc78046cbacde2e85118c494c, type: 2}

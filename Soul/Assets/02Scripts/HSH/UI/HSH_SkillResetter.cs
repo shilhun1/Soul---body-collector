@@ -45,6 +45,18 @@ public class HSH_SkillResetter : MonoBehaviour
             Debug.LogWarning("[HSH_SkillResetter] Target Database가 연결되지 않아 스킬 초기화를 건너뜁니다.");
         }
 
+        // HWJ 스킬 진행도 초기화 연동
+        // TODO(HWJ): HWJ_SkillUnlockSystem 에 스킬 초기화 메서드(예: ClearAllUnlocks)를
+        // 추가해 주시면 아래 주석을 풀고 연동할 수 있습니다.
+        /*
+        var hwjUnlockSystem = Object.FindAnyObjectByType<HWJ_SkillUnlockSystem>();
+        if (hwjUnlockSystem != null)
+        {
+            hwjUnlockSystem.ClearAllUnlocks();
+            Debug.Log("[HSH_SkillResetter] HWJ 게임 시스템의 런타임 스킬 해금 상태가 초기화되었습니다.");
+        }
+        */
+
         // 2. 스킬 포인트 초기화
         if (skillPoints != null)
         {

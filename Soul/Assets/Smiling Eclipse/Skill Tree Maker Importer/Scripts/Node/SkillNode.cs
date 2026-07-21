@@ -81,6 +81,18 @@ namespace SmilingEclipse.STMImporter
 
             level = Load(nodeData.startLevel, "level");
             bool initiallyUnlocked = Load(level > 0, "isUnlocked");
+            
+            // HWJ Integration: Initialize state based on HWJ data
+            if (nodeData.hwjSkillData != null)
+            {
+                var unlockSystem = UnityEngine.Object.FindAnyObjectByType<HWJ_SkillUnlockSystem>();
+                if (unlockSystem != null && unlockSystem.IsSkillNodeUnlocked(nodeData.hwjSkillData.NodeId))
+                {
+                    this.level = nodeData.maxLevel;
+                    initiallyUnlocked = true;
+                }
+            }
+
             unlockedInfo.Setup(initiallyUnlocked, nodeData.parentNodes.Count);
             TryUnlock();
             controller.skillPoints.OnPointsChanged += UpdateInfo;
@@ -97,10 +109,14 @@ namespace SmilingEclipse.STMImporter
             button.onClick.AddListener(() => TryBuy());
 
             controller.OnNodeBuyed += UpdateInfo;
-
-
-
+            HWJ_GameplayEvents.SkillPointChanged += OnHWJSkillPointChanged;
         }
+
+        private void OnHWJSkillPointChanged(HWJ_SkillPointChangedEvent evt)
+        {
+            UpdateInfo();
+        }
+
         public void UpdateInfo()
         {
             TryUnlock();
@@ -165,7 +181,22 @@ namespace SmilingEclipse.STMImporter
         {
             if (isMaxed == true) { return; }
             if (unlockedInfo.isUnlocked == false) { return; }
-            bool isBuyable = controller.skillPoints.CanSpentPoints(RealCost); ;
+            
+            bool isBuyable = false;
+            if (nodeData.hwjSkillData != null)
+            {
+                var levelUpSystem = UnityEngine.Object.FindAnyObjectByType<HWJ_LevelUpSystem>();
+                if (levelUpSystem != null)
+                {
+                    // HWJ 시스템의 실제 스킬 포인트가 구매 요구 포인트보다 많은지 확인합니다.
+                    isBuyable = levelUpSystem.SkillPoint >= nodeData.hwjSkillData.SkillPointCost;
+                }
+            }
+            else
+            {
+                isBuyable = controller.skillPoints.CanSpentPoints(RealCost);
+            }
+
             if (isBuyable) { stateMachine.ChangeState<BuyableState>(); }
         }
         void HandleMaxed()
@@ -185,7 +216,30 @@ namespace SmilingEclipse.STMImporter
         }
         public void Buy()
         {
-            controller.skillPoints.SpentPoints(RealCost);
+            // HWJ Integration: Try unlock in actual game data
+            if (nodeData.hwjSkillData != null)
+            {
+                var unlockSystem = UnityEngine.Object.FindAnyObjectByType<HWJ_SkillUnlockSystem>();
+                if (unlockSystem != null)
+                {
+                    // HWJ의 레벨업 시스템에서 포인트를 소비하도록 true를 전달합니다.
+                    var result = unlockSystem.TryUnlockSkillNode(nodeData.hwjSkillData.NodeId, true);
+                    if (!result.Succeeded && result.FailureCode != HWJ_SkillUnlockFailureCode.AlreadyUnlocked)
+                    {
+                        Debug.LogWarning($"[SkillTreeMaker] HWJ 스킬 해금 실패: {result.Message}");
+                        return; // 실패하면 UI 처리를 중단합니다.
+                    }
+                    
+                    // (옵션) UI 포인트를 HWJ 포인트와 동기화
+                    controller.skillPoints.Points = result.RemainingSkillPoint;
+                }
+            }
+            else
+            {
+                // HWJ 노드가 연결되지 않았을 때만 자체 포인트를 소모합니다 (동기화 중복 방지)
+                controller.skillPoints.SpentPoints(RealCost);
+            }
+
             level++;
             Save(level, "level");
 
@@ -194,12 +248,13 @@ namespace SmilingEclipse.STMImporter
             OnBuyEvent?.Invoke();
             UpdateInfo();
         }
-        //Fa�a a logica do painel de informa�oes do node, o NodeInformationUIItem
+        //Fa? a logica do painel de informa?es do node, o NodeInformationUIItem
 
         private void OnDestroy()
         {
             controller.skillPoints.OnPointsChanged -= UpdateInfo;
             controller.OnNodeBuyed -= UpdateInfo;
+            HWJ_GameplayEvents.SkillPointChanged -= OnHWJSkillPointChanged;
         }
 
         void Save<T>(T value, string id)

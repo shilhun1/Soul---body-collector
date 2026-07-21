@@ -19,7 +19,9 @@ MonoBehaviour:
   levelTables: []
   skillActions: []
   skillNodes:
-  - {fileID: 11400000, guid: fb75a96665709124b9042a7205f51acb, type: 2}
+  - {fileID: 11400000, guid: ae7b7fefc78046cbacde2e85118c494c, type: 2}
+  - {fileID: 11400000, guid: 43b0c44f5e064d79a5c8e1d4b765479a, type: 2}
+  - {fileID: 11400000, guid: 4c4b16d69e2e4391afcfe49cf08eb668, type: 2}
   bossPatterns: []
   healthBars: []
   gameOverWindows: []
