@@ -1057,7 +1057,7 @@ Transform:
   m_GameObject: {fileID: 1631031714}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 3, y: -2, z: 0}
+  m_LocalPosition: {x: -9.78, y: -2, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1447,6 +1447,8 @@ GameObject:
   - component: {fileID: 2087133902}
   - component: {fileID: 2087133901}
   - component: {fileID: 2087133904}
+  - component: {fileID: 2087133905}
+  - component: {fileID: 2087133906}
   m_Layer: 0
   m_Name: HWJ_Player
   m_TagString: Untagged
@@ -1955,6 +1957,65 @@ MonoBehaviour:
   currentLevel: 1
   currentExperience: 0
   skillPoint: 0
+--- !u!114 &2087133905
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2087133885}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 99941abfab184ddebfa527d9f5e13d42, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: HWJ.Runtime::HWJ_SkillUnlockSystem
+  ownerDataResolver: {fileID: 0}
+  playerLevelProgress: {fileID: 0}
+  initializeStartingSkillsOnAwake: 1
+  autoUnlockLevelSkills: 1
+  autoUnlockOnlyFreeSkills: 1
+  gameplayDatabase: {fileID: 0}
+  useSkillNodeProgress: 1
+  autoUnlockFreeStartingSkillNodes: 1
+  cachedCommonUnlockedSkillStep: 0
+  lastSkillNodeMessage: 
+  unlockedSkillIds: []
+  unlockedSkillNodeIds: []
+  lastUnlockMessage: 
+--- !u!114 &2087133906
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2087133885}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cc45360a6ce147cca5614a4263769485, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: HWJ.Runtime::HWJ_RuntimeStatusSystem
+  runtimeContext: {fileID: 0}
+  dataResolver: {fileID: 0}
+  possessionSystem: {fileID: 0}
+  soulSystem: {fileID: 0}
+  bodyDecaySystem: {fileID: 0}
+  possessedBodySystem: {fileID: 0}
+  collapseSystem: {fileID: 0}
+  motionSystem: {fileID: 0}
+  bossBrain: {fileID: 0}
+  currentState: 1
+  currentHp: 0
+  soulHp: 0
+  possessedBodyHp: 0
+  moveLockEndTime: 0
+  attackLockEndTime: 0
+  dashLockEndTime: 0
+  hitStunEndTime: 0
+  invincibleEndTime: 0
+  hitReactionImmuneEndTime: 0
+  hitReactionLimitEndTime: 0
+  hitReactionWindowEndTime: 0
+  hitReactionCountInWindow: 0
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
