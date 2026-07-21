@@ -1197,6 +1197,7 @@ GameObject:
   - component: {fileID: 1547393501}
   - component: {fileID: 1547393500}
   - component: {fileID: 1547393499}
+  - component: {fileID: 1547393517}
   m_Layer: 0
   m_Name: HWJ_Player
   m_TagString: Player
@@ -1712,6 +1713,24 @@ Transform:
   - {fileID: 1884138757}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1547393517
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1547393498}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 860aca9d6b7b46c4b1100595d2747986, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: HWJ.Runtime::HWJ_LevelUpSystem
+  levelUpData: {fileID: 0}
+  levelTableId: player_default_level
+  loadLevelDataFromDatabase: 1
+  currentLevel: 1
+  currentExperience: 0
+  skillPoint: 0
 --- !u!1001 &1573735211
 PrefabInstance:
   m_ObjectHideFlags: 0
