@@ -17,5 +17,11 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/01Scenes/HSH_1-2.unity
     guid: 169d949c2c90b6148a9e24e234967c67
+  - enabled: 1
+    path: Assets/01Scenes/Title.unity
+    guid: 31b03f9dcce59324dbfa117d3bc24f76
+  - enabled: 1
+    path: Assets/01Scenes/2-1.unity
+    guid: 3e9100ed15a958244b8c65f1f28212be
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0

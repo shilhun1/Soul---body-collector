@@ -7,21 +7,70 @@ namespace SmilingEclipse.STMImporter
     {
         public CurrencyData skillPoints;
         public TextMeshProUGUI tmp;
+        private HWJ_LevelUpSystem levelUpSystem;
+
         private void Start()
         {
-            skillPoints.ResetSave();
-            skillPoints.OnPointsChanged += UpdateInfo;
-            UpdateInfo();
+            // HWJ 연동: 레벨업 시스템 찾기
+            levelUpSystem = Object.FindAnyObjectByType<HWJ_LevelUpSystem>();
+
+            if (levelUpSystem != null)
+            {
+                HWJ_GameplayEvents.SkillPointChanged += OnSkillPointChanged;
+                HWJ_GameplayEvents.PlayerLevelChanged += OnPlayerLevelChanged;
+                UpdateInfoHWJ();
+            }
+            else
+            {
+                // 기존 로직
+                if (skillPoints != null)
+                {
+                    skillPoints.ResetSave();
+                    skillPoints.OnPointsChanged += UpdateInfo;
+                    UpdateInfo();
+                }
+            }
+        }
+
+        private void OnSkillPointChanged(HWJ_SkillPointChangedEvent evt)
+        {
+            UpdateInfoHWJ();
+        }
+
+        private void OnPlayerLevelChanged(HWJ_PlayerLevelChangedEvent evt)
+        {
+            UpdateInfoHWJ();
+        }
+
+        private void UpdateInfoHWJ()
+        {
+            if (tmp != null && levelUpSystem != null)
+            {
+                string prefix = skillPoints != null ? skillPoints.prefix : "SP: ";
+                tmp.text = prefix + levelUpSystem.SkillPoint.ToString();
+            }
         }
 
         void UpdateInfo()
         {
-            tmp.text = skillPoints.prefix + skillPoints.Points.ToString();
+            if (tmp != null && skillPoints != null)
+            {
+                tmp.text = skillPoints.prefix + skillPoints.Points.ToString();
+            }
         }
 
         private void OnDestroy()
         {
-            skillPoints.OnPointsChanged -= UpdateInfo;
+            if (levelUpSystem != null)
+            {
+                HWJ_GameplayEvents.SkillPointChanged -= OnSkillPointChanged;
+                HWJ_GameplayEvents.PlayerLevelChanged -= OnPlayerLevelChanged;
+            }
+            
+            if (skillPoints != null)
+            {
+                skillPoints.OnPointsChanged -= UpdateInfo;
+            }
         }
     }
 }

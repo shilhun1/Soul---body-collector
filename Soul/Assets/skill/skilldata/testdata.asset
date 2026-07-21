@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e491448eae275db449cdef0a265bfeca, type: 3}
+  m_Name: testdata
+  m_EditorClassIdentifier: Assembly-CSharp::SmilingEclipse.STMImporter.SkillNodeData
+  skillName: test
+  description: test
+  icon: {fileID: 21300000, guid: 2e4311f000ea1e24e87f01d7513c0173, type: 3}
+  position: {x: 0, y: 0}
+  cost: 10
+  costPerSkillLevel: 1
+  startLevel: 0
+  maxLevel: 5
+  nodeIndex: 1
+  scale: 1
+  childNodes:
+  - {fileID: 11400000, guid: 0add01871370d9642bf388b8a64bb82b, type: 2}
+  - {fileID: 11400000, guid: 05a6acdd0e1ed4b42af2edec5df631c3, type: 2}
+  parentNodes: []
+  hwjSkillData: {fileID: 11400000, guid: ae7b7fefc78046cbacde2e85118c494c, type: 2}
