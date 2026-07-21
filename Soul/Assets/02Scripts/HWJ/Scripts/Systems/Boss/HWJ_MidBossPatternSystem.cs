@@ -8,6 +8,7 @@ using UnityEngine;
 /// </summary>
 public class HWJ_MidBossPatternSystem : MonoBehaviour, HWJ_IBossSpecialPatternExecutor
 {
+    [SerializeField] private GameObject summonMonsterPerfabs;
     [Header("References")]
     [SerializeField] private HWJ_BossBrainSystem bossBrain;
     [SerializeField] private HWJ_RuntimeStatusSystem runtimeStatus;

@@ -14,15 +14,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: HWJ.Runtime::HWJ_BossTypeDataSO
   objectType: 3
   typeId: boss.mid.01.captain
-  displayName: 1스테이지 중간보스 1
+  displayName: "1\uC2A4\uD14C\uC774\uC9C0 \uC911\uAC04\uBCF4\uC2A4 1"
   defaultWeaponType: 3
-  description: 1스테이지 중간보스1. 물리 공격 패턴 1~7을 HWJ_MidBossPatternSystem으로 실행한다.
+  description: "1\uC2A4\uD14C\uC774\uC9C0 \uC911\uAC04\uBCF4\uC2A41. \uBB3C\uB9AC
+    \uACF5\uACA9 \uD328\uD134 1~7\uC744 HWJ_MidBossPatternSystem\uC73C\uB85C \uC2E4\uD589\uD55C\uB2E4."
   bossRank: 0
   fsm:
     autoStartWhenPlayerEntersRoom: 1
     useBossRoomBounds: 1
     bossRoomOffset: {x: 0, y: 0}
-    bossRoomSize: {x: 28, y: 14}
+    bossRoomSize: {x: 35, y: 6.5}
     attackStartRange: 8
     optimalAttackDistance: 4.5
     closeSkillRange: 4
@@ -46,11 +47,24 @@ MonoBehaviour:
   ai:
     aiProfileId: mid_boss_physical
     decisionIntervalSeconds: 0
-    behaviorTreeId:
+    behaviorTreeId: 
+    idleSeconds: 0.2
+    detectSeconds: 0.15
+    attackPrepareSeconds: 0.25
+    attackRecoverySeconds: 0.35
+    repathSeconds: 0.15
+    defaultSkillCooldownSeconds: 3
+    basicAttackIntervalSeconds: 1.5
+    skillCycleCount: 3
+    skillCycleResetDelaySeconds: 5
   navigation:
     stoppingDistance: 3.5
     pathRefreshSeconds: 0.2
     canUsePlatformDrop: 0
+    avoidLedges: 1
+    ledgeCheckForwardDistance: 0.45
+    ledgeCheckDownDistance: 1.2
+    wallCheckDistance: 0.15
   skillCycle:
     skills: []
   phases:
@@ -58,13 +72,13 @@ MonoBehaviour:
     startHpRatio: 1
     skillSet:
       skills: []
-    stageEventId:
+    stageEventId: 
     changesStage: 0
   - phaseId: phase_2
     startHpRatio: 0.5
     skillSet:
       skills: []
-    stageEventId:
+    stageEventId: 
     changesStage: 1
   phaseTransform:
     canTransform: 1
@@ -72,24 +86,27 @@ MonoBehaviour:
     transformedModelId: mid_boss_01_phase_2
     transformAnimationId: mid_boss_phase_transition
   entryRequirements:
-    requireStageObjectiveComplete: 0
+    requireObjectiveComplete: 1
+    requireBossUnlocked: 1
     requireBossNotDefeated: 1
+    requireEntryTriggerActive: 1
     requirePossessedBody: 1
     requireBodyNotCollapsing: 1
-    requireTriggerActive: 1
-    minimumCurrentHp: 1
-    maximumCurrentDecayRatio: 1
-    requiredSkillIds: []
-    requiredStatChecks: []
-    allowedBodyTags: []
-    bannedBodyTags: []
     requireBodyObjectType: 0
     requiredBodyObjectType: 1
+    requiredWeaponType: 0
+    minimumCurrentHp: 1
+    maximumCurrentDecayRatio: 1
+    requiredUnlockedSkillIds: []
+    allowedBodyObjectIds: []
+    blockedBodyObjectIds: []
+    additionalRuleExecutionCore: {fileID: 0}
+    additionalRuleExecutionCoreId: boss_entry_execution
   possessionBody:
     canPossess: 0
     canBePossessed: 1
     possessableHeartEffectPrefab: {fileID: 0}
-    heartSocketName:
+    heartSocketName: 
     possessionRange: 2
     requiresDefeatedState: 1
     transfersControlToBody: 1
