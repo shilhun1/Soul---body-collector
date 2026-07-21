@@ -81,12 +81,22 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
     [InspectorName("연속 피격 횟수")]
     [SerializeField] private int hitReactionCountInWindow;
 
+    [Header("몸 충돌 필터")]
+    [Tooltip("플레이어와 일반/보스 몬스터의 몸 콜라이더끼리 물리 충돌해서 서로 밀리는 것을 막습니다. 트리거 콜라이더는 제외합니다.")]
+    [SerializeField] private bool ignorePlayerMonsterBodyCollision = true;
+    [Tooltip("일반 몬스터와 보스 몬스터끼리 몸 콜라이더로 서로 밀리는 것을 막습니다. 트리거 콜라이더는 제외합니다.")]
+    [SerializeField] private bool ignoreMonsterBodyCollision = true;
+    [Tooltip("새로 생성된 몬스터까지 충돌 무시 대상으로 갱신하는 주기입니다.")]
+    [SerializeField] private float bodyCollisionRefreshSeconds = 0.25f;
+
     private readonly Dictionary<int, float> nextDamageTimesBySource = new Dictionary<int, float>();
     private float maxHpBonus;
     private float moveSpeedBonus;
     private float attackPowerBonus;
     private float defenseBonus;
     private float attackSpeedBonus;
+    private Collider2D[] bodyCollisionColliders;
+    private float nextBodyCollisionRefreshTime;
 
     public HWJ_RuntimeState CurrentState => currentState;
     public float CurrentHp => currentHp;
@@ -104,7 +114,11 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
     public bool IsHitReactionImmune => Time.time < hitReactionImmuneEndTime;
     public bool IsHitReactionLimited => Time.time < hitReactionLimitEndTime;
     public bool HasSuperArmor => HasDataSuperArmor() || (bossBrain != null && bossBrain.HasSuperArmor);
-    public bool ShouldIgnoreKnockback => HasSuperArmor || IsHitReactionImmune || IsHitReactionLimited || ShouldDataIgnoreKnockback();
+    public bool ShouldIgnoreKnockback => IsBossBody()
+        || HasSuperArmor
+        || IsHitReactionImmune
+        || IsHitReactionLimited
+        || ShouldDataIgnoreKnockback();
     public bool CanMove => !IsDead && Time.time >= moveLockEndTime && !IsHitStunned;
     public bool CanAttack => !IsDead && Time.time >= attackLockEndTime && !IsHitStunned;
     public bool CanDash => !IsDead && Time.time >= dashLockEndTime && !IsHitStunned;
@@ -116,9 +130,15 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
     private void Awake()
     {
         ResolveReferences();
+        CacheBodyCollisionColliders();
         soulHp = SoulMaxHp;
         possessedBodyHp = MaxHp;
         currentHp = GetStoredHpForActiveState();
+    }
+
+    private void Update()
+    {
+        UpdateBodyCollisionIgnores();
     }
 
     private void ResolveReferences()
@@ -584,6 +604,132 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
     {
         HWJ_ReceivedDamageData receivedDamage = GetReceivedDamageData();
         return receivedDamage != null && receivedDamage.ignoreKnockback;
+    }
+
+    private bool IsBossBody()
+    {
+        return dataResolver != null && dataResolver.ObjectType == HWJ_ObjectType.Boss;
+    }
+
+    private bool ShouldUseBodyCollisionFilter()
+    {
+        if (dataResolver == null)
+        {
+            return false;
+        }
+
+        return dataResolver.ObjectType == HWJ_ObjectType.Player
+            || dataResolver.ObjectType == HWJ_ObjectType.Enemy
+            || dataResolver.ObjectType == HWJ_ObjectType.Boss;
+    }
+
+    private void CacheBodyCollisionColliders()
+    {
+        bodyCollisionColliders = GetComponentsInChildren<Collider2D>();
+    }
+
+    private void UpdateBodyCollisionIgnores()
+    {
+        if (Time.time < nextBodyCollisionRefreshTime)
+        {
+            return;
+        }
+
+        nextBodyCollisionRefreshTime = Time.time + Mathf.Max(0.02f, bodyCollisionRefreshSeconds);
+
+        if (!ShouldUseBodyCollisionFilter())
+        {
+            return;
+        }
+
+        if (bodyCollisionColliders == null || bodyCollisionColliders.Length == 0)
+        {
+            CacheBodyCollisionColliders();
+        }
+
+        HWJ_RootObjectDataResolver[] resolvers = FindObjectsByType<HWJ_RootObjectDataResolver>(
+            FindObjectsInactive.Exclude,
+            FindObjectsSortMode.None);
+
+        for (int i = 0; i < resolvers.Length; i++)
+        {
+            HWJ_RootObjectDataResolver otherResolver = resolvers[i];
+
+            if (otherResolver == null
+                || otherResolver == dataResolver
+                || !ShouldIgnoreBodyCollisionWith(otherResolver))
+            {
+                continue;
+            }
+
+            IgnoreBodyCollisionWith(otherResolver);
+        }
+    }
+
+    private bool ShouldIgnoreBodyCollisionWith(HWJ_RootObjectDataResolver otherResolver)
+    {
+        if (dataResolver == null || otherResolver == null)
+        {
+            return false;
+        }
+
+        HWJ_ObjectType selfType = dataResolver.ObjectType;
+        HWJ_ObjectType otherType = otherResolver.ObjectType;
+
+        if (selfType == HWJ_ObjectType.Player)
+        {
+            return ignorePlayerMonsterBodyCollision && IsMonsterType(otherType);
+        }
+
+        if (IsMonsterType(selfType))
+        {
+            return otherType == HWJ_ObjectType.Player && ignorePlayerMonsterBodyCollision
+                || IsMonsterType(otherType) && ignoreMonsterBodyCollision;
+        }
+
+        return false;
+    }
+
+    private void IgnoreBodyCollisionWith(HWJ_RootObjectDataResolver otherResolver)
+    {
+        if (bodyCollisionColliders == null)
+        {
+            return;
+        }
+
+        Collider2D[] otherColliders = otherResolver.GetComponentsInChildren<Collider2D>();
+
+        for (int i = 0; i < bodyCollisionColliders.Length; i++)
+        {
+            Collider2D ownedCollider = bodyCollisionColliders[i];
+
+            if (!IsPhysicalBodyCollider(ownedCollider))
+            {
+                continue;
+            }
+
+            for (int j = 0; j < otherColliders.Length; j++)
+            {
+                Collider2D otherCollider = otherColliders[j];
+
+                if (!IsPhysicalBodyCollider(otherCollider) || otherCollider == ownedCollider)
+                {
+                    continue;
+                }
+
+                Physics2D.IgnoreCollision(ownedCollider, otherCollider, true);
+            }
+        }
+    }
+
+    private static bool IsPhysicalBodyCollider(Collider2D collider)
+    {
+        return collider != null && !collider.isTrigger;
+    }
+
+    private static bool IsMonsterType(HWJ_ObjectType objectType)
+    {
+        return objectType == HWJ_ObjectType.Enemy || objectType == HWJ_ObjectType.Boss;
     }
 
     private float GetKnockbackWeight()
