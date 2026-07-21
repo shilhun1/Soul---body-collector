@@ -1,0 +1,118 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ae5a12c5890f4b77ab398d3f9fafb4c6, type: 3}
+  m_Name: HWJ_MidBoss1_TypeData
+  m_EditorClassIdentifier: HWJ.Runtime::HWJ_BossTypeDataSO
+  objectType: 3
+  typeId: boss.mid.01.captain
+  displayName: 1스테이지 중간보스 1
+  defaultWeaponType: 3
+  description: 1스테이지 중간보스1. 물리 공격 패턴 1~7을 HWJ_MidBossPatternSystem으로 실행한다.
+  bossRank: 0
+  fsm:
+    autoStartWhenPlayerEntersRoom: 1
+    useBossRoomBounds: 1
+    bossRoomOffset: {x: 0, y: 0}
+    bossRoomSize: {x: 28, y: 14}
+    attackStartRange: 8
+    optimalAttackDistance: 4.5
+    closeSkillRange: 4
+    chaseMoveSpeedMultiplier: 1
+    phaseTwoHpRatio: 0.5
+    phaseTransitionSeconds: 10
+    cameraFocusSeconds: 2.5
+    soulReturnCenterStoppingDistance: 0.2
+    superArmorDuringAttack: 1
+    superArmorDuringPhaseTransition: 1
+    countGroggyHitsDuringSuperArmor: 1
+    countGroggyHitsWhileHitReactionLimited: 1
+    clearHitReactionLimitOnGroggy: 1
+    cancelActionsOnGroggy: 1
+    groggyHitCountThreshold: 5
+    groggyHitWindowSeconds: 3
+    groggyDurationSeconds: 2.5
+    groggyDamageMultiplier: 1.5
+    knockbackOnGroggyEnd: 1
+    groggyEndKnockbackPower: 8
+  ai:
+    aiProfileId: mid_boss_physical
+    decisionIntervalSeconds: 0
+    behaviorTreeId:
+  navigation:
+    stoppingDistance: 3.5
+    pathRefreshSeconds: 0.2
+    canUsePlatformDrop: 0
+  skillCycle:
+    skills: []
+  phases:
+  - phaseId: phase_1
+    startHpRatio: 1
+    skillSet:
+      skills: []
+    stageEventId:
+    changesStage: 0
+  - phaseId: phase_2
+    startHpRatio: 0.5
+    skillSet:
+      skills: []
+    stageEventId:
+    changesStage: 1
+  phaseTransform:
+    canTransform: 1
+    transformHpRatio: 0.5
+    transformedModelId: mid_boss_01_phase_2
+    transformAnimationId: mid_boss_phase_transition
+  entryRequirements:
+    requireStageObjectiveComplete: 0
+    requireBossNotDefeated: 1
+    requirePossessedBody: 1
+    requireBodyNotCollapsing: 1
+    requireTriggerActive: 1
+    minimumCurrentHp: 1
+    maximumCurrentDecayRatio: 1
+    requiredSkillIds: []
+    requiredStatChecks: []
+    allowedBodyTags: []
+    bannedBodyTags: []
+    requireBodyObjectType: 0
+    requiredBodyObjectType: 1
+  possessionBody:
+    canPossess: 0
+    canBePossessed: 1
+    possessableHeartEffectPrefab: {fileID: 0}
+    heartSocketName:
+    possessionRange: 2
+    requiresDefeatedState: 1
+    transfersControlToBody: 1
+    loadsBodyStatsToPlayer: 1
+    overrideBodyDecayOnPossession: 1
+    possessedBodyDecayOverride:
+      initialDecayValue: 0
+      maxDecayValue: 240
+      decayTickSeconds: 0.5
+      decayAmountPerTick: 1
+      moveDecayPerSecond: 0
+      basicAttackDecayAmount: 0
+      skillDecayAmount: 0
+      actionDecayAmount: 0
+      hitDecayPenalty: 10
+      decayResistance: 0
+      startDecayOnEnterBody: 1
+      enterSoulStateWhenMaxed: 1
+      enterSoulStateWhenEmpty: 1
+      dangerThresholds:
+      - dangerLevel: 1
+        ratio: 0.5
+      - dangerLevel: 2
+        ratio: 0.75
+      - dangerLevel: 3
+        ratio: 0.9

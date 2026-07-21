@@ -26,6 +26,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: dd000000000000000000000000000006, type: 2}
   - {fileID: 11400000, guid: dd000000000000000000000000000007, type: 2}
   - {fileID: 11400000, guid: b1f0a5c00123456789abcdef00000001, type: 2}
+  - {fileID: 11400000, guid: fbc165530a6849babf31363c8491519d, type: 2}
   objectPoolData: {fileID: 0}
   spawnTables: []
   statOrbs:
@@ -99,6 +100,13 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 1b7d52e2b65c4e6db7f0c2f52dcf1101, type: 2}
   - {fileID: 11400000, guid: 2d8a75951d154ed6a87dc8cf25ca1102, type: 2}
   - {fileID: 11400000, guid: 3c64f0e7a8a44ab2bb2f903da3ef1103, type: 2}
+  - {fileID: 11400000, guid: 663cbdea01c446a6af6aa9676369abbc, type: 2}
+  - {fileID: 11400000, guid: 5ed953be3efe46d3bb33c21220cc58af, type: 2}
+  - {fileID: 11400000, guid: d08c7d07239c492fbcb0574d9bb24c44, type: 2}
+  - {fileID: 11400000, guid: 521f968fb627414998d892b240d0f9c3, type: 2}
+  - {fileID: 11400000, guid: 8bc12606843144638c17b86e5ad8bfeb, type: 2}
+  - {fileID: 11400000, guid: d26b28ad6d4643f09780db86d4a9a2f7, type: 2}
+  - {fileID: 11400000, guid: 466f3db318444790be1ec05fbebc7d15, type: 2}
   healthBars: []
   gameOverWindows: []
   conditions:

@@ -68,8 +68,17 @@ public static class HWJ_PlayModeTestRunnerBridge
             return;
         }
 
+        string flagText = File.ReadAllText(FlagFilePath, Encoding.UTF8).Trim();
+
+        if (!string.Equals(flagText, "refreshed", StringComparison.OrdinalIgnoreCase))
+        {
+            File.WriteAllText(FlagFilePath, "refreshed", Encoding.UTF8);
+            AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
+            return;
+        }
+
         File.Delete(FlagFilePath);
-        RunPlayModeTests("flag file");
+        RunPlayModeTests("flag file after AssetDatabase refresh");
     }
 
     private static void RunPlayModeTests(string source)

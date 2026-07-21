@@ -61,6 +61,22 @@ public class HWJ_PossessionSystem : MonoBehaviour
     public HWJ_PossessionFailureCode LastPossessionFailureCode => lastPossessionFailureCode;
     public string LastPossessionResult => lastPossessionResult;
 
+    public bool TryGetActivePossessedBodyDecayData(out HWJ_BodyDecayData bodyDecay)
+    {
+        bodyDecay = null;
+
+        if (possessedBodyResolver == null
+            || activePossessionBodyData == null
+            || !activePossessionBodyData.overrideBodyDecayOnPossession
+            || activePossessionBodyData.possessedBodyDecayOverride == null)
+        {
+            return false;
+        }
+
+        bodyDecay = activePossessionBodyData.possessedBodyDecayOverride;
+        return true;
+    }
+
     private void Awake()
     {
         if (ownerDataResolver == null)
@@ -859,6 +875,11 @@ public class HWJ_PossessionSystem : MonoBehaviour
 
     private HWJ_BodyDecayData ResolveOwnerBodyDecayData()
     {
+        if (TryGetActivePossessedBodyDecayData(out HWJ_BodyDecayData possessedBodyDecay))
+        {
+            return possessedBodyDecay;
+        }
+
         if (ownerDataResolver != null
             && ownerDataResolver.TryGetTypeData(out HWJ_PlayerTypeDataSO playerData))
         {

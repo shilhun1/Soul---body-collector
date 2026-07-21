@@ -292,6 +292,94 @@ public class HWJ_CoreSystemsPlayModeTests
     }
 
     [UnityTest]
+    public IEnumerator MidBossPatternSystem_SpawnsPossessableMonsterFromRootObjectData()
+    {
+        GameObject summonModelPrefab = new GameObject("MidBossSummonModelPrefab");
+        summonModelPrefab.AddComponent<SpriteRenderer>();
+        summonModelPrefab.AddComponent<BoxCollider2D>();
+
+        HWJ_EnemyTypeDataSO summonedEnemyData = CreateEnemyTypeData(true);
+        HWJ_RootObjectDataSO summonedRootData = CreateRootObjectData(
+            HWJ_ObjectType.Enemy,
+            HWJ_Faction.Monster,
+            12f,
+            2f,
+            1f,
+            summonedEnemyData,
+            0f,
+            "enemy.midboss.summon.test");
+        SetPrivateField(summonedRootData, "model", new HWJ_ModelData { modelPrefab = summonModelPrefab });
+
+        GameObject boss = CreateCombatObject(
+            "MidBossPatternSummoner",
+            HWJ_ObjectType.Boss,
+            HWJ_Faction.Monster,
+            100f,
+            10f,
+            2f,
+            CreateBossTypeData(),
+            1f);
+        HWJ_BossBrainSystem bossBrain = boss.AddComponent<HWJ_BossBrainSystem>();
+        HWJ_MidBossPatternSystem midBossPattern = boss.AddComponent<HWJ_MidBossPatternSystem>();
+        SetPrivateField(midBossPattern, "bossBrain", bossBrain);
+        SetPrivateField(midBossPattern, "possessableMonsterRootObjects", new[] { summonedRootData });
+        SetPrivateField(midBossPattern, "pattern1SummonSaveIdPrefix", "test_midboss_summon");
+
+        MethodInfo spawnMethod = typeof(HWJ_MidBossPatternSystem).GetMethod(
+            "SpawnPossessableMonster",
+            BindingFlags.Instance | BindingFlags.NonPublic);
+        Assert.NotNull(spawnMethod);
+        spawnMethod.Invoke(midBossPattern, new object[] { 0 });
+
+        yield return null;
+
+        HWJ_RootObjectDataResolver spawnedResolver = null;
+        HWJ_RootObjectDataResolver[] resolvers = Object.FindObjectsByType<HWJ_RootObjectDataResolver>(
+            FindObjectsInactive.Exclude,
+            FindObjectsSortMode.None);
+
+        for (int i = 0; i < resolvers.Length; i++)
+        {
+            HWJ_RootObjectDataResolver resolver = resolvers[i];
+
+            if (resolver != null
+                && resolver.RootObjectData == summonedRootData
+                && resolver.gameObject != boss)
+            {
+                spawnedResolver = resolver;
+                break;
+            }
+        }
+
+        Assert.NotNull(spawnedResolver);
+        Assert.AreSame(summonedRootData, spawnedResolver.RootObjectData);
+        Assert.NotNull(spawnedResolver.GetComponent<Rigidbody2D>());
+        Assert.NotNull(spawnedResolver.GetComponent<Collider2D>());
+        Assert.NotNull(spawnedResolver.GetComponent<HWJ_PossessionBodyState>());
+        Assert.NotNull(spawnedResolver.GetComponent<HWJ_RuntimeStatusSystem>());
+        Assert.NotNull(spawnedResolver.GetComponent<HWJ_CombatSystem>());
+        Assert.NotNull(spawnedResolver.GetComponent<HWJ_CombatExecutionSystem>());
+        Assert.NotNull(spawnedResolver.GetComponent<HWJ_SkillActionSystem>());
+        Assert.NotNull(spawnedResolver.GetComponent<HWJ_EnemyAttackSystem>());
+        Assert.NotNull(spawnedResolver.GetComponent<HWJ_EnemyNavigationSystem>());
+        Assert.NotNull(spawnedResolver.GetComponent<HWJ_MonsterAISystem>());
+
+        HWJ_RuntimeStatusSystem spawnedStatus = spawnedResolver.GetComponent<HWJ_RuntimeStatusSystem>();
+        Assert.AreEqual(12f, spawnedStatus.CurrentHp, 0.001f);
+
+        HWJ_RuntimeSaveIdentity saveIdentity = spawnedResolver.GetComponent<HWJ_RuntimeSaveIdentity>();
+        Assert.NotNull(saveIdentity);
+        Assert.IsTrue(saveIdentity.HasStableInstanceId);
+        Assert.AreEqual("enemy.midboss.summon.test", saveIdentity.RootObjectId);
+
+        Object.Destroy(spawnedResolver.gameObject);
+        Object.Destroy(boss);
+        Object.Destroy(summonModelPrefab);
+        Object.Destroy(summonedRootData);
+        Object.Destroy(summonedEnemyData);
+    }
+
+    [UnityTest]
     public IEnumerator RuntimeStatusSystem_HitStunImmunityBlocksStunButKeepsDamage()
     {
         HWJ_EnemyTypeDataSO enemyData = CreateEnemyTypeData(true);
@@ -435,6 +523,7 @@ public class HWJ_CoreSystemsPlayModeTests
 
         GameObject orb = new GameObject("ExperienceOrb");
         HWJ_ExperienceOrbPickupSystem pickup = orb.AddComponent<HWJ_ExperienceOrbPickupSystem>();
+        SetPrivateField(pickup, "collectDelaySeconds", 0f);
         pickup.Initialize(15, level, player.transform);
 
         yield return null;
@@ -701,6 +790,7 @@ public class HWJ_CoreSystemsPlayModeTests
 
         Assert.NotNull(spawnedPickup);
         Assert.AreSame(statOrb, spawnedPickup.StatOrbData);
+        SetPrivateField(spawnedPickup, "collectDelaySeconds", 0f);
         Assert.IsTrue(spawnedPickup.TryCollect(playerStatus));
         Assert.AreEqual(7f, playerStatus.AttackPower, 0.001f);
 
@@ -1892,6 +1982,58 @@ public class HWJ_CoreSystemsPlayModeTests
 
         Object.Destroy(player);
         Object.Destroy(enemy);
+    }
+
+    [UnityTest]
+    public IEnumerator PossessionSystem_UsesBossBodyDecayOverrideForPossessableMidBoss()
+    {
+        GameObject player = CreatePlayerObject("PlayerPossessesMidBoss", true, 120f, 1f);
+        HWJ_BossTypeDataSO bossData = CreateBossTypeData();
+        bossData.PossessionBody.canBePossessed = true;
+        bossData.PossessionBody.requiresDefeatedState = true;
+        bossData.PossessionBody.loadsBodyStatsToPlayer = true;
+        bossData.PossessionBody.overrideBodyDecayOnPossession = true;
+        bossData.PossessionBody.possessedBodyDecayOverride.initialDecayValue = 0f;
+        bossData.PossessionBody.possessedBodyDecayOverride.maxDecayValue = 240f;
+        bossData.PossessionBody.possessedBodyDecayOverride.decayTickSeconds = 0.5f;
+        bossData.PossessionBody.possessedBodyDecayOverride.decayAmountPerTick = 1f;
+        bossData.PossessionBody.possessedBodyDecayOverride.hitDecayPenalty = 10f;
+        bossData.PossessionBody.possessedBodyDecayOverride.startDecayOnEnterBody = true;
+        bossData.PossessionBody.possessedBodyDecayOverride.enterSoulStateWhenMaxed = true;
+
+        GameObject boss = CreateCombatObject(
+            "PossessableMidBoss",
+            HWJ_ObjectType.Boss,
+            HWJ_Faction.Monster,
+            1f,
+            10f,
+            2f,
+            bossData,
+            1f);
+
+        yield return null;
+
+        HWJ_RuntimeStatusSystem bossStatus = boss.GetComponent<HWJ_RuntimeStatusSystem>();
+        bossStatus.ApplyDamage(99f);
+        yield return null;
+
+        HWJ_PossessionSystem possession = player.GetComponent<HWJ_PossessionSystem>();
+        HWJ_BodyDecaySystem bodyDecay = player.GetComponent<HWJ_BodyDecaySystem>();
+        HWJ_PlayerTypeDataSO playerData = player.GetComponent<HWJ_RootObjectDataResolver>()
+            .RootObjectData.SelectedTypeData as HWJ_PlayerTypeDataSO;
+
+        Assert.IsTrue(possession.TryPossess(boss.GetComponent<HWJ_RootObjectDataResolver>()));
+        Assert.IsTrue(possession.HasActivePossessedBody);
+        Assert.AreEqual(240f, bodyDecay.MaxDecayValue, 0.001f);
+        Assert.AreEqual(120f, playerData.BodyDecay.maxDecayValue, 0.001f);
+
+        Assert.IsTrue(possession.TryGetPossessedBodyRuntimeState(out HWJ_PossessedBodyRuntimeState bodyState));
+        Assert.AreEqual(240f, bodyState.MaxDecayValue, 0.001f);
+        Assert.AreEqual(0f, bodyState.CurrentDecayValue, 0.001f);
+
+        Object.Destroy(player);
+        Object.Destroy(boss);
+        Object.Destroy(bossData);
     }
 
     [UnityTest]

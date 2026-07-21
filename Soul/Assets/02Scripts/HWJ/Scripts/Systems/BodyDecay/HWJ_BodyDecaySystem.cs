@@ -328,6 +328,12 @@ public class HWJ_BodyDecaySystem : MonoBehaviour
     {
         bodyDecay = null;
 
+        if (possessionSystem != null
+            && possessionSystem.TryGetActivePossessedBodyDecayData(out bodyDecay))
+        {
+            return true;
+        }
+
         if (dataResolver == null || !dataResolver.TryGetTypeData(out HWJ_PlayerTypeDataSO playerData))
         {
             return false;

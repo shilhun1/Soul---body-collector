@@ -141,6 +141,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 13cae500e299423d8ed2801586ad0897, type: 3}
   m_Name: 
   m_EditorClassIdentifier: HWJ.Runtime::HWJ_StatOrbPickupSystem
+  collectDelaySeconds: 1
   statOrbData: {fileID: 11400000, guid: ab220000000000000000000000000004, type: 2}
   objectPool: {fileID: 0}
   destroyOnCollect: 1
