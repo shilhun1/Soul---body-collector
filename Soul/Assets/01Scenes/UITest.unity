@@ -386,6 +386,42 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SkillTreePointsUI
   skillPoints: {fileID: 11400000, guid: ea80300a04b340b449ecdf8eb49cf814, type: 2}
   tmp: {fileID: 10702665}
+--- !u!1 &454751959
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 454751960}
+  m_Layer: 0
+  m_Name: skilltree
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &454751960
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 454751959}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 1121.3983, y: 540.9381, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 914236761}
+  - {fileID: 979843039}
+  - {fileID: 1901072571}
+  - {fileID: 879282956}
+  - {fileID: 867710469}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!223 &621682739 stripped
 Canvas:
   m_CorrespondingSourceObject: {fileID: 936018683834023139, guid: 40c0cf6efcde26c4cb91e2d6ea4fca24, type: 3}
@@ -809,12 +845,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 867710467}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -1121.3983, y: -540.9381, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 454751960}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &879282954
 GameObject:
@@ -862,13 +898,18 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 879282954}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -1121.3983, y: -540.9381, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 454751960}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!224 &914236761 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 8304817636081338069, guid: 40c0cf6efcde26c4cb91e2d6ea4fca24, type: 3}
+  m_PrefabInstance: {fileID: 1396878782}
+  m_PrefabAsset: {fileID: 0}
 --- !u!224 &947243712 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 3587926935025952702, guid: 40c0cf6efcde26c4cb91e2d6ea4fca24, type: 3}
@@ -971,7 +1012,7 @@ RectTransform:
   - {fileID: 66677096}
   - {fileID: 1926854450}
   - {fileID: 1689128075}
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 454751960}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
@@ -1076,7 +1117,7 @@ PrefabInstance:
   serializedVersion: 2
   m_Modification:
     serializedVersion: 3
-    m_TransformParent: {fileID: 0}
+    m_TransformParent: {fileID: 454751960}
     m_Modifications:
     - target: {fileID: 936018683834023139, guid: 40c0cf6efcde26c4cb91e2d6ea4fca24, type: 3}
       propertyPath: m_Camera
@@ -1198,6 +1239,7 @@ GameObject:
   - component: {fileID: 1547393500}
   - component: {fileID: 1547393499}
   - component: {fileID: 1547393517}
+  - component: {fileID: 1547393518}
   m_Layer: 0
   m_Name: HWJ_Player
   m_TagString: Player
@@ -1731,13 +1773,30 @@ MonoBehaviour:
   currentLevel: 1
   currentExperience: 0
   skillPoint: 0
+--- !u!114 &1547393518
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1547393498}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 68e44d401a706d74eae6f8ad2fb1a574, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HSH.UI.HSH_SkillTreeToggleUI
+  toggleKey: 9
+  skillTreePanel: {fileID: 454751959}
+  pauseTimeWhenOpen: 1
+  unlockCursorWhenOpen: 1
+  skillTreeController: {fileID: 879282955}
 --- !u!1001 &1573735211
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
     serializedVersion: 3
-    m_TransformParent: {fileID: 0}
+    m_TransformParent: {fileID: 454751960}
     m_Modifications:
     - target: {fileID: 687559384131280564, guid: 7531c35ecff733343b232a25c3be80b7, type: 3}
       propertyPath: m_Pivot.x
@@ -2300,6 +2359,11 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!224 &1901072571 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 687559384131280564, guid: 7531c35ecff733343b232a25c3be80b7, type: 3}
+  m_PrefabInstance: {fileID: 1573735211}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1926854449
 GameObject:
   m_ObjectHideFlags: 0
@@ -2454,10 +2518,6 @@ SceneRoots:
   m_Roots:
   - {fileID: 1319145599}
   - {fileID: 762706426}
-  - {fileID: 979843039}
-  - {fileID: 1396878782}
-  - {fileID: 1573735211}
-  - {fileID: 879282956}
-  - {fileID: 867710469}
   - {fileID: 14957133}
   - {fileID: 1547393516}
+  - {fileID: 454751960}
