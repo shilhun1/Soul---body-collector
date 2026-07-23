@@ -16,10 +16,10 @@ MonoBehaviour:
   description: test
   icon: {fileID: 21300000, guid: 2e4311f000ea1e24e87f01d7513c0173, type: 3}
   position: {x: 0, y: 0}
-  cost: 10
-  costPerSkillLevel: 1
+  cost: 1
+  costPerSkillLevel: 0
   startLevel: 0
-  maxLevel: 5
+  maxLevel: 1
   nodeIndex: 1
   scale: 1
   childNodes:

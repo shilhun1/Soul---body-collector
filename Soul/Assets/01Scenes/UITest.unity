@@ -1653,6 +1653,9 @@ MonoBehaviour:
   hitReactionLimitEndTime: 0
   hitReactionWindowEndTime: 0
   hitReactionCountInWindow: 0
+  ignorePlayerMonsterBodyCollision: 1
+  ignoreMonsterBodyCollision: 1
+  bodyCollisionRefreshSeconds: 0.25
 --- !u!114 &1547393513
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1787,7 +1790,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HSH.UI.HSH_SkillTreeToggleUI
   toggleKey: 9
   skillTreePanel: {fileID: 454751959}
-  pauseTimeWhenOpen: 1
+  pauseTimeWhenOpen: 0
   unlockCursorWhenOpen: 1
   skillTreeController: {fileID: 879282955}
 --- !u!1001 &1573735211

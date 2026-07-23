@@ -77,3 +77,25 @@
     *   스킬 노드의 활성화(구매 가능) 상태 판단 기준을 기존 `CurrencyData`에서 **HWJ 레벨 시스템의 실제 포인트**로 변경했습니다.
     *   버튼을 눌러 스킬 구매 시 `HWJ_SkillUnlockSystem.TryUnlockSkillNode()`를 호출하여 실제 백엔드에 스킬이 해금(포인트 차감 포함)되도록 완전 연동했습니다.
     *   HWJ 시스템의 포인트 증감 이벤트(`SkillPointChanged`)를 구독하여, 하나의 스킬을 찍어 포인트가 변동될 때 모든 노드의 시각적 상태(해금 가능/불가능)가 즉각적으로 동기화됩니다.
+
+---
+
+## 6. 일차별 작업 내역 (Daily Development Log)
+
+### 📅 2026-07-20 (월)
+*   **[HSH_SkillResetter] 추가**: Smiling Eclipse 스킬트리 에셋의 저장 데이터를 안전하게 초기화하는 유틸리티 작성 (PlayerPrefs 내 노드 레벨 및 해금 키 개별 삭제, 스킬 포인트 기본값 초기화).
+
+### 📅 2026-07-22 (수)
+*   **[HSH_SkillTreeToggleUI] 신규 제작**: `Tab` 키로 스킬트리 UI를 토글하고, 스킬트리가 열려있는 동안 `Time.timeScale = 0f`로 게임을 일시 정지시키며 마우스 커서를 자동 해제하도록 구현.
+*   **[HSH_NPCDialogue] 기능 개선**: 대사 말풍선 타이핑 연출 및 플레이어 머리 위 동적 앵커링(`EnsurePlayerTransform()`) 보완.
+
+### 📅 2026-07-23 (목)
+*   **[HSH_BarUI & HSH_LEVELTEXTUI] 연동 강화**: `HWJ_LevelUpSystem`과 연결하여 레벨 및 경험치(Exp) 바가 실시간 반응하도록 UI 업데이트.
+*   **[스킬트리 일시정지 후 포인트/상호작용 미반영 이슈 해결]**:
+    *   `HSH_SkillTreeToggleUI` 오픈 시 `RefreshAllNodes()`를 실행하여 트리를 열었을 때 포인트 및 노드 구매 가능 비주얼이 즉시 최신화되도록 수정.
+    *   `SkillNode`: 노드 구매 시 `HWJ_LevelUpSystem` 포인트를 정상 차감하고, 포인트 부족 시 `BuyableState`에서 `UnlockedState`로 비주얼이 정상 복구되도록 개선.
+    *   `SkillTreePointsUI`: `OnEnable()` 추가 및 이중 이벤트 구독을 통해 일시정지 상태에서도 포인트 숫자가 실시간 갱신되도록 보완.
+*   **[적 HP 체력바 씬 이동 및 다중 캔버스 문제 우회/해결]**:
+    *   `HSH_EnemyHPUI`: 무작위 Canvas 참조(`FindAnyObjectByType`)로 인해 숨겨진 캔버스에 생성되던 문제를 방지하고자 메인 Overlay/Camera HUD Canvas를 탐색하는 `FindMainHUDCanvas()` 구현.
+    *   씬 이동 시 이전 씬의 Canvas나 메인 카메라가 파괴되더라도, `Update()` / `LateUpdate()`에서 새 씬의 주 캔버스와 카메라를 자동 재탐색하고 HP UI를 재생성하는 복구 로직 구축.
+
