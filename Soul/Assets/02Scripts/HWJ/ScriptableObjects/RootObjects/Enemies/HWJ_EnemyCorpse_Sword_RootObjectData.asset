@@ -34,7 +34,7 @@ MonoBehaviour:
     possessedEyeSocketName: 
   damage:
     damageType: 0
-    baseDamage: 5
+    baseDamage: 1500
     criticalChance: 0
     criticalMultiplier: 1.5
     knockbackPower: 5
