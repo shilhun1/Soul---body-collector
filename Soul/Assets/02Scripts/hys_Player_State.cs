@@ -63,6 +63,20 @@ public class hys_Player_State : MonoBehaviour
         LogStateChange(previousState, currentState);
     }
 
+    // 사망 연출 종료 후 영혼 또는 새 육신 상태로 다시 전환할 수 있게 초기화합니다.
+    public void ResetFromDead(hys_PlayerState nextState = hys_PlayerState.Idle)
+    {
+        if (currentState != hys_PlayerState.Dead)
+        {
+            SetState(nextState);
+            return;
+        }
+
+        hys_PlayerState previousState = currentState;
+        currentState = nextState;
+        LogStateChange(previousState, currentState);
+    }
+
     // 디버그용 상태 변경 로그입니다.
     private void LogStateChange(hys_PlayerState previousState, hys_PlayerState nextState)
     {
