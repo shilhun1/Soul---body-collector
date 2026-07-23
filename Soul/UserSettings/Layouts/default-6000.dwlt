@@ -19,7 +19,7 @@ MonoBehaviour:
     width: 1920
     height: 989
   m_ShowMode: 4
-  m_Title: Game
+  m_Title: Scene
   m_RootView: {fileID: 2}
   m_MinSize: {x: 875, y: 300}
   m_MaxSize: {x: 10000, y: 10000}
@@ -120,7 +120,7 @@ MonoBehaviour:
   m_MinSize: {x: 300, y: 112}
   m_MaxSize: {x: 24288, y: 16192}
   vertical: 0
-  controlID: 5020
+  controlID: 118
   draggingID: 0
 --- !u!114 &6
 MonoBehaviour:
@@ -146,7 +146,7 @@ MonoBehaviour:
   m_MinSize: {x: 100, y: 112}
   m_MaxSize: {x: 8096, y: 16192}
   vertical: 1
-  controlID: 4944
+  controlID: 16
   draggingID: 0
 --- !u!114 &7
 MonoBehaviour:
@@ -224,7 +224,7 @@ MonoBehaviour:
   m_MinSize: {x: 100, y: 112}
   m_MaxSize: {x: 8096, y: 16192}
   vertical: 1
-  controlID: 4966
+  controlID: 48
   draggingID: 0
 --- !u!114 &10
 MonoBehaviour:
@@ -1313,9 +1313,9 @@ MonoBehaviour:
   m_AudioPlay: 0
   m_DebugDrawModesUseInteractiveLightBakingData: 0
   m_Position:
-    m_Target: {x: 1121.3983, y: 540.9381, z: 8.3038}
+    m_Target: {x: 1007.8103, y: 532.7239, z: -0.11032214}
     speed: 2
-    m_Value: {x: 1121.3983, y: 540.9381, z: 8.3038}
+    m_Value: {x: 1007.8103, y: 532.7239, z: -0.11032214}
   m_RenderMode: 0
   m_CameraMode:
     drawMode: 0
@@ -1365,9 +1365,9 @@ MonoBehaviour:
     speed: 2
     m_Value: {x: 0, y: 0, z: 0, w: 1}
   m_Size:
-    m_Target: 271.07242
+    m_Target: 21.032158
     speed: 2
-    m_Value: 271.07242
+    m_Value: 21.032158
   m_Ortho:
     m_Target: 1
     speed: 2
@@ -1446,20 +1446,16 @@ MonoBehaviour:
       m_LastClickedID:
         m_Data: 0
       m_ExpandedIDs:
-      - m_Data: -30694
-      - m_Data: -30428
-      - m_Data: -30140
-      - m_Data: -18698
-      - m_Data: -8154
-      - m_Data: -4470
-      - m_Data: -4466
-      - m_Data: -4458
-      - m_Data: -4302
-      - m_Data: -3270
-      - m_Data: -1348
-      - m_Data: 58902
-      - m_Data: 59976
-      - m_Data: 65012
+      - m_Data: -14426
+      - m_Data: -13556
+      - m_Data: -13554
+      - m_Data: -12248
+      - m_Data: -10364
+      - m_Data: -10362
+      - m_Data: -8466
+      - m_Data: -7880
+      - m_Data: -1368
+      - m_Data: 62140
       m_RenameOverlay:
         m_UserAcceptedRename: 0
         m_Name: 
@@ -1534,7 +1530,7 @@ MonoBehaviour:
     m_SkipHidden: 0
     m_SearchArea: 1
     m_Folders:
-    - Assets/skill/skilldatabase
+    - Assets/01Scenes
     m_Globs: []
     m_ProductIds: 
     m_AnyWithAssetOrigin: 0
@@ -1556,6 +1552,35 @@ MonoBehaviour:
       m_Data: 0
     m_ExpandedIDs:
     - m_Data: 0
+    - m_Data: 58366
+    - m_Data: 58368
+    - m_Data: 58370
+    - m_Data: 58372
+    - m_Data: 58374
+    - m_Data: 58376
+    - m_Data: 58378
+    - m_Data: 58380
+    - m_Data: 58382
+    - m_Data: 58384
+    - m_Data: 58386
+    - m_Data: 58388
+    - m_Data: 58390
+    - m_Data: 58392
+    - m_Data: 58394
+    - m_Data: 58396
+    - m_Data: 58398
+    - m_Data: 58400
+    - m_Data: 58402
+    - m_Data: 58404
+    - m_Data: 58406
+    - m_Data: 58408
+    - m_Data: 58410
+    - m_Data: 58412
+    - m_Data: 58414
+    - m_Data: 58416
+    - m_Data: 58418
+    - m_Data: 58420
+    - m_Data: 58422
     - m_Data: 58424
     - m_Data: 58426
     - m_Data: 58428
@@ -1575,34 +1600,6 @@ MonoBehaviour:
     - m_Data: 58456
     - m_Data: 58458
     - m_Data: 58460
-    - m_Data: 58462
-    - m_Data: 58464
-    - m_Data: 58466
-    - m_Data: 58468
-    - m_Data: 58470
-    - m_Data: 58472
-    - m_Data: 58474
-    - m_Data: 58476
-    - m_Data: 58478
-    - m_Data: 58480
-    - m_Data: 58482
-    - m_Data: 58484
-    - m_Data: 58486
-    - m_Data: 58488
-    - m_Data: 58490
-    - m_Data: 58492
-    - m_Data: 58494
-    - m_Data: 58496
-    - m_Data: 58498
-    - m_Data: 58500
-    - m_Data: 58502
-    - m_Data: 58504
-    - m_Data: 58506
-    - m_Data: 58508
-    - m_Data: 58510
-    - m_Data: 58512
-    - m_Data: 58514
-    - m_Data: 58516
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 
@@ -1629,12 +1626,42 @@ MonoBehaviour:
       m_Icon: {fileID: 0}
       m_ResourceFile: 
   m_AssetTreeState:
-    scrollPos: {x: 0, y: 2788}
-    m_SelectedIDs: []
+    scrollPos: {x: 0, y: 360}
+    m_SelectedIDs:
+    - m_Data: -13556
     m_LastClickedID:
       m_Data: 0
     m_ExpandedIDs:
     - m_Data: 0
+    - m_Data: 58366
+    - m_Data: 58368
+    - m_Data: 58370
+    - m_Data: 58372
+    - m_Data: 58374
+    - m_Data: 58376
+    - m_Data: 58378
+    - m_Data: 58380
+    - m_Data: 58382
+    - m_Data: 58384
+    - m_Data: 58386
+    - m_Data: 58388
+    - m_Data: 58390
+    - m_Data: 58392
+    - m_Data: 58394
+    - m_Data: 58396
+    - m_Data: 58398
+    - m_Data: 58400
+    - m_Data: 58402
+    - m_Data: 58404
+    - m_Data: 58406
+    - m_Data: 58408
+    - m_Data: 58410
+    - m_Data: 58412
+    - m_Data: 58414
+    - m_Data: 58416
+    - m_Data: 58418
+    - m_Data: 58420
+    - m_Data: 58422
     - m_Data: 58424
     - m_Data: 58426
     - m_Data: 58428
@@ -1654,34 +1681,6 @@ MonoBehaviour:
     - m_Data: 58456
     - m_Data: 58458
     - m_Data: 58460
-    - m_Data: 58462
-    - m_Data: 58464
-    - m_Data: 58466
-    - m_Data: 58468
-    - m_Data: 58470
-    - m_Data: 58472
-    - m_Data: 58474
-    - m_Data: 58476
-    - m_Data: 58478
-    - m_Data: 58480
-    - m_Data: 58482
-    - m_Data: 58484
-    - m_Data: 58486
-    - m_Data: 58488
-    - m_Data: 58490
-    - m_Data: 58492
-    - m_Data: 58494
-    - m_Data: 58496
-    - m_Data: 58498
-    - m_Data: 58500
-    - m_Data: 58502
-    - m_Data: 58504
-    - m_Data: 58506
-    - m_Data: 58508
-    - m_Data: 58510
-    - m_Data: 58512
-    - m_Data: 58514
-    - m_Data: 58516
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 
@@ -1708,8 +1707,9 @@ MonoBehaviour:
       m_Icon: {fileID: 0}
       m_ResourceFile: 
   m_ListAreaState:
-    m_SelectedInstanceIDs: []
-    m_LastClickedInstanceID: 0
+    m_SelectedInstanceIDs:
+    - m_Data: -13556
+    m_LastClickedInstanceID: -13556
     m_HadKeyboardFocusLastEvent: 1
     m_ExpandedInstanceIDs: []
     m_RenameOverlay:
@@ -1824,7 +1824,7 @@ MonoBehaviour:
     m_ControlHash: -371814159
     m_PrefName: Preview_InspectorPreview
   m_LastInspectedObjectInstanceID: -1
-  m_LastVerticalScrollValue: 0
+  m_LastVerticalScrollValue: 976
   m_GlobalObjectId: 
   m_InspectorMode: 0
   m_LockTracker:
