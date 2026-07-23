@@ -27,12 +27,12 @@ MonoBehaviour:
     maxFallSpeed: 24
     jumpCutMultiplier: 0.75
     normalJump:
-      jumpPower: 12
+      jumpPower: 16
       jumpBufferTime: 0.15
     doubleJump:
       canDoubleJump: 1
       maxDoubleJumpCount: 1
-      jumpPower: 11
+      jumpPower: 13
     dashDistance: 9
     dashSpeed: 15
     dashDuration: 0.2
@@ -100,7 +100,7 @@ MonoBehaviour:
     loadsBodyStatsToPlayer: 1
   bodyDecay:
     initialDecayValue: 0
-    maxDecayValue: 120
+    maxDecayValue: 300
     decayTickSeconds: 0.5
     decayAmountPerTick: 1
     moveDecayPerSecond: 0

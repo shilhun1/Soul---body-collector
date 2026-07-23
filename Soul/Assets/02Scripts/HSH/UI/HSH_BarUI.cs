@@ -32,6 +32,7 @@ public class HSH_BarUI : MonoBehaviour
 
     [SerializeField] private HWJ_RuntimeStatusSystem statusSystem;
     [SerializeField] private HWJ_SoulSystem soulSystem;
+    [SerializeField] private HWJ_LevelUpSystem levelUpSystem;
     private bool temp = true;
 
     private void Start()
@@ -42,24 +43,46 @@ public class HSH_BarUI : MonoBehaviour
             barSlider = GetComponent<Slider>();
         }
 
-        // 플레이어 태그를 찾아서 자동으로 statusSystem을 연결합니다.
-        if (statusSystem == null)
+        FindPlayerSystems();
+        
+        UpdateColor();
+        UpdateSlider();
+    }
+
+    private void FindPlayerSystems()
+    {
+        if (statusSystem == null || levelUpSystem == null)
         {
             GameObject player = GameObject.FindGameObjectWithTag("Player");
             if (player != null)
             {
-                statusSystem = player.GetComponent<HWJ_RuntimeStatusSystem>();
-                soulSystem = player.GetComponent<HWJ_SoulSystem>();
+                if (statusSystem == null) statusSystem = player.GetComponent<HWJ_RuntimeStatusSystem>();
+                if (soulSystem == null) soulSystem = player.GetComponent<HWJ_SoulSystem>();
+                if (levelUpSystem == null) levelUpSystem = player.GetComponent<HWJ_LevelUpSystem>();
             }
         }
-        
+
         if (soulSystem == null && statusSystem != null)
         {
             soulSystem = statusSystem.GetComponent<HWJ_SoulSystem>();
         }
-        
-        UpdateColor();
-        UpdateSlider();
+
+        if (levelUpSystem == null && statusSystem != null)
+        {
+            levelUpSystem = statusSystem.GetComponent<HWJ_LevelUpSystem>();
+        }
+
+        if (levelUpSystem == null)
+        {
+            if (HWJ_GameManager.Instance != null && HWJ_GameManager.Instance.PlayerLevel != null)
+            {
+                levelUpSystem = HWJ_GameManager.Instance.PlayerLevel;
+            }
+            else
+            {
+                levelUpSystem = Object.FindAnyObjectByType<HWJ_LevelUpSystem>();
+            }
+        }
     }
 
 #if UNITY_EDITOR
@@ -73,23 +96,7 @@ public class HSH_BarUI : MonoBehaviour
 
     private void Update()
     {
-
-        // 플레이어 태그를 찾아서 자동으로 statusSystem을 연결합니다.
-        if (statusSystem == null)
-        {
-            GameObject player = GameObject.FindGameObjectWithTag("Player");
-            if (player != null)
-            {
-                statusSystem = player.GetComponent<HWJ_RuntimeStatusSystem>();
-                soulSystem = player.GetComponent<HWJ_SoulSystem>();
-            }
-        }
-
-        // 인스펙터에서 statusSystem만 수동으로 할당했을 경우, soulSystem이 평생 null이 되는 버그 방지
-        // if (soulSystem == null && statusSystem != null)
-        // {
-        //     soulSystem = statusSystem.GetComponent<HWJ_SoulSystem>();
-        // }
+        FindPlayerSystems();
 
         // 플레이어의 Soul 상태에 맞춰 체력바 타입 자동 변경 (경험치 바는 제외)
         if (soulSystem != null && currentType != BarType.Exp)
@@ -130,12 +137,19 @@ public class HSH_BarUI : MonoBehaviour
     // 값 증가
     public void IncreaseValue(float amount)
     {
-        currentValue += amount;
-        CheckState();
-        if (currentValue > maxValue)
+        if (currentType == BarType.Exp && levelUpSystem != null)
         {
-            currentValue = maxValue;
+            levelUpSystem.AddExperience((int)amount);
         }
+        else
+        {
+            currentValue += amount;
+            if (currentValue > maxValue)
+            {
+                currentValue = maxValue;
+            }
+        }
+        CheckState();
         UpdateSlider();
     }
 
@@ -184,32 +198,47 @@ public class HSH_BarUI : MonoBehaviour
     ///     이를 감지하여 게임오버 UI를 표시합니다.
     ///
     /// - BarType.Exp (경험치):
-    ///   → 외부에서 SetValues / IncreaseValue 등으로 직접 설정하므로 여기서는 갱신하지 않습니다.
+    ///   → HWJ_LevelUpSystem.CurrentExperience 및 TryGetRequiredExperienceForCurrentLevel 에서 경험치 정보와 요구 경험치를 가져옵니다.
+    ///   → 레벨 정보는 HWJ_LevelUpSystem.CurrentLevel 에서 읽어와 levelTextUI 에 적용합니다.
     /// </summary>
     private void CheckState()
     {
         // ===== [1단계] 현재 바 타입에 맞는 실시간 데이터를 가져옵니다 =====
-        if (statusSystem != null)
+        if (statusSystem != null || levelUpSystem != null)
         {
             // [HP 바] 빙의 상태일 때의 체력
-            if (currentType == BarType.HP)
+            if (currentType == BarType.HP && statusSystem != null)
             {
                 currentValue = statusSystem.CurrentHp;
                 maxValue = statusSystem.MaxHp;
             }
             // [GhostHP 바] 영혼 상태일 때의 시간 카운트다운
-            else if (currentType == BarType.GhostHP)
+            else if (currentType == BarType.GhostHP && soulSystem != null)
             {
                 Debug.Log("실행");
-                if (soulSystem != null)
+                Debug.Log("실행2");
+                // 유저님의 요청대로 가장 심플하게 값만 대입합니다. (리플렉션 및 조건문 제거)
+                maxValue = 10f;
+                currentValue = soulSystem.SoulDeadlineTimer;
+            }
+            // [Exp 바] 경험치 (HWJ_LevelUpSystem 연동)
+            else if (currentType == BarType.Exp && levelUpSystem != null)
+            {
+                currentValue = levelUpSystem.CurrentExperience;
+                if (levelUpSystem.TryGetRequiredExperienceForCurrentLevel(out int requiredExp) && requiredExp > 0)
                 {
-                    Debug.Log("실행2");
-                    // 유저님의 요청대로 가장 심플하게 값만 대입합니다. (리플렉션 및 조건문 제거)
-                    maxValue = 10f;
-                    currentValue = soulSystem.SoulDeadlineTimer;
+                    maxValue = requiredExp;
+                }
+                else
+                {
+                    maxValue = Mathf.Max(1f, currentValue);
+                }
+
+                if (levelTextUI != null)
+                {
+                    levelTextUI.SetLevel(levelUpSystem.CurrentLevel);
                 }
             }
-            // [Exp 바] 경험치
         }
         
         // ===== [2단계] 게임오버 조건을 확인합니다 =====
@@ -268,24 +297,6 @@ public class HSH_BarUI : MonoBehaviour
         {
             // 게임오버가 아닌 상태에서는 플래그를 초기화
             hasTriggeredGameOver = false;
-
-            // [경험치 레벨업 처리] 경험치가 최대값 이상이면 레벨업을 수행합니다.
-            if (currentType == BarType.Exp && currentValue >= maxValue && maxValue > 0)
-            {
-                // 레벨 텍스트 UI에 레벨업을 알립니다.
-                if (levelTextUI != null)
-                {
-                    levelTextUI.LevelUp();
-                }
-
-                // 남은 초과 경험치를 다음 레벨로 이월합니다.
-                currentValue -= maxValue;
-                if (currentValue < 0) currentValue = 0;
-
-                // TODO: 레벨업 시 다음 레벨의 요구 경험치(maxValue)를 증가시킬 수 있습니다.
-
-                Debug.Log("경험치가 가득 차서 레벨업을 진행합니다!");
-            }
         }
 
         // 최종 보정: 값이 음수가 되지 않도록 0으로 클램핑합니다.

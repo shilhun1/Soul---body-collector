@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class HWJ_Stage1BossPatternSystem : MonoBehaviour, HWJ_IBossSpecialPatternExecutor
+
 {
     [Header("References")]
     [SerializeField] private HWJ_BossBrainSystem bossBrain;

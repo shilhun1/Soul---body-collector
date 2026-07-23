@@ -63,6 +63,13 @@ MonoBehaviour:
   reward:
     experienceReward: 10
     skillPointReward: 0
+    dropsExperienceOrb: 0
+    experienceOrbPrefab: {fileID: 0}
+    experienceOrbSpawnRadius: 0
     dropsStatOrb: 1
+    statOrbDropChance: 1
+    statOrbSpawnRadius: 0.75
     statOrbId: stat_attack_speed_small
+    statOrbCandidates: []
+    useAllRegisteredStatOrbsWhenEmpty: 0
   selectedTypeData: {fileID: 11400000, guid: aa000000000000000000000000000005, type: 2}

@@ -23,5 +23,11 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/01Scenes/2-1.unity
     guid: 3e9100ed15a958244b8c65f1f28212be
+  - enabled: 1
+    path: Assets/01Scenes/HSH_1-1TESt.unity
+    guid: 9d740549fe9e5254d872476a8a15cc85
+  - enabled: 1
+    path: Assets/01Scenes/HSH_1-3.unity
+    guid: 6a555b3e48a59a942a0d5cf532a27f55
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0

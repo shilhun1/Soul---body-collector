@@ -40,16 +40,17 @@
 ## 4. UI 시스템 (UI)
 게임 화면 내 다양한 정보와 피드백을 표시하는 스크립트들입니다.
 
-*   **HSH_BarUI**
-    *   체력바(HP), 영혼 카운트다운(GhostHP), 경험치(Exp) 상태를 표시하는 다목적 바(Bar) UI입니다. 영혼 타이머 소진 시 `HSH_GameOverUI`를 호출하여 게임 오버 창을 띄우거나, 경험치가 모두 차면 레벨업을 처리합니다.
+*   **HSH_BarUI** *(업데이트: 2026-07-23)*
+    *   체력바(HP), 영혼 카운트다운(GhostHP), 경험치(Exp) 상태를 표시하는 다목적 바(Bar) UI입니다.
+    *   경험치(Exp) 바는 `HWJ_LevelUpSystem`의 레벨, 현재 경험치(`CurrentExperience`), 요구 경험치(`TryGetRequiredExperienceForCurrentLevel`)를 연동 받아 실시간 갱신합니다.
 *   **HSH_CameraViewer**
     *   RenderTexture를 사용해 서브 카메라가 보고 있는 화면을 우측 상단 등에 Picture-in-Picture (PiP) 형태로 실시간으로 띄워줍니다.
 *   **HSH_EnemyHPUI**
     *   적 머리 위(또는 발밑)에 띄우는 체력바 UI입니다. 빙의 상태이거나 체력이 가득 차 있으면 UI를 자동으로 숨기는 기능이 있습니다.
 *   **HSH_GameOverUI**
     *   게임 오버 시 활성화되며 재시작, 특정 씬 이동, 게임 종료 등의 기능을 제공하는 팝업 패널을 관리합니다.
-*   **HSH_LEVELTEXTUI**
-    *   플레이어의 레벨 정보를 TextMeshPro 혹은 일반 Legacy Text 컴포넌트에 갱신하여 띄워줍니다.
+*   **HSH_LEVELTEXTUI** *(업데이트: 2026-07-23)*
+    *   플레이어의 레벨 정보를 TextMeshPro 혹은 일반 Legacy Text 컴포넌트에 갱신하여 띄워줍니다. `SetLevel(int level)` 함수를 통해 `HWJ_LevelUpSystem`의 실시간 레벨을 반영합니다.
 *   **HSH_NPCDialogue** *(업데이트: 2026-07-22)*
     *   NPC와 상호작용 시 타이핑 연출(글자가 한 글자씩 나옴)이 들어간 말풍선을 띄워줍니다.
     *   `Dialogue List` 배열 순서(0, 1, 2, 3...)대로 대사가 진행되며 각 대사의 화자(`DialogueSpeaker`: NPC 또는 Player)를 자유롭게 설정 가능합니다.

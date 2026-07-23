@@ -13,3 +13,4 @@ public interface HWJ_IBossSpecialPatternExecutor
     bool TryExecutePattern(HWJ_BossPatternDataSO pattern, Transform target);
     void CancelActivePattern();
 }
+
