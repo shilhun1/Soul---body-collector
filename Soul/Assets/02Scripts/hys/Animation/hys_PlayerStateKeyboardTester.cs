@@ -8,6 +8,8 @@ public class hys_PlayerStateKeyboardTester : MonoBehaviour
     [Header("References")]
     // 비워두면 같은 오브젝트에서 hys_Player_State를 자동으로 찾습니다.
     [SerializeField] private hys_Player_State playerState;
+    // 숫자 7 테스트에서 실제 영혼 상태 전환까지 호출합니다.
+    [SerializeField] private HWJ_SoulSystem soulSystem;
 
     [Header("Options")]
     // 테스트가 끝나면 체크를 꺼서 실수로 상태가 바뀌지 않게 할 수 있습니다.
@@ -15,6 +17,11 @@ public class hys_PlayerStateKeyboardTester : MonoBehaviour
     // Dead를 제외한 테스트 상태는 지정 시간 뒤 Idle로 되돌립니다.
     [SerializeField] private bool autoReturnToIdle = true;
     [SerializeField] private float autoReturnSeconds = 0.5f;
+
+    [Header("Death To Soul Test")]
+    // 죽음 모션이 보인 뒤 유령 상태로 넘어가게 하는 테스트 옵션입니다.
+    [SerializeField] private bool enterSoulAfterDeathTest = true;
+    [SerializeField] private bool refillSoulHpAfterDeathTest = true;
 
     private float returnToIdleTime;
     private bool waitingReturnToIdle;
@@ -25,6 +32,12 @@ public class hys_PlayerStateKeyboardTester : MonoBehaviour
         {
             playerState = GetComponent<hys_Player_State>();
         }
+
+        if (soulSystem == null)
+        {
+            soulSystem = GetComponent<HWJ_SoulSystem>();
+        }
+
     }
 
     private void Update()
@@ -82,7 +95,7 @@ public class hys_PlayerStateKeyboardTester : MonoBehaviour
         if (nextState == hys_PlayerState.Dead)
         {
             waitingReturnToIdle = false;
-            playerState.SetDead();
+            StartDeathToSoulTest();
             return;
         }
 
@@ -96,6 +109,19 @@ public class hys_PlayerStateKeyboardTester : MonoBehaviour
         }
 
         StartAutoReturnTimer(nextState);
+    }
+
+    private void StartDeathToSoulTest()
+    {
+        playerState.SetDead();
+
+        if (!enterSoulAfterDeathTest || soulSystem == null)
+        {
+            return;
+        }
+
+        // BodyToSoul 전환 시간 자체를 Die 재생 구간으로 사용해 두 번 기다리지 않습니다.
+        soulSystem.EnterSoulState(refillSoulHpAfterDeathTest);
     }
 
     private void StartAutoReturnTimer(hys_PlayerState state)

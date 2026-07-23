@@ -365,7 +365,7 @@ public class hys_BowMonsterAttack : MonoBehaviour
     private IEnumerator FallingArrowRoutine(Vector3 strikePosition, float radius, float damageMultiplier)
     {
         // 실제 피격 전에 범위 예고를 먼저 보여준다.
-        HWJ_SkillWarningIndicator.ShowCircle(
+        hys_SkillWarningIndicator.ShowCircle(
             strikePosition,
             radius,
             arrowWarningSeconds,
@@ -468,7 +468,7 @@ public class hys_BowMonsterAttack : MonoBehaviour
 
     private void ShowStraightArrowWarning(float warningSeconds, float widthMultiplier)
     {
-        HWJ_SkillWarningIndicator.ShowArrowPath(
+        hys_SkillWarningIndicator.ShowArrowPath(
             transform.position,
             GetTargetDirection(),
             Mathf.Max(0.1f, attackRange),

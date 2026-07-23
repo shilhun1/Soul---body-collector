@@ -65,7 +65,9 @@ public class hys_Player_Movement : MonoBehaviour
 
     [Header("Soul State")]
     [SerializeField] private HWJ_SoulSystem soulSystem;
+    [SerializeField] private hys_Player_Animator playerAnimator;
     [SerializeField] private bool disableBodyMovementInSoulState = true;
+    [SerializeField] private bool lockMovementDuringPossessionAnimation = true;
 
     [Header("Pass Platform")]
     // 아래+점프로 통과 가능한 발판 처리 값입니다.
@@ -76,6 +78,7 @@ public class hys_Player_Movement : MonoBehaviour
 
     private Rigidbody2D rb;
     private hys_Player_State playerState;
+    private hys_Player_Attack playerAttack;
     private Collider2D[] playerColliders;
     private float moveInput;
     private float lastMoveDirection = 1f;
@@ -146,7 +149,9 @@ public class hys_Player_Movement : MonoBehaviour
         // 필요한 컴포넌트와 기본 중력 값을 캐싱합니다.
         rb = GetComponent<Rigidbody2D>();
         playerState = GetComponent<hys_Player_State>();
+        playerAttack = GetComponent<hys_Player_Attack>();
         soulSystem = soulSystem != null ? soulSystem : GetComponent<HWJ_SoulSystem>();
+        playerAnimator = playerAnimator != null ? playerAnimator : GetComponent<hys_Player_Animator>();
         playerColliders = GetComponents<Collider2D>();
         defaultGravityScale = rb.gravityScale;
         wasGrounded = IsGrounded();
@@ -159,10 +164,10 @@ public class hys_Player_Movement : MonoBehaviour
 
     private void Update()
     {
-        if (ShouldSkipBodyMovementForSoulState())
+        if (ShouldSkipBodyMovement())
         {
             CancelBodyMovementStateForSoulState();
-            ApplySoulGravityOverride();
+            ApplyLockedMovementPhysics();
             return;
         }
 
@@ -178,10 +183,10 @@ public class hys_Player_Movement : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (ShouldSkipBodyMovementForSoulState())
+        if (ShouldSkipBodyMovement())
         {
             CancelBodyMovementStateForSoulState();
-            ApplySoulGravityOverride();
+            ApplyLockedMovementPhysics();
             return;
         }
 
@@ -204,6 +209,13 @@ public class hys_Player_Movement : MonoBehaviour
                 rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0f);
             }
 
+            return;
+        }
+
+        if (playerAttack != null && playerAttack.ShouldLockGroundMovementForBowAttack)
+        {
+            // Bow 지상 공격 중에는 중력과 접지는 유지하고 좌우 입력만 잠급니다.
+            rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
             return;
         }
 
@@ -241,20 +253,42 @@ public class hys_Player_Movement : MonoBehaviour
         }
     }
 
-    private bool ShouldSkipBodyMovementForSoulState()
+    private bool ShouldSkipBodyMovement()
     {
-        return disableBodyMovementInSoulState &&
+        bool isSoulMovementState = disableBodyMovementInSoulState &&
             soulSystem != null &&
             (soulSystem.CurrentState == HWJ_SoulRuntimeState.BodyToSoul ||
              soulSystem.CurrentState == HWJ_SoulRuntimeState.Soul);
+
+        // 빙의 연출 중에는 새 육체의 이동·점프·대시 입력을 받지 않습니다.
+        bool isPossessionAnimationLocked = lockMovementDuringPossessionAnimation &&
+            playerAnimator != null &&
+            playerAnimator.IsPossessionTransitionPlaying;
+
+        return isSoulMovementState || isPossessionAnimationLocked;
     }
 
-    private void ApplySoulGravityOverride()
+    private void ApplyLockedMovementPhysics()
     {
-        if (rb != null)
+        if (rb == null)
+        {
+            return;
+        }
+
+        bool isSoulMovementState = disableBodyMovementInSoulState &&
+            soulSystem != null &&
+            (soulSystem.CurrentState == HWJ_SoulRuntimeState.BodyToSoul ||
+             soulSystem.CurrentState == HWJ_SoulRuntimeState.Soul);
+
+        if (isSoulMovementState)
         {
             rb.gravityScale = 0f;
+            return;
         }
+
+        // 빙의 모션 중에는 수평 이동만 멈추고 중력은 유지해 바닥 접촉이 풀리지 않게 합니다.
+        rb.gravityScale = defaultGravityScale;
+        rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
     }
 
     private void ClearBodyMovementInput()
@@ -865,9 +899,11 @@ public class hys_Player_Movement : MonoBehaviour
     private bool IsPassPlatform(Collider2D target)
     {
         // Pass 태그 또는 PlatformEffector2D를 가진 One Way Platform을 통과 대상으로 봅니다.
+        // CompareTag는 프로젝트에 태그가 아직 반영되지 않았을 때 예외를 내므로 실제 태그 문자열을 안전하게 비교합니다.
         return target != null &&
             !IsPlayerCollider(target) &&
-            (target.CompareTag(passPlatformTag) || target.GetComponent<PlatformEffector2D>() != null);
+            (string.Equals(target.gameObject.tag, passPlatformTag, System.StringComparison.Ordinal) ||
+             target.GetComponent<PlatformEffector2D>() != null);
     }
 
     private void OnDisable()

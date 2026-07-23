@@ -307,7 +307,7 @@ public class hys_Stage1MidBossPattern : MonoBehaviour
         float length = Mathf.Max(1f, currentRoomSize.x - cloneEdgePadding * 2f);
         Vector3 start = new Vector3(direction > 0f ? leftX : rightX, arrowY, transform.position.z);
 
-        HWJ_SkillWarningIndicator.ShowArrowPath(
+        hys_SkillWarningIndicator.ShowArrowPath(
             start,
             direction,
             length,
@@ -641,7 +641,7 @@ public class hys_Stage1MidBossPattern : MonoBehaviour
 
     private void ShowCircleWarning(Vector3 center, float radius, float durationSeconds)
     {
-        HWJ_SkillWarningIndicator.ShowCircle(
+        hys_SkillWarningIndicator.ShowCircle(
             center,
             radius,
             durationSeconds,
@@ -653,7 +653,7 @@ public class hys_Stage1MidBossPattern : MonoBehaviour
     {
         Vector3 center = new Vector3(rect.center.x, rect.center.y, transform.position.z);
         Vector2 size = new Vector2(rect.width, rect.height);
-        HWJ_SkillWarningIndicator.ShowRectangle(center, size, durationSeconds, color, lineWidth);
+        hys_SkillWarningIndicator.ShowRectangle(center, size, durationSeconds, color, lineWidth);
     }
 
     private void OnDisable()

@@ -406,7 +406,7 @@ public class hys_ShieldMonsterAttack : MonoBehaviour
 
     private void ShowCircleWarning(Vector3 position, float radius, float warningSeconds)
     {
-        HWJ_SkillWarningIndicator.ShowCircle(
+        hys_SkillWarningIndicator.ShowCircle(
             position,
             radius,
             Mathf.Max(0.01f, warningSeconds),
