@@ -11,6 +11,8 @@ public enum HWJ_PossessionFailureCode
     TargetAlreadyPossessed,
     TargetDestroyed,
     PossessionBlocked,
+    InsufficientSpiritMental,
+    PossessionResisted,
     TransitionInProgress
 }
 

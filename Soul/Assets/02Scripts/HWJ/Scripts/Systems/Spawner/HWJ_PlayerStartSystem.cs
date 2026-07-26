@@ -2,11 +2,26 @@ using UnityEngine;
 
 public class HWJ_PlayerStartSystem : MonoBehaviour
 {
+    [Header("플레이어 참조")]
     [SerializeField] private HWJ_RootObjectDataResolver playerResolver;
     [SerializeField] private HWJ_SpawnPoint playerStartPoint;
+
+    [Space(8f)]
+    [Header("시작 위치")]
     [SerializeField] private string playerStartPointId;
+    [SerializeField] private bool useSceneTransitionTargetSpawnPoint = true;
+
+    [Space(8f)]
+    [Header("자동 실행")]
     [SerializeField] private bool placeOnStart = true;
     [SerializeField] private bool registerToGameManager = true;
+
+    [Space(8f)]
+    [Header("런타임 결과")]
+    [SerializeField] private string lastPlacementResult;
+
+    public string PlayerStartPointId => playerStartPointId;
+    public string LastPlacementResult => lastPlacementResult;
 
     private void Start()
     {
@@ -23,6 +38,7 @@ public class HWJ_PlayerStartSystem : MonoBehaviour
 
         if (playerResolver == null || playerStartPoint == null)
         {
+            lastPlacementResult = "플레이어 시작 위치 적용 실패: 플레이어 또는 시작 스폰 포인트가 없습니다.";
             return;
         }
 
@@ -38,6 +54,13 @@ public class HWJ_PlayerStartSystem : MonoBehaviour
         if (registerToGameManager && HWJ_GameAccess.HasManager)
         {
             HWJ_GameAccess.Manager.RegisterPlayer(playerResolver);
+        }
+
+        lastPlacementResult = $"플레이어 시작 위치 적용 완료: {playerStartPoint.PointId}";
+
+        if (useSceneTransitionTargetSpawnPoint && HWJ_SceneTransitionTransfer.HasPendingArrival)
+        {
+            HWJ_SceneTransitionTransfer.ClearPendingArrival();
         }
     }
 
@@ -80,6 +103,7 @@ public class HWJ_PlayerStartSystem : MonoBehaviour
             FindObjectsSortMode.None);
 
         HWJ_SpawnPoint fallbackPoint = null;
+        string requestedPointId = ResolveRequestedStartPointId();
 
         for (int i = 0; i < points.Length; i++)
         {
@@ -93,7 +117,7 @@ public class HWJ_PlayerStartSystem : MonoBehaviour
                 fallbackPoint = points[i];
             }
 
-            if (!string.IsNullOrWhiteSpace(playerStartPointId) && points[i].PointId == playerStartPointId)
+            if (!string.IsNullOrWhiteSpace(requestedPointId) && points[i].PointId == requestedPointId)
             {
                 playerStartPoint = points[i];
                 return;
@@ -101,5 +125,16 @@ public class HWJ_PlayerStartSystem : MonoBehaviour
         }
 
         playerStartPoint = fallbackPoint;
+    }
+
+    private string ResolveRequestedStartPointId()
+    {
+        if (useSceneTransitionTargetSpawnPoint
+            && HWJ_SceneTransitionTransfer.TryPeekTargetSpawnPointId(out string transitionSpawnPointId))
+        {
+            return transitionSpawnPointId;
+        }
+
+        return playerStartPointId;
     }
 }

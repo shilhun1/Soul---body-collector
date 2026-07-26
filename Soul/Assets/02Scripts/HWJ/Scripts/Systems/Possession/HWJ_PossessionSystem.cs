@@ -6,7 +6,7 @@ using UnityEngine;
 /// </summary>
 public class HWJ_PossessionSystem : MonoBehaviour
 {
-    [Header("Core References")]
+    [Header("핵심 참조")]
     [SerializeField] private HWJ_RootObjectDataResolver ownerDataResolver;
     [SerializeField] private HWJ_SoulSystem soulSystem;
     [SerializeField] private HWJ_RuntimeStatusSystem runtimeStatus;
@@ -17,7 +17,7 @@ public class HWJ_PossessionSystem : MonoBehaviour
     [SerializeField] private HWJ_RootObjectDataResolver runtimePossessedBodyResolver;
 
     [Space(8f)]
-    [Header("Possession Runtime")]
+    [Header("빙의 런타임")]
     [SerializeField] private bool moveOwnerToPossessedBody = true;
     [SerializeField] private bool copyPossessedBodyVisual = true;
     [SerializeField] private bool consumePossessedCorpse = true;
@@ -25,7 +25,7 @@ public class HWJ_PossessionSystem : MonoBehaviour
     [SerializeField] private bool allowManualSoulExit = true;
 
     [Space(8f)]
-    [Header("Rules")]
+    [Header("빙의 규칙")]
     [SerializeField] private bool useGameplayPossessionRule = true;
     [SerializeField] private HWJ_RuleExecutionCoreSO possessionExecutionCore;
     [SerializeField] private string possessionExecutionCoreId = "possession_execution";
@@ -33,9 +33,11 @@ public class HWJ_PossessionSystem : MonoBehaviour
     [SerializeField] private string possessionRuleId = "possession_can_start";
 
     [Space(8f)]
-    [Header("Debug")]
+    [Header("디버그")]
     [SerializeField] private HWJ_PossessionFailureCode lastPossessionFailureCode;
     [SerializeField] private string lastPossessionResult;
+    [SerializeField] private float lastLivePossessionRoll;
+    [SerializeField] private float lastLivePossessionSuccessChance;
 
     private HWJ_PossessionData activePossessionBodyData;
     private SpriteRenderer ownerSpriteRenderer;
@@ -60,6 +62,8 @@ public class HWJ_PossessionSystem : MonoBehaviour
         : HWJ_WeaponType.None;
     public HWJ_PossessionFailureCode LastPossessionFailureCode => lastPossessionFailureCode;
     public string LastPossessionResult => lastPossessionResult;
+    public float LastLivePossessionRoll => lastLivePossessionRoll;
+    public float LastLivePossessionSuccessChance => lastLivePossessionSuccessChance;
 
     public bool TryGetActivePossessedBodyDecayData(out HWJ_BodyDecayData bodyDecay)
     {
@@ -209,19 +213,19 @@ public class HWJ_PossessionSystem : MonoBehaviour
                 targetDataResolver));
         }
 
-        if (IsEnemyOrBoss(targetDataResolver) && !IsDefeatedTarget(targetDataResolver))
-        {
-            return StorePossessionResult(HWJ_PossessionResult.Fail(
-                HWJ_PossessionFailureCode.TargetUnavailable,
-                "Possession failed: target monster is still alive.",
-                targetDataResolver));
-        }
-
         if (!IsDefeatedIfRequired(targetDataResolver, possessionBody))
         {
             return StorePossessionResult(HWJ_PossessionResult.Fail(
                 HWJ_PossessionFailureCode.TargetUnavailable,
                 "Possession failed: target is not defeated.",
+                targetDataResolver));
+        }
+
+        if (!CanSpendSpiritMentalForPossession(possessionBody, out string spiritMentalMessage))
+        {
+            return StorePossessionResult(HWJ_PossessionResult.Fail(
+                HWJ_PossessionFailureCode.InsufficientSpiritMental,
+                spiritMentalMessage,
                 targetDataResolver));
         }
 
@@ -305,15 +309,24 @@ public class HWJ_PossessionSystem : MonoBehaviour
             return false;
         }
 
-        if (IsEnemyOrBoss(targetDataResolver) && !IsDefeatedTarget(targetDataResolver))
+        TryGetPossessionBodyData(targetDataResolver, out activePossessionBodyData);
+
+        if (!TryResolveLivePossessionChallenge(targetDataResolver, activePossessionBodyData))
         {
-            lastPossessionResult = "Possession failed: target monster is still alive.";
+            activePossessionBodyData = null;
             return false;
         }
 
-        TryGetPossessionBodyData(targetDataResolver, out activePossessionBodyData);
+        if (!TrySpendSpiritMentalForPossession(activePossessionBodyData))
+        {
+            activePossessionBodyData = null;
+            return false;
+        }
+
         possessedBodyResolver = targetDataResolver;
-        MarkPossessionBodyConsumed(targetDataResolver);
+        MarkPossessionBodyConsumed(
+            targetDataResolver,
+            ShouldRestoreOriginalBodyOnPossessionExit(targetDataResolver, activePossessionBodyData));
         CreateRuntimeBodyState(targetDataResolver, true, true);
 
         if (activePossessionBodyData == null || activePossessionBodyData.transfersControlToBody)
@@ -432,6 +445,7 @@ public class HWJ_PossessionSystem : MonoBehaviour
     {
         HWJ_RootObjectDataResolver previousBodyResolver = possessedBodyResolver;
         bool hadActiveBody = HasActivePossessedBody;
+        bool restoredOriginalBody = RestoreOriginalBodyAfterPossessionIfNeeded(previousBodyResolver);
         possessedBodyResolver = null;
         activePossessionBodyData = null;
         possessedBodySystem?.ClearCurrentBodyState(false);
@@ -449,8 +463,11 @@ public class HWJ_PossessionSystem : MonoBehaviour
 
         if (hadActiveBody)
         {
+            string possessionEndMessage = restoredOriginalBody
+                ? "Possession body cleared. Original live body restored."
+                : "Possession body cleared.";
             HWJ_GameplayEvents.RaisePossessionChanged(
-                new HWJ_PossessionEvent(this, previousBodyResolver, false, "Possession body cleared."));
+                new HWJ_PossessionEvent(this, previousBodyResolver, false, possessionEndMessage));
         }
     }
 
@@ -536,6 +553,11 @@ public class HWJ_PossessionSystem : MonoBehaviour
             return HWJ_PossessionFailureCode.PossessionBlocked;
         }
 
+        if (ruleMessage.Contains("source_can_pay_possession_spirit_mental_cost"))
+        {
+            return HWJ_PossessionFailureCode.InsufficientSpiritMental;
+        }
+
         if (ruleMessage.Contains("target_can_be_possessed")
             || ruleMessage.Contains("target_defeated")
             || ruleMessage.Contains("target_object"))
@@ -544,6 +566,151 @@ public class HWJ_PossessionSystem : MonoBehaviour
         }
 
         return HWJ_PossessionFailureCode.PossessionBlocked;
+    }
+
+    private bool CanSpendSpiritMentalForPossession(HWJ_PossessionData possessionBody, out string message)
+    {
+        float mentalCost = ResolveSpiritMentalCostOnPossession(possessionBody);
+
+        if (mentalCost <= 0f)
+        {
+            message = "Possession mental cost is free.";
+            return true;
+        }
+
+        if (runtimeStatus == null)
+        {
+            message = "Possession failed: missing runtime status for spirit mental cost.";
+            return false;
+        }
+
+        if (runtimeStatus.CurrentSpiritMentalValue - mentalCost <= 0f)
+        {
+            message = $"Possession failed: not enough spirit mental. Need {mentalCost:0.###}, current {runtimeStatus.CurrentSpiritMentalValue:0.###}.";
+            return false;
+        }
+
+        message = $"Possession mental cost is available. Cost {mentalCost:0.###}.";
+        return true;
+    }
+
+    private bool TrySpendSpiritMentalForPossession(HWJ_PossessionData possessionBody)
+    {
+        if (!CanSpendSpiritMentalForPossession(possessionBody, out string message))
+        {
+            lastPossessionFailureCode = HWJ_PossessionFailureCode.InsufficientSpiritMental;
+            lastPossessionResult = message;
+            return false;
+        }
+
+        float mentalCost = ResolveSpiritMentalCostOnPossession(possessionBody);
+
+        if (mentalCost <= 0f)
+        {
+            return true;
+        }
+
+        bool spent = runtimeStatus != null
+            && runtimeStatus.TryApplySpiritMentalCost(mentalCost, "possession_success");
+
+        if (!spent)
+        {
+            lastPossessionFailureCode = HWJ_PossessionFailureCode.InsufficientSpiritMental;
+            lastPossessionResult = "Possession failed: spirit mental cost could not be spent.";
+        }
+
+        return spent;
+    }
+
+    private static float ResolveSpiritMentalCostOnPossession(HWJ_PossessionData possessionBody)
+    {
+        return possessionBody != null
+            ? Mathf.Max(0f, possessionBody.spiritMentalCostOnPossession)
+            : 0f;
+    }
+
+    private bool TryResolveLivePossessionChallenge(
+        HWJ_RootObjectDataResolver targetDataResolver,
+        HWJ_PossessionData possessionBody)
+    {
+        if (!ShouldRunLivePossessionChallenge(targetDataResolver, possessionBody))
+        {
+            lastLivePossessionRoll = 0f;
+            lastLivePossessionSuccessChance = 1f;
+            return true;
+        }
+
+        float successChance = Mathf.Clamp01(possessionBody.livePossessionSuccessChance);
+        float roll = Random.value;
+        lastLivePossessionRoll = roll;
+        lastLivePossessionSuccessChance = successChance;
+
+        if (roll <= successChance)
+        {
+            lastPossessionResult = $"Live possession challenge succeeded. Roll {roll:0.###}, chance {successChance:0.###}.";
+            return true;
+        }
+
+        ApplyLivePossessionFailurePenalty(targetDataResolver, possessionBody);
+        lastPossessionFailureCode = HWJ_PossessionFailureCode.PossessionResisted;
+        lastPossessionResult = string.IsNullOrWhiteSpace(possessionBody.livePossessionFailureMessage)
+            ? $"Live possession resisted. Roll {roll:0.###}, chance {successChance:0.###}."
+            : possessionBody.livePossessionFailureMessage;
+        return false;
+    }
+
+    private bool ShouldRunLivePossessionChallenge(
+        HWJ_RootObjectDataResolver targetDataResolver,
+        HWJ_PossessionData possessionBody)
+    {
+        return targetDataResolver != null
+            && possessionBody != null
+            && !possessionBody.requiresDefeatedState
+            && IsEnemyOrBoss(targetDataResolver)
+            && !IsDefeatedTarget(targetDataResolver);
+    }
+
+    private void ApplyLivePossessionFailurePenalty(
+        HWJ_RootObjectDataResolver targetDataResolver,
+        HWJ_PossessionData possessionBody)
+    {
+        if (runtimeStatus != null)
+        {
+            runtimeStatus.TryApplySpiritMentalCost(
+                Mathf.Max(0f, possessionBody.livePossessionFailureSpiritMentalCost),
+                "live_possession_failed");
+            runtimeStatus.LockControl(possessionBody.livePossessionFailureControlLockSeconds);
+        }
+
+        float knockbackPower = Mathf.Max(0f, possessionBody.livePossessionFailureKnockbackPower);
+
+        if (knockbackPower <= 0f)
+        {
+            return;
+        }
+
+        HWJ_KnockbackSystem knockbackSystem = GetComponent<HWJ_KnockbackSystem>();
+
+        if (knockbackSystem == null)
+        {
+            knockbackSystem = gameObject.AddComponent<HWJ_KnockbackSystem>();
+        }
+
+        Vector3 rawDirection = targetDataResolver != null
+            ? transform.position - targetDataResolver.transform.position
+            : Vector3.right;
+        Vector2 direction = rawDirection;
+        direction.y = 0f;
+
+        if (direction.sqrMagnitude <= 0.0001f)
+        {
+            direction = Vector2.right;
+        }
+
+        knockbackSystem.PlayKnockback(
+            direction,
+            knockbackPower,
+            Mathf.Max(0f, possessionBody.livePossessionFailureKnockbackSeconds));
     }
 
     public bool TryGetPossessedRootObjectId(out string rootObjectId)
@@ -908,7 +1075,9 @@ public class HWJ_PossessionSystem : MonoBehaviour
         return bodyState != null && bodyState.IsConsumed;
     }
 
-    private void MarkPossessionBodyConsumed(HWJ_RootObjectDataResolver targetDataResolver)
+    private void MarkPossessionBodyConsumed(
+        HWJ_RootObjectDataResolver targetDataResolver,
+        bool restoreOriginalBodyOnExit)
     {
         if (targetDataResolver == null)
         {
@@ -922,7 +1091,39 @@ public class HWJ_PossessionSystem : MonoBehaviour
             bodyState = targetDataResolver.gameObject.AddComponent<HWJ_PossessionBodyState>();
         }
 
+        bool wasAliveWhenPossessed = IsEnemyOrBoss(targetDataResolver)
+            && !IsDefeatedTarget(targetDataResolver);
+        bodyState.CaptureBeforePossession(wasAliveWhenPossessed, restoreOriginalBodyOnExit);
         bodyState.MarkConsumed();
+    }
+
+    private bool ShouldRestoreOriginalBodyOnPossessionExit(
+        HWJ_RootObjectDataResolver targetDataResolver,
+        HWJ_PossessionData possessionBody)
+    {
+        return targetDataResolver != null
+            && possessionBody != null
+            && !possessionBody.requiresDefeatedState
+            && IsEnemyOrBoss(targetDataResolver)
+            && !IsDefeatedTarget(targetDataResolver);
+    }
+
+    private bool RestoreOriginalBodyAfterPossessionIfNeeded(HWJ_RootObjectDataResolver previousBodyResolver)
+    {
+        if (previousBodyResolver == null)
+        {
+            return false;
+        }
+
+        HWJ_PossessionBodyState bodyState = previousBodyResolver.GetComponent<HWJ_PossessionBodyState>();
+
+        if (bodyState == null || !bodyState.ShouldRestoreObjectOnPossessionExit)
+        {
+            return false;
+        }
+
+        bodyState.RestoreCapturedObjectState(transform);
+        return true;
     }
 
     private bool CanExitPossessedBodyToSoul()

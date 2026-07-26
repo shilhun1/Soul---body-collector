@@ -24,6 +24,33 @@ public class HWJ_PossessionData
     [InspectorName("빙의 거리")]
     [Tooltip("이 거리 안에서만 빙의를 시도할 수 있습니다.")]
     public float possessionRange;
+
+    [Header("영혼 정신력 비용")]
+    [InspectorName("빙의 성공 정신력 비용")]
+    [Tooltip("이 몸에 빙의가 성공했을 때 영혼 정신력에서 차감할 값입니다. 0이면 비용 없이 빙의합니다.")]
+    public float spiritMentalCostOnPossession;
+
+    [Header("살아있는 대상 빙의 저항")]
+    [InspectorName("살아있는 대상 빙의 성공 확률")]
+    [Tooltip("처치된 상태 필요를 끈 살아있는 대상에게 빙의할 때 성공할 확률입니다. 1은 항상 성공, 0은 항상 실패입니다.")]
+    [Range(0f, 1f)]
+    public float livePossessionSuccessChance = 1f;
+    [InspectorName("실패 시 정신력 비용")]
+    [Tooltip("살아있는 대상 빙의에 실패했을 때 영혼 정신력에서 추가로 차감할 값입니다.")]
+    public float livePossessionFailureSpiritMentalCost = 10f;
+    [InspectorName("실패 시 조작 잠금 시간")]
+    [Tooltip("살아있는 대상 빙의에 실패했을 때 플레이어 조작을 잠글 시간입니다.")]
+    public float livePossessionFailureControlLockSeconds = 0.5f;
+    [InspectorName("실패 시 넉백 힘")]
+    [Tooltip("살아있는 대상 빙의에 실패했을 때 플레이어를 대상 반대 방향으로 밀어내는 힘입니다.")]
+    public float livePossessionFailureKnockbackPower = 3f;
+    [InspectorName("실패 시 넉백 시간")]
+    [Tooltip("살아있는 대상 빙의 실패 넉백이 유지되는 시간입니다.")]
+    public float livePossessionFailureKnockbackSeconds = 0.2f;
+    [InspectorName("실패 메시지")]
+    [Tooltip("살아있는 대상 빙의 저항 판정에 실패했을 때 로그/UI에서 사용할 문장입니다.")]
+    public string livePossessionFailureMessage = "대상의 정신력에 밀려 빙의에 실패했다.";
+
     [InspectorName("처치된 상태 필요")]
     [Tooltip("켜면 살아있는 대상에게는 빙의할 수 없습니다.")]
     public bool requiresDefeatedState = true;

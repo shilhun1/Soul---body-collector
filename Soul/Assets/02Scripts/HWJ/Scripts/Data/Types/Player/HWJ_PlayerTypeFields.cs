@@ -266,6 +266,11 @@ public class HWJ_DecayDangerThresholdData
 [Serializable]
 public class HWJ_BodyDecayData
 {
+    [Header("빙의체 정신력 표시")]
+    [InspectorName("표시 이름")]
+    [Tooltip("UI나 디버그에서 보여줄 자원 이름입니다. 기존 코드 이름은 BodyDecay지만 실제 기획 의미는 빙의체 정신력입니다.")]
+    public string resourceDisplayName = "빙의체 정신력";
+
     [Header("부패 기본값")]
     [InspectorName("초기 부패도")]
     [Tooltip("몸에 들어갔을 때 시작 부패도입니다.")]
@@ -308,6 +313,10 @@ public class HWJ_BodyDecayData
     [InspectorName("부패도 0 이하 시 영혼 전환")]
     [Tooltip("구형 감소식과 호환하기 위한 옵션입니다. 현재는 최대 부패 방식을 우선 사용합니다.")]
     public bool enterSoulStateWhenEmpty = true;
+
+    [InspectorName("정신력 0 메시지")]
+    [Tooltip("정신력이 모두 소모되었을 때 로그/대사/UI에 사용할 문장입니다.")]
+    public string depletedMessage = "이 몸은 더 이상 못 쓰겠다.";
     [InspectorName("부패 위험 단계")]
     [Tooltip("부패 비율별 Warning/Dangerous/Critical 단계를 설정합니다.")]
     public HWJ_DecayDangerThresholdData[] dangerThresholds =

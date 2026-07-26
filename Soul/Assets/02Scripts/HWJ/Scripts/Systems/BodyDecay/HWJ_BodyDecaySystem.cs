@@ -4,15 +4,23 @@ using UnityEngine;
 [RequireComponent(typeof(HWJ_SoulSystem))]
 public class HWJ_BodyDecaySystem : MonoBehaviour
 {
+    [Header("참조")]
     [SerializeField] private HWJ_RootObjectDataResolver dataResolver;
     [SerializeField] private HWJ_SoulSystem soulSystem;
     [SerializeField] private HWJ_PossessionSystem possessionSystem;
     [SerializeField] private HWJ_PossessedBodySystem possessedBodySystem;
     [SerializeField] private HWJ_RuntimeStatusSystem runtimeStatus;
     [SerializeField] private HWJ_CollapseSystem collapseSystem;
+
+    [Space(8f)]
+    [Header("빙의체 정신력 런타임")]
+    [Tooltip("기존 부패 수치와 같은 값입니다. 정신력 기준으로는 '이미 소모한 정신력'을 의미합니다.")]
     [SerializeField] private float currentDecayValue;
+    [Tooltip("빙의체에 들어갈 때 소모 정신력 값을 초기화합니다.")]
     [SerializeField] private bool resetDecayWhenEnterBody = true;
+    [Tooltip("현재 빙의체 정신력이 시간/행동에 따라 소모되고 있는지 표시합니다.")]
     [SerializeField] private bool isDecaying;
+    [Tooltip("마지막 정신력 처리 결과입니다. UI와 디버깅에서 상태 확인용으로 사용합니다.")]
     [SerializeField] private string runtimeStateMessage;
 
     private float decayTimer;
@@ -40,6 +48,12 @@ public class HWJ_BodyDecaySystem : MonoBehaviour
     public bool IsDecaying => isDecaying;
     public HWJ_DecayDangerLevel CurrentDangerLevel => ResolveDangerLevel();
     public string RuntimeStateMessage => runtimeStateMessage;
+    public float ConsumedPossessionMentalValue => CurrentDecayValue;
+    public float MaxPossessionMentalValue => MaxDecayValue;
+    public float RemainingPossessionMentalValue => RemainingDecayValue;
+    public float ConsumedPossessionMentalRatio => CurrentDecayRatio;
+    public float RemainingPossessionMentalRatio => RemainingDecayRatio;
+    public bool HasPossessionMentalRemaining => HasDecayRemaining;
 
     private void Reset()
     {
@@ -291,6 +305,27 @@ public class HWJ_BodyDecaySystem : MonoBehaviour
         SavePlayerRuntimeSnapshotIfOwner();
     }
 
+    /// <summary>
+    /// 기존 부패 시스템을 그대로 사용하되, 외부 코드가 정신력 비용이라는 이름으로 호출할 수 있게 만든 호환 API입니다.
+    /// 별도 정신력 시스템을 새로 만들지 않고 같은 런타임 값을 사용합니다.
+    /// </summary>
+    public void ApplyPossessionMentalCost(float rawMentalCost)
+    {
+        ApplyPossessionMentalCost(rawMentalCost, "possession_mental_cost");
+    }
+
+    public void ApplyPossessionMentalCost(float rawMentalCost, string reason)
+    {
+        if (!TryBeginActionDecay(out HWJ_BodyDecayData bodyDecay))
+        {
+            return;
+        }
+
+        ApplyDecayAmount(rawMentalCost, string.IsNullOrWhiteSpace(reason) ? "possession_mental_cost" : reason, bodyDecay);
+        TryEnterSoulStateWhenDecayMaxed(bodyDecay);
+        SavePlayerRuntimeSnapshotIfOwner();
+    }
+
     private void ResolveReferences()
     {
         if (dataResolver == null)
@@ -372,7 +407,7 @@ public class HWJ_BodyDecaySystem : MonoBehaviour
         if (!bodyDecay.enterSoulStateWhenMaxed && !bodyDecay.enterSoulStateWhenEmpty)
         {
             possessedBodySystem?.MarkCurrentBodyCollapsed();
-            runtimeStateMessage = "Body decay reached max, but soul transition is disabled.";
+            runtimeStateMessage = ResolveDepletedMessage(bodyDecay, "빙의체 정신력이 0이 되었지만 영혼 전환이 비활성화되어 있습니다.");
             return;
         }
 
@@ -387,11 +422,11 @@ public class HWJ_BodyDecaySystem : MonoBehaviour
 
         if (soulSystem == null)
         {
-            runtimeStateMessage = "Body decay reached max, but HWJ_SoulSystem is missing.";
+            runtimeStateMessage = ResolveDepletedMessage(bodyDecay, "빙의체 정신력이 0이 되었지만 HWJ_SoulSystem이 없습니다.");
             return;
         }
 
-        runtimeStateMessage = "Body decay reached max. Entering soul state.";
+        runtimeStateMessage = ResolveDepletedMessage(bodyDecay, "빙의체 정신력이 0이 되어 영혼 상태로 복귀합니다.");
         soulSystem.EnterSoulState();
     }
 
@@ -454,8 +489,18 @@ public class HWJ_BodyDecaySystem : MonoBehaviour
 
         float previousDecayValue = currentDecayValue;
         SetCurrentDecayValue(currentDecayValue + finalAmount, bodyDecay);
-        runtimeStateMessage = $"Body decay increased by {finalAmount:0.###}. Reason: {reason}.";
+        runtimeStateMessage = $"빙의체 정신력 소모 {finalAmount:0.###}. 사유: {reason}. 남은 정신력: {RemainingPossessionMentalValue:0.###}.";
         ApplyPossessedBodyHpLossForDecay(currentDecayValue - previousDecayValue, bodyDecay);
+    }
+
+    private static string ResolveDepletedMessage(HWJ_BodyDecayData bodyDecay, string fallbackMessage)
+    {
+        if (bodyDecay != null && !string.IsNullOrWhiteSpace(bodyDecay.depletedMessage))
+        {
+            return bodyDecay.depletedMessage;
+        }
+
+        return fallbackMessage;
     }
 
     private void ApplyPossessedBodyHpLossForDecay(float appliedDecayAmount, HWJ_BodyDecayData bodyDecay)

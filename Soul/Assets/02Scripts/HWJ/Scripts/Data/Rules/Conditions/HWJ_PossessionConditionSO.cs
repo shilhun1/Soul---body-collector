@@ -35,6 +35,8 @@ public class HWJ_PossessionConditionSO : HWJ_GameplayConditionSO
                 return IsWithinPossessionRange(context);
             case HWJ_PossessionRequirement.TargetCorpseAvailable:
                 return IsTargetCorpseAvailable(context);
+            case HWJ_PossessionRequirement.SourceCanPayPossessionSpiritMentalCost:
+                return CanSourcePayPossessionSpiritMentalCost(context);
             default:
                 return false;
         }
@@ -85,5 +87,24 @@ public class HWJ_PossessionConditionSO : HWJ_GameplayConditionSO
 
         HWJ_PossessionBodyState bodyState = target.GetComponent<HWJ_PossessionBodyState>();
         return bodyState == null || !bodyState.IsConsumed;
+    }
+
+    private bool CanSourcePayPossessionSpiritMentalCost(HWJ_GameplayContext context)
+    {
+        if (!context.TryGetPossessionData(HWJ_GameplayActorSlot.Target, out HWJ_PossessionData targetPossession))
+        {
+            return false;
+        }
+
+        float mentalCost = Mathf.Max(0f, targetPossession.spiritMentalCostOnPossession);
+
+        if (mentalCost <= 0f)
+        {
+            return true;
+        }
+
+        HWJ_RuntimeStatusSystem sourceStatus = context.GetStatus(HWJ_GameplayActorSlot.Source);
+        return sourceStatus != null
+            && sourceStatus.CurrentSpiritMentalValue - mentalCost > 0f;
     }
 }

@@ -104,6 +104,12 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
     public float PossessedBodyHp => possessedBodyHp;
     public float SoulMaxHp => GetOwnerBaseStatusValue(status => status.maxHp) + maxHpBonus;
     public float MaxHp => GetRuntimeBodyMaxHpOrBase() + maxHpBonus;
+    public float CurrentSpiritMentalValue => soulHp;
+    public float MaxSpiritMentalValue => SoulMaxHp;
+    public float SpiritMentalRatio => MaxSpiritMentalValue > 0f
+        ? Mathf.Clamp01(CurrentSpiritMentalValue / MaxSpiritMentalValue)
+        : 0f;
+    public bool HasSpiritMentalRemaining => MaxSpiritMentalValue <= 0f || CurrentSpiritMentalValue > 0f;
     public float MoveSpeed => GetBaseStatusValue(status => status.moveSpeed) + moveSpeedBonus;
     public float AttackPower => GetBaseStatusValue(status => status.attackPower) + attackPowerBonus;
     public float Defense => GetBaseStatusValue(status => status.defense) + defenseBonus;
@@ -337,6 +343,52 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
 
         currentHp = Mathf.Min(MaxHp, currentHp + amount);
         CacheCurrentHpForActiveState();
+    }
+
+    /// <summary>
+    /// 기존 SoulHp 값을 영혼 정신력으로 사용하는 호환 API입니다.
+    /// 영혼 상태의 기믹, 빙의 시도, 특수 이동이 정신력을 소모할 때 사용합니다.
+    /// </summary>
+    public bool TryApplySpiritMentalCost(float mentalCost)
+    {
+        return TryApplySpiritMentalCost(mentalCost, "spirit_mental_cost");
+    }
+
+    public bool TryApplySpiritMentalCost(float mentalCost, string reason)
+    {
+        ResolveReferences();
+
+        if (mentalCost <= 0f)
+        {
+            return true;
+        }
+
+        if (soulSystem != null && soulSystem.CurrentState != HWJ_SoulRuntimeState.Soul)
+        {
+            return false;
+        }
+
+        soulHp = Mathf.Max(0f, soulHp - mentalCost);
+
+        if (soulSystem == null || soulSystem.CurrentState == HWJ_SoulRuntimeState.Soul)
+        {
+            currentHp = soulHp;
+        }
+
+        if (soulHp <= 0f)
+        {
+            if (soulSystem != null)
+            {
+                soulSystem.EnterDeadState();
+            }
+            else
+            {
+                SetState(HWJ_RuntimeState.Dead);
+            }
+        }
+
+        SavePlayerRuntimeSnapshotIfOwner();
+        return true;
     }
 
     /// <summary>

@@ -46,7 +46,8 @@ public enum HWJ_PossessionRequirement
     TargetCanBePossessed,
     TargetDefeatedIfRequired,
     WithinPossessionRange,
-    TargetCorpseAvailable
+    TargetCorpseAvailable,
+    SourceCanPayPossessionSpiritMentalCost
 }
 
 public enum HWJ_SkillRequirement
