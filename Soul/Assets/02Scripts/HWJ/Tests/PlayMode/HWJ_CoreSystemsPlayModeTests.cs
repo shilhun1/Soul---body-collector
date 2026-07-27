@@ -2021,7 +2021,7 @@ public class HWJ_CoreSystemsPlayModeTests
 
         Assert.IsFalse(possession.TryPossess(boss.GetComponent<HWJ_RootObjectDataResolver>()));
         Assert.IsFalse(possession.HasActivePossessedBody);
-        Assert.AreEqual(HWJ_PossessionFailureCode.BossPossessionBlocked, possession.LastFailureCode);
+        Assert.AreEqual(HWJ_PossessionFailureCode.BossPossessionBlocked, possession.LastPossessionFailureCode);
 
         Object.Destroy(player);
         Object.Destroy(boss);
