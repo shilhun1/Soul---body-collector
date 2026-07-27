@@ -17,7 +17,9 @@ MonoBehaviour:
     displayName: Sword Corpse Enemy
     objectType: 1
     faction: 3
-    weaponType: 0
+    weaponType: 3
+    abilityTags:
+    - 5
   status:
     level: 1
     maxHp: 100
@@ -28,7 +30,7 @@ MonoBehaviour:
     bodyWeight: 1
   model:
     modelPrefab: {fileID: 4794448013920627777, guid: 2e97c5d0a24983f44a2e025f47d8d7fe, type: 3}
-    animatorController: {fileID: 0}
+    animatorController: {fileID: 9100000, guid: 9569b74c3eba08f4cb5d05351ba770dd, type: 2}
     heartEffectSocketName: 
     hitEffectSocketName: 
     possessedEyeSocketName: 

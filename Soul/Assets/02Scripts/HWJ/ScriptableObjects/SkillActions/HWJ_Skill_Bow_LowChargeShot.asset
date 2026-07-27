@@ -13,8 +13,14 @@ MonoBehaviour:
   m_Name: HWJ_Skill_Bow_LowChargeShot
   m_EditorClassIdentifier: Assembly-CSharp::HWJ_SkillActionDataSO
   skillActionId: bow_low_charge_shot
+  sourceSkillId: 
+  displayName: 
+  skillDescription: 
+  effectId: 
+  soundId: 
   actionType: 2
   requiredWeaponType: 5
+  authoredAttackPower: 0
   damageMultiplier: 1.55
   range: 10
   hitRange: 0.9
@@ -30,6 +36,14 @@ MonoBehaviour:
   moveSpeed: 24
   hitCount: 1
   hitIntervalSeconds: 0
+  causesKnockback: 0
+  knockbackDistance: 0
+  causesStagger: 0
+  staggerSeconds: 0
+  launchesTarget: 0
+  launchHeight: 0
+  grantsInvincibility: 0
+  invincibilitySeconds: 0
   usesCustomBodyDecayAmount: 0
   customBodyDecayAmount: 0
   additionalBodyDecayAmount: 0
@@ -44,4 +58,4 @@ MonoBehaviour:
   - Bow_LowChargeShot
   motionStepIntervalSeconds: 0.22
   projectilePrefab: {fileID: 1612884427718262848, guid: 51001f84643537349b7a6b8b384e3429, type: 3}
-  actionEffectPrefab: {fileID: 0}
+  actionEffectPrefab: {fileID: 3843272902822455368, guid: 05ae783d768bf0545814d126f70b5730, type: 3}

@@ -520,7 +520,7 @@ Transform:
   m_GameObject: {fileID: 190039054}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -5, y: -1.5, z: -10}
+  m_LocalPosition: {x: -18, y: -1.65, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -3780,6 +3780,15 @@ MonoBehaviour:
   requireInteractInput: 1
   spiritMentalCost: 5
   requirePlayerTag: 1
+  allowWeaponSkillHitActivation: 0
+  requirePossessedPlayerHit: 1
+  requiredHitWeaponType: 0
+  requiredHitSkillActionType: 0
+  requiredHitSkillActionId: 
+  consumeProjectileOnWeaponHit: 1
+  requiredHitCount: 1
+  hitComboWindowSeconds: 1.5
+  resetHitCountWhenWindowExpires: 1
   activateTargets: []
   deactivateTargets:
   - {fileID: 1800661346}
@@ -3792,6 +3801,7 @@ MonoBehaviour:
   activateTriggerParameter: Activate
   isActivated: 0
   playerInside: 0
+  currentWeaponHitCount: 0
   lastSwitchResult: 
 --- !u!61 &1052494082
 BoxCollider2D:
@@ -4270,6 +4280,17 @@ MonoBehaviour:
   openWhenRequirementMet: 1
   updateContinuously: 1
   requirePlayerTag: 1
+  openByWeaponSkillHit: 0
+  stayOpenAfterWeaponSkillHit: 1
+  consumeProjectileOnWeaponHit: 1
+  requiredHitWeaponType: 0
+  requiredHitSkillActionType: 0
+  requiredHitSkillActionId: 
+  requirePossessedPlayerHit: 1
+  damagePlayerWhenBlocked: 0
+  blockedDamageAmount: 10
+  blockedDamageIntervalSeconds: 0.5
+  damageOnlyPossessedBody: 1
   obstacleColliders:
   - {fileID: 1294144467}
   hideWhenOpen:
@@ -4277,6 +4298,7 @@ MonoBehaviour:
   showWhenOpen: []
   isOpen: 0
   playerInside: 0
+  openedByWeaponHit: 0
   lastObstacleResult: 
 --- !u!1 &1294144465
 GameObject:
@@ -4788,6 +4810,17 @@ MonoBehaviour:
   openWhenRequirementMet: 1
   updateContinuously: 1
   requirePlayerTag: 1
+  openByWeaponSkillHit: 0
+  stayOpenAfterWeaponSkillHit: 1
+  consumeProjectileOnWeaponHit: 1
+  requiredHitWeaponType: 0
+  requiredHitSkillActionType: 0
+  requiredHitSkillActionId: 
+  requirePossessedPlayerHit: 1
+  damagePlayerWhenBlocked: 0
+  blockedDamageAmount: 10
+  blockedDamageIntervalSeconds: 0.5
+  damageOnlyPossessedBody: 1
   obstacleColliders:
   - {fileID: 197983477}
   hideWhenOpen:
@@ -4795,6 +4828,7 @@ MonoBehaviour:
   showWhenOpen: []
   isOpen: 0
   playerInside: 0
+  openedByWeaponHit: 0
   lastObstacleResult: 
 --- !u!1 &1443872505
 GameObject:
@@ -5472,7 +5506,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HWJ_SpawnPoint
   pointId: player_start_01
   spawnPointType: 0
-  spawnParent: {fileID: 0}
+  spawnParent: {fileID: 2087133900}
   gizmoRadius: 0.35
 --- !u!4 &1555970093
 Transform:
@@ -5652,6 +5686,10 @@ MonoBehaviour:
   useSceneTransitionTargetSpawnPoint: 1
   placeOnStart: 1
   registerToGameManager: 1
+  preferPersistentPlayerDuringSceneTransition: 1
+  destroySceneFallbackPlayersDuringSceneTransition: 1
+  normalizePlayerVisualOffsetOnPlacement: 1
+  playerVisualObjectName: HWJ_PlayerVisual
   lastPlacementResult: 
 --- !u!4 &1615746692
 Transform:
@@ -6437,6 +6475,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: HWJ.Runtime::HWJ_PossessionBodyState
   isConsumed: 0
   isReleasedAfterPossession: 0
+  isRemovedAfterPossession: 0
   wasAliveWhenPossessed: 0
   restoreObjectOnPossessionExit: 0
 --- !u!114 &1796562542
@@ -6524,6 +6563,8 @@ MonoBehaviour:
   database: {fileID: 0}
   body: {fileID: 0}
   localSkillActions: []
+  actionEffectSpawnOffset: {x: 0.8, y: 0.15}
+  mirrorActionEffectByFacing: 1
   useGameplaySkillRule: 1
   skillUseExecutionCore: {fileID: 0}
   skillUseExecutionCoreId: skill_use_execution
@@ -6960,7 +7001,7 @@ Transform:
   m_GameObject: {fileID: 1808484022}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 18, y: 1.65, z: 0}
+  m_LocalPosition: {x: -0.01, y: 4.91, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -7066,10 +7107,13 @@ MonoBehaviour:
   playerStatOrbProgress: {fileID: 0}
   playerSoul: {fileID: 2087133896}
   playerBodyDecay: {fileID: 2087133895}
-  playerBodyOverload: {fileID: 0}
   playerPossession: {fileID: 2087133894}
   autoFindPlayerResolverInScene: 1
   autoAddMissingPlayerCoreSystems: 1
+  autoPlacePlayerAtSceneStart: 1
+  autoBindSceneCamerasToPlayer: 1
+  sceneBootstrapRetrySeconds: 1
+  lastSceneBootstrapResult: 
   preservePlayerRuntimeAcrossScenes: 1
   hasPlayerRuntimeSnapshot: 0
   savedCurrentHp: 0
@@ -8582,8 +8626,6 @@ MonoBehaviour:
   soulSystem: {fileID: 2087133896}
   possessionSystem: {fileID: 0}
   possessedBodySystem: {fileID: 0}
-  runtimeStatus: {fileID: 0}
-  collapseSystem: {fileID: 0}
   currentDecayValue: 0
   resetDecayWhenEnterBody: 1
   isDecaying: 0
@@ -9153,6 +9195,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: HWJ.Runtime::HWJ_PossessionBodyState
   isConsumed: 0
   isReleasedAfterPossession: 0
+  isRemovedAfterPossession: 0
   wasAliveWhenPossessed: 0
   restoreObjectOnPossessionExit: 0
 --- !u!114 &2145742661
@@ -9240,6 +9283,8 @@ MonoBehaviour:
   database: {fileID: 0}
   body: {fileID: 0}
   localSkillActions: []
+  actionEffectSpawnOffset: {x: 0.8, y: 0.15}
+  mirrorActionEffectByFacing: 1
   useGameplaySkillRule: 1
   skillUseExecutionCore: {fileID: 0}
   skillUseExecutionCoreId: skill_use_execution

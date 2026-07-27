@@ -103,7 +103,9 @@ public class HWJ_SoulSystem : MonoBehaviour
 
         soulDeadlineTimer -= Time.deltaTime;
 
-        if (soulDeadlineTimer <= 0f && soulState.blocksControlOnDeadline)
+        if (soulDeadlineTimer <= 0f
+            && soulState.blocksControlOnDeadline
+            && IsSpiritMentalDepleted())
         {
             EnterDeadState();
         }
@@ -250,6 +252,11 @@ public class HWJ_SoulSystem : MonoBehaviour
                 runtimeStatus.SetState(HWJ_RuntimeState.Dead);
                 break;
         }
+    }
+
+    private bool IsSpiritMentalDepleted()
+    {
+        return runtimeStatus != null && runtimeStatus.CurrentSpiritMentalValue <= 0f;
     }
 
     private void SetSoulState(HWJ_SoulRuntimeState nextState)

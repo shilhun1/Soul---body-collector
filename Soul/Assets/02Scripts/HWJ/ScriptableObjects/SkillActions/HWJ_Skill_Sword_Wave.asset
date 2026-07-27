@@ -13,8 +13,14 @@ MonoBehaviour:
   m_Name: HWJ_Skill_Sword_Wave
   m_EditorClassIdentifier: Assembly-CSharp::HWJ_SkillActionDataSO
   skillActionId: sword_wave
+  sourceSkillId: 
+  displayName: 
+  skillDescription: 
+  effectId: 
+  soundId: 
   actionType: 2
   requiredWeaponType: 3
+  authoredAttackPower: 0
   damageMultiplier: 1.25
   range: 30
   hitRange: 1.2
@@ -30,6 +36,14 @@ MonoBehaviour:
   moveSpeed: 24
   hitCount: 1
   hitIntervalSeconds: 0
+  causesKnockback: 0
+  knockbackDistance: 0
+  causesStagger: 0
+  staggerSeconds: 0
+  launchesTarget: 0
+  launchHeight: 0
+  grantsInvincibility: 0
+  invincibilitySeconds: 0
   usesCustomBodyDecayAmount: 0
   customBodyDecayAmount: 0
   additionalBodyDecayAmount: 0
@@ -41,4 +55,4 @@ MonoBehaviour:
   motionSequenceKeys: []
   motionStepIntervalSeconds: 0.12
   projectilePrefab: {fileID: 6123444099088108134, guid: 9cf4f102adaf7694bae11e7010bab686, type: 3}
-  actionEffectPrefab: {fileID: 0}
+  actionEffectPrefab: {fileID: 7815009906001981100, guid: 174f53d1dad38ee4da8865e2289f7718, type: 3}

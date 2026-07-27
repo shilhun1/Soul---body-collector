@@ -14,10 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HWJ_SkillActionDataSO
   skillActionId: player_bow_evasion_triple
   sourceSkillId: 1402
-  displayName: "Evasion Triple"
-  skillDescription: "뒤로 잠시 빠진 뒤 전방으로 화살을 3발 발사해 적을 공격한다."
-  effectId: ""
-  soundId: ""
+  displayName: Evasion Triple
+  skillDescription: "\uB4A4\uB85C \uC7A0\uC2DC \uBE60\uC9C4 \uB4A4 \uC804\uBC29\uC73C\uB85C
+    \uD654\uC0B4\uC744 3\uBC1C \uBC1C\uC0AC\uD574 \uC801\uC744 \uACF5\uACA9\uD55C\uB2E4."
+  effectId: 
+  soundId: 
   actionType: 2
   requiredWeaponType: 5
   authoredAttackPower: 10
@@ -55,4 +56,4 @@ MonoBehaviour:
   motionSequenceKeys: []
   motionStepIntervalSeconds: 0.12
   projectilePrefab: {fileID: 5062887714543854764, guid: 528dff6452e5a154f8ac9bc4630ff040, type: 3}
-  actionEffectPrefab: {fileID: 0}
+  actionEffectPrefab: {fileID: 3843272902822455368, guid: 05ae783d768bf0545814d126f70b5730, type: 3}

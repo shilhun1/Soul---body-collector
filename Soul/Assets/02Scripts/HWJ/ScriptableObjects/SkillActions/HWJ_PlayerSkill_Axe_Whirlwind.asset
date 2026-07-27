@@ -14,10 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HWJ_SkillActionDataSO
   skillActionId: player_axe_whirlwind
   sourceSkillId: 1304
-  displayName: "Whirlwind"
-  skillDescription: "도끼와 함께 회전하며 적을 공격한다."
-  effectId: ""
-  soundId: ""
+  displayName: Whirlwind
+  skillDescription: "\uB3C4\uB07C\uC640 \uD568\uAED8 \uD68C\uC804\uD558\uBA70 \uC801\uC744
+    \uACF5\uACA9\uD55C\uB2E4."
+  effectId: 
+  soundId: 
   actionType: 4
   requiredWeaponType: 6
   authoredAttackPower: 40
@@ -55,4 +56,4 @@ MonoBehaviour:
   motionSequenceKeys: []
   motionStepIntervalSeconds: 0.12
   projectilePrefab: {fileID: 0}
-  actionEffectPrefab: {fileID: 0}
+  actionEffectPrefab: {fileID: 7710738139687680710, guid: 04cbf5941e6703846868c1a669bd1c67, type: 3}

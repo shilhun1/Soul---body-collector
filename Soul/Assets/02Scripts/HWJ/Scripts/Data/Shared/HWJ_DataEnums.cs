@@ -54,6 +54,21 @@ public enum HWJ_WeaponType
 }
 
 /// <summary>
+/// Map gimmick access granted by the currently possessed body.
+/// WeaponType still describes the weapon, while AbilityTag describes level mechanics.
+/// </summary>
+public enum HWJ_AbilityTag
+{
+    None,
+    BowRangeSwitch,
+    ShieldArrowPassage,
+    AxeBreakWall,
+    LanceChargeDevice,
+    SwordRapidSwitch,
+    SpiritScoutPassage
+}
+
+/// <summary>
 /// 보스 유형을 중간 보스와 최종 보스로 나눌 때 사용합니다.
 /// BossTypeDataSO의 패턴, 보상, 페이즈 규칙 분기에 연결합니다.
 /// </summary>

@@ -24,6 +24,8 @@ GameObject:
   - component: {fileID: 7544255325114832803}
   - component: {fileID: 2950643158763547226}
   - component: {fileID: 2731096897752836536}
+  - component: {fileID: 7640449710497052329}
+  - component: {fileID: 2358692830462031443}
   m_Layer: 0
   m_Name: HWJ_Model_Enemy_Corpse_Lance
   m_TagString: Untagged
@@ -98,9 +100,9 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 20
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 21300000, guid: eae56fbe36158e442989e33df32fcdb2, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 9a3234d2354a07241bfb1e7cde7db086, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_FlipX: 0
+  m_FlipX: 1
   m_FlipY: 0
   m_DrawMode: 0
   m_Size: {x: 2, y: 2}
@@ -216,7 +218,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f32f827d95cc9f74ba04b1c551f6aee7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: HWJ.Runtime::HWJ_RootObjectDataResolver
-  rootObjectData: {fileID: 0}
+  rootObjectData: {fileID: 11400000, guid: cc000000000000000000000000000002, type: 2}
 --- !u!114 &9092080176842883996
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -337,6 +339,8 @@ MonoBehaviour:
   database: {fileID: 0}
   body: {fileID: 0}
   localSkillActions: []
+  actionEffectSpawnOffset: {x: 0.8, y: 0.15}
+  mirrorActionEffectByFacing: 1
   useGameplaySkillRule: 1
   skillUseExecutionCore: {fileID: 0}
   skillUseExecutionCoreId: skill_use_execution
@@ -374,16 +378,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 03f9dec66ecc42f48a0d1f01938ff196, type: 3}
   m_Name: 
   m_EditorClassIdentifier: HWJ.Runtime::HWJ_CharacterMotionSystem
-  animator: {fileID: 0}
-  spriteRenderer: {fileID: 0}
-  body: {fileID: 0}
-  dataResolver: {fileID: 0}
-  runtimeStatus: {fileID: 0}
+  animator: {fileID: 7640449710497052329}
+  spriteRenderer: {fileID: 8200155411648698735}
+  body: {fileID: 5136633619209573757}
+  dataResolver: {fileID: 268185333261344532}
+  runtimeStatus: {fileID: 9092080176842883996}
   playerMovement: {fileID: 0}
   soulSystem: {fileID: 0}
   possessionSystem: {fileID: 0}
-  fallbackMotionProfile: {fileID: 0}
-  weaponMotionProfiles: []
+  fallbackMotionProfile: {fileID: 11400000, guid: ee181a92f84848688ac8237d9d467105, type: 2}
+  weaponMotionProfiles:
+  - {fileID: 11400000, guid: ee181a92f84848688ac8237d9d467105, type: 2}
   speedParameter: Speed
   horizontalSpeedParameter: HorizontalSpeed
   verticalSpeedParameter: VerticalSpeed
@@ -420,6 +425,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: HWJ.Runtime::HWJ_PossessionBodyState
   isConsumed: 0
   isReleasedAfterPossession: 0
+  isRemovedAfterPossession: 0
   wasAliveWhenPossessed: 0
   restoreObjectOnPossessionExit: 0
 --- !u!114 &7544255325114832803
@@ -528,6 +534,49 @@ MonoBehaviour:
   lastTransitionMessage: 
   lastActionFailureCode: 0
   lastActionMessage: 
+--- !u!95 &7640449710497052329
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3119583788265679064}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 1e0e948dd8abcc74ca0eda0f8203e0bf, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &2358692830462031443
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3119583788265679064}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 0}
+  m_Name: 
+  m_EditorClassIdentifier: HWJ.Runtime::HWJ_HitEffectSystem
+  runtimeStatus: {fileID: 9092080176842883996}
+  dataResolver: {fileID: 268185333261344532}
+  hitEffectPrefab: {fileID: 2211602562660978242, guid: 2bc7f49c6582563418f8a2c4dc022f75, type: 3}
+  hitEffectSocket: {fileID: 0}
+  hitEffectSocketName: Hit
+  fallbackOffset: {x: 0, y: 0.2}
+  ignoreZeroDamage: 1
+  minSpawnIntervalSeconds: 0.03
+  fallbackDestroyDelaySeconds: 1.25
 --- !u!1 &6990678025697509907
 GameObject:
   m_ObjectHideFlags: 0

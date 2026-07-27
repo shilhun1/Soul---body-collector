@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: HWJ_AxeMotionProfile
   m_EditorClassIdentifier: 
   weaponType: 6
-  animatorController: {fileID: 0}
+  animatorController: {fileID: 9100000, guid: 505ff94f681cd234992102eb26a96be1, type: 2}
   defaultAttackMotionKey: Axe_Swing
   motions:
   - motionKey: Axe_Swing

@@ -42,6 +42,9 @@ public class HWJ_GameplayDatabaseSO : ScriptableObject
     [Tooltip("게임오버 창 설정 목록입니다.")]
     [InspectorName("게임오버 설정 목록")]
     [SerializeField] private HWJ_GameOverDataSO[] gameOverWindows;
+    [Tooltip("처음 시작 타이틀 화면 설정 목록입니다.")]
+    [InspectorName("타이틀 화면 설정 목록")]
+    [SerializeField] private HWJ_TitleScreenDataSO[] titleScreens;
 
     [Header("조건과 규칙 데이터")]
     [Tooltip("공통 조건 SO 목록입니다.")]
@@ -64,6 +67,7 @@ public class HWJ_GameplayDatabaseSO : ScriptableObject
     public HWJ_BossPatternDataSO[] BossPatterns => bossPatterns;
     public HWJ_HealthBarDataSO[] HealthBars => healthBars;
     public HWJ_GameOverDataSO[] GameOverWindows => gameOverWindows;
+    public HWJ_TitleScreenDataSO[] TitleScreens => titleScreens;
     public HWJ_GameplayConditionSO[] Conditions => conditions;
     public HWJ_GameplayRuleSO[] GameplayRules => gameplayRules;
     public HWJ_RuleExecutionCoreSO[] RuleExecutionCores => ruleExecutionCores;
@@ -231,6 +235,31 @@ public class HWJ_GameplayDatabaseSO : ScriptableObject
         return false;
     }
 
+    /// <summary>
+    /// 타이틀 화면 ID로 시작 화면 데이터를 찾습니다.
+    /// 씬 또는 UI 시스템이 직접 에셋 참조를 들고 있지 않을 때 데이터베이스를 통해 조회할 수 있습니다.
+    /// </summary>
+    public bool TryGetTitleScreen(string titleScreenId, out HWJ_TitleScreenDataSO titleScreen)
+    {
+        titleScreen = null;
+
+        if (titleScreens == null)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < titleScreens.Length; i++)
+        {
+            if (titleScreens[i] != null && titleScreens[i].TitleScreenId == titleScreenId)
+            {
+                titleScreen = titleScreens[i];
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public bool TryGetCondition(string conditionId, out HWJ_GameplayConditionSO condition)
     {
         condition = null;
@@ -361,6 +390,13 @@ public class HWJ_GameplayDatabaseSO : ScriptableObject
             "REQ-7",
             "GameOverId",
             data => data != null ? data.GameOverId : null);
+        ValidateStableIds(
+            entries,
+            "TitleScreen",
+            titleScreens,
+            "REQ-7",
+            "TitleScreenId",
+            data => data != null ? data.TitleScreenId : null);
         ValidateStableIds(
             entries,
             "Condition",

@@ -17,7 +17,9 @@ MonoBehaviour:
     displayName: Bow Corpse Enemy
     objectType: 1
     faction: 3
-    weaponType: 0
+    weaponType: 5
+    abilityTags:
+    - 1
   status:
     level: 1
     maxHp: 100
@@ -28,7 +30,7 @@ MonoBehaviour:
     bodyWeight: 1
   model:
     modelPrefab: {fileID: 3641732250860638636, guid: dcfac49b6c06bcd4bacf677932e1174e, type: 3}
-    animatorController: {fileID: 0}
+    animatorController: {fileID: 9100000, guid: 2c23b9de715632b49a516ce81402666d, type: 2}
     heartEffectSocketName: 
     hitEffectSocketName: 
     possessedEyeSocketName: 

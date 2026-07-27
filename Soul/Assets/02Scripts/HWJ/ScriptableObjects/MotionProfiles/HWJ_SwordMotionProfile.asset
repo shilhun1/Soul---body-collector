@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: HWJ_SwordMotionProfile
   m_EditorClassIdentifier: 
   weaponType: 3
-  animatorController: {fileID: 0}
+  animatorController: {fileID: 9100000, guid: 9569b74c3eba08f4cb5d05351ba770dd, type: 2}
   defaultAttackMotionKey: Sword_DiagonalSlash
   motions:
   - motionKey: Sword_DiagonalSlash

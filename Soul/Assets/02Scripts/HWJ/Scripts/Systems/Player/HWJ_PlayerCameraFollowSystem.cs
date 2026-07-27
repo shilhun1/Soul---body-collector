@@ -10,6 +10,15 @@ public class HWJ_PlayerCameraFollowSystem : MonoBehaviour
     [SerializeField] private HWJ_RootObjectDataResolver targetDataResolver;
     [SerializeField] private bool autoFindPlayerTarget = true;
 
+    /// <summary>
+    /// Lets scene bootstrap code reconnect this camera after the player is moved, spawned, or replaced during scene loads.
+    /// </summary>
+    public void SetTarget(HWJ_RootObjectDataResolver resolver)
+    {
+        targetDataResolver = resolver;
+        target = resolver != null ? resolver.transform : null;
+    }
+
     private void LateUpdate()
     {
         ResolveTarget();

@@ -14,10 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HWJ_SkillActionDataSO
   skillActionId: player_shield_dark_barrier
   sourceSkillId: 1504
-  displayName: "Dark Barrier"
-  skillDescription: "마법을 사용해 자신의 주변에 방어막을 두룬다."
-  effectId: ""
-  soundId: ""
+  displayName: Dark Barrier
+  skillDescription: "\uB9C8\uBC95\uC744 \uC0AC\uC6A9\uD574 \uC790\uC2E0\uC758 \uC8FC\uBCC0\uC5D0
+    \uBC29\uC5B4\uB9C9\uC744 \uB450\uB8EC\uB2E4."
+  effectId: 
+  soundId: 
   actionType: 5
   requiredWeaponType: 7
   authoredAttackPower: 40
@@ -55,4 +56,4 @@ MonoBehaviour:
   motionSequenceKeys: []
   motionStepIntervalSeconds: 0.12
   projectilePrefab: {fileID: 0}
-  actionEffectPrefab: {fileID: 0}
+  actionEffectPrefab: {fileID: 2839771277650202955, guid: b025e67d13607de4da20a9df72f2c07d, type: 3}

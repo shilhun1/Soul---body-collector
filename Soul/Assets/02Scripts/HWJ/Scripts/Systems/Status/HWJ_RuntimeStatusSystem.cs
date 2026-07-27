@@ -129,9 +129,20 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
     public bool CanAttack => !IsDead && Time.time >= attackLockEndTime && !IsHitStunned;
     public bool CanDash => !IsDead && Time.time >= dashLockEndTime && !IsHitStunned;
     public float KnockbackScale => 1f / Mathf.Max(0.01f, GetKnockbackWeight());
-    public bool IsDead => currentState == HWJ_RuntimeState.Dead
-        || (soulSystem != null && soulSystem.CurrentState == HWJ_SoulRuntimeState.Dead)
-        || (soulSystem == null && UsesHp && currentHp <= 0f);
+    public bool IsDead
+    {
+        get
+        {
+            if (soulSystem != null)
+            {
+                bool soulSystemDead = soulSystem.CurrentState == HWJ_SoulRuntimeState.Dead;
+                bool runtimeDead = currentState == HWJ_RuntimeState.Dead;
+                return (soulSystemDead || runtimeDead) && CurrentSpiritMentalValue <= 0f;
+            }
+
+            return currentState == HWJ_RuntimeState.Dead || UsesHp && currentHp <= 0f;
+        }
+    }
 
     private void Awake()
     {

@@ -17,7 +17,9 @@ MonoBehaviour:
     displayName: Axe Corpse Enemy
     objectType: 1
     faction: 3
-    weaponType: 0
+    weaponType: 6
+    abilityTags:
+    - 3
   status:
     level: 1
     maxHp: 100
@@ -28,7 +30,7 @@ MonoBehaviour:
     bodyWeight: 1
   model:
     modelPrefab: {fileID: 4816403081166471119, guid: 4a094748baf292848abc8123e5d89341, type: 3}
-    animatorController: {fileID: 0}
+    animatorController: {fileID: 9100000, guid: 505ff94f681cd234992102eb26a96be1, type: 2}
     heartEffectSocketName: 
     hitEffectSocketName: 
     possessedEyeSocketName: 

@@ -13,6 +13,7 @@ public enum HWJ_BodyObstacleRequirementMode
     SpiritOnly,
     PossessedBody,
     WeaponType,
+    AbilityTag,
     BodyObjectId,
     BodyObjectType
 }
@@ -30,6 +31,9 @@ public class HWJ_BodyExclusiveObstacleSystem : MonoBehaviour
 
     [Tooltip("WeaponType 조건에서 허용할 빙의체 무기 타입 목록입니다. 비워두면 None이 아닌 모든 무기를 허용합니다.")]
     [SerializeField] private HWJ_WeaponType[] allowedWeaponTypes;
+
+    [Tooltip("AbilityTag condition list. These tags live on RootObjectDataSO.Identity and describe map gimmick access.")]
+    [SerializeField] private HWJ_AbilityTag[] allowedAbilityTags;
 
     [Tooltip("BodyObjectId 조건에서 허용할 RootObjectData Identity Object Id 목록입니다.")]
     [SerializeField] private string[] allowedBodyObjectIds;
@@ -49,6 +53,9 @@ public class HWJ_BodyExclusiveObstacleSystem : MonoBehaviour
     [Header("무기 공격 작동")]
     [Tooltip("켜면 요구 무기/스킬로 공격했을 때 장애물이 열립니다. 도끼 파괴 벽, 창 돌진 장치에 사용합니다.")]
     [SerializeField] private bool openByWeaponSkillHit;
+
+    [Tooltip("When enabled, the gate stays closed until the required weapon skill hit activates it.")]
+    [SerializeField] private bool requireWeaponSkillHitToOpen;
 
     [Tooltip("무기 공격으로 열린 뒤 계속 열린 상태를 유지합니다.")]
     [SerializeField] private bool stayOpenAfterWeaponSkillHit = true;
@@ -134,6 +141,17 @@ public class HWJ_BodyExclusiveObstacleSystem : MonoBehaviour
             return true;
         }
 
+        if (requireWeaponSkillHitToOpen)
+        {
+            bool canUseRequiredBody = CanPlayerPass(playerObject, out string bodyReason);
+            string waitReason = canUseRequiredBody
+                ? "Weapon skill gate is waiting for the required skill hit."
+                : bodyReason;
+            ApplyObstacleState(false, playerObject, waitReason);
+            TryApplyBlockedDamage(playerObject, false);
+            return false;
+        }
+
         bool canPass = CanPlayerPass(playerObject, out string reason);
         bool shouldOpen = openWhenRequirementMet ? canPass : !canPass;
         ApplyObstacleState(shouldOpen, playerObject, reason);
@@ -201,6 +219,8 @@ public class HWJ_BodyExclusiveObstacleSystem : MonoBehaviour
                 return CheckPossessedBody(possessionSystem, out reason);
             case HWJ_BodyObstacleRequirementMode.WeaponType:
                 return CheckWeaponType(possessionSystem, out reason);
+            case HWJ_BodyObstacleRequirementMode.AbilityTag:
+                return CheckAbilityTag(possessionSystem, out reason);
             case HWJ_BodyObstacleRequirementMode.BodyObjectId:
                 return CheckBodyObjectId(possessionSystem, out reason);
             case HWJ_BodyObstacleRequirementMode.BodyObjectType:
@@ -243,6 +263,25 @@ public class HWJ_BodyExclusiveObstacleSystem : MonoBehaviour
         reason = passed
             ? $"빙의체 무기 조건을 만족했습니다: {currentWeapon}."
             : $"이 무기 타입으로는 통과할 수 없습니다: {currentWeapon}.";
+        return passed;
+    }
+
+    private bool CheckAbilityTag(HWJ_PossessionSystem possessionSystem, out string reason)
+    {
+        HWJ_RootObjectDataResolver bodyResolver = possessionSystem != null
+            ? possessionSystem.PossessedBodyResolver
+            : null;
+
+        if (bodyResolver == null || !possessionSystem.HasActivePossessedBody)
+        {
+            reason = "AbilityTag gate blocked: there is no active possessed body.";
+            return false;
+        }
+
+        bool passed = ContainsAbilityTag(bodyResolver);
+        reason = passed
+            ? "AbilityTag gate passed by the possessed body."
+            : "AbilityTag gate blocked: the possessed body does not have the required tag.";
         return passed;
     }
 
@@ -290,6 +329,24 @@ public class HWJ_BodyExclusiveObstacleSystem : MonoBehaviour
         for (int i = 0; i < allowedWeaponTypes.Length; i++)
         {
             if (allowedWeaponTypes[i] == weaponType)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private bool ContainsAbilityTag(HWJ_RootObjectDataResolver bodyResolver)
+    {
+        if (bodyResolver == null || allowedAbilityTags == null || allowedAbilityTags.Length == 0)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < allowedAbilityTags.Length; i++)
+        {
+            if (bodyResolver.HasAbilityTag(allowedAbilityTags[i]))
             {
                 return true;
             }
@@ -428,6 +485,14 @@ public class HWJ_BodyExclusiveObstacleSystem : MonoBehaviour
                 failureReason = $"무기 기믹 작동 실패: 요구 스킬 ID {requiredHitSkillActionId}.";
                 return false;
             }
+        }
+
+        if (allowedAbilityTags != null
+            && allowedAbilityTags.Length > 0
+            && !HWJ_WeaponGimmickActivatorUtility.SourceHasAnyAbilityTag(sourceTransform, allowedAbilityTags))
+        {
+            failureReason = "Weapon skill gate activation failed: the possessed body does not have the required AbilityTag.";
+            return false;
         }
 
         return true;
@@ -645,6 +710,34 @@ public static class HWJ_WeaponGimmickActivatorUtility
 
         HWJ_RootObjectDataResolver dataResolver = sourceTransform.GetComponentInParent<HWJ_RootObjectDataResolver>();
         return dataResolver != null ? dataResolver.WeaponType : HWJ_WeaponType.None;
+    }
+
+    public static bool SourceHasAnyAbilityTag(Transform sourceTransform, HWJ_AbilityTag[] abilityTags)
+    {
+        if (sourceTransform == null || abilityTags == null || abilityTags.Length == 0)
+        {
+            return false;
+        }
+
+        HWJ_PossessionSystem possessionSystem = sourceTransform.GetComponentInParent<HWJ_PossessionSystem>();
+        HWJ_RootObjectDataResolver resolver = possessionSystem != null && possessionSystem.HasActivePossessedBody
+            ? possessionSystem.PossessedBodyResolver
+            : sourceTransform.GetComponentInParent<HWJ_RootObjectDataResolver>();
+
+        if (resolver == null)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < abilityTags.Length; i++)
+        {
+            if (resolver.HasAbilityTag(abilityTags[i]))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public static bool IsPossessedPlayerSource(Transform sourceTransform)

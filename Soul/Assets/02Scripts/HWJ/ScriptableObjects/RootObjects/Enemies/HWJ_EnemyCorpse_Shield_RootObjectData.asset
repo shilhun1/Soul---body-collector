@@ -17,7 +17,9 @@ MonoBehaviour:
     displayName: Shield Corpse Enemy
     objectType: 1
     faction: 3
-    weaponType: 0
+    weaponType: 7
+    abilityTags:
+    - 2
   status:
     level: 1
     maxHp: 100
@@ -28,7 +30,7 @@ MonoBehaviour:
     bodyWeight: 1
   model:
     modelPrefab: {fileID: 742515390421935065, guid: 59a3f51765126db489eabb83d95115b6, type: 3}
-    animatorController: {fileID: 0}
+    animatorController: {fileID: 9100000, guid: e7dbebedc075b6e4c906d118b6103330, type: 2}
     heartEffectSocketName: 
     hitEffectSocketName: 
     possessedEyeSocketName: 

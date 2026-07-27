@@ -24,6 +24,9 @@ public class HWJ_IdentityData
     [InspectorName("기본 무기")]
     [Tooltip("이 오브젝트가 기본으로 사용하는 무기입니다.")]
     public HWJ_WeaponType weaponType;
+    [InspectorName("Ability Tags")]
+    [Tooltip("Map gimmicks this possessed body can use. Stage systems read this instead of hardcoding every body by weapon.")]
+    public HWJ_AbilityTag[] abilityTags;
 }
 
 /// <summary>

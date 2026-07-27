@@ -60,6 +60,12 @@ public static class HWJ_GameAccess
         return HasManager && Manager.TryGetLevelTable(tableId, out levelTable);
     }
 
+    public static bool TryGetTitleScreen(string titleScreenId, out HWJ_TitleScreenDataSO titleScreenData)
+    {
+        titleScreenData = null;
+        return HasManager && Manager.TryGetTitleScreen(titleScreenId, out titleScreenData);
+    }
+
     /// <summary>
     /// 공통 데이터베이스에서 스킬 행동 데이터를 조회합니다.
     /// </summary>

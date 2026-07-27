@@ -21,6 +21,7 @@ GameObject:
   - component: {fileID: 840020000000000010}
   - component: {fileID: 840020000000000011}
   - component: {fileID: 840020000000000012}
+  - component: {fileID: 2170516685018477235}
   m_Layer: 0
   m_Name: HWJ_MidBoss1_Runtime_Prefab
   m_TagString: Untagged
@@ -200,8 +201,31 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cc45360a6ce147cca5614a4263769485, type: 3}
   m_Name: 
   m_EditorClassIdentifier: HWJ.Runtime::HWJ_RuntimeStatusSystem
+  runtimeContext: {fileID: 0}
   dataResolver: {fileID: 840020000000000005}
+  possessionSystem: {fileID: 0}
+  soulSystem: {fileID: 0}
+  bodyDecaySystem: {fileID: 0}
+  possessedBodySystem: {fileID: 0}
+  collapseSystem: {fileID: 0}
+  motionSystem: {fileID: 0}
   bossBrain: {fileID: 840020000000000010}
+  currentState: 1
+  currentHp: 0
+  soulHp: 0
+  possessedBodyHp: 0
+  moveLockEndTime: 0
+  attackLockEndTime: 0
+  dashLockEndTime: 0
+  hitStunEndTime: 0
+  invincibleEndTime: 0
+  hitReactionImmuneEndTime: 0
+  hitReactionLimitEndTime: 0
+  hitReactionWindowEndTime: 0
+  hitReactionCountInWindow: 0
+  ignorePlayerMonsterBodyCollision: 1
+  ignoreMonsterBodyCollision: 1
+  bodyCollisionRefreshSeconds: 0.25
 --- !u!114 &840020000000000007
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -214,8 +238,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ced03549c17815c4e8d8da454730c989, type: 3}
   m_Name: 
   m_EditorClassIdentifier: HWJ.Runtime::HWJ_CombatSystem
+  runtimeContext: {fileID: 0}
   dataResolver: {fileID: 840020000000000005}
+  possessionSystem: {fileID: 0}
   runtimeStatus: {fileID: 840020000000000006}
+  bossBrain: {fileID: 0}
+  useGameplayDamageRules: 1
+  commonDamageExecutionCore: {fileID: 0}
+  commonDamageExecutionCoreId: common_damage_execution
+  commonDamageRule: {fileID: 0}
+  commonDamageRuleId: damage_can_apply_common
+  playerDamageToEnemyExecutionCore: {fileID: 0}
+  playerDamageToEnemyExecutionCoreId: player_damage_to_enemy_execution
+  playerDamageToEnemyRule: {fileID: 0}
+  playerDamageToEnemyRuleId: player_damage_to_enemy
+  grantKillRewards: 1
+  lastDamageRuleResult: 
+  lastRewardResult: 
 --- !u!114 &840020000000000013
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -270,6 +309,8 @@ MonoBehaviour:
   database: {fileID: 0}
   body: {fileID: 840020000000000003}
   localSkillActions: []
+  actionEffectSpawnOffset: {x: 0.8, y: 0.15}
+  mirrorActionEffectByFacing: 1
   useGameplaySkillRule: 1
   skillUseExecutionCore: {fileID: 0}
   skillUseExecutionCoreId: skill_use_execution
@@ -355,6 +396,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 81ba5f5041f2ddc4698c7e60d11d6c33, type: 3}
   m_Name: 
   m_EditorClassIdentifier: HWJ.Runtime::HWJ_MidBossPatternSystem
+  summonMonsterPrefab: {fileID: 0}
   bossBrain: {fileID: 840020000000000010}
   runtimeStatus: {fileID: 840020000000000006}
   combatSystem: {fileID: 840020000000000007}
@@ -377,6 +419,7 @@ MonoBehaviour:
   pattern1SummonIntervalSeconds: 0.15
   pattern1EdgePadding: 1
   pattern1SummonSaveIdPrefix: mid_boss_summon
+  pattern1SummonStepOffset: {x: 0, y: 0}
   possessableMonsterPrefabs: []
   possessableMonsterRootObjects:
   - {fileID: 11400000, guid: cc000000000000000000000000000001, type: 2}
@@ -443,3 +486,24 @@ MonoBehaviour:
   flipTransformScaleWhenNoSpriteRenderer: 0
   moveThreshold: 0.05
   facingThreshold: 0.01
+--- !u!114 &2170516685018477235
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 840020000000000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 0}
+  m_Name: 
+  m_EditorClassIdentifier: HWJ.Runtime::HWJ_HitEffectSystem
+  runtimeStatus: {fileID: 840020000000000006}
+  dataResolver: {fileID: 840020000000000005}
+  hitEffectPrefab: {fileID: 2211602562660978242, guid: 2bc7f49c6582563418f8a2c4dc022f75, type: 3}
+  hitEffectSocket: {fileID: 0}
+  hitEffectSocketName: Hit
+  fallbackOffset: {x: 0, y: 0.2}
+  ignoreZeroDamage: 1
+  minSpawnIntervalSeconds: 0.03
+  fallbackDestroyDelaySeconds: 1.25

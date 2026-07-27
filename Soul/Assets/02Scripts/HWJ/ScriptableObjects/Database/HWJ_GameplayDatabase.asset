@@ -108,7 +108,10 @@ MonoBehaviour:
   - {fileID: 11400000, guid: d26b28ad6d4643f09780db86d4a9a2f7, type: 2}
   - {fileID: 11400000, guid: 466f3db318444790be1ec05fbebc7d15, type: 2}
   healthBars: []
-  gameOverWindows: []
+  gameOverWindows:
+  - {fileID: 11400000, guid: 843942034cef17e40bf3d6b9f5ed4385, type: 2}
+  titleScreens:
+  - {fileID: 11400000, guid: 7f55d620fb873ae4fac8aded52b769b3, type: 2}
   conditions:
   - {fileID: 11400000, guid: aa000001000000000000000000000001, type: 2}
   - {fileID: 11400000, guid: aa000001000000000000000000000002, type: 2}

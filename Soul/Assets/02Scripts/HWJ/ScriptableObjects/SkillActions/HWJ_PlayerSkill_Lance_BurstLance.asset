@@ -14,10 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HWJ_SkillActionDataSO
   skillActionId: player_lance_burst_lance
   sourceSkillId: 1205
-  displayName: "Burst Lance"
-  skillDescription: "창 끝에 기를 모은다음 적을 꿰뚫으며 대쉬한다."
-  effectId: ""
-  soundId: ""
+  displayName: Burst Lance
+  skillDescription: "\uCC3D \uB05D\uC5D0 \uAE30\uB97C \uBAA8\uC740\uB2E4\uC74C \uC801\uC744
+    \uAFF0\uB6AB\uC73C\uBA70 \uB300\uC26C\uD55C\uB2E4."
+  effectId: 
+  soundId: 
   actionType: 4
   requiredWeaponType: 4
   authoredAttackPower: 40
@@ -55,4 +56,4 @@ MonoBehaviour:
   motionSequenceKeys: []
   motionStepIntervalSeconds: 0.12
   projectilePrefab: {fileID: 0}
-  actionEffectPrefab: {fileID: 0}
+  actionEffectPrefab: {fileID: 1789818940086245750, guid: 10fe42cf5010cd149a67ad97d1679dc1, type: 3}

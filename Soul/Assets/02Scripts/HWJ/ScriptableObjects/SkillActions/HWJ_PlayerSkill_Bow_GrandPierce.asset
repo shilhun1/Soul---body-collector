@@ -14,10 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HWJ_SkillActionDataSO
   skillActionId: player_bow_grand_pierce
   sourceSkillId: 1404
-  displayName: "Grand Pierce"
-  skillDescription: "마법으로 소환한 거대한 화살을 전방으로 발사해 공격한다."
-  effectId: ""
-  soundId: ""
+  displayName: Grand Pierce
+  skillDescription: "\uB9C8\uBC95\uC73C\uB85C \uC18C\uD658\uD55C \uAC70\uB300\uD55C
+    \uD654\uC0B4\uC744 \uC804\uBC29\uC73C\uB85C \uBC1C\uC0AC\uD574 \uACF5\uACA9\uD55C\uB2E4."
+  effectId: 
+  soundId: 
   actionType: 2
   requiredWeaponType: 5
   authoredAttackPower: 26
@@ -55,4 +56,4 @@ MonoBehaviour:
   motionSequenceKeys: []
   motionStepIntervalSeconds: 0.12
   projectilePrefab: {fileID: 1612884427718262848, guid: 51001f84643537349b7a6b8b384e3429, type: 3}
-  actionEffectPrefab: {fileID: 0}
+  actionEffectPrefab: {fileID: 3843272902822455368, guid: 05ae783d768bf0545814d126f70b5730, type: 3}

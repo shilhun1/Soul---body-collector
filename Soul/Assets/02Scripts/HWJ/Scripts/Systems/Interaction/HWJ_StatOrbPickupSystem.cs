@@ -1,44 +1,49 @@
 using UnityEngine;
 
 /// <summary>
-/// 씬에 배치된 능력치 구슬의 상호작용 컴포넌트입니다.
-/// StatOrbDataSO를 RuntimeStatusSystem에 적용하고, 수집 후 오브젝트를 제거합니다.
+/// Runtime pickup for stat orbs.
+/// It applies StatOrbDataSO to the player's runtime status and can softly pull itself toward the player.
 /// </summary>
-
-
 public class HWJ_StatOrbPickupSystem : MonoBehaviour
 {
-    [Header("구슬 먹는 시간")]
-    [SerializeField] private float collectDelaySeconds;
+    [Header("Collect")]
+    [SerializeField] private float collectDelaySeconds = 0.35f;
 
-    [Header("능력치 구슬")]
+    [Header("Stat Orb")]
     [SerializeField] private HWJ_StatOrbDataSO statOrbData;
     [SerializeField] private HWJ_ObjectPoolSystem objectPool;
     [SerializeField] private bool destroyOnCollect = true;
 
-    [Header("흡수 이동")]
+    [Header("Attraction")]
     [SerializeField] private Transform targetTransform;
     [SerializeField] private HWJ_RuntimeStatusSystem targetStatus;
     [SerializeField] private bool moveToTarget = true;
-    [SerializeField] private float attractionStartDistance = 3f;
-    [SerializeField] private float collectDistance = 0.35f;
-    [SerializeField] private float moveSpeed = 4f;
-    [SerializeField] private float acceleration = 10f;
-    [SerializeField] private float initialDelaySeconds = 0.15f;
+    [SerializeField] private bool autoResolvePlayerTarget = true;
+    [SerializeField] private float attractionStartDistance = 4f;
+    [SerializeField] private float collectDistance = 0.45f;
+    [SerializeField] private float targetSearchIntervalSeconds = 0.25f;
+    [SerializeField] private float moveSpeed = 2.25f;
+    [SerializeField] private float acceleration = 5.5f;
+    [SerializeField] private float initialDelaySeconds = 0.25f;
     [SerializeField] private float lifeTimeSeconds = 12f;
+
+    [Header("Visual")]
+    [SerializeField] private bool controlAnimatorSpeed = true;
+    [SerializeField] private float animationSpeedMultiplier = 0.55f;
 
     private bool isCollected;
     private float spawnedTime;
     private float currentMoveSpeed;
+    private float nextTargetSearchTime;
 
     public HWJ_StatOrbDataSO StatOrbData => statOrbData;
     public bool IsCollected => isCollected;
 
     private void OnEnable()
     {
-        spawnedTime = Time.time;
-        currentMoveSpeed = Mathf.Max(0f, moveSpeed);
-        isCollected = false;
+        ResetRuntimeState();
+        ApplyAnimatorSpeed();
+        TryResolvePlayerTargetIfNeeded(true);
     }
 
     private void Update()
@@ -54,7 +59,14 @@ public class HWJ_StatOrbPickupSystem : MonoBehaviour
             return;
         }
 
+        TryResolvePlayerTargetIfNeeded(false);
+
         if (!moveToTarget || targetTransform == null || targetStatus == null)
+        {
+            return;
+        }
+
+        if (statOrbData != null && !targetStatus.CanApplyStatOrb(statOrbData))
         {
             return;
         }
@@ -109,9 +121,9 @@ public class HWJ_StatOrbPickupSystem : MonoBehaviour
             objectPool = pool;
         }
 
-        spawnedTime = Time.time;
-        currentMoveSpeed = Mathf.Max(0f, moveSpeed);
-        isCollected = false;
+        ResetRuntimeState();
+        ApplyAnimatorSpeed();
+        TryResolvePlayerTargetIfNeeded(true);
     }
 
     public bool TryCollect(GameObject collector)
@@ -131,18 +143,12 @@ public class HWJ_StatOrbPickupSystem : MonoBehaviour
         return TryCollect(collectorStatus);
     }
 
-    private bool CancollectNow()
-    {
-        return Time.time - spawnedTime >= Mathf.Max(0f, collectDelaySeconds);
-    }
-
     /// <summary>
-    /// 대상 런타임 상태에 구슬 효과를 적용합니다.
-    /// 플레이어뿐 아니라 버프를 받을 수 있는 다른 오브젝트에도 재사용할 수 있습니다.
+    /// Applies the orb to the requested runtime status, then returns this pickup through pooling when possible.
     /// </summary>
     public bool TryCollect(HWJ_RuntimeStatusSystem collectorStatus)
     {
-        if (!CancollectNow() || isCollected || statOrbData == null || collectorStatus == null)
+        if (!CanCollectNow() || isCollected || statOrbData == null || collectorStatus == null)
         {
             return false;
         }
@@ -153,7 +159,6 @@ public class HWJ_StatOrbPickupSystem : MonoBehaviour
         }
 
         isCollected = true;
-
         SpawnCollectEffect();
 
         if (destroyOnCollect)
@@ -162,6 +167,72 @@ public class HWJ_StatOrbPickupSystem : MonoBehaviour
         }
 
         return true;
+    }
+
+    private void ResetRuntimeState()
+    {
+        spawnedTime = Time.time;
+        currentMoveSpeed = Mathf.Max(0f, moveSpeed);
+        nextTargetSearchTime = 0f;
+        isCollected = false;
+    }
+
+    private bool CanCollectNow()
+    {
+        return Time.time - spawnedTime >= Mathf.Max(0f, collectDelaySeconds);
+    }
+
+    private void TryResolvePlayerTargetIfNeeded(bool force)
+    {
+        if (!autoResolvePlayerTarget)
+        {
+            return;
+        }
+
+        if (targetTransform != null && targetStatus == null)
+        {
+            targetStatus = targetTransform.GetComponent<HWJ_RuntimeStatusSystem>();
+
+            if (targetStatus == null)
+            {
+                targetStatus = targetTransform.GetComponentInParent<HWJ_RuntimeStatusSystem>();
+            }
+        }
+
+        if (targetTransform != null && targetStatus != null)
+        {
+            return;
+        }
+
+        if (!force && Time.time < nextTargetSearchTime)
+        {
+            return;
+        }
+
+        nextTargetSearchTime = Time.time + Mathf.Max(0.05f, targetSearchIntervalSeconds);
+
+        if (HWJ_PickupTargetUtility.TryResolvePlayerStatusTarget(
+            out HWJ_RuntimeStatusSystem resolvedStatus,
+            out Transform resolvedTargetTransform))
+        {
+            targetStatus = resolvedStatus;
+            targetTransform = resolvedTargetTransform;
+        }
+    }
+
+    private void ApplyAnimatorSpeed()
+    {
+        if (!controlAnimatorSpeed)
+        {
+            return;
+        }
+
+        Animator animator = GetComponent<Animator>();
+
+        if (animator != null)
+        {
+            animator.speed = Mathf.Max(0.05f, animationSpeedMultiplier);
+        }
     }
 
     private void SpawnCollectEffect()
