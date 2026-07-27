@@ -104,14 +104,14 @@ MonoBehaviour:
     additionalRuleExecutionCoreId: boss_entry_execution
   possessionBody:
     canPossess: 0
-    canBePossessed: 1
+    canBePossessed: 0
     possessableHeartEffectPrefab: {fileID: 0}
     heartSocketName: 
     possessionRange: 2
     requiresDefeatedState: 1
     transfersControlToBody: 1
     loadsBodyStatsToPlayer: 1
-    overrideBodyDecayOnPossession: 1
+    overrideBodyDecayOnPossession: 0
     possessedBodyDecayOverride:
       initialDecayValue: 0
       maxDecayValue: 240

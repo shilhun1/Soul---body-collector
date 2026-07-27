@@ -96,7 +96,7 @@ public class HWJ_CollapseSystem : MonoBehaviour
         runtimeStatus?.LockControl(0.1f);
         possessedBodySystem?.MarkCurrentBodyCollapsed();
 
-        soulSystem.EnterSoulState(refillSoulHp);
+        soulSystem.EnterSoulState(refillSoulHp, ResolvePossessedBodyExitReason(reason));
 
         HWJ_BodyCollapseResult result = HWJ_BodyCollapseResult.Success(
             reason,
@@ -198,6 +198,13 @@ public class HWJ_CollapseSystem : MonoBehaviour
         lastFailureCode = result.FailureCode;
         lastCollapseReason = result.Reason;
         lastCollapseMessage = result.Message;
+    }
+
+    private static HWJ_PossessedBodyExitReason ResolvePossessedBodyExitReason(HWJ_BodyCollapseReason reason)
+    {
+        return reason == HWJ_BodyCollapseReason.HpDepleted
+            ? HWJ_PossessedBodyExitReason.HpDepleted
+            : HWJ_PossessedBodyExitReason.ForcedClear;
     }
 
     private void ResolveReferences()

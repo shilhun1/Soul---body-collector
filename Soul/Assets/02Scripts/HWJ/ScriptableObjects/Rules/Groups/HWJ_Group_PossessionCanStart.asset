@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: HWJ_Group_PossessionCanStart
   m_EditorClassIdentifier: Assembly-CSharp::HWJ_ConditionGroupSO
   conditionId: group_possession_can_start
-  description: Soul player can possess a valid defeated possessable target inside range.
+  description: Soul player can possess a valid defeated non-boss enemy target inside range.
   invertResult: 0
   passWhenContextMissing: 0
   groupMode: 0
@@ -25,4 +25,5 @@ MonoBehaviour:
   - {fileID: 11400000, guid: aa00000100000000000000000000000c, type: 2}
   - {fileID: 11400000, guid: aa00000100000000000000000000000d, type: 2}
   - {fileID: 11400000, guid: aa00000100000000000000000000000e, type: 2}
+  - {fileID: 11400000, guid: aa000001000000000000000000000017, type: 2}
   - {fileID: 11400000, guid: aa000001000000000000000000000014, type: 2}

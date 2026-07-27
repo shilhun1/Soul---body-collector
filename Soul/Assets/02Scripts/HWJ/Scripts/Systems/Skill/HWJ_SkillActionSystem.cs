@@ -587,7 +587,9 @@ public class HWJ_SkillActionSystem : MonoBehaviour
             range,
             skillAction.DamageMultiplier,
             skillAction.MotionKey,
-            false);
+            false,
+            skillAction,
+            HWJ_GimmickHitSource.DashContact);
 
         if (damaged)
         {
@@ -680,7 +682,9 @@ public class HWJ_SkillActionSystem : MonoBehaviour
             range,
             skillAction.DamageMultiplier,
             skillAction.MotionKey,
-            playMotion);
+            playMotion,
+            skillAction,
+            HWJ_GimmickHitSource.AreaAttack);
 
         lastDamageApplied = combatExecutionSystem.LastDamageApplied;
         lastSkillResult = damaged
@@ -1032,6 +1036,18 @@ internal class HWJ_RuntimeSkillProjectile : MonoBehaviour
             if (hit == null || owner != null && hit.transform.IsChildOf(owner))
             {
                 continue;
+            }
+
+            if (HWJ_WeaponGimmickActivatorUtility.TryActivateFromHit(
+                hit,
+                owner,
+                skillAction,
+                HWJ_GimmickHitSource.Projectile,
+                out bool consumeProjectile,
+                out _)
+                && consumeProjectile)
+            {
+                return true;
             }
 
             HWJ_RootObjectDataResolver targetResolver = hit.GetComponentInParent<HWJ_RootObjectDataResolver>();

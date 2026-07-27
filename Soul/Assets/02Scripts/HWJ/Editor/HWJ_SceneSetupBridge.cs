@@ -107,7 +107,7 @@ public static class HWJ_SceneSetupBridge
         EnsurePlayerComponent<HWJ_SoulSystem>(playerResolver.gameObject, changes);
         EnsurePlayerComponent<HWJ_PossessedBodySystem>(playerResolver.gameObject, changes);
         EnsurePlayerComponent<HWJ_PossessionSystem>(playerResolver.gameObject, changes);
-        EnsurePlayerComponent<HWJ_BodyDecaySystem>(playerResolver.gameObject, changes);
+        EnsurePlayerPossessionMentalComponent(playerResolver.gameObject, changes);
         EnsurePlayerComponent<HWJ_CollapseSystem>(playerResolver.gameObject, changes);
         EnsurePlayerComponent<HWJ_BodyDiscoverySystem>(playerResolver.gameObject, changes);
 
@@ -154,6 +154,17 @@ public static class HWJ_SceneSetupBridge
 
         Undo.AddComponent<T>(playerObject);
         changes.Add($"Added `{typeof(T).Name}` to `{GetSceneObjectPath(playerObject)}`.");
+    }
+
+    private static void EnsurePlayerPossessionMentalComponent(GameObject playerObject, List<string> changes)
+    {
+        if (playerObject.GetComponent<HWJ_BodyDecaySystem>() != null)
+        {
+            return;
+        }
+
+        Undo.AddComponent<HWJ_PossessionMentalSystem>(playerObject);
+        changes.Add($"Added `HWJ_PossessionMentalSystem` to `{GetSceneObjectPath(playerObject)}`.");
     }
 
     private static void WireGameManagerPlayerReferences(

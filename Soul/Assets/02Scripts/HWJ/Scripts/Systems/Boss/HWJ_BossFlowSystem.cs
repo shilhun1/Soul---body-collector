@@ -506,7 +506,7 @@ public class HWJ_BossFlowSystem : MonoBehaviour
                 return HWJ_BossFlowResult.Fail(
                     operationType,
                     HWJ_BossFlowFailureCode.MissingBodyDecaySystem,
-                    "Boss flow failed: missing player body decay system.");
+                    "Boss flow failed: missing player possession mental system.");
             }
 
             if (playerBodyDecaySystem.CurrentDecayRatio > requirements.maximumCurrentDecayRatio)
@@ -514,7 +514,7 @@ public class HWJ_BossFlowSystem : MonoBehaviour
                 return HWJ_BossFlowResult.Fail(
                     operationType,
                     HWJ_BossFlowFailureCode.PossessedBodyDecayTooHigh,
-                    $"Boss flow failed: possessed body decay ratio must be {requirements.maximumCurrentDecayRatio} or lower.");
+                    $"Boss flow failed: consumed possession mental ratio must be {requirements.maximumCurrentDecayRatio} or lower.");
             }
         }
 

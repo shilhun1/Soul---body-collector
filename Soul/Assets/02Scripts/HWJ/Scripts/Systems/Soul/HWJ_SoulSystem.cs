@@ -111,12 +111,14 @@ public class HWJ_SoulSystem : MonoBehaviour
 
     /// <summary>
     /// 현재 플레이어를 영혼 상태로 전환하고 데드라인 타이머를 초기화합니다.
-    /// 육신 부패가 끝났거나 HP가 0이 되었을 때 호출합니다.
+    /// 빙의체 정신력이 0이 되었거나 HP가 0이 되었을 때 호출합니다.
     /// </summary>
-    public void EnterSoulState(bool refillSoulHp = false)
+    public void EnterSoulState(
+        bool refillSoulHp = false,
+        HWJ_PossessedBodyExitReason bodyExitReason = HWJ_PossessedBodyExitReason.MentalDepleted)
     {
         runtimeStatus?.CacheCurrentHpForActiveState();
-        possessionSystem?.ClearPossessedBody(false);
+        possessionSystem?.ClearPossessedBody(false, false, true, bodyExitReason);
         SetSoulState(HWJ_SoulRuntimeState.BodyToSoul);
         bodyToSoulTransitionTimer = bodyToSoulTransitionSeconds;
         soulDeadlineTimer = 0f;
