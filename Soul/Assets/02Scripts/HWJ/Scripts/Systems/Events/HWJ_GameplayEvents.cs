@@ -175,6 +175,52 @@ public readonly struct HWJ_DecayDangerLevelChangedEvent
     }
 }
 
+public readonly struct HWJ_SpiritOrbSwitchEvent
+{
+    public readonly HWJ_SpiritOrbSwitchSystem SwitchSystem;
+    public readonly string SwitchId;
+    public readonly GameObject PlayerObject;
+    public readonly bool Activated;
+    public readonly string Message;
+
+    public HWJ_SpiritOrbSwitchEvent(
+        HWJ_SpiritOrbSwitchSystem switchSystem,
+        string switchId,
+        GameObject playerObject,
+        bool activated,
+        string message)
+    {
+        SwitchSystem = switchSystem;
+        SwitchId = switchId;
+        PlayerObject = playerObject;
+        Activated = activated;
+        Message = message;
+    }
+}
+
+public readonly struct HWJ_BodyObstacleGateEvent
+{
+    public readonly HWJ_BodyExclusiveObstacleSystem ObstacleSystem;
+    public readonly string ObstacleId;
+    public readonly GameObject PlayerObject;
+    public readonly bool IsOpen;
+    public readonly string Message;
+
+    public HWJ_BodyObstacleGateEvent(
+        HWJ_BodyExclusiveObstacleSystem obstacleSystem,
+        string obstacleId,
+        GameObject playerObject,
+        bool isOpen,
+        string message)
+    {
+        ObstacleSystem = obstacleSystem;
+        ObstacleId = obstacleId;
+        PlayerObject = playerObject;
+        IsOpen = isOpen;
+        Message = message;
+    }
+}
+
 public readonly struct HWJ_BodyCollapseEvent
 {
     public readonly HWJ_CollapseSystem CollapseSystem;
@@ -508,6 +554,33 @@ public readonly struct HWJ_StageProgressionEvent
     }
 }
 
+public readonly struct HWJ_StageChoiceRewardOfferedEvent
+{
+    public readonly HWJ_StageChoiceRewardSystem RewardSystem;
+    public readonly HWJ_StageChoiceRewardDataSO RewardData;
+    public readonly string Message;
+
+    public HWJ_StageChoiceRewardOfferedEvent(
+        HWJ_StageChoiceRewardSystem rewardSystem,
+        HWJ_StageChoiceRewardDataSO rewardData,
+        string message)
+    {
+        RewardSystem = rewardSystem;
+        RewardData = rewardData;
+        Message = message;
+    }
+}
+
+public readonly struct HWJ_StageChoiceRewardSelectedEvent
+{
+    public readonly HWJ_StageChoiceRewardResult Result;
+
+    public HWJ_StageChoiceRewardSelectedEvent(HWJ_StageChoiceRewardResult result)
+    {
+        Result = result;
+    }
+}
+
 public readonly struct HWJ_BossPhaseChangedEvent
 {
     public readonly HWJ_BossBrainSystem BossBrain;
@@ -599,6 +672,10 @@ public static class HWJ_GameplayEvents
     public static event Action<HWJ_PossessedBodyRuntimeStateChangedEvent> PossessedBodyRuntimeStateChanged;
     public static event Action<HWJ_BodyDecayChangedEvent> BodyDecayChanged;
     public static event Action<HWJ_DecayDangerLevelChangedEvent> DecayDangerLevelChanged;
+    public static event Action<HWJ_BodyDecayChangedEvent> PossessionMentalChanged;
+    public static event Action<HWJ_DecayDangerLevelChangedEvent> PossessionMentalDangerLevelChanged;
+    public static event Action<HWJ_SpiritOrbSwitchEvent> SpiritOrbSwitchChanged;
+    public static event Action<HWJ_BodyObstacleGateEvent> BodyObstacleGateChanged;
     public static event Action<HWJ_BodyCollapseEvent> BodyCollapseStarted;
     public static event Action<HWJ_BodyCollapseEvent> BodyCollapsed;
     public static event Action<HWJ_AbilityUsedEvent> AbilityUsed;
@@ -617,6 +694,8 @@ public static class HWJ_GameplayEvents
     public static event Action<HWJ_StageProgressionEvent> BossDefeated;
     public static event Action<HWJ_StageProgressionEvent> StageCleared;
     public static event Action<HWJ_StageProgressionEvent> RegionUnlocked;
+    public static event Action<HWJ_StageChoiceRewardOfferedEvent> StageChoiceRewardOffered;
+    public static event Action<HWJ_StageChoiceRewardSelectedEvent> StageChoiceRewardSelected;
     public static event Action<HWJ_BossPhaseChangedEvent> BossPhaseChanged;
     public static event Action<HWJ_SaveCompletedEvent> SaveCompleted;
     public static event Action<HWJ_LoadCompletedEvent> LoadCompleted;
@@ -667,11 +746,23 @@ public static class HWJ_GameplayEvents
     public static void RaiseBodyDecayChanged(HWJ_BodyDecayChangedEvent decayEvent)
     {
         BodyDecayChanged?.Invoke(decayEvent);
+        PossessionMentalChanged?.Invoke(decayEvent);
     }
 
     public static void RaiseDecayDangerLevelChanged(HWJ_DecayDangerLevelChangedEvent dangerEvent)
     {
         DecayDangerLevelChanged?.Invoke(dangerEvent);
+        PossessionMentalDangerLevelChanged?.Invoke(dangerEvent);
+    }
+
+    public static void RaiseSpiritOrbSwitchChanged(HWJ_SpiritOrbSwitchEvent switchEvent)
+    {
+        SpiritOrbSwitchChanged?.Invoke(switchEvent);
+    }
+
+    public static void RaiseBodyObstacleGateChanged(HWJ_BodyObstacleGateEvent obstacleEvent)
+    {
+        BodyObstacleGateChanged?.Invoke(obstacleEvent);
     }
 
     public static void RaiseBodyCollapseStarted(HWJ_BodyCollapseEvent collapseEvent)
@@ -764,6 +855,16 @@ public static class HWJ_GameplayEvents
         RegionUnlocked?.Invoke(progressionEvent);
     }
 
+    public static void RaiseStageChoiceRewardOffered(HWJ_StageChoiceRewardOfferedEvent rewardEvent)
+    {
+        StageChoiceRewardOffered?.Invoke(rewardEvent);
+    }
+
+    public static void RaiseStageChoiceRewardSelected(HWJ_StageChoiceRewardSelectedEvent rewardEvent)
+    {
+        StageChoiceRewardSelected?.Invoke(rewardEvent);
+    }
+
     public static void RaiseBossPhaseChanged(HWJ_BossPhaseChangedEvent phaseEvent)
     {
         BossPhaseChanged?.Invoke(phaseEvent);
@@ -806,6 +907,10 @@ public static class HWJ_GameplayEvents
         PossessedBodyRuntimeStateChanged = null;
         BodyDecayChanged = null;
         DecayDangerLevelChanged = null;
+        PossessionMentalChanged = null;
+        PossessionMentalDangerLevelChanged = null;
+        SpiritOrbSwitchChanged = null;
+        BodyObstacleGateChanged = null;
         BodyCollapseStarted = null;
         BodyCollapsed = null;
         AbilityUsed = null;
@@ -824,6 +929,8 @@ public static class HWJ_GameplayEvents
         BossDefeated = null;
         StageCleared = null;
         RegionUnlocked = null;
+        StageChoiceRewardOffered = null;
+        StageChoiceRewardSelected = null;
         BossPhaseChanged = null;
         SaveCompleted = null;
         LoadCompleted = null;

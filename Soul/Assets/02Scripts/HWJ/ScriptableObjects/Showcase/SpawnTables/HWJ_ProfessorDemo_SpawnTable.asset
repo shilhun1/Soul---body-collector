@@ -1,0 +1,86 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d1a5acc17f284fdd907014eda3e72398, type: 3}
+  m_Name: HWJ_ProfessorDemo_SpawnTable
+  m_EditorClassIdentifier: HWJ.Runtime::HWJ_SpawnTableDataSO
+  tableId: spawn.professor_demo.hwj
+  entries:
+  - spawnId: demo_enemy_sword_wave
+    spawnPointId: enemy_Sword
+    spawnPointType: 1
+    rootObjectData: {fileID: 11400000, guid: cc000000000000000000000000000001, type: 2}
+    prefabOverride: {fileID: 6048748800978366215, guid: ac67c8d81bcfb4a429560bd01182eefc, type: 3}
+    spawnCount: 2
+    spawnDelaySeconds: 0
+    useSequentialSpawnWhenMultiple: 1
+    waitUntilCurrentSpawnedMonstersDefeated: 1
+    nextSpawnMaxWaitSeconds: 6
+    skipSpawnWhenRewardClaimed: 0
+    spawnOffset: {x: 0, y: 0}
+    randomizePoint: 0
+    spawnOnStart: 1
+  - spawnId: demo_enemy_shield_gate
+    spawnPointId: enemy_Shield
+    spawnPointType: 1
+    rootObjectData: {fileID: 11400000, guid: cc000000000000000000000000000004, type: 2}
+    prefabOverride: {fileID: 6048748800978366215, guid: ac67c8d81bcfb4a429560bd01182eefc, type: 3}
+    spawnCount: 1
+    spawnDelaySeconds: 0.5
+    useSequentialSpawnWhenMultiple: 1
+    waitUntilCurrentSpawnedMonstersDefeated: 1
+    nextSpawnMaxWaitSeconds: 5
+    skipSpawnWhenRewardClaimed: 0
+    spawnOffset: {x: 0, y: 0}
+    randomizePoint: 0
+    spawnOnStart: 1
+  - spawnId: demo_enemy_lance_route
+    spawnPointId: enemy_Lance
+    spawnPointType: 1
+    rootObjectData: {fileID: 11400000, guid: cc000000000000000000000000000002, type: 2}
+    prefabOverride: {fileID: 6048748800978366215, guid: ac67c8d81bcfb4a429560bd01182eefc, type: 3}
+    spawnCount: 1
+    spawnDelaySeconds: 1
+    useSequentialSpawnWhenMultiple: 1
+    waitUntilCurrentSpawnedMonstersDefeated: 1
+    nextSpawnMaxWaitSeconds: 5
+    skipSpawnWhenRewardClaimed: 0
+    spawnOffset: {x: 0, y: 0}
+    randomizePoint: 0
+    spawnOnStart: 1
+  - spawnId: demo_enemy_bow_range
+    spawnPointId: enemy_Bow
+    spawnPointType: 1
+    rootObjectData: {fileID: 11400000, guid: cc000000000000000000000000000005, type: 2}
+    prefabOverride: {fileID: 6048748800978366215, guid: ac67c8d81bcfb4a429560bd01182eefc, type: 3}
+    spawnCount: 1
+    spawnDelaySeconds: 1.5
+    useSequentialSpawnWhenMultiple: 1
+    waitUntilCurrentSpawnedMonstersDefeated: 1
+    nextSpawnMaxWaitSeconds: 5
+    skipSpawnWhenRewardClaimed: 0
+    spawnOffset: {x: 0, y: 0}
+    randomizePoint: 0
+    spawnOnStart: 1
+  - spawnId: demo_enemy_axe_power
+    spawnPointId: enemy_Axe
+    spawnPointType: 1
+    rootObjectData: {fileID: 11400000, guid: cc000000000000000000000000000003, type: 2}
+    prefabOverride: {fileID: 6048748800978366215, guid: ac67c8d81bcfb4a429560bd01182eefc, type: 3}
+    spawnCount: 1
+    spawnDelaySeconds: 2
+    useSequentialSpawnWhenMultiple: 1
+    waitUntilCurrentSpawnedMonstersDefeated: 1
+    nextSpawnMaxWaitSeconds: 5
+    skipSpawnWhenRewardClaimed: 0
+    spawnOffset: {x: 0, y: 0}
+    randomizePoint: 0
+    spawnOnStart: 1

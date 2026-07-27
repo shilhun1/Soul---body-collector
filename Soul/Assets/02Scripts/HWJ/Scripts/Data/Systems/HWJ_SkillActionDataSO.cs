@@ -111,27 +111,27 @@ public class HWJ_SkillActionDataSO : ScriptableObject
     [InspectorName("무적 시간")]
     [SerializeField] private float invincibilitySeconds;
 
-    [Header("빙의 몸 부패")]
-    [Tooltip("켜면 PlayerTypeData의 기본 스킬 부패량 대신 이 스킬 전용 부패량을 사용합니다.")]
-    [InspectorName("전용 부패량 사용")]
+    [Header("빙의체 정신력 소모")]
+    [Tooltip("켜면 PlayerTypeData의 기본 스킬 정신력 소모량 대신 이 스킬 전용 정신력 소모량을 사용합니다.")]
+    [InspectorName("전용 정신력 소모 사용")]
     [SerializeField] private bool usesCustomBodyDecayAmount;
-    [Tooltip("전용으로 사용할 스킬 부패량입니다.")]
-    [InspectorName("전용 부패량")]
+    [Tooltip("전용으로 사용할 스킬 정신력 소모량입니다.")]
+    [InspectorName("전용 정신력 소모량")]
     [SerializeField] private float customBodyDecayAmount;
-    [Tooltip("기본 스킬 부패량에 추가로 더할 부패량입니다.")]
-    [InspectorName("추가 부패량")]
+    [Tooltip("기본 스킬 정신력 소모량에 추가로 더할 값입니다.")]
+    [InspectorName("추가 정신력 소모량")]
     [SerializeField] private float additionalBodyDecayAmount;
-    [Tooltip("켜면 콤보 단계에 따라 부패량 배율을 적용합니다.")]
-    [InspectorName("콤보 부패 배율 사용")]
+    [Tooltip("켜면 콤보 단계에 따라 정신력 소모 배율을 적용합니다.")]
+    [InspectorName("콤보 정신력 배율 사용")]
     [SerializeField] private bool usesComboBodyDecayMultiplier;
-    [Tooltip("콤보 단계에 적용할 부패량 배율입니다.")]
-    [InspectorName("콤보 부패 배율")]
+    [Tooltip("콤보 단계에 적용할 정신력 소모 배율입니다.")]
+    [InspectorName("콤보 정신력 배율")]
     [SerializeField] private float comboBodyDecayMultiplier = 1f;
-    [Tooltip("차징 시간 1초당 추가되는 부패량입니다.")]
-    [InspectorName("차징 초당 부패량")]
+    [Tooltip("차징 시간 1초당 추가되는 정신력 소모량입니다.")]
+    [InspectorName("차징 초당 정신력 소모량")]
     [SerializeField] private float chargeBodyDecayPerSecond;
-    [Tooltip("차징으로 추가될 수 있는 최대 부패량입니다.")]
-    [InspectorName("차징 최대 부패량")]
+    [Tooltip("차징으로 추가될 수 있는 최대 정신력 소모량입니다.")]
+    [InspectorName("차징 최대 정신력 소모량")]
     [SerializeField] private float maxChargeBodyDecayAmount;
 
     [Header("모션과 에셋")]

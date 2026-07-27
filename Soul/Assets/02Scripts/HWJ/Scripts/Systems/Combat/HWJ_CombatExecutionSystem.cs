@@ -68,7 +68,9 @@ public class HWJ_CombatExecutionSystem : MonoBehaviour
         float attackRange,
         float attackDamageMultiplier,
         string attackMotionKey = null,
-        bool shouldPlayMotion = true)
+        bool shouldPlayMotion = true,
+        HWJ_SkillActionDataSO skillAction = null,
+        HWJ_GimmickHitSource gimmickHitSource = HWJ_GimmickHitSource.AreaAttack)
     {
         lastDamageApplied = 0f;
 
@@ -102,6 +104,18 @@ public class HWJ_CombatExecutionSystem : MonoBehaviour
             if (hit == null || hit.transform.IsChildOf(transform))
             {
                 continue;
+            }
+
+            if (HWJ_WeaponGimmickActivatorUtility.TryActivateFromHit(
+                hit,
+                transform,
+                skillAction,
+                gimmickHitSource,
+                out _,
+                out string gimmickResult))
+            {
+                lastExecutionResult = gimmickResult;
+                return true;
             }
 
             HWJ_RootObjectDataResolver targetResolver = hit.GetComponentInParent<HWJ_RootObjectDataResolver>();

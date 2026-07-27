@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// 런타임 HP, 육신 부패, 영혼 타이머를 하나의 바 표시로 갱신하는 기본 UI 시스템입니다.
+/// 런타임 HP, 빙의체 정신력, 영혼 타이머를 하나의 바 표시로 갱신하는 기본 UI 시스템입니다.
 /// UI Image 대신 Transform 스케일과 SpriteRenderer 색상만 사용해서 UI 방식이 바뀌어도 쉽게 교체할 수 있습니다.
 /// </summary>
 public class HWJ_HealthBarSystem : MonoBehaviour

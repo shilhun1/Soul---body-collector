@@ -1,0 +1,153 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 62b1072cf898fa14b8272b23fb396e5a, type: 3}
+  m_Name: HWJ_ProfessorDemo_LivePossessionResist_TypeData
+  m_EditorClassIdentifier: Assembly-CSharp::HWJ_EnemyTypeDataSO
+  objectType: 1
+  typeId: enemy.professor_demo.live_resist_sword
+  displayName: "\uC2DC\uC5F0\uC6A9 \uC0B4\uC544\uC788\uB294 \uBE59\uC758 \uC800\uD56D
+    \uAC80\uC0AC \uB300\uC0C1"
+  defaultWeaponType: 3
+  description: "\uC0B4\uC544\uC788\uB294 \uB300\uC0C1 \uBE59\uC758 \uC800\uD56D,
+    \uC2E4\uD328 \uC815\uC2E0\uB825 \uBE44\uC6A9, \uC131\uACF5 \uC2DC \uC870\uC791\uAD8C
+    \uC774\uC804\uC744 \uC2DC\uC5F0\uD558\uAE30 \uC704\uD55C \uB370\uC774\uD130\uC785\uB2C8\uB2E4."
+  role:
+    weaponType: 3
+    isElite: 0
+    leavesCorpseOnDeath: 1
+    isPossessableBody: 1
+    guaranteesStatOrb: 0
+  tracking:
+    trackingRange: 7
+    loseTargetRange: 0
+  ai:
+    aiProfileId: 
+    decisionIntervalSeconds: 0.1
+    behaviorTreeId: 
+    idleSeconds: 0.2
+    detectSeconds: 0.15
+    attackPrepareSeconds: 0.25
+    attackRecoverySeconds: 0.35
+    repathSeconds: 0.15
+    defaultSkillCooldownSeconds: 3
+    basicAttackIntervalSeconds: 1.5
+    skillCycleCount: 3
+    skillCycleResetDelaySeconds: 5
+  navigation:
+    stoppingDistance: 1.25
+    pathRefreshSeconds: 0
+    canUsePlatformDrop: 0
+    avoidLedges: 1
+    ledgeCheckForwardDistance: 0.45
+    ledgeCheckDownDistance: 1.2
+    wallCheckDistance: 0.15
+  state:
+    startState: 1
+    attackRange: 1.35
+    returnToIdleDelaySeconds: 1
+    stopWhenHit: 1
+    hasSuperArmor: 0
+    immuneToHitStun: 0
+  skillCycle:
+    skills:
+    - skillId: sword_diagonal_slash
+      requiredWeaponType: 3
+      unlockLevel: 1
+      requiredSkillPoint: 0
+      startsUnlocked: 1
+      cooldownSeconds: 0.6
+      useIntervalSeconds: 0.65
+    - skillId: sword_up_diagonal_slash
+      requiredWeaponType: 3
+      unlockLevel: 1
+      requiredSkillPoint: 0
+      startsUnlocked: 1
+      cooldownSeconds: 0.8
+      useIntervalSeconds: 0.8
+    - skillId: sword_wave
+      requiredWeaponType: 3
+      unlockLevel: 1
+      requiredSkillPoint: 0
+      startsUnlocked: 1
+      cooldownSeconds: 2.5
+      useIntervalSeconds: 1
+  playerPossessionSkillSet:
+    skills:
+    - skillId: player_sword_reap_slash
+      requiredWeaponType: 3
+      unlockLevel: 1
+      requiredSkillPoint: 0
+      startsUnlocked: 1
+      cooldownSeconds: 3
+      useIntervalSeconds: 3
+    - skillId: player_sword_dash_slash
+      requiredWeaponType: 3
+      unlockLevel: 11
+      requiredSkillPoint: 0
+      startsUnlocked: 1
+      cooldownSeconds: 4.5
+      useIntervalSeconds: 4.5
+    - skillId: player_sword_force_slash
+      requiredWeaponType: 3
+      unlockLevel: 21
+      requiredSkillPoint: 0
+      startsUnlocked: 1
+      cooldownSeconds: 9
+      useIntervalSeconds: 9
+    - skillId: player_sword_final_slash
+      requiredWeaponType: 3
+      unlockLevel: 25
+      requiredSkillPoint: 0
+      startsUnlocked: 1
+      cooldownSeconds: 15
+      useIntervalSeconds: 15
+  possessionBody:
+    canPossess: 0
+    canBePossessed: 1
+    possessableHeartEffectPrefab: {fileID: 0}
+    heartSocketName: 
+    possessionRange: 2.2
+    spiritMentalCostOnPossession: 8
+    livePossessionSuccessChance: 0.45
+    livePossessionFailureSpiritMentalCost: 14
+    livePossessionFailureControlLockSeconds: 0.6
+    livePossessionFailureKnockbackPower: 4.2
+    livePossessionFailureKnockbackSeconds: 0.25
+    livePossessionFailureMessage: "\uC0B4\uC544\uC788\uB294 \uC801\uC758 \uC815\uC2E0\uB825
+      \uC800\uD56D\uC5D0 \uBC00\uB824 \uBE59\uC758\uAC00 \uC2E4\uD328\uD588\uB2E4."
+    requiresDefeatedState: 0
+    transfersControlToBody: 1
+    loadsBodyStatsToPlayer: 1
+    overrideBodyDecayOnPossession: 1
+    possessedBodyDecayOverride:
+      resourceDisplayName: "\uBE59\uC758\uCCB4 \uC815\uC2E0\uB825"
+      initialDecayValue: 0
+      maxDecayValue: 150
+      decayTickSeconds: 0.5
+      decayAmountPerTick: 0.7
+      moveDecayPerSecond: 0
+      basicAttackDecayAmount: 0
+      skillDecayAmount: 0
+      actionDecayAmount: 0
+      hitDecayPenalty: 8
+      decayResistance: 0
+      startDecayOnEnterBody: 1
+      enterSoulStateWhenMaxed: 1
+      enterSoulStateWhenEmpty: 1
+      depletedMessage: "\uC774 \uBAB8\uC740 \uB354 \uC774\uC0C1 \uBABB \uC4F0\uACA0\uB2E4."
+      dangerThresholds:
+      - dangerLevel: 1
+        ratio: 0.5
+      - dangerLevel: 2
+        ratio: 0.75
+      - dangerLevel: 3
+        ratio: 0.9

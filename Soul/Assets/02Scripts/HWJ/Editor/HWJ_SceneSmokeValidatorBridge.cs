@@ -105,7 +105,6 @@ public static class HWJ_SceneSmokeValidatorBridge
         List<HWJ_RootObjectDataResolver> enemies = CollectResolversByType(resolvers, HWJ_ObjectType.Enemy);
         List<HWJ_RootObjectDataResolver> bosses = CollectResolversByType(resolvers, HWJ_ObjectType.Boss);
         int possessableBodyCount = CountPossessableBodies(enemies)
-            + CountPossessableBodies(bosses)
             + CountPossessableSpawnEntries(spawners);
 
         ValidateGameManagerSetup(issues, managers);
@@ -548,13 +547,6 @@ public static class HWJ_SceneSmokeValidatorBridge
             return true;
         }
 
-        if (resolver.TryGetTypeData(out HWJ_BossTypeDataSO bossData)
-            && bossData.PossessionBody != null
-            && bossData.PossessionBody.canBePossessed)
-        {
-            return true;
-        }
-
         return false;
     }
 
@@ -568,13 +560,6 @@ public static class HWJ_SceneSmokeValidatorBridge
         if (rootObjectData.TryGetTypeData(out HWJ_EnemyTypeDataSO enemyData)
             && enemyData.PossessionBody != null
             && enemyData.PossessionBody.canBePossessed)
-        {
-            return true;
-        }
-
-        if (rootObjectData.TryGetTypeData(out HWJ_BossTypeDataSO bossData)
-            && bossData.PossessionBody != null
-            && bossData.PossessionBody.canBePossessed)
         {
             return true;
         }

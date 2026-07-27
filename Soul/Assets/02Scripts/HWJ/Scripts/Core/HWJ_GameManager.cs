@@ -22,13 +22,14 @@ public class HWJ_GameManager : MonoBehaviour
     [SerializeField] private bool dontDestroyOnLoad = true;
 
     [Space(8f)]
-    [Header("Player Runtime References")]
+    [Header("플레이어 런타임 참조")]
     [SerializeField] private HWJ_RootObjectDataResolver playerResolver;
     [SerializeField] private HWJ_PlayerInputSystem playerInput;
     [SerializeField] private HWJ_RuntimeStatusSystem playerStatus;
     [SerializeField] private HWJ_LevelUpSystem playerLevel;
     [SerializeField] private HWJ_StatOrbProgressSystem playerStatOrbProgress;
     [SerializeField] private HWJ_SoulSystem playerSoul;
+    [InspectorName("플레이어 빙의체 정신력")]
     [SerializeField] private HWJ_BodyDecaySystem playerBodyDecay;
     [SerializeField] private HWJ_PossessionSystem playerPossession;
 
@@ -38,13 +39,15 @@ public class HWJ_GameManager : MonoBehaviour
     [SerializeField] private bool autoAddMissingPlayerCoreSystems = true;
 
     [Space(8f)]
-    [Header("Player Runtime Persistence")]
+    [Header("플레이어 런타임 유지")]
     [SerializeField] private bool preservePlayerRuntimeAcrossScenes = true;
     [SerializeField] private bool hasPlayerRuntimeSnapshot;
     [SerializeField] private float savedCurrentHp;
     [SerializeField] private float savedSoulHp;
     [SerializeField] private float savedPossessedBodyHp;
+    [InspectorName("빙의체 정신력 스냅샷 보유")]
     [SerializeField] private bool hasBodyDecaySnapshot;
+    [InspectorName("저장된 소모 정신력")]
     [SerializeField] private float savedBodyDecayValue;
     [SerializeField] private bool hasPlayerGrowthSnapshot;
     [SerializeField] private int savedLevel;
@@ -79,6 +82,7 @@ public class HWJ_GameManager : MonoBehaviour
     public HWJ_StatOrbProgressSystem PlayerStatOrbProgress => playerStatOrbProgress;
     public HWJ_SoulSystem PlayerSoul => playerSoul;
     public HWJ_BodyDecaySystem PlayerBodyDecay => playerBodyDecay;
+    public HWJ_BodyDecaySystem PlayerPossessionMental => playerBodyDecay;
     public HWJ_PossessionSystem PlayerPossession => playerPossession;
     public bool IsPaused => isPaused;
 
@@ -284,15 +288,23 @@ public class HWJ_GameManager : MonoBehaviour
 
         GameObject playerObject = resolver.gameObject;
 
-        // These components are required for the current vertical slice: spirit, possession, decay, collapse, and rediscovery.
+        // 현재 핵심 루프에 필요한 영혼, 빙의, 정신력, 붕괴, 재탐색 컴포넌트를 보강한다.
         EnsureComponent<HWJ_RuntimeStatusSystem>(playerObject);
         EnsureComponent<HWJ_StatOrbProgressSystem>(playerObject);
         EnsureComponent<HWJ_SoulSystem>(playerObject);
         EnsureComponent<HWJ_PossessedBodySystem>(playerObject);
         EnsureComponent<HWJ_PossessionSystem>(playerObject);
-        EnsureComponent<HWJ_BodyDecaySystem>(playerObject);
+        EnsurePossessionMentalComponent(playerObject);
         EnsureComponent<HWJ_CollapseSystem>(playerObject);
         EnsureComponent<HWJ_BodyDiscoverySystem>(playerObject);
+    }
+
+    private static void EnsurePossessionMentalComponent(GameObject owner)
+    {
+        if (owner.GetComponent<HWJ_BodyDecaySystem>() == null)
+        {
+            owner.AddComponent<HWJ_PossessionMentalSystem>();
+        }
     }
 
     private static T EnsureComponent<T>(GameObject owner) where T : Component

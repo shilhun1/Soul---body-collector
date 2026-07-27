@@ -8,6 +8,7 @@ public class HWJ_RuntimeObjectContext : MonoBehaviour
     [SerializeField] private HWJ_CombatSystem combatSystem;
     [SerializeField] private HWJ_SoulSystem soulSystem;
     [SerializeField] private HWJ_PossessionSystem possessionSystem;
+    [InspectorName("빙의체 정신력 시스템")]
     [SerializeField] private HWJ_BodyDecaySystem bodyDecaySystem;
     [SerializeField] private HWJ_PossessedBodySystem possessedBodySystem;
     [SerializeField] private HWJ_SkillActionSystem skillActionSystem;
@@ -61,6 +62,15 @@ public class HWJ_RuntimeObjectContext : MonoBehaviour
     }
 
     public HWJ_BodyDecaySystem BodyDecaySystem
+    {
+        get
+        {
+            ResolveReferences();
+            return bodyDecaySystem;
+        }
+    }
+
+    public HWJ_BodyDecaySystem PossessionMentalSystem
     {
         get
         {

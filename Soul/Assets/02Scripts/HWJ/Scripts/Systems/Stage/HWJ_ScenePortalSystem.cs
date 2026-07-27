@@ -5,14 +5,14 @@ using UnityEngine;
 public class HWJ_ScenePortalSystem : MonoBehaviour
 {
     [Header("포탈 이동 대상")]
-    [Tooltip("이동할 씬 이름입니다. 이 씬은 반드시 Build Settings에 등록되어 있어야 합니다.")]
+    [Tooltip("이동할 씬 이름입니다. 해당 씬은 반드시 Build Settings에 등록되어 있어야 합니다.")]
     [SerializeField] private string targetSceneName;
-    [Tooltip("도착 씬에서 이동할 HWJ_SpawnPoint의 Point Id입니다.")]
+    [Tooltip("다음 씬에서 이동할 HWJ_SpawnPoint의 Point Id입니다.")]
     [SerializeField] private string targetSpawnPointId;
 
     [Space(8f)]
     [Header("작동 방식")]
-    [Tooltip("켜져 있으면 포탈 범위 안에서 상호작용 키를 눌러야 이동합니다.")]
+    [Tooltip("켜져 있으면 포탈 범위 안에서 상호작용 입력을 눌러야 이동합니다.")]
     [SerializeField] private bool requireInteractInput = true;
     [Tooltip("켜져 있으면 플레이어가 포탈에 닿는 순간 바로 이동합니다.")]
     [SerializeField] private bool loadImmediatelyOnEnter;
@@ -22,12 +22,23 @@ public class HWJ_ScenePortalSystem : MonoBehaviour
     [SerializeField] private bool requirePlayerTag = true;
 
     [Space(8f)]
+    [Header("스테이지 진행 조건")]
+    [Tooltip("켜면 스테이지 목표가 완료된 뒤에만 포탈을 사용할 수 있습니다.")]
+    [SerializeField] private bool requireStageObjectiveComplete;
+    [Tooltip("목표 완료 상태를 확인할 스테이지 진행 시스템입니다. 비워두면 씬에서 자동으로 찾습니다.")]
+    [SerializeField] private HWJ_StageProgressionSystem stageProgressionSystem;
+    [Tooltip("포탈 사용 직전에 남은 적 수를 다시 검사할 적 카운트 시스템입니다.")]
+    [SerializeField] private HWJ_StageEnemyCountSystem stageEnemyCountSystem;
+    [Tooltip("켜면 포탈을 사용하기 직전에 적 카운트를 강제로 다시 검사합니다.")]
+    [SerializeField] private bool scanEnemyCountBeforeUse = true;
+
+    [Space(8f)]
     [Header("참조")]
     [Tooltip("비워두면 자동으로 찾거나 생성합니다.")]
     [SerializeField] private HWJ_SceneTransitionSystem sceneTransitionSystem;
 
     [Space(8f)]
-    [Header("런타임 결과")]
+    [Header("확인용 결과")]
     [SerializeField] private bool playerInside;
     [SerializeField] private string lastPortalResult;
 
@@ -38,6 +49,7 @@ public class HWJ_ScenePortalSystem : MonoBehaviour
     public string TargetSceneName => targetSceneName;
     public string TargetSpawnPointId => targetSpawnPointId;
     public bool PlayerInside => playerInside;
+    public bool RequireStageObjectiveComplete => requireStageObjectiveComplete;
     public string LastPortalResult => lastPortalResult;
 
     private void Reset()
@@ -81,6 +93,11 @@ public class HWJ_ScenePortalSystem : MonoBehaviour
         if (currentPlayerObject == null)
         {
             lastPortalResult = "포탈 사용 실패: 플레이어가 포탈 범위 안에 없습니다.";
+            return false;
+        }
+
+        if (!CanPassStageProgressionGate())
+        {
             return false;
         }
 
@@ -167,6 +184,60 @@ public class HWJ_ScenePortalSystem : MonoBehaviour
         if (currentPlayerInput == null)
         {
             currentPlayerInput = HWJ_GameAccess.PlayerInput;
+        }
+    }
+
+    private bool CanPassStageProgressionGate()
+    {
+        if (!requireStageObjectiveComplete)
+        {
+            return true;
+        }
+
+        ResolveStageProgressionReferences();
+
+        if (scanEnemyCountBeforeUse && stageEnemyCountSystem != null)
+        {
+            stageEnemyCountSystem.ForceScan("portal_use");
+        }
+
+        if (stageProgressionSystem == null)
+        {
+            lastPortalResult = "포탈 사용 실패: 스테이지 진행 시스템을 찾지 못했습니다.";
+            return false;
+        }
+
+        if (!stageProgressionSystem.ObjectiveComplete)
+        {
+            lastPortalResult = stageEnemyCountSystem != null
+                ? $"포탈 잠김: 남은 적 {stageEnemyCountSystem.RemainingAliveEnemyCount}마리를 모두 처치해야 합니다."
+                : "포탈 잠김: 스테이지 목표를 먼저 완료해야 합니다.";
+            return false;
+        }
+
+        return true;
+    }
+
+    private void ResolveStageProgressionReferences()
+    {
+        if (stageProgressionSystem == null)
+        {
+            stageProgressionSystem = GetComponentInParent<HWJ_StageProgressionSystem>();
+        }
+
+        if (stageProgressionSystem == null)
+        {
+            stageProgressionSystem = FindFirstObjectByType<HWJ_StageProgressionSystem>(FindObjectsInactive.Include);
+        }
+
+        if (stageEnemyCountSystem == null)
+        {
+            stageEnemyCountSystem = GetComponentInParent<HWJ_StageEnemyCountSystem>();
+        }
+
+        if (stageEnemyCountSystem == null)
+        {
+            stageEnemyCountSystem = FindFirstObjectByType<HWJ_StageEnemyCountSystem>(FindObjectsInactive.Include);
         }
     }
 

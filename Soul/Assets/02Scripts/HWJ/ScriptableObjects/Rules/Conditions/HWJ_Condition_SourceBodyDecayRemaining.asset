@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: HWJ_Condition_SourceBodyDecayRemaining
   m_EditorClassIdentifier: Assembly-CSharp::HWJ_BodyDecayConditionSO
   conditionId: source_body_decay_remaining
-  description: Source possessed body must still have decay time remaining.
+  description: Source possessed body must still have possession mental remaining.
   invertResult: 0
   passWhenContextMissing: 0
   actor: 0
-  requirement: 2
+  requirement: 11
   compareMode: 4
   value: 0
   ratio: 0.5

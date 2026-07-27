@@ -22,10 +22,10 @@ public class HWJ_PossessionConditionSO : HWJ_GameplayConditionSO
                 HWJ_SoulSystem sourceSoul = context.GetSoul(HWJ_GameplayActorSlot.Source);
                 return sourceSoul != null
                     && sourceSoul.CurrentExistenceState == HWJ_PlayerExistenceState.Spirit;
-            case HWJ_PossessionRequirement.TargetIsEnemyOrBoss:
+            case HWJ_PossessionRequirement.TargetIsEnemy:
                 HWJ_RootObjectDataResolver target = context.GetResolver(HWJ_GameplayActorSlot.Target);
                 return target != null
-                    && (target.ObjectType == HWJ_ObjectType.Enemy || target.ObjectType == HWJ_ObjectType.Boss);
+                    && target.ObjectType == HWJ_ObjectType.Enemy;
             case HWJ_PossessionRequirement.TargetCanBePossessed:
                 return context.TryGetPossessionData(HWJ_GameplayActorSlot.Target, out HWJ_PossessionData targetPossession)
                     && targetPossession.canBePossessed;

@@ -316,34 +316,34 @@ public static class HWJ_SaveDataRuntimeValidator
     {
         if (bodyData.maxDecayValue < 0f)
         {
-            return Fail(HWJ_SaveDataValidationFailureCode.InvalidDecayRange, "player.body.maxDecayValue", "Max decay value cannot be negative.");
+            return Fail(HWJ_SaveDataValidationFailureCode.InvalidDecayRange, "player.body.maxDecayValue", "Max possession mental value cannot be negative.");
         }
 
         if (requiresBodyValues && bodyData.maxDecayValue <= 0f)
         {
-            return Fail(HWJ_SaveDataValidationFailureCode.InvalidDecayRange, "player.body.maxDecayValue", "Active body decay requires max decay value greater than 0.");
+            return Fail(HWJ_SaveDataValidationFailureCode.InvalidDecayRange, "player.body.maxDecayValue", "Active possession mental requires maxDecayValue greater than 0.");
         }
 
         if (bodyData.currentDecayValue < 0f)
         {
-            return Fail(HWJ_SaveDataValidationFailureCode.InvalidDecayRange, "player.body.currentDecayValue", "Current decay value cannot be negative.");
+            return Fail(HWJ_SaveDataValidationFailureCode.InvalidDecayRange, "player.body.currentDecayValue", "Consumed possession mental value cannot be negative.");
         }
 
         if (bodyData.remainingDecayValue < 0f)
         {
-            return Fail(HWJ_SaveDataValidationFailureCode.InvalidDecayRange, "player.body.remainingDecayValue", "Remaining decay value cannot be negative.");
+            return Fail(HWJ_SaveDataValidationFailureCode.InvalidDecayRange, "player.body.remainingDecayValue", "Remaining possession mental value cannot be negative.");
         }
 
         if (bodyData.maxDecayValue > 0f)
         {
             if (bodyData.currentDecayValue > bodyData.maxDecayValue)
             {
-                return Fail(HWJ_SaveDataValidationFailureCode.InvalidDecayRange, "player.body.currentDecayValue", "Current decay value cannot exceed max decay value.");
+                return Fail(HWJ_SaveDataValidationFailureCode.InvalidDecayRange, "player.body.currentDecayValue", "Consumed possession mental value cannot exceed maxDecayValue.");
             }
 
             if (bodyData.remainingDecayValue > bodyData.maxDecayValue)
             {
-                return Fail(HWJ_SaveDataValidationFailureCode.InvalidDecayRange, "player.body.remainingDecayValue", "Remaining decay value cannot exceed max decay value.");
+                return Fail(HWJ_SaveDataValidationFailureCode.InvalidDecayRange, "player.body.remainingDecayValue", "Remaining possession mental value cannot exceed maxDecayValue.");
             }
         }
 

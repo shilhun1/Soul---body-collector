@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class HWJ_PlayerStartSystem : MonoBehaviour
 {
@@ -15,6 +16,8 @@ public class HWJ_PlayerStartSystem : MonoBehaviour
     [Header("자동 실행")]
     [SerializeField] private bool placeOnStart = true;
     [SerializeField] private bool registerToGameManager = true;
+    [SerializeField] private bool preferPersistentPlayerDuringSceneTransition = true;
+    [SerializeField] private bool destroySceneFallbackPlayersDuringSceneTransition = true;
 
     [Space(8f)]
     [Header("런타임 결과")]
@@ -71,6 +74,15 @@ public class HWJ_PlayerStartSystem : MonoBehaviour
             return;
         }
 
+        if (preferPersistentPlayerDuringSceneTransition
+            && HWJ_SceneTransitionTransfer.HasPendingArrival
+            && TryResolvePersistentTransitionPlayer(out HWJ_RootObjectDataResolver persistentPlayerResolver))
+        {
+            playerResolver = persistentPlayerResolver;
+            DestroySceneFallbackPlayers(playerResolver);
+            return;
+        }
+
         if (HWJ_GameAccess.HasManager && HWJ_GameAccess.Manager.PlayerResolver != null)
         {
             playerResolver = HWJ_GameAccess.Manager.PlayerResolver;
@@ -88,6 +100,60 @@ public class HWJ_PlayerStartSystem : MonoBehaviour
                 playerResolver = resolvers[i];
                 return;
             }
+        }
+    }
+
+    private static bool TryResolvePersistentTransitionPlayer(out HWJ_RootObjectDataResolver persistentPlayerResolver)
+    {
+        persistentPlayerResolver = null;
+        Scene activeScene = SceneManager.GetActiveScene();
+        HWJ_RootObjectDataResolver[] resolvers = FindObjectsByType<HWJ_RootObjectDataResolver>(
+            FindObjectsInactive.Exclude,
+            FindObjectsSortMode.None);
+
+        for (int i = 0; i < resolvers.Length; i++)
+        {
+            HWJ_RootObjectDataResolver resolver = resolvers[i];
+
+            if (resolver == null
+                || resolver.ObjectType != HWJ_ObjectType.Player
+                || resolver.gameObject.scene == activeScene)
+            {
+                continue;
+            }
+
+            persistentPlayerResolver = resolver;
+            return true;
+        }
+
+        return false;
+    }
+
+    private void DestroySceneFallbackPlayers(HWJ_RootObjectDataResolver keepResolver)
+    {
+        if (!destroySceneFallbackPlayersDuringSceneTransition)
+        {
+            return;
+        }
+
+        Scene activeScene = SceneManager.GetActiveScene();
+        HWJ_RootObjectDataResolver[] resolvers = FindObjectsByType<HWJ_RootObjectDataResolver>(
+            FindObjectsInactive.Exclude,
+            FindObjectsSortMode.None);
+
+        for (int i = 0; i < resolvers.Length; i++)
+        {
+            HWJ_RootObjectDataResolver resolver = resolvers[i];
+
+            if (resolver == null
+                || resolver == keepResolver
+                || resolver.ObjectType != HWJ_ObjectType.Player
+                || resolver.gameObject.scene != activeScene)
+            {
+                continue;
+            }
+
+            Destroy(resolver.gameObject);
         }
     }
 
