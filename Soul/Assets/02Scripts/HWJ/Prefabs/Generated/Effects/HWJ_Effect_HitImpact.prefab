@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 20729681830627740}
   - component: {fileID: 3763036845857800593}
   - component: {fileID: 2821246455367481189}
-  - component: {fileID: 8050626998909572598}
+  - component: {fileID: 1786859289109506802}
   m_Layer: 0
   m_Name: HWJ_Effect_HitImpact
   m_TagString: Untagged
@@ -128,7 +128,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 47239df5a05648099a65e4cfb29c845c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: HWJ.Runtime::HWJ_PoolableObject
---- !u!114 &8050626998909572598
+--- !u!114 &1786859289109506802
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -137,7 +137,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 2211602562660978242}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 0}
+  m_Script: {fileID: 11500000, guid: 166c14fbe0e55b846aa228b403b2d21b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: HWJ.Runtime::HWJ_EffectAutoReturnSystem
   animator: {fileID: 3763036845857800593}

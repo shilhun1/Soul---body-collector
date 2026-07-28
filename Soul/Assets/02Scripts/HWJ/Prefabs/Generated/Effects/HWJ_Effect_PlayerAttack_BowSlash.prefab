@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 9143931358104956195}
   - component: {fileID: 8437464303854850394}
   - component: {fileID: 8958632666161988077}
-  - component: {fileID: 2431564215906088937}
+  - component: {fileID: 8709408175849092362}
   m_Layer: 0
   m_Name: HWJ_Effect_PlayerAttack_BowSlash
   m_TagString: Untagged
@@ -128,7 +128,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 47239df5a05648099a65e4cfb29c845c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: HWJ.Runtime::HWJ_PoolableObject
---- !u!114 &2431564215906088937
+--- !u!114 &8709408175849092362
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -137,7 +137,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 3843272902822455368}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 0}
+  m_Script: {fileID: 11500000, guid: 166c14fbe0e55b846aa228b403b2d21b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: HWJ.Runtime::HWJ_EffectAutoReturnSystem
   animator: {fileID: 8437464303854850394}

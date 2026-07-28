@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 9184757197018558691}
   - component: {fileID: 7793376579731913151}
   - component: {fileID: 178980834828038490}
-  - component: {fileID: 2946505163587783543}
+  - component: {fileID: 5425091572980763952}
   m_Layer: 0
   m_Name: HWJ_Effect_PlayerAttack_AxeSlash
   m_TagString: Untagged
@@ -128,7 +128,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 47239df5a05648099a65e4cfb29c845c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: HWJ.Runtime::HWJ_PoolableObject
---- !u!114 &2946505163587783543
+--- !u!114 &5425091572980763952
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -137,7 +137,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 7710738139687680710}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 0}
+  m_Script: {fileID: 11500000, guid: 166c14fbe0e55b846aa228b403b2d21b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: HWJ.Runtime::HWJ_EffectAutoReturnSystem
   animator: {fileID: 7793376579731913151}

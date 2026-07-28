@@ -21,7 +21,7 @@ GameObject:
   - component: {fileID: 840020000000000010}
   - component: {fileID: 840020000000000011}
   - component: {fileID: 840020000000000012}
-  - component: {fileID: 2170516685018477235}
+  - component: {fileID: 457825970489797690}
   m_Layer: 0
   m_Name: HWJ_MidBoss1_Runtime_Prefab
   m_TagString: Untagged
@@ -486,7 +486,7 @@ MonoBehaviour:
   flipTransformScaleWhenNoSpriteRenderer: 0
   moveThreshold: 0.05
   facingThreshold: 0.01
---- !u!114 &2170516685018477235
+--- !u!114 &457825970489797690
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -495,7 +495,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 840020000000000001}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 0}
+  m_Script: {fileID: 11500000, guid: d1add6c8debe32248bd2f8dfe2811000, type: 3}
   m_Name: 
   m_EditorClassIdentifier: HWJ.Runtime::HWJ_HitEffectSystem
   runtimeStatus: {fileID: 840020000000000006}

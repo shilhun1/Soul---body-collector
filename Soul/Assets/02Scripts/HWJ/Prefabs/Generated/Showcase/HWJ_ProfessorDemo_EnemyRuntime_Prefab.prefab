@@ -24,7 +24,7 @@ GameObject:
   - component: {fileID: 8021434855365394937}
   - component: {fileID: 6157045202967737868}
   - component: {fileID: 9060763947791333514}
-  - component: {fileID: 2750679912556125690}
+  - component: {fileID: 3853056418217249945}
   m_Layer: 0
   m_Name: HWJ_ProfessorDemo_EnemyRuntime_Prefab
   m_TagString: Untagged
@@ -529,7 +529,7 @@ MonoBehaviour:
   lastTransitionMessage: 
   lastActionFailureCode: 0
   lastActionMessage: 
---- !u!114 &2750679912556125690
+--- !u!114 &3853056418217249945
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -538,7 +538,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 6048748800978366215}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 0}
+  m_Script: {fileID: 11500000, guid: d1add6c8debe32248bd2f8dfe2811000, type: 3}
   m_Name: 
   m_EditorClassIdentifier: HWJ.Runtime::HWJ_HitEffectSystem
   runtimeStatus: {fileID: 2804258440270370551}

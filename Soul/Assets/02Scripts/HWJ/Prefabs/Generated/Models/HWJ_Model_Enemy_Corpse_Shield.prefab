@@ -25,7 +25,7 @@ GameObject:
   - component: {fileID: 679604442763602314}
   - component: {fileID: 5011321507548325841}
   - component: {fileID: 4783056057620991498}
-  - component: {fileID: 628878498101106242}
+  - component: {fileID: 1450223249752025958}
   m_Layer: 0
   m_Name: HWJ_Model_Enemy_Corpse_Shield
   m_TagString: Untagged
@@ -100,7 +100,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 20
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 21300000, guid: 3d35b63d320ba5143b91010ce232f0f8, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 6f44494caffe6b44fa0d4b1a5c7e2491, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 1
   m_FlipY: 0
@@ -144,17 +144,17 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0, y: 0.06}
+  m_Offset: {x: 0, y: -0.08}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 0.5, y: 0.5}
+    oldSize: {x: 2, y: 2}
     newSize: {x: 2, y: 2}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 0.82, y: 1.18}
+  m_Size: {x: 1.1, y: 1.65}
   m_EdgeRadius: 0
 --- !u!50 &7184688075697942231
 Rigidbody2D:
@@ -556,7 +556,7 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
---- !u!114 &628878498101106242
+--- !u!114 &1450223249752025958
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -565,7 +565,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 742515390421935065}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 0}
+  m_Script: {fileID: 11500000, guid: d1add6c8debe32248bd2f8dfe2811000, type: 3}
   m_Name: 
   m_EditorClassIdentifier: HWJ.Runtime::HWJ_HitEffectSystem
   runtimeStatus: {fileID: 3870288188737144347}

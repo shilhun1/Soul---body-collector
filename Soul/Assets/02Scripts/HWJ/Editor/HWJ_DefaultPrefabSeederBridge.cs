@@ -1882,7 +1882,7 @@ public static class HWJ_HitEffectAssetBridge
     private static int WireRuntimePrefab(string prefabPath, GameObject effectPrefab)
     {
         GameObject prefabRoot = PrefabUtility.LoadPrefabContents(prefabPath);
-        bool changed = false;
+        bool changed = RemoveMissingScriptsRecursively(prefabRoot) > 0;
         int wiredCount = 0;
 
         try
@@ -1925,6 +1925,24 @@ public static class HWJ_HitEffectAssetBridge
         }
 
         return wiredCount;
+    }
+
+    private static int RemoveMissingScriptsRecursively(GameObject rootObject)
+    {
+        if (rootObject == null)
+        {
+            return 0;
+        }
+
+        int removedCount = 0;
+        Transform[] transforms = rootObject.GetComponentsInChildren<Transform>(true);
+
+        for (int i = 0; i < transforms.Length; i++)
+        {
+            removedCount += GameObjectUtility.RemoveMonoBehavioursWithMissingScript(transforms[i].gameObject);
+        }
+
+        return removedCount;
     }
 
     private static void PollFlagFile()

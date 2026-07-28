@@ -3,38 +3,38 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// Professor demo HUD that reads HWJ runtime systems and displays the current playable loop.
-/// The UI never changes gameplay data. It only observes player, possession, growth, and stage systems.
+/// 발표용 HUD입니다.
+/// 게임 데이터를 직접 수정하지 않고, 플레이어/빙의/성장/스테이지 시스템의 현재 값만 읽어서 표시합니다.
 /// </summary>
 [DisallowMultipleComponent]
 public class HWJ_DemoHudSystem : MonoBehaviour
 {
     [Header("플레이어 참조")]
-    [Tooltip("비워두면 HWJ_GameManager 또는 현재 씬에서 플레이어를 자동으로 찾습니다.")]
+    [Tooltip("비워 두면 GameManager 또는 현재 씬에서 플레이어 RootObjectDataResolver를 자동으로 찾습니다.")]
     [SerializeField] private HWJ_RootObjectDataResolver playerResolver;
-    [Tooltip("플레이어의 현재 HP와 정신력 값을 읽는 시스템입니다.")]
+    [Tooltip("플레이어의 HP와 영혼 정신력 값을 읽는 런타임 상태 시스템입니다.")]
     [SerializeField] private HWJ_RuntimeStatusSystem runtimeStatus;
-    [Tooltip("영혼/빙의/전환/사망 상태를 읽는 시스템입니다.")]
+    [Tooltip("현재 플레이어가 영혼 상태인지, 빙의 상태인지, 전환 중인지 읽는 시스템입니다.")]
     [SerializeField] private HWJ_SoulSystem soulSystem;
-    [Tooltip("빙의한 몸의 정신력 소모량을 읽는 시스템입니다.")]
+    [Tooltip("빙의한 몸의 남은 빙의 정신력 값을 읽는 시스템입니다.")]
     [SerializeField] private HWJ_BodyDecaySystem bodyDecaySystem;
-    [Tooltip("현재 빙의한 몸과 사용 가능한 스킬을 읽는 시스템입니다.")]
+    [Tooltip("현재 빙의한 몸과 사용 가능한 스킬 정보를 읽는 시스템입니다.")]
     [SerializeField] private HWJ_PossessionSystem possessionSystem;
-    [Tooltip("레벨, 경험치, 스킬 포인트를 읽는 시스템입니다.")]
+    [Tooltip("레벨, 경험치, 스킬 포인트를 읽는 성장 시스템입니다.")]
     [SerializeField] private HWJ_LevelUpSystem levelSystem;
 
     [Header("스테이지 참조")]
-    [Tooltip("스테이지 흐름과 포탈 활성 조건을 읽는 시스템입니다.")]
+    [Tooltip("스테이지 진행 상태와 포탈 활성 조건을 읽는 시스템입니다.")]
     [SerializeField] private HWJ_StageProgressionSystem stageProgressionSystem;
-    [Tooltip("현재 맵의 남은 몬스터 수를 읽는 시스템입니다.")]
+    [Tooltip("현재 맵의 필수 몬스터 수와 처치 수를 읽는 시스템입니다.")]
     [SerializeField] private HWJ_StageEnemyCountSystem stageEnemyCountSystem;
 
     [Header("막대 이미지")]
-    [Tooltip("체력 또는 영혼 정신력 막대입니다.")]
+    [Tooltip("빙의 상태에서는 HP, 영혼 상태에서는 영혼 정신력을 표시합니다.")]
     [SerializeField] private Image hpFillImage;
-    [Tooltip("빙의한 몸의 남은 빙의 정신력 막대입니다.")]
+    [Tooltip("빙의한 몸의 남은 빙의 정신력을 표시합니다.")]
     [SerializeField] private Image possessionFillImage;
-    [Tooltip("현재 레벨의 경험치 진행도 막대입니다.")]
+    [Tooltip("현재 레벨의 경험치 진행도를 표시합니다.")]
     [SerializeField] private Image experienceFillImage;
 
     [Header("텍스트")]
@@ -48,7 +48,7 @@ public class HWJ_DemoHudSystem : MonoBehaviour
     [SerializeField] private Text objectiveText;
     [Tooltip("현재 상태에서 가능한 행동을 표시합니다.")]
     [SerializeField] private Text actionText;
-    [Tooltip("빙의 상태에서 사용 가능한 스킬 슬롯을 표시합니다.")]
+    [Tooltip("빙의 상태에서 사용할 수 있는 스킬 목록을 표시합니다.")]
     [SerializeField] private Text skillSlotText;
 
     [Header("색상")]
@@ -59,9 +59,9 @@ public class HWJ_DemoHudSystem : MonoBehaviour
     [SerializeField] private Color experienceColor = new Color(0.28f, 0.95f, 0.5f, 1f);
 
     [Header("갱신")]
-    [Tooltip("참조가 비었거나 씬이 바뀐 경우 자동으로 다시 찾습니다.")]
+    [Tooltip("플레이어가 재생성되거나 씬이 바뀌었을 때 참조를 자동으로 다시 찾습니다.")]
     [SerializeField] private bool autoResolveReferences = true;
-    [Tooltip("UI를 갱신하는 간격입니다. 너무 낮추면 매 프레임 문자열 생성이 늘어납니다.")]
+    [Tooltip("HUD 갱신 간격입니다. 너무 낮추면 매 프레임 문자열 생성이 많아집니다.")]
     [SerializeField] private float refreshIntervalSeconds = 0.08f;
 
     private readonly StringBuilder textBuilder = new StringBuilder(256);
@@ -197,7 +197,7 @@ public class HWJ_DemoHudSystem : MonoBehaviour
             }
             else
             {
-                textBuilder.Append("육신 HP ");
+                textBuilder.Append("몸 HP ");
                 AppendNumberPair(textBuilder, runtimeStatus.CurrentHp, runtimeStatus.MaxHp);
             }
         }
@@ -322,7 +322,7 @@ public class HWJ_DemoHudSystem : MonoBehaviour
             }
             else
             {
-                textBuilder.Append("목표: 보스전 준비");
+                textBuilder.Append("목표: 전투 대상 탐색 중");
             }
         }
         else
@@ -388,7 +388,7 @@ public class HWJ_DemoHudSystem : MonoBehaviour
 
         if (possessionSystem == null || !possessionSystem.HasActivePossessedBody)
         {
-            skillSlotText.text = "스킬: 빙의한 육신 없음";
+            skillSlotText.text = "스킬: 빙의한 몸 없음";
             return;
         }
 
