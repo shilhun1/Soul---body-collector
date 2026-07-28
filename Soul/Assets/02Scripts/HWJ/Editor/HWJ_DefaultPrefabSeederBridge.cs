@@ -497,6 +497,434 @@ private enum HWJ_GeneratedSpriteShape
     }
 }
 
+internal static class HWJ_OptionalEditorComponentUtility
+{
+    public static Component EnsureComponentByType(GameObject target, string typeName)
+    {
+        if (target == null || string.IsNullOrWhiteSpace(typeName))
+        {
+            return null;
+        }
+
+        Type componentType = ResolveRuntimeType(typeName);
+
+        if (componentType == null || !typeof(Component).IsAssignableFrom(componentType))
+        {
+            return null;
+        }
+
+        Component component = target.GetComponent(componentType);
+        return component != null ? component : target.AddComponent(componentType);
+    }
+
+    public static Component GetComponentByType(GameObject target, string typeName)
+    {
+        Type componentType = ResolveRuntimeType(typeName);
+        return target != null && componentType != null ? target.GetComponent(componentType) : null;
+    }
+
+    public static Type ResolveRuntimeType(string typeName)
+    {
+        return Type.GetType(typeName)
+            ?? Type.GetType(typeName + ", HWJ.Runtime")
+            ?? Type.GetType("HWJ." + typeName + ", HWJ.Runtime");
+    }
+}
+
+[InitializeOnLoad]
+public static class HWJ_FunctionShowcasePrefabBridge
+{
+    private const string FlagFilePath = @"C:\Docs\Generated\HWJ_RunFunctionShowcasePrefabBuild.flag";
+    private const string ReportFilePath = @"C:\Docs\Generated\HWJ_FunctionShowcasePrefabReport.md";
+    private const string AssetRoot = "Assets/02Scripts/HWJ";
+    private const string PrefabRoot = AssetRoot + "/Prefabs/Generated/FunctionShowcase";
+    private const string SpriteRoot = AssetRoot + "/Art/Generated/FunctionShowcase";
+    private const string GameplayDatabasePath = AssetRoot + "/ScriptableObjects/Database/HWJ_GameplayDatabase.asset";
+    private const string PlayerRootPath = AssetRoot + "/ScriptableObjects/RootObjects/HWJ_Player_Test_RootObjectData.asset";
+    private const string SwordRootPath = AssetRoot + "/ScriptableObjects/RootObjects/Enemies/HWJ_EnemyCorpse_Sword_RootObjectData.asset";
+    private const string BowRootPath = AssetRoot + "/ScriptableObjects/RootObjects/Enemies/HWJ_EnemyCorpse_Bow_RootObjectData.asset";
+    private const string ShieldRootPath = AssetRoot + "/ScriptableObjects/RootObjects/Enemies/HWJ_EnemyCorpse_Shield_RootObjectData.asset";
+    private const string AxeRootPath = AssetRoot + "/ScriptableObjects/RootObjects/Enemies/HWJ_EnemyCorpse_Axe_RootObjectData.asset";
+    private const string LanceRootPath = AssetRoot + "/ScriptableObjects/RootObjects/Enemies/HWJ_EnemyCorpse_Lance_RootObjectData.asset";
+
+    private static bool isRunning;
+    private static double nextFlagCheckTime;
+
+    // 씬 제작자가 맵을 따로 만들더라도, HWJ 기능을 바로 드래그해서 확인할 수 있는 테스트 프리팹을 생성한다.
+    static HWJ_FunctionShowcasePrefabBridge()
+    {
+        EditorApplication.update -= PollFlagFile;
+        EditorApplication.update += PollFlagFile;
+    }
+
+    [MenuItem("Tools/HWJ/Prefabs/Build Function Showcase Prefabs")]
+    public static void BuildFunctionShowcasePrefabs()
+    {
+        EnsureFolders();
+        List<string> reportLines = new List<string>();
+        SavePrefab(CreateRuntimeRoot(), PrefabRoot + "/HWJ_Showcase_RuntimeRoot.prefab", reportLines);
+        SavePrefab(CreatePossessableBodies(), PrefabRoot + "/HWJ_Showcase_PossessableBodies_All.prefab", reportLines);
+        SavePrefab(CreateBodyGate("HWJ_Gimmick_SpiritScoutGate", "showcase.spirit_scout_gate", HWJ_BodyObstacleRequirementMode.SpiritOnly, null, null, false, HWJ_WeaponType.None, HWJ_SkillActionType.None, new Color(0.7f, 0.45f, 1f, 1f)), PrefabRoot + "/HWJ_Gimmick_SpiritScoutGate.prefab", reportLines);
+        SavePrefab(CreateWeaponSwitch("HWJ_Gimmick_BowRangeSwitch", "showcase.bow_range_switch", HWJ_WeaponType.Bow, HWJ_SkillActionType.Projectile, 1, new Color(0.2f, 0.8f, 1f, 1f)), PrefabRoot + "/HWJ_Gimmick_BowRangeSwitch.prefab", reportLines);
+        SavePrefab(CreateBodyGate("HWJ_Gimmick_ShieldArrowPassage", "showcase.shield_arrow_passage", HWJ_BodyObstacleRequirementMode.AbilityTag, null, new[] { HWJ_AbilityTag.ShieldArrowPassage }, false, HWJ_WeaponType.None, HWJ_SkillActionType.None, new Color(0.35f, 0.5f, 1f, 1f)), PrefabRoot + "/HWJ_Gimmick_ShieldArrowPassage.prefab", reportLines);
+        SavePrefab(CreateBodyGate("HWJ_Gimmick_AxeBreakWall", "showcase.axe_break_wall", HWJ_BodyObstacleRequirementMode.AbilityTag, null, new[] { HWJ_AbilityTag.AxeBreakWall }, true, HWJ_WeaponType.Axe, HWJ_SkillActionType.None, new Color(1f, 0.48f, 0.25f, 1f)), PrefabRoot + "/HWJ_Gimmick_AxeBreakWall.prefab", reportLines);
+        SavePrefab(CreateBodyGate("HWJ_Gimmick_LanceChargeDevice", "showcase.lance_charge_device", HWJ_BodyObstacleRequirementMode.AbilityTag, null, new[] { HWJ_AbilityTag.LanceChargeDevice }, true, HWJ_WeaponType.Lance, HWJ_SkillActionType.Dash, new Color(0.45f, 1f, 0.45f, 1f)), PrefabRoot + "/HWJ_Gimmick_LanceChargeDevice.prefab", reportLines);
+        SavePrefab(CreateWeaponSwitch("HWJ_Gimmick_SwordRapidSwitch", "showcase.sword_rapid_switch", HWJ_WeaponType.Sword, HWJ_SkillActionType.Melee, 3, new Color(1f, 0.88f, 0.45f, 1f)), PrefabRoot + "/HWJ_Gimmick_SwordRapidSwitch.prefab", reportLines);
+        SavePrefab(CreateCombatLockedPortal(), PrefabRoot + "/HWJ_Showcase_CombatLockedPortal.prefab", reportLines);
+        AssetDatabase.SaveAssets();
+        AssetDatabase.Refresh();
+        WriteReport("Success", reportLines, null);
+    }
+
+    [MenuItem("Tools/HWJ/Prefabs/Create Function Showcase Prefab Build Flag")]
+    public static void CreateBuildFlag()
+    {
+        Directory.CreateDirectory(Path.GetDirectoryName(FlagFilePath));
+        File.WriteAllText(FlagFilePath, "run", Encoding.UTF8);
+    }
+
+    private static void PollFlagFile()
+    {
+        if (EditorApplication.timeSinceStartup < nextFlagCheckTime)
+        {
+            return;
+        }
+
+        nextFlagCheckTime = EditorApplication.timeSinceStartup + 2d;
+
+        if (!File.Exists(FlagFilePath))
+        {
+            return;
+        }
+
+        if (!string.Equals(File.ReadAllText(FlagFilePath).Trim(), "run", StringComparison.OrdinalIgnoreCase)
+            || EditorApplication.isCompiling
+            || EditorApplication.isUpdating)
+        {
+            return;
+        }
+
+        File.Delete(FlagFilePath);
+        RunFromOpenEditor();
+    }
+
+    private static void RunFromOpenEditor()
+    {
+        if (isRunning)
+        {
+            return;
+        }
+
+        isRunning = true;
+
+        try
+        {
+            BuildFunctionShowcasePrefabs();
+        }
+        catch (Exception exception)
+        {
+            WriteReport("Failed", new List<string>(), exception);
+            Debug.LogException(exception);
+        }
+        finally
+        {
+            isRunning = false;
+        }
+    }
+
+    private static GameObject CreateRuntimeRoot()
+    {
+        // 씬에 GameManager가 없을 때 한 번만 배치해서 데이터베이스, 풀링, 스포너 기본 연결을 제공한다.
+        GameObject root = new GameObject("HWJ_Showcase_RuntimeRoot");
+        HWJ_ObjectPoolSystem pool = CreateChild(root.transform, "HWJ_ObjectPoolSystem").AddComponent<HWJ_ObjectPoolSystem>();
+        HWJ_SpawnerSystem spawner = CreateChild(root.transform, "HWJ_SpawnerSystem").AddComponent<HWJ_SpawnerSystem>();
+        HWJ_GameManager manager = root.AddComponent<HWJ_GameManager>();
+        SerializedObject so = new SerializedObject(manager);
+        SetObject(so, "database", AssetDatabase.LoadAssetAtPath<HWJ_GameplayDatabaseSO>(GameplayDatabasePath));
+        SetObject(so, "objectPool", pool);
+        SetObject(so, "spawner", spawner);
+        SetBool(so, "dontDestroyOnLoad", false);
+        SetBool(so, "autoFindPlayerResolverInScene", true);
+        SetBool(so, "autoAddMissingPlayerCoreSystems", true);
+        SetBool(so, "autoPlacePlayerAtSceneStart", true);
+        SetBool(so, "autoBindSceneCamerasToPlayer", true);
+        so.ApplyModifiedPropertiesWithoutUndo();
+        return root;
+    }
+
+    private static GameObject CreatePossessableBodies()
+    {
+        // 애니메이션 없이도 무기별 빙의 데이터와 AbilityTag가 들어있는 시체 5종을 한 번에 확인한다.
+        GameObject root = new GameObject("HWJ_Showcase_PossessableBodies_All");
+        CreateBody(root.transform, "Sword", SwordRootPath, new Vector3(-4f, 0f, 0f), new Color(0.95f, 0.92f, 0.86f, 1f));
+        CreateBody(root.transform, "Bow", BowRootPath, new Vector3(-2f, 0f, 0f), new Color(0.45f, 0.85f, 1f, 1f));
+        CreateBody(root.transform, "Shield", ShieldRootPath, Vector3.zero, new Color(0.55f, 0.65f, 1f, 1f));
+        CreateBody(root.transform, "Axe", AxeRootPath, new Vector3(2f, 0f, 0f), new Color(1f, 0.55f, 0.36f, 1f));
+        CreateBody(root.transform, "Lance", LanceRootPath, new Vector3(4f, 0f, 0f), new Color(0.55f, 1f, 0.55f, 1f));
+        return root;
+    }
+
+    private static GameObject CreateBodyGate(string name, string id, HWJ_BodyObstacleRequirementMode mode, HWJ_WeaponType[] weapons, HWJ_AbilityTag[] tags, bool skillHitOnly, HWJ_WeaponType hitWeapon, HWJ_SkillActionType hitType, Color color)
+    {
+        // 특정 몸 상태 또는 무기 스킬 피격 조건을 만족해야 열리는 기능 검증용 장애물이다.
+        GameObject root = new GameObject(name);
+        GameObject gate = CreateBox(root.transform, "Gate", Vector3.zero, new Vector2(1.4f, 3.2f), color);
+        BoxCollider2D gateCollider = gate.AddComponent<BoxCollider2D>();
+        gateCollider.size = Vector2.one;
+        HWJ_BodyExclusiveObstacleSystem obstacle = root.AddComponent<HWJ_BodyExclusiveObstacleSystem>();
+        SerializedObject so = new SerializedObject(obstacle);
+        SetString(so, "obstacleId", id);
+        SetEnum(so, "requirementMode", (int)mode);
+        SetBool(so, "openWhenRequirementMet", true);
+        SetBool(so, "updateContinuously", true);
+        SetBool(so, "requirePlayerTag", true);
+        SetEnumArray(so.FindProperty("allowedWeaponTypes"), weapons);
+        SetEnumArray(so.FindProperty("allowedAbilityTags"), tags);
+        SetBool(so, "openByWeaponSkillHit", skillHitOnly);
+        SetBool(so, "requireWeaponSkillHitToOpen", skillHitOnly);
+        SetEnum(so, "requiredHitWeaponType", (int)hitWeapon);
+        SetEnum(so, "requiredHitSkillActionType", (int)hitType);
+        SetObjectArray(so.FindProperty("obstacleColliders"), gateCollider);
+        SetObjectArray(so.FindProperty("hideWhenOpen"), gate);
+        so.ApplyModifiedPropertiesWithoutUndo();
+        return root;
+    }
+
+    private static GameObject CreateWeaponSwitch(string name, string id, HWJ_WeaponType weapon, HWJ_SkillActionType actionType, int hitCount, Color color)
+    {
+        // Bow/Sword처럼 스킬 피격 횟수와 무기 종류를 보여줘야 하는 원거리/연속 타격 스위치다.
+        GameObject root = new GameObject(name);
+        GameObject gate = CreateBox(root.transform, "Gate", new Vector3(1.6f, 0f, 0f), new Vector2(1.2f, 3.2f), color);
+        BoxCollider2D gateCollider = gate.AddComponent<BoxCollider2D>();
+        gateCollider.size = Vector2.one;
+        GameObject switchObject = CreateCircle(root.transform, "Switch", new Vector3(-1.2f, 0f, 0f), 0.8f, color);
+        CircleCollider2D trigger = switchObject.AddComponent<CircleCollider2D>();
+        trigger.isTrigger = true;
+        trigger.radius = 0.8f;
+        HWJ_SpiritOrbSwitchSystem switchSystem = switchObject.AddComponent<HWJ_SpiritOrbSwitchSystem>();
+        SerializedObject so = new SerializedObject(switchSystem);
+        SetString(so, "switchId", id);
+        SetBool(so, "oneShot", true);
+        SetBool(so, "requireSpiritState", false);
+        SetBool(so, "requireInteractInput", false);
+        SetBool(so, "allowWeaponSkillHitActivation", true);
+        SetBool(so, "requirePossessedPlayerHit", true);
+        SetEnum(so, "requiredHitWeaponType", (int)weapon);
+        SetEnum(so, "requiredHitSkillActionType", (int)actionType);
+        SetInt(so, "requiredHitCount", Mathf.Max(1, hitCount));
+        SetFloat(so, "hitComboWindowSeconds", 2f);
+        SetObjectArray(so.FindProperty("deactivateTargets"), gate);
+        SetObjectArray(so.FindProperty("disableColliders"), gateCollider);
+        so.ApplyModifiedPropertiesWithoutUndo();
+        return root;
+    }
+
+    private static GameObject CreateCombatLockedPortal()
+    {
+        // 전투 구역 정리 후 포탈이 열리는 흐름을 씬에서 바로 연결해 볼 수 있는 묶음 프리팹이다.
+        GameObject root = new GameObject("HWJ_Showcase_CombatLockedPortal");
+        GameObject systems = CreateChild(root.transform, "Systems");
+        HWJ_StageProgressionSystem progression = systems.AddComponent<HWJ_StageProgressionSystem>();
+        HWJ_StageEnemyCountSystem enemyCount = systems.AddComponent<HWJ_StageEnemyCountSystem>();
+        HWJ_SceneTransitionSystem transition = systems.AddComponent<HWJ_SceneTransitionSystem>();
+        SerializedObject countSo = new SerializedObject(enemyCount);
+        SetObject(countSo, "stageProgressionSystem", progression);
+        SetObject(countSo, "stageRoot", root.transform);
+        SetBool(countSo, "scanOnStart", true);
+        SetBool(countSo, "periodicRescan", true);
+        SetBool(countSo, "countEnemyObjects", true);
+        countSo.ApplyModifiedPropertiesWithoutUndo();
+        GameObject portalObject = CreateBox(root.transform, "PortalTrigger", Vector3.zero, new Vector2(1.5f, 2.5f), new Color(0.35f, 1f, 0.65f, 0.75f));
+        BoxCollider2D collider = portalObject.AddComponent<BoxCollider2D>();
+        collider.isTrigger = true;
+        collider.size = new Vector2(1.5f, 2.5f);
+        HWJ_ScenePortalSystem portal = portalObject.AddComponent<HWJ_ScenePortalSystem>();
+        SerializedObject portalSo = new SerializedObject(portal);
+        SetBool(portalSo, "requireInteractInput", true);
+        SetBool(portalSo, "requirePlayerTag", true);
+        SetBool(portalSo, "requireStageObjectiveComplete", true);
+        SetObject(portalSo, "stageProgressionSystem", progression);
+        SetObject(portalSo, "stageEnemyCountSystem", enemyCount);
+        SetObject(portalSo, "sceneTransitionSystem", transition);
+        portalSo.ApplyModifiedPropertiesWithoutUndo();
+        return root;
+    }
+
+    private static void CreateBody(Transform parent, string name, string rootPath, Vector3 position, Color color)
+    {
+        GameObject body = CreateBox(parent, "Body_" + name, position, new Vector2(1f, 1.6f), color);
+        body.AddComponent<Rigidbody2D>().bodyType = RigidbodyType2D.Kinematic;
+        BoxCollider2D collider = body.AddComponent<BoxCollider2D>();
+        collider.isTrigger = true;
+        collider.size = new Vector2(1f, 1.6f);
+        body.AddComponent<HWJ_RuntimeObjectContext>();
+        HWJ_RootObjectDataResolver resolver = body.AddComponent<HWJ_RootObjectDataResolver>();
+        resolver.SetRootObjectData(AssetDatabase.LoadAssetAtPath<HWJ_RootObjectDataSO>(rootPath));
+        HWJ_RuntimeStatusSystem status = body.AddComponent<HWJ_RuntimeStatusSystem>();
+        body.AddComponent<HWJ_PossessionBodyState>();
+        body.AddComponent<HWJ_BodyDiscoverySystem>();
+        SerializedObject so = new SerializedObject(status);
+        SetEnum(so, "currentState", (int)HWJ_RuntimeState.Dead);
+        SetFloat(so, "currentHp", 0f);
+        SetFloat(so, "soulHp", 0f);
+        SetFloat(so, "possessedBodyHp", 0f);
+        so.ApplyModifiedPropertiesWithoutUndo();
+    }
+
+    private static GameObject CreateBox(Transform parent, string name, Vector3 position, Vector2 size, Color color)
+    {
+        GameObject obj = new GameObject(name);
+        obj.transform.SetParent(parent);
+        obj.transform.localPosition = position;
+        obj.transform.localScale = new Vector3(size.x, size.y, 1f);
+        SpriteRenderer renderer = obj.AddComponent<SpriteRenderer>();
+        renderer.sprite = CreateMarkerSprite("HWJ_Showcase_Box.png", false);
+        renderer.color = color;
+        renderer.sortingOrder = 80;
+        return obj;
+    }
+
+    private static GameObject CreateCircle(Transform parent, string name, Vector3 position, float radius, Color color)
+    {
+        GameObject obj = new GameObject(name);
+        obj.transform.SetParent(parent);
+        obj.transform.localPosition = position;
+        obj.transform.localScale = Vector3.one * Mathf.Max(0.1f, radius * 2f);
+        SpriteRenderer renderer = obj.AddComponent<SpriteRenderer>();
+        renderer.sprite = CreateMarkerSprite("HWJ_Showcase_Circle.png", true);
+        renderer.color = color;
+        renderer.sortingOrder = 90;
+        return obj;
+    }
+
+    private static Sprite CreateMarkerSprite(string fileName, bool circle)
+    {
+        string path = SpriteRoot + "/" + fileName;
+        string fullPath = Path.GetFullPath(path);
+
+        if (!File.Exists(fullPath))
+        {
+            Texture2D texture = new Texture2D(32, 32, TextureFormat.RGBA32, false);
+            texture.filterMode = FilterMode.Point;
+
+            for (int y = 0; y < 32; y++)
+            {
+                for (int x = 0; x < 32; x++)
+                {
+                    bool visible = !circle || Vector2.Distance(new Vector2(x, y), new Vector2(15.5f, 15.5f)) <= 14.5f;
+                    texture.SetPixel(x, y, visible ? Color.white : Color.clear);
+                }
+            }
+
+            texture.Apply();
+            File.WriteAllBytes(fullPath, texture.EncodeToPNG());
+            UnityEngine.Object.DestroyImmediate(texture);
+        }
+
+        AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceUpdate);
+        TextureImporter importer = AssetImporter.GetAtPath(path) as TextureImporter;
+
+        if (importer != null)
+        {
+            importer.textureType = TextureImporterType.Sprite;
+            importer.spriteImportMode = SpriteImportMode.Single;
+            importer.spritePixelsPerUnit = 32f;
+            importer.mipmapEnabled = false;
+            importer.filterMode = FilterMode.Point;
+            importer.textureCompression = TextureImporterCompression.Uncompressed;
+            importer.SaveAndReimport();
+        }
+
+        return AssetDatabase.LoadAssetAtPath<Sprite>(path);
+    }
+
+    private static GameObject CreateChild(Transform parent, string name)
+    {
+        GameObject child = new GameObject(name);
+        child.transform.SetParent(parent);
+        child.transform.localPosition = Vector3.zero;
+        return child;
+    }
+
+    private static void SavePrefab(GameObject root, string path, List<string> reportLines)
+    {
+        Directory.CreateDirectory(Path.GetFullPath(Path.GetDirectoryName(path)));
+        PrefabUtility.SaveAsPrefabAsset(root, path);
+        UnityEngine.Object.DestroyImmediate(root);
+        reportLines.Add("- " + path);
+    }
+
+    private static void EnsureFolders()
+    {
+        EnsureFolder(AssetRoot, "Prefabs");
+        EnsureFolder(AssetRoot + "/Prefabs", "Generated");
+        EnsureFolder(AssetRoot + "/Prefabs/Generated", "FunctionShowcase");
+        EnsureFolder(AssetRoot, "Art");
+        EnsureFolder(AssetRoot + "/Art", "Generated");
+        EnsureFolder(AssetRoot + "/Art/Generated", "FunctionShowcase");
+    }
+
+    private static void EnsureFolder(string parent, string child)
+    {
+        string path = parent + "/" + child;
+
+        if (!AssetDatabase.IsValidFolder(path))
+        {
+            AssetDatabase.CreateFolder(parent, child);
+        }
+    }
+
+    private static void SetObject(SerializedObject so, string name, UnityEngine.Object value) { SerializedProperty p = so.FindProperty(name); if (p != null) p.objectReferenceValue = value; }
+    private static void SetBool(SerializedObject so, string name, bool value) { SerializedProperty p = so.FindProperty(name); if (p != null) p.boolValue = value; }
+    private static void SetString(SerializedObject so, string name, string value) { SerializedProperty p = so.FindProperty(name); if (p != null) p.stringValue = value; }
+    private static void SetFloat(SerializedObject so, string name, float value) { SerializedProperty p = so.FindProperty(name); if (p != null) p.floatValue = value; }
+    private static void SetInt(SerializedObject so, string name, int value) { SerializedProperty p = so.FindProperty(name); if (p != null) p.intValue = value; }
+    private static void SetEnum(SerializedObject so, string name, int value) { SerializedProperty p = so.FindProperty(name); if (p != null) p.enumValueIndex = value; }
+
+    private static void SetObjectArray(SerializedProperty p, params UnityEngine.Object[] values)
+    {
+        if (p == null) return;
+        p.arraySize = values != null ? values.Length : 0;
+        for (int i = 0; values != null && i < values.Length; i++) p.GetArrayElementAtIndex(i).objectReferenceValue = values[i];
+    }
+
+    private static void SetEnumArray(SerializedProperty p, HWJ_WeaponType[] values)
+    {
+        if (p == null) return;
+        p.arraySize = values != null ? values.Length : 0;
+        for (int i = 0; values != null && i < values.Length; i++) p.GetArrayElementAtIndex(i).enumValueIndex = (int)values[i];
+    }
+
+    private static void SetEnumArray(SerializedProperty p, HWJ_AbilityTag[] values)
+    {
+        if (p == null) return;
+        p.arraySize = values != null ? values.Length : 0;
+        for (int i = 0; values != null && i < values.Length; i++) p.GetArrayElementAtIndex(i).enumValueIndex = (int)values[i];
+    }
+
+    private static void WriteReport(string result, List<string> reportLines, Exception exception)
+    {
+        Directory.CreateDirectory(Path.GetDirectoryName(ReportFilePath));
+        StringBuilder builder = new StringBuilder();
+        builder.AppendLine("# HWJ Function Showcase Prefab Report");
+        builder.AppendLine();
+        builder.AppendLine($"- Executed At: {DateTime.Now:O}");
+        builder.AppendLine($"- Result: {result}");
+        builder.AppendLine();
+        foreach (string line in reportLines) builder.AppendLine(line);
+
+        if (exception != null)
+        {
+            builder.AppendLine();
+            builder.AppendLine("```text");
+            builder.AppendLine(exception.ToString());
+            builder.AppendLine("```");
+        }
+
+        File.WriteAllText(ReportFilePath, builder.ToString(), Encoding.UTF8);
+    }
+}
+
 /// <summary>
 /// Pixel art Chess Knights pack의 빨간 몬스터 프레임을 HWJ 빙의 가능 몬스터 5종에 연결합니다.
 /// 생성되는 AnimationClip/AnimatorController는 HWJ 폴더 안에만 저장하고, 원본 에셋은 참조만 합니다.
@@ -1408,18 +1836,22 @@ public static class HWJ_PlayerAttackEffectAssetBridge
         animator.applyRootMotion = false;
 
         HWJ_PoolableObject poolableObject = root.AddComponent<HWJ_PoolableObject>();
-        HWJ_EffectAutoReturnSystem autoReturn = root.AddComponent<HWJ_EffectAutoReturnSystem>();
-        SerializedObject autoReturnObject = new SerializedObject(autoReturn);
-        SetObjectReference(autoReturnObject, "animator", animator);
-        SetObjectReference(autoReturnObject, "poolableObject", poolableObject);
-        SerializedProperty lifetimeProperty = autoReturnObject.FindProperty("lifetimeSeconds");
+        Component autoReturn = HWJ_OptionalEditorComponentUtility.EnsureComponentByType(root, "HWJ_EffectAutoReturnSystem");
 
-        if (lifetimeProperty != null)
+        if (autoReturn != null)
         {
-            lifetimeProperty.floatValue = Mathf.Max(0.01f, lifetimeSeconds);
-        }
+            SerializedObject autoReturnObject = new SerializedObject(autoReturn);
+            SetObjectReference(autoReturnObject, "animator", animator);
+            SetObjectReference(autoReturnObject, "poolableObject", poolableObject);
+            SerializedProperty lifetimeProperty = autoReturnObject.FindProperty("lifetimeSeconds");
 
-        autoReturnObject.ApplyModifiedPropertiesWithoutUndo();
+            if (lifetimeProperty != null)
+            {
+                lifetimeProperty.floatValue = Mathf.Max(0.01f, lifetimeSeconds);
+            }
+
+            autoReturnObject.ApplyModifiedPropertiesWithoutUndo();
+        }
 
         GameObject prefab = PrefabUtility.SaveAsPrefabAsset(root, binding.PrefabPath);
         UnityEngine.Object.DestroyImmediate(root);
@@ -1830,18 +2262,22 @@ public static class HWJ_HitEffectAssetBridge
         animator.applyRootMotion = false;
 
         HWJ_PoolableObject poolableObject = root.AddComponent<HWJ_PoolableObject>();
-        HWJ_EffectAutoReturnSystem autoReturn = root.AddComponent<HWJ_EffectAutoReturnSystem>();
-        SerializedObject autoReturnObject = new SerializedObject(autoReturn);
-        SetObjectReference(autoReturnObject, "animator", animator);
-        SetObjectReference(autoReturnObject, "poolableObject", poolableObject);
-        SerializedProperty lifetimeProperty = autoReturnObject.FindProperty("lifetimeSeconds");
+        Component autoReturn = HWJ_OptionalEditorComponentUtility.EnsureComponentByType(root, "HWJ_EffectAutoReturnSystem");
 
-        if (lifetimeProperty != null)
+        if (autoReturn != null)
         {
-            lifetimeProperty.floatValue = Mathf.Max(0.01f, lifetimeSeconds);
-        }
+            SerializedObject autoReturnObject = new SerializedObject(autoReturn);
+            SetObjectReference(autoReturnObject, "animator", animator);
+            SetObjectReference(autoReturnObject, "poolableObject", poolableObject);
+            SerializedProperty lifetimeProperty = autoReturnObject.FindProperty("lifetimeSeconds");
 
-        autoReturnObject.ApplyModifiedPropertiesWithoutUndo();
+            if (lifetimeProperty != null)
+            {
+                lifetimeProperty.floatValue = Mathf.Max(0.01f, lifetimeSeconds);
+            }
+
+            autoReturnObject.ApplyModifiedPropertiesWithoutUndo();
+        }
 
         GameObject prefab = PrefabUtility.SaveAsPrefabAsset(root, PrefabPath);
         UnityEngine.Object.DestroyImmediate(root);
@@ -1892,12 +2328,11 @@ public static class HWJ_HitEffectAssetBridge
             for (int i = 0; i < statuses.Length; i++)
             {
                 HWJ_RuntimeStatusSystem status = statuses[i];
-                HWJ_HitEffectSystem hitEffectSystem = status.GetComponent<HWJ_HitEffectSystem>();
+                Component hitEffectSystem = HWJ_OptionalEditorComponentUtility.EnsureComponentByType(status.gameObject, "HWJ_HitEffectSystem");
 
                 if (hitEffectSystem == null)
                 {
-                    hitEffectSystem = status.gameObject.AddComponent<HWJ_HitEffectSystem>();
-                    changed = true;
+                    continue;
                 }
 
                 SerializedObject hitEffectObject = new SerializedObject(hitEffectSystem);
@@ -3048,6 +3483,31 @@ public static class HWJ_RewardOrbVisualBridge
         }
 
         return component;
+    }
+
+    private static Component EnsureComponentByType(GameObject target, string typeName)
+    {
+        if (target == null || string.IsNullOrWhiteSpace(typeName))
+        {
+            return null;
+        }
+
+        Type componentType = ResolveRuntimeType(typeName);
+
+        if (componentType == null || !typeof(Component).IsAssignableFrom(componentType))
+        {
+            return null;
+        }
+
+        Component component = target.GetComponent(componentType);
+        return component != null ? component : target.AddComponent(componentType);
+    }
+
+    private static Type ResolveRuntimeType(string typeName)
+    {
+        return Type.GetType(typeName)
+            ?? Type.GetType(typeName + ", HWJ.Runtime")
+            ?? Type.GetType("HWJ." + typeName + ", HWJ.Runtime");
     }
 
     private static void PollFlagFile()

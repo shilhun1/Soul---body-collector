@@ -211,19 +211,17 @@ public static class HWJ_Stage1TilemapSceneBuilderBridge
     [MenuItem("Tools/Stage1/Clear Generated Placeholder Objects")]
     public static void ClearGeneratedPlaceholderObjects()
     {
-        HWJ_GeneratedStageObject[] generatedObjects = UnityEngine.Object.FindObjectsByType<HWJ_GeneratedStageObject>(
-            FindObjectsInactive.Include,
-            FindObjectsSortMode.None);
+        Component[] generatedObjects = FindOptionalComponentsByType("HWJ_GeneratedStageObject");
 
         List<GameObject> deleteTargets = new List<GameObject>();
 
         for (int i = 0; i < generatedObjects.Length; i++)
         {
-            HWJ_GeneratedStageObject generatedObject = generatedObjects[i];
+            Component generatedObject = generatedObjects[i];
 
             if (generatedObject == null
-                || !generatedObject.TemporaryPlaceholder
-                || generatedObject.ProtectFromGeneratedCleanup)
+                || !GetOptionalBoolProperty(generatedObject, "TemporaryPlaceholder")
+                || GetOptionalBoolProperty(generatedObject, "ProtectFromGeneratedCleanup"))
             {
                 continue;
             }
@@ -2301,21 +2299,21 @@ public static class HWJ_Stage1TilemapSceneBuilderBridge
             return false;
         }
 
-        HWJ_GeneratedStageObject generatedMarker = childObject.GetComponent<HWJ_GeneratedStageObject>();
-        return generatedMarker != null && !generatedMarker.ProtectFromGeneratedCleanup;
+        Component generatedMarker = GetOptionalComponentByType(childObject, "HWJ_GeneratedStageObject");
+        return generatedMarker != null && !GetOptionalBoolProperty(generatedMarker, "ProtectFromGeneratedCleanup");
     }
 
     private static void RemoveStage101TemporaryVisualMarkers(Transform root)
     {
-        HWJ_GeneratedStageObject[] generatedObjects = root.GetComponentsInChildren<HWJ_GeneratedStageObject>(true);
+        Component[] generatedObjects = GetOptionalComponentsInChildren(root, "HWJ_GeneratedStageObject");
 
         for (int i = generatedObjects.Length - 1; i >= 0; i--)
         {
-            HWJ_GeneratedStageObject generatedObject = generatedObjects[i];
+            Component generatedObject = generatedObjects[i];
 
             if (generatedObject == null
-                || !generatedObject.TemporaryPlaceholder
-                || generatedObject.ProtectFromGeneratedCleanup)
+                || !GetOptionalBoolProperty(generatedObject, "TemporaryPlaceholder")
+                || GetOptionalBoolProperty(generatedObject, "ProtectFromGeneratedCleanup"))
             {
                 continue;
             }
@@ -2448,9 +2446,9 @@ public static class HWJ_Stage1TilemapSceneBuilderBridge
             return false;
         }
 
-        HWJ_GeneratedStageObject generatedMarker = playerObject.GetComponent<HWJ_GeneratedStageObject>();
+        Component generatedMarker = GetOptionalComponentByType(playerObject, "HWJ_GeneratedStageObject");
 
-        if (generatedMarker == null || generatedMarker.ProtectFromGeneratedCleanup)
+        if (generatedMarker == null || GetOptionalBoolProperty(generatedMarker, "ProtectFromGeneratedCleanup"))
         {
             return false;
         }
@@ -3635,9 +3633,13 @@ public static class HWJ_Stage1TilemapSceneBuilderBridge
         layerObject.transform.SetParent(parent);
         layerObject.transform.position = Vector3.zero;
 
-        HWJ_ParallaxBackgroundSystem parallaxSystem = layerObject.AddComponent<HWJ_ParallaxBackgroundSystem>();
-        parallaxSystem.SetParallaxMultiplier(parallaxMultiplier);
-        EditorUtility.SetDirty(parallaxSystem);
+        Component parallaxSystem = EnsureComponentByType(layerObject, "HWJ_ParallaxBackgroundSystem");
+        TryInvokeVector2Method(parallaxSystem, "SetParallaxMultiplier", parallaxMultiplier);
+
+        if (parallaxSystem != null)
+        {
+            EditorUtility.SetDirty(parallaxSystem);
+        }
 
         GameObject panelRoot = new GameObject(layerName + "_Sprite");
         panelRoot.transform.SetParent(layerObject.transform);
@@ -4829,7 +4831,7 @@ public static class HWJ_Stage1TilemapSceneBuilderBridge
         EnsureComponent<HWJ_KnockbackSystem>(owner);
         EnsureComponent<HWJ_CharacterMotionSystem>(owner);
         EnsureComponent<HWJ_PossessionBodyState>(owner);
-        ConfigureHitEffectSystem(EnsureComponent<HWJ_HitEffectSystem>(owner));
+        ConfigureHitEffectSystem(EnsureComponentByType(owner, "HWJ_HitEffectSystem"));
 
         if (includeBehaviorSystems)
         {
@@ -4893,7 +4895,7 @@ public static class HWJ_Stage1TilemapSceneBuilderBridge
         return $"{HwjRoot}/Animations/Generated/RedChessPossessable/{weaponName}/HWJ_RedChess_{weaponName}_Animator.controller";
     }
 
-    private static void ConfigureHitEffectSystem(HWJ_HitEffectSystem hitEffectSystem)
+    private static void ConfigureHitEffectSystem(Component hitEffectSystem)
     {
         if (hitEffectSystem == null)
         {
@@ -5399,6 +5401,184 @@ public static class HWJ_Stage1TilemapSceneBuilderBridge
         return component != null ? component : owner.AddComponent<T>();
     }
 
+    private static Component EnsureComponentByType(GameObject owner, string typeName)
+    {
+        if (owner == null || string.IsNullOrWhiteSpace(typeName))
+        {
+            return null;
+        }
+
+        Type componentType = ResolveRuntimeType(typeName);
+
+        if (componentType == null || !typeof(Component).IsAssignableFrom(componentType))
+        {
+            return null;
+        }
+
+        Component component = owner.GetComponent(componentType);
+        return component != null ? component : owner.AddComponent(componentType);
+    }
+
+    private static Type ResolveRuntimeType(string typeName)
+    {
+        return Type.GetType(typeName)
+            ?? Type.GetType(typeName + ", HWJ.Runtime")
+            ?? Type.GetType("HWJ." + typeName + ", HWJ.Runtime");
+    }
+
+    private static Component GetOptionalComponentByType(GameObject owner, string typeName)
+    {
+        Type componentType = ResolveRuntimeType(typeName);
+        return owner != null && componentType != null ? owner.GetComponent(componentType) : null;
+    }
+
+    private static Component[] GetOptionalComponentsInChildren(Transform root, string typeName)
+    {
+        Type componentType = ResolveRuntimeType(typeName);
+
+        if (root == null || componentType == null)
+        {
+            return Array.Empty<Component>();
+        }
+
+        Component[] allComponents = root.GetComponentsInChildren<Component>(true);
+        List<Component> matches = new List<Component>();
+
+        for (int i = 0; i < allComponents.Length; i++)
+        {
+            Component component = allComponents[i];
+
+            if (component != null && componentType.IsAssignableFrom(component.GetType()))
+            {
+                matches.Add(component);
+            }
+        }
+
+        return matches.ToArray();
+    }
+
+    private static Component[] FindOptionalComponentsByType(string typeName)
+    {
+        Type componentType = ResolveRuntimeType(typeName);
+
+        if (componentType == null)
+        {
+            return Array.Empty<Component>();
+        }
+
+        Component[] allComponents = UnityEngine.Object.FindObjectsByType<Component>(
+            FindObjectsInactive.Include,
+            FindObjectsSortMode.None);
+        List<Component> matches = new List<Component>();
+
+        for (int i = 0; i < allComponents.Length; i++)
+        {
+            Component component = allComponents[i];
+
+            if (component != null && componentType.IsAssignableFrom(component.GetType()))
+            {
+                matches.Add(component);
+            }
+        }
+
+        return matches.ToArray();
+    }
+
+    private static bool GetOptionalBoolProperty(Component component, string propertyName)
+    {
+        if (component == null || string.IsNullOrWhiteSpace(propertyName))
+        {
+            return false;
+        }
+
+        Type componentType = component.GetType();
+        const System.Reflection.BindingFlags flags =
+            System.Reflection.BindingFlags.Instance
+            | System.Reflection.BindingFlags.Public
+            | System.Reflection.BindingFlags.NonPublic;
+        System.Reflection.PropertyInfo property = componentType.GetProperty(propertyName, flags);
+
+        if (property != null && property.PropertyType == typeof(bool))
+        {
+            return (bool)property.GetValue(component);
+        }
+
+        System.Reflection.FieldInfo field = componentType.GetField(propertyName, flags);
+        return field != null && field.FieldType == typeof(bool) && (bool)field.GetValue(component);
+    }
+
+    private static void ConfigureGeneratedStageMarker(
+        Component marker,
+        string originalName,
+        string stageSceneId,
+        string category,
+        bool temporaryPlaceholder,
+        bool protectFromCleanup)
+    {
+        if (marker == null)
+        {
+            return;
+        }
+
+        System.Reflection.MethodInfo configureMethod = marker.GetType().GetMethod(
+            "Configure",
+            System.Reflection.BindingFlags.Instance
+            | System.Reflection.BindingFlags.Public
+            | System.Reflection.BindingFlags.NonPublic);
+
+        if (configureMethod == null)
+        {
+            return;
+        }
+
+        configureMethod.Invoke(marker, new object[]
+        {
+            originalName,
+            stageSceneId,
+            category,
+            temporaryPlaceholder,
+            protectFromCleanup
+        });
+    }
+
+    private static void TryInvokeFloatMethod(Component component, string methodName, float value)
+    {
+        if (component == null || string.IsNullOrWhiteSpace(methodName))
+        {
+            return;
+        }
+
+        System.Reflection.MethodInfo method = component.GetType().GetMethod(
+            methodName,
+            System.Reflection.BindingFlags.Instance
+            | System.Reflection.BindingFlags.Public
+            | System.Reflection.BindingFlags.NonPublic,
+            null,
+            new[] { typeof(float) },
+            null);
+
+        method?.Invoke(component, new object[] { value });
+    }
+
+    private static void TryInvokeVector2Method(Component component, string methodName, Vector2 value)
+    {
+        if (component == null || string.IsNullOrWhiteSpace(methodName))
+        {
+            return;
+        }
+
+        System.Reflection.MethodInfo method = component.GetType().GetMethod(
+            methodName,
+            System.Reflection.BindingFlags.Instance
+            | System.Reflection.BindingFlags.Public
+            | System.Reflection.BindingFlags.NonPublic,
+            null,
+            new[] { typeof(Vector2) },
+            null);
+
+        method?.Invoke(component, new object[] { value });
+    }
+
     private static void AssignLayerIfExists(GameObject owner, string layerName)
     {
         if (owner == null || string.IsNullOrWhiteSpace(layerName))
@@ -5685,14 +5865,19 @@ public static class HWJ_Stage1TilemapSceneBuilderBridge
             GameObject targetObject = transforms[i].gameObject;
             bool temporaryPlaceholder = IsGeneratedTemporaryPlaceholder(targetObject);
             string category = ResolveGeneratedObjectCategory(targetObject, temporaryPlaceholder);
-            HWJ_GeneratedStageObject marker = targetObject.GetComponent<HWJ_GeneratedStageObject>();
+            Component marker = GetOptionalComponentByType(targetObject, "HWJ_GeneratedStageObject");
 
             if (marker == null)
             {
-                marker = targetObject.AddComponent<HWJ_GeneratedStageObject>();
+                marker = EnsureComponentByType(targetObject, "HWJ_GeneratedStageObject");
             }
 
-            marker.Configure(targetObject.name, stageSceneId, category, temporaryPlaceholder, false);
+            if (marker == null)
+            {
+                continue;
+            }
+
+            ConfigureGeneratedStageMarker(marker, targetObject.name, stageSceneId, category, temporaryPlaceholder, false);
             EditorUtility.SetDirty(marker);
         }
     }
@@ -5731,7 +5916,7 @@ public static class HWJ_Stage1TilemapSceneBuilderBridge
             return "스테이지 포탈";
         }
 
-        if (targetObject.GetComponent<HWJ_ParallaxBackgroundSystem>() != null)
+        if (GetOptionalComponentByType(targetObject, "HWJ_ParallaxBackgroundSystem") != null)
         {
             return "패럴랙스 배경";
         }
