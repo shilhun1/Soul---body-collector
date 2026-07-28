@@ -1,16 +1,31 @@
+using System.Collections;
 using UnityEngine;
 
 public class HSH_FallingTrap : MonoBehaviour
 {
     [Header("낙석 함정 설정")]
     public float damage = 20f; // 데미지 수치
-    public float fallGravity = 3f; // 떨어지는 중력 값
-    
+    public float fallGravity = 3f; // 떨어지는 중력 값 (0일 경우 물리 이동 대신 애니메이션만 사용)
+    public bool usePhysicsFall = true; // 물리(Gravity)로 떨어뜨릴지 여부
+    public float activeDuration = 1.5f; // 공격 판정 유지 시간
+
     [Header("아래쪽 감지 범위 설정")]
     [Tooltip("돌 아래쪽으로 플레이어를 감지할 거리 (숫자를 키우면 감지 범위가 길어집니다)")]
-    public float detectionDistance = 10f; 
+    public float detectionDistance = 10f;
+
+    [Header("애니메이션 설정")]
+    public Animator animator;
+    public string attackTriggerName = "Attack"; // 플레이어 감지 시 재생할 애니메이션 트리거
+
+    [Header("콜라이더 Offset 설정")]
+    public Collider2D damageCollider; // 데미지 판정을 담당할 콜라이더
+    public Vector2 activeOffset = new Vector2(0f, -2f); // 발동 시 이동시킬 콜라이더 Offset
+    private Vector2 originalOffset; // 기본 콜라이더 Offset
 
     private Rigidbody2D rb;
+    private bool hasTriggered = false; // 1회 발동 여부
+    private bool isProtruding = false;
+    private bool hasDamagedThisAttack = false;
 
     private void Start()
     {
@@ -20,57 +35,112 @@ public class HSH_FallingTrap : MonoBehaviour
             // 시작 시 공중에 떠있도록 중력 0 설정
             rb.gravityScale = 0f;
         }
+
+        if (animator == null)
+        {
+            animator = GetComponent<Animator>();
+        }
+
+        if (damageCollider == null)
+        {
+            damageCollider = GetComponent<Collider2D>();
+        }
+
+        if (damageCollider != null)
+        {
+            originalOffset = damageCollider.offset;
+        }
     }
 
     private void Update()
     {
-        // 아직 돌이 떨어지지 않은 상태(공중에 떠있는 상태)일 때만 감지
-        if (rb != null && rb.gravityScale == 0f)
+        // 아직 한 번도 발동되지 않은 상태일 때만 플레이어 감지
+        if (!hasTriggered)
         {
-            // RaycastAll을 사용하여 자신(돌)의 콜라이더에 막히지 않고 선 위의 모든 것을 검사합니다.
             RaycastHit2D[] hits = Physics2D.RaycastAll(transform.position, Vector2.down, detectionDistance);
 
             foreach (RaycastHit2D hit in hits)
             {
-                // 맞은 것들 중에 플레이어(Player)가 있다면? (함정 발동은 플레이어에게만)
                 if (hit.collider != null && hit.collider.CompareTag("Player"))
                 {
-                    // 중력을 켜서 돌을 떨어뜨립니다!
-                    rb.gravityScale = fallGravity;
-                    break; // 찾았으니 검사 종료
+                    StartCoroutine(AttackRoutine());
+                    break;
                 }
             }
         }
     }
 
-    // 감지 센서(Trigger)에 플레이어나 적이 들어왔을 때 (기존 방식 유지)
+    private IEnumerator AttackRoutine()
+    {
+        hasTriggered = true; // 1회만 발동되도록 설정
+        hasDamagedThisAttack = false;
+
+        // 1. 애니메이션 실행
+        if (animator != null && !string.IsNullOrEmpty(attackTriggerName))
+        {
+            animator.SetTrigger(attackTriggerName);
+        }
+
+        // 2. 물리 낙하 설정 시 중력 적용
+        if (usePhysicsFall && rb != null)
+        {
+            rb.gravityScale = fallGravity;
+        }
+
+        // 3. 콜라이더 Offset 이동 (데미지 영역 변경)
+        isProtruding = true;
+        if (damageCollider != null)
+        {
+            damageCollider.offset = activeOffset;
+        }
+
+        // 4. 유지 시간 대기
+        yield return new WaitForSeconds(activeDuration);
+
+        // 5. 콜라이더 Offset 원복 (데미지 비활성화)
+        isProtruding = false;
+        if (damageCollider != null)
+        {
+            damageCollider.offset = originalOffset;
+        }
+    }
+
+    // 센서(Trigger)에 들어왔을 때
     private void OnTriggerEnter2D(Collider2D collision)
     {
         if (collision.CompareTag("Player") || collision.CompareTag("Enemy"))
         {
-            // 중력을 활성화하여 돌을 떨어뜨림 (플레이어만 발동시킴)
-            if (rb != null && rb.gravityScale == 0f)
+            if (!hasTriggered)
             {
                 if (collision.CompareTag("Player"))
                 {
-                    rb.gravityScale = fallGravity;
+                    StartCoroutine(AttackRoutine());
                 }
             }
-            else
+            else if (isProtruding && !hasDamagedThisAttack)
             {
-                // 이미 떨어지는 중이거나 땅에 닿은 상태에서 부딪혔다면 데미지와 넉백
                 ApplyDamageAndKnockback(collision.gameObject);
+                hasDamagedThisAttack = true;
             }
         }
     }
 
-    // 돌이 실제로 부딪혔을 때
+    private void OnTriggerStay2D(Collider2D collision)
+    {
+        if (isProtruding && !hasDamagedThisAttack && (collision.CompareTag("Player") || collision.CompareTag("Enemy")))
+        {
+            ApplyDamageAndKnockback(collision.gameObject);
+            hasDamagedThisAttack = true;
+        }
+    }
+
+    // 실제 충돌 시 (물리 충돌)
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        if (collision.gameObject.CompareTag("Player") || collision.gameObject.CompareTag("Enemy"))
+        if ((isProtruding || usePhysicsFall) && !hasDamagedThisAttack && (collision.gameObject.CompareTag("Player") || collision.gameObject.CompareTag("Enemy")))
         {
-            Debug.Log("hit");
             ApplyDamageAndKnockback(collision.gameObject);
+            hasDamagedThisAttack = true;
         }
     }
 
@@ -92,7 +162,7 @@ public class HSH_FallingTrap : MonoBehaviour
         }
 
         // 2. 넉백 처리
-        float knockbackPower = 10f; 
+        float knockbackPower = 10f;
         Vector2 knockbackDir = (target.transform.position - transform.position).normalized;
         knockbackDir.y += 0.5f; // 약간 위로 뜨게 설정
         knockbackDir = knockbackDir.normalized;
@@ -114,11 +184,13 @@ public class HSH_FallingTrap : MonoBehaviour
         }
     }
 
-    // 유니티 씬(Scene) 화면에서 감지 범위를 빨간색 선으로 눈에 보이게 그려주는 편의 기능입니다.
-    private void OnDrawGizmos()
+    private void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.red;
-        // 돌 위치에서 아래쪽으로 설정한 거리만큼 선을 긋습니다.
         Gizmos.DrawLine(transform.position, transform.position + Vector3.down * detectionDistance);
+
+        Gizmos.color = Color.yellow;
+        Vector3 activeOffsetWorldPos = transform.TransformPoint(activeOffset);
+        Gizmos.DrawWireSphere(activeOffsetWorldPos, 0.2f);
     }
 }

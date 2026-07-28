@@ -9,15 +9,25 @@ public class HSH_FireSparkTrap : MonoBehaviour
     public Vector2 direction = Vector2.right; // 날아갈 방향 (위, 아래, 양옆 설정 가능)
 
     [Header("발사기(Spawner) 설정")]
-    [Tooltip("체크하면 제자리에서 5초에 한 번씩 불똥을 발사합니다.")]
+    [Tooltip("체크하면 제자리에서 주기적/감지 시 불똥을 발사합니다.")]
     public bool isSpawner = false; // 발사기 여부
     public GameObject sparkPrefab; // 발사할 불똥 프리팹
     public float fireInterval = 5f; // 발사 간격 (5초)
+
+    [Header("플레이어 감지 설정 (발사기 전용)")]
+    public bool detectPlayer = true; // 체크하면 전방 플레이어 감지 시에만 발사
+    public float detectDistance = 10f; // 감지 거리
+
+    [Header("애니메이션 설정 (발사기 전용)")]
+    public Animator animator;
+    public string fireTriggerName = "Fire"; // 발사 시 실행할 애니메이션 트리거
 
     private float timer = 0f;
 
     private void Start()
     {
+        if (animator == null) animator = GetComponent<Animator>();
+
         if (!isSpawner)
         {
             // 투사체는 일정 시간 뒤 자동 삭제
@@ -25,7 +35,7 @@ public class HSH_FireSparkTrap : MonoBehaviour
         }
         else
         {
-            // 발사기는 타이머 초기화 (시작 시점에 바로 쏠 수 있도록)
+            // 발사기는 타이머 초기화 (감지되자마자 쏠 수 있게)
             timer = fireInterval;
         }
     }
@@ -34,31 +44,69 @@ public class HSH_FireSparkTrap : MonoBehaviour
     {
         if (isSpawner)
         {
-            // 주기적으로 무조건 발사
-            timer += Time.deltaTime;
-            if (timer >= fireInterval)
+            bool shouldFire = false;
+
+            if (detectPlayer)
             {
-                timer = 0f;
-                if (sparkPrefab != null)
+                // 전방 레이캐스트로 플레이어 감지
+                RaycastHit2D[] hits = Physics2D.RaycastAll(transform.position, direction.normalized, detectDistance);
+                foreach (var hit in hits)
                 {
-                    Instantiate(sparkPrefab, transform.position, Quaternion.identity);
+                    if (hit.collider != null && hit.collider.CompareTag("Player"))
+                    {
+                        shouldFire = true;
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                shouldFire = true; // 무조건 주기적 발사
+            }
+
+            if (shouldFire)
+            {
+                timer += Time.deltaTime;
+                if (timer >= fireInterval)
+                {
+                    timer = 0f;
+                    FireSpark();
                 }
             }
         }
         else
         {
-            // 투사체 이동
+            // 투사체 모드: 지정된 방향으로 날아감
             transform.Translate(direction.normalized * speed * Time.deltaTime);
         }
     }
 
+    private void FireSpark()
+    {
+        // 1. 발사기 애니메이션 연출
+        if (animator != null && !string.IsNullOrEmpty(fireTriggerName))
+        {
+            animator.SetTrigger(fireTriggerName);
+        }
+
+        // 2. 불똥 프로젝타일 생성
+        if (sparkPrefab != null)
+        {
+            Instantiate(sparkPrefab, transform.position, Quaternion.identity);
+        }
+        else
+        {
+            Debug.LogWarning($"[{gameObject.name}] 발사할 sparkPrefab이 지정되지 않았습니다!");
+        }
+    }
+
+    // 투사체(프로젝타일)가 플레이어 또는 적의 콜라이더에 닿았을 때 데미지 적용
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        // 발사기가 아닌 투사체일 때만 데미지
         if (!isSpawner && (collision.CompareTag("Player") || collision.CompareTag("Enemy")))
         {
             ApplyDamageAndKnockback(collision.gameObject);
-            Destroy(gameObject); // 맞으면 불똥 삭제
+            Destroy(gameObject); // 맞으면 불똥 프로젝타일 삭제
         }
     }
 
@@ -80,9 +128,9 @@ public class HSH_FireSparkTrap : MonoBehaviour
         }
 
         // 2. 넉백 처리
-        float knockbackPower = 10f; 
+        float knockbackPower = 10f;
         Vector2 knockbackDir = (target.transform.position - transform.position).normalized;
-        knockbackDir.y += 0.5f; // 약간 위로
+        knockbackDir.y += 0.5f;
         knockbackDir = knockbackDir.normalized;
 
         hys_Player_Hit playerHit = target.GetComponentInParent<hys_Player_Hit>();
@@ -102,15 +150,13 @@ public class HSH_FireSparkTrap : MonoBehaviour
         }
     }
 
-    private void OnDrawGizmos()
+    private void OnDrawGizmosSelected()
     {
         if (isSpawner)
         {
-#if UNITY_EDITOR
-            if (Camera.current != null && Camera.current.name != "SceneCamera") return;
-#endif
             Gizmos.color = new Color(1f, 0.5f, 0f); // 주황색
-            Gizmos.DrawRay(transform.position, direction.normalized * 2f); // 씬 뷰에서 날아갈 방향 표시
+            float drawDist = detectPlayer ? detectDistance : 2f;
+            Gizmos.DrawRay(transform.position, direction.normalized * drawDist);
         }
     }
 }

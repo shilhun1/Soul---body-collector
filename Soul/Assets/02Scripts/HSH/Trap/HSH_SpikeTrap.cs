@@ -5,21 +5,42 @@ public class HSH_SpikeTrap : MonoBehaviour
 {
     [Header("고정형(가시) 함정 설정")]
     public float damage = 20f; // 데미지 수치
-    
-    [Header("감지 및 돌출 설정")]
+
+    [Header("감지 및 발동 설정")]
     public float detectionDistance = 3f; // 위로 플레이어를 감지할 거리
-    public float delayTime = 0.7f; // 감지 후 솟아오르기까지 걸리는 시간 (0.7초)
-    public float protrudeHeight = 1f; // 위로 솟아오르는 높이
-    public float activeDuration = 1.5f; // 솟아오른 상태를 유지하는 시간
+    public float delayTime = 0.7f; // 감지 후 애니메이션/공격 발동까지 걸리는 딜레이 시간
+    public float activeDuration = 1.5f; // 가시가 나와있는(데미지 판정) 유지 시간
+    public float coolTime = 0.5f; // 가시가 들어간 후 재감지까지의 쿨타임
+
+    [Header("애니메이션 설정")]
+    public Animator animator;
+    public string attackTriggerName = "Attack"; // 감지 시 실행할 애니메이션 트리거 이름
+
+    [Header("콜라이더 Offset 설정")]
+    public Collider2D damageCollider; // 데미지 판정을 담당할 콜라이더
+    public Vector2 activeOffset = new Vector2(0f, 1f); // 가시가 나와서 공격할 때의 콜라이더 Offset
+    private Vector2 originalOffset; // 평소 기본 콜라이더 Offset
 
     private bool isAttacking = false;
-    private bool isProtruding = false; // 현재 튀어나와 있어서 데미지를 줄 수 있는 상태인지
-    private bool hasDamagedThisAttack = false; // 한 번 솟아오를 때 여러 번 데미지 안 받게 방지
-    private Vector3 originalPosition;
+    private bool isProtruding = false; // 현재 가시가 나와있어 데미지를 줄 수 있는 상태인지
+    private bool hasDamagedThisAttack = false; // 한 번의 공격당 중복 데미지 방지
 
     private void Start()
     {
-        originalPosition = transform.position;
+        if (animator == null)
+        {
+            animator = GetComponent<Animator>();
+        }
+
+        if (damageCollider == null)
+        {
+            damageCollider = GetComponent<Collider2D>();
+        }
+
+        if (damageCollider != null)
+        {
+            originalOffset = damageCollider.offset;
+        }
     }
 
     private void Update()
@@ -29,7 +50,7 @@ public class HSH_SpikeTrap : MonoBehaviour
         {
             // 위쪽으로 레이캐스트를 쏴서 플레이어 감지 (자신 콜라이더 무시 위해 RaycastAll 사용)
             RaycastHit2D[] hits = Physics2D.RaycastAll(transform.position, Vector2.up, detectionDistance);
-            
+
             foreach (var hit in hits)
             {
                 if (hit.collider != null && hit.collider.CompareTag("Player"))
@@ -46,48 +67,41 @@ public class HSH_SpikeTrap : MonoBehaviour
     {
         isAttacking = true;
         hasDamagedThisAttack = false; // 데미지 판정 초기화
-        
-        // 1. 플레이어 감지 후 설정한 딜레이(0.7초) 대기
-        yield return new WaitForSeconds(delayTime);
-        
-        // 2. 가시 팍! 돌출 시작
-        isProtruding = true;
-        Vector3 targetPos = originalPosition + (Vector3.up * protrudeHeight);
-        
-        float elapsedTime = 0f;
-        float popUpTime = 0.05f; // 0.05초만에 아주 빠르게 솟아오름
-        while (elapsedTime < popUpTime)
-        {
-            transform.position = Vector3.Lerp(originalPosition, targetPos, elapsedTime / popUpTime);
-            elapsedTime += Time.deltaTime;
-            yield return null;
-        }
-        transform.position = targetPos;
 
-        // 3. 튀어나온 상태(위험 상태)로 유지
-        yield return new WaitForSeconds(activeDuration);
-        
-        // 4. 다시 바닥으로 들어가기 (이때부터는 데미지 안 줌)
-        isProtruding = false;
-        elapsedTime = 0f;
-        float goDownTime = 0.5f; // 0.5초 동안 서서히 들어감
-        while (elapsedTime < goDownTime)
+        // 1. 플레이어 감지 후 설정한 딜레이 대기
+        yield return new WaitForSeconds(delayTime);
+
+        // 2. 애니메이션 실행 & 콜라이더 Offset 이동 (데미지 영역 활성화)
+        if (animator != null && !string.IsNullOrEmpty(attackTriggerName))
         {
-            transform.position = Vector3.Lerp(targetPos, originalPosition, elapsedTime / goDownTime);
-            elapsedTime += Time.deltaTime;
-            yield return null;
+            animator.SetTrigger(attackTriggerName);
         }
-        transform.position = originalPosition;
-        
-        // 5. 쿨타임 (함정이 쏙 들어가고 나서 다시 감지하기까지의 시간)
-        yield return new WaitForSeconds(0.5f);
+
+        isProtruding = true;
+        if (damageCollider != null)
+        {
+            damageCollider.offset = activeOffset;
+        }
+
+        // 3. 솟아오른 상태(공격 위험 상태) 유지
+        yield return new WaitForSeconds(activeDuration);
+
+        // 4. 다시 가시 들어감 (콜라이더 Offset 원복 & 데미지 영역 비활성화)
+        isProtruding = false;
+        if (damageCollider != null)
+        {
+            damageCollider.offset = originalOffset;
+        }
+
+        // 5. 쿨타임 (함정이 들어가고 나서 다시 감지하기까지의 시간)
+        yield return new WaitForSeconds(coolTime);
         isAttacking = false;
     }
 
-    // Trigger 영역에 닿아있을 때 (가시가 솟아오르는 중에 플레이어/적 몸체와 닿아도 반응하기 위해 Stay 사용)
+    // Trigger 영역에 닿아있을 때
     private void OnTriggerStay2D(Collider2D collision)
     {
-        // 튀어나와 있는 상태이고, 이번 공격에 아직 데미지를 주지 않았다면!
+        // 가시가 나와 있는 상태이고, 이번 공격에 아직 데미지를 주지 않았다면!
         if (isProtruding && !hasDamagedThisAttack && (collision.CompareTag("Player") || collision.CompareTag("Enemy")))
         {
             ApplyDamageAndKnockback(collision.gameObject);
@@ -123,7 +137,7 @@ public class HSH_SpikeTrap : MonoBehaviour
         }
 
         // 2. 넉백 처리
-        float knockbackPower = 10f; 
+        float knockbackPower = 10f;
         Vector2 knockbackDir = (target.transform.position - transform.position).normalized;
         knockbackDir.y += 0.5f; // 약간 위로 뜨게 설정
         knockbackDir = knockbackDir.normalized;
@@ -145,10 +159,16 @@ public class HSH_SpikeTrap : MonoBehaviour
         }
     }
 
-    // 에디터 씬 뷰에서 감지 범위를 빨간 선으로 편하게 볼 수 있도록 그려주는 함수
-    private void OnDrawGizmos()
+    // 에디터 씬 뷰에서 감지 범위 및 콜라이더 Offset 위치를 시각적으로 확인하기 위한 Gizmos
+    private void OnDrawGizmosSelected()
     {
+        // 1. 감지 범위 레이 표시 (빨간색)
         Gizmos.color = Color.red;
         Gizmos.DrawLine(transform.position, transform.position + Vector3.up * detectionDistance);
+
+        // 2. 공격 시 활성화되는 Collider Offset 위치 표시 (노란색)
+        Gizmos.color = Color.yellow;
+        Vector3 activeOffsetWorldPos = transform.TransformPoint(activeOffset);
+        Gizmos.DrawWireSphere(activeOffsetWorldPos, 0.2f);
     }
 }

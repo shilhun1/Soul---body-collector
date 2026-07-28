@@ -15,10 +15,16 @@ public class HSH_WindTrap : MonoBehaviour
     public float fireInterval = 2f; // 발사 간격(초)
     public float detectDistance = 15f; // 감지 거리
 
+    [Header("애니메이션 설정 (발사기 전용)")]
+    public Animator animator;
+    public string fireTriggerName = "Fire"; // 바람 발사 시 실행할 애니메이션 트리거
+
     private float fireTimer = 0f; // 발사 타이머
 
     private void Start()
     {
+        if (animator == null) animator = GetComponent<Animator>();
+
         if (!isSpawner)
         {
             // 투사체(바람)인 경우 시작 시부터 수명 카운트 시작
@@ -37,11 +43,11 @@ public class HSH_WindTrap : MonoBehaviour
         {
             // 1. 발사기 모드: 플레이어가 앞에 있는지 Ray로 감지
             bool isPlayerDetected = false;
-            RaycastHit2D[] hits = Physics2D.RaycastAll(transform.position, windDirection, detectDistance);
+            RaycastHit2D[] hits = Physics2D.RaycastAll(transform.position, windDirection.normalized, detectDistance);
 
             foreach (var hit in hits)
             {
-                if (hit.collider.CompareTag("Player"))
+                if (hit.collider != null && hit.collider.CompareTag("Player"))
                 {
                     isPlayerDetected = true;
                     break;
@@ -55,27 +61,34 @@ public class HSH_WindTrap : MonoBehaviour
                 if (fireTimer >= fireInterval)
                 {
                     fireTimer = 0f;
-                    if (windPrefab != null)
-                    {
-                        Instantiate(windPrefab, transform.position, Quaternion.identity);
-                        Debug.Log("[WindTrap] 바람 투사체 발사!");
-                    }
-                    else
-                    {
-                        Debug.LogWarning("[WindTrap] 발사할 바람 프리팹(windPrefab)이 연결되어 있지 않습니다!");
-                    }
+                    FireWind();
                 }
             }
-            // else
-            // {
-            //     // 플레이어가 벗어나면 다음에 들어올 때 즉시 쏘도록 타이머를 채워둠
-            //     fireTimer = fireInterval;
-            // }
         }
         else
         {
             // 3. 투사체 모드: 지정된 방향으로 매 프레임 날아감
             transform.Translate(windDirection.normalized * windSpeed * Time.deltaTime);
+        }
+    }
+
+    private void FireWind()
+    {
+        // 발사 애니메이션 연출
+        if (animator != null && !string.IsNullOrEmpty(fireTriggerName))
+        {
+            animator.SetTrigger(fireTriggerName);
+        }
+
+        // 바람 프로젝타일 생성
+        if (windPrefab != null)
+        {
+            Instantiate(windPrefab, transform.position, Quaternion.identity);
+            Debug.Log("[WindTrap] 바람 투사체 발사!");
+        }
+        else
+        {
+            Debug.LogWarning("[WindTrap] 발사할 바람 프리팹(windPrefab)이 연결되어 있지 않습니다!");
         }
     }
 
@@ -85,8 +98,6 @@ public class HSH_WindTrap : MonoBehaviour
         if (!isSpawner && (collision.CompareTag("Player") || collision.CompareTag("Enemy")))
         {
             ApplyDamageAndKnockback(collision.gameObject);
-            // 원한다면 맞춘 후 바람 삭제 가능
-            // Destroy(gameObject);
         }
     }
 
@@ -130,9 +141,8 @@ public class HSH_WindTrap : MonoBehaviour
         }
     }
 
-    private void OnDrawGizmos()
+    private void OnDrawGizmosSelected()
     {
-        // 발사기일 때만 씬 뷰에서 감지 거리를 빨간 선으로 항시 확인
         if (isSpawner)
         {
             Gizmos.color = Color.red;
