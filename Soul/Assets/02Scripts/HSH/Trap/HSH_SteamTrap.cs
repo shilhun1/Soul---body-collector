@@ -12,22 +12,43 @@ public class HSH_SteamTrap : MonoBehaviour
     [Tooltip("수증기에 맞았을 때 위로 튕겨 올라가는 힘입니다. 숫자가 클수록 높이 뜹니다.")]
     public float knockbackPower = 25f; 
 
-    private bool isActive = false;
-    private Collider2D steamCollider;
+    [Header("플레이어 감지 설정")]
+    public bool detectPlayer = false; // 체크하면 감지할 때만 분출, 해제 시 주기적 자동 분출
+    public float detectionDistance = 4f; // 플레이어를 감지할 거리
+    public Vector2 detectDirection = Vector2.up; // 감지 레이 방향
+
+    [Header("애니메이션 설정")]
+    public Animator animator;
+    public string attackTriggerName = "Attack"; // 수증기 분출 시 실행할 애니메이션 트리거
+    public string activeBoolName = "IsActive"; // 분출 상태 지속 여부를 나타낼 애니메이션 파라미터 (선택 사항)
+
+    [Header("콜라이더 Offset 설정")]
+    public Collider2D steamCollider; // 데미지 판정을 담당할 콜라이더
+    public Vector2 activeOffset = new Vector2(0f, 1.5f); // 수증기가 뿜어져 나올 때의 콜라이더 Offset
+    private Vector2 originalOffset; // 평소 기본 콜라이더 Offset
+
     private SpriteRenderer spriteRenderer; 
     
     [Header("시각 효과 (파티클)")]
     [Tooltip("수증기가 뿜어져 나오는 시각 효과(Particle System)를 연결하세요.")]
     public ParticleSystem steamParticles;
 
+    private bool isActive = false;
+    private bool isAttacking = false;
     private Dictionary<GameObject, float> nextDamageTime = new Dictionary<GameObject, float>();
 
     private void Start()
     {
-        steamCollider = GetComponent<Collider2D>();
+        if (steamCollider == null) steamCollider = GetComponent<Collider2D>();
+        if (animator == null) animator = GetComponent<Animator>();
         spriteRenderer = GetComponent<SpriteRenderer>();
 
-        if (steamCollider != null) steamCollider.enabled = false;
+        if (steamCollider != null)
+        {
+            originalOffset = steamCollider.offset;
+            steamCollider.enabled = false;
+        }
+
         if (spriteRenderer != null) spriteRenderer.color = new Color(1, 1, 1, 0.2f); 
         
         if (steamParticles != null)
@@ -35,7 +56,27 @@ public class HSH_SteamTrap : MonoBehaviour
             steamParticles.Stop(); // 시작 시 파티클 중지
         }
 
-        StartCoroutine(SteamRoutine());
+        if (!detectPlayer)
+        {
+            StartCoroutine(SteamRoutine());
+        }
+    }
+
+    private void Update()
+    {
+        // 플레이어 감지 모드일 때
+        if (detectPlayer && !isAttacking)
+        {
+            RaycastHit2D[] hits = Physics2D.RaycastAll(transform.position, detectDirection.normalized, detectionDistance);
+            foreach (var hit in hits)
+            {
+                if (hit.collider != null && hit.collider.CompareTag("Player"))
+                {
+                    StartCoroutine(TriggerSteamAttack());
+                    break;
+                }
+            }
+        }
     }
 
     private IEnumerator SteamRoutine()
@@ -44,29 +85,57 @@ public class HSH_SteamTrap : MonoBehaviour
         {
             // 쉬는 시간
             yield return new WaitForSeconds(inactiveDuration);
-
-            // 수증기 분출
-            isActive = true;
-            if (steamCollider != null) steamCollider.enabled = true;
-            if (spriteRenderer != null) spriteRenderer.color = new Color(1, 1, 1, 0.8f);
-            
-            if (steamParticles != null) 
-            {
-                steamParticles.Play(); // 파티클 재생 (뿜어져 나옴)
-            }
-
-            yield return new WaitForSeconds(activeDuration);
-
-            // 다시 쉼
-            isActive = false;
-            if (steamCollider != null) steamCollider.enabled = false;
-            if (spriteRenderer != null) spriteRenderer.color = new Color(1, 1, 1, 0.2f);
-            
-            if (steamParticles != null) 
-            {
-                steamParticles.Stop(); // 파티클 중지
-            }
+            yield return StartCoroutine(TriggerSteamAttack());
         }
+    }
+
+    private IEnumerator TriggerSteamAttack()
+    {
+        isAttacking = true;
+        isActive = true;
+
+        // 1. 애니메이션 재생 및 Collider Offset 이동
+        if (animator != null)
+        {
+            if (!string.IsNullOrEmpty(attackTriggerName)) animator.SetTrigger(attackTriggerName);
+            if (!string.IsNullOrEmpty(activeBoolName)) animator.SetBool(activeBoolName, true);
+        }
+
+        if (steamCollider != null)
+        {
+            steamCollider.offset = activeOffset;
+            steamCollider.enabled = true;
+        }
+
+        if (spriteRenderer != null) spriteRenderer.color = new Color(1, 1, 1, 0.8f);
+        if (steamParticles != null) steamParticles.Play();
+
+        // 2. 분출 유지 시간 대기
+        yield return new WaitForSeconds(activeDuration);
+
+        // 3. 분출 종료 및 Collider Offset 원복
+        isActive = false;
+        if (steamCollider != null)
+        {
+            steamCollider.offset = originalOffset;
+            steamCollider.enabled = false;
+        }
+
+        if (animator != null && !string.IsNullOrEmpty(activeBoolName))
+        {
+            animator.SetBool(activeBoolName, false);
+        }
+
+        if (spriteRenderer != null) spriteRenderer.color = new Color(1, 1, 1, 0.2f);
+        if (steamParticles != null) steamParticles.Stop();
+
+        // 감지 모드일 경우 감지 쿨타임 대기
+        if (detectPlayer)
+        {
+            yield return new WaitForSeconds(inactiveDuration);
+        }
+
+        isAttacking = false;
     }
 
     private void OnTriggerStay2D(Collider2D collision)
@@ -75,11 +144,11 @@ public class HSH_SteamTrap : MonoBehaviour
         {
             GameObject target = collision.gameObject;
 
-            // 쿨타임 체크 (한 번 맞고 나서 damageCooldown 시간이 지나야 다시 맞음)
+            // 쿨타임 체크
             if (!nextDamageTime.ContainsKey(target) || Time.time >= nextDamageTime[target])
             {
                 ApplyDamageAndKnockback(target);
-                nextDamageTime[target] = Time.time + damageCooldown; // 쿨타임 갱신
+                nextDamageTime[target] = Time.time + damageCooldown;
             }
         }
     }
@@ -101,35 +170,42 @@ public class HSH_SteamTrap : MonoBehaviour
             Debug.Log($"[{gameObject.name}] {target.name}에게 데미지: {damage}");
         }
 
-        // 2. 넉백 처리 (수증기는 무조건 위로 솟구치도록)
-        // 옆으로 밀리는 현상을 방지하기 위해 방향을 완전한 위쪽(Up)으로 고정합니다.
+        // 2. 넉백 처리
         Vector2 knockbackDir = Vector2.up; 
 
         hys_Player_Hit playerHit = target.GetComponentInParent<hys_Player_Hit>();
         if (playerHit != null)
         {
-            // 플레이어는 자체 넉백 시스템에 전달
             playerHit.ApplyKnockback(knockbackDir * knockbackPower);
         }
         else
         {
-            // 적의 범용 넉백 시스템은 기본적으로 '수직(Y축) 넉백 무시' 설정이 되어 있어 옆으로만 밀리게 됩니다.
-            // 이를 뚫고 강제로 위로 띄우기 위해 Rigidbody의 Y축 속도를 직접 조작합니다.
             HWJ_KnockbackSystem knockbackSystem = target.GetComponentInParent<HWJ_KnockbackSystem>();
             if (knockbackSystem == null)
             {
                 Rigidbody2D parentRb = target.GetComponentInParent<Rigidbody2D>();
                 knockbackSystem = (parentRb != null) ? parentRb.gameObject.AddComponent<HWJ_KnockbackSystem>() : target.AddComponent<HWJ_KnockbackSystem>();
             }
-            // X축 방향 넉백(0)을 전달해서 기절 상태만 유발
             knockbackSystem.PlayKnockback(knockbackDir, knockbackPower, 0.25f);
             
-            // 실제 위로 띄우는 힘 적용
             Rigidbody2D rb = target.GetComponent<Rigidbody2D>();
             if (rb != null)
             {
                 rb.linearVelocity = new Vector2(rb.linearVelocity.x, knockbackPower);
             }
         }
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        if (detectPlayer)
+        {
+            Gizmos.color = Color.red;
+            Gizmos.DrawRay(transform.position, detectDirection.normalized * detectionDistance);
+        }
+
+        Gizmos.color = Color.yellow;
+        Vector3 activeOffsetWorldPos = transform.TransformPoint(activeOffset);
+        Gizmos.DrawWireSphere(activeOffsetWorldPos, 0.2f);
     }
 }

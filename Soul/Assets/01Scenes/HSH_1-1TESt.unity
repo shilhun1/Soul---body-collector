@@ -626,6 +626,11 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 185755764}
   m_CullTransparentMesh: 1
+--- !u!95 &192575639 stripped
+Animator:
+  m_CorrespondingSourceObject: {fileID: -9322583645338564, guid: 4ad199e7efbe0ac4ab04c10debd10ac1, type: 3}
+  m_PrefabInstance: {fileID: 1691752111}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &224704987
 GameObject:
   m_ObjectHideFlags: 0
@@ -7598,6 +7603,9 @@ MonoBehaviour:
   hitReactionLimitEndTime: 0
   hitReactionWindowEndTime: 0
   hitReactionCountInWindow: 0
+  ignorePlayerMonsterBodyCollision: 1
+  ignoreMonsterBodyCollision: 1
+  bodyCollisionRefreshSeconds: 0.25
 --- !u!114 &1642525674
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8022,6 +8030,9 @@ MonoBehaviour:
   hitReactionLimitEndTime: 0
   hitReactionWindowEndTime: 0
   hitReactionCountInWindow: 0
+  ignorePlayerMonsterBodyCollision: 1
+  ignoreMonsterBodyCollision: 1
+  bodyCollisionRefreshSeconds: 0.25
 --- !u!114 &1642525689
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8232,6 +8243,75 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!1001 &1691752111
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 3300848981017519991, guid: 4ad199e7efbe0ac4ab04c10debd10ac1, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 30.491764
+      objectReference: {fileID: 0}
+    - target: {fileID: 3300848981017519991, guid: 4ad199e7efbe0ac4ab04c10debd10ac1, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -3.9753156
+      objectReference: {fileID: 0}
+    - target: {fileID: 3300848981017519991, guid: 4ad199e7efbe0ac4ab04c10debd10ac1, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3300848981017519991, guid: 4ad199e7efbe0ac4ab04c10debd10ac1, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3300848981017519991, guid: 4ad199e7efbe0ac4ab04c10debd10ac1, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3300848981017519991, guid: 4ad199e7efbe0ac4ab04c10debd10ac1, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3300848981017519991, guid: 4ad199e7efbe0ac4ab04c10debd10ac1, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3300848981017519991, guid: 4ad199e7efbe0ac4ab04c10debd10ac1, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3300848981017519991, guid: 4ad199e7efbe0ac4ab04c10debd10ac1, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3300848981017519991, guid: 4ad199e7efbe0ac4ab04c10debd10ac1, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6274214320299725028, guid: 4ad199e7efbe0ac4ab04c10debd10ac1, type: 3}
+      propertyPath: animator
+      value: 
+      objectReference: {fileID: 192575639}
+    - target: {fileID: 6274214320299725028, guid: 4ad199e7efbe0ac4ab04c10debd10ac1, type: 3}
+      propertyPath: attackTriggerName
+      value: Checking
+      objectReference: {fileID: 0}
+    - target: {fileID: 6738237266308846031, guid: 4ad199e7efbe0ac4ab04c10debd10ac1, type: 3}
+      propertyPath: m_Size.y
+      value: 0.6
+      objectReference: {fileID: 0}
+    - target: {fileID: 7856721486294998017, guid: 4ad199e7efbe0ac4ab04c10debd10ac1, type: 3}
+      propertyPath: m_Name
+      value: BottomTrap (1)
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 4ad199e7efbe0ac4ab04c10debd10ac1, type: 3}
 --- !u!224 &1715887133 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 7463661967702352024, guid: 40c0cf6efcde26c4cb91e2d6ea4fca24, type: 3}
@@ -8479,8 +8559,12 @@ MonoBehaviour:
   damage: 20
   detectionDistance: 3
   delayTime: 0.7
-  protrudeHeight: 1
   activeDuration: 1.5
+  coolTime: 0.5
+  animator: {fileID: 0}
+  attackTriggerName: Attack
+  damageCollider: {fileID: 0}
+  activeOffset: {x: 0, y: 1}
 --- !u!212 &1798815448
 SpriteRenderer:
   serializedVersion: 2
@@ -9196,3 +9280,4 @@ SceneRoots:
   - {fileID: 2048839384}
   - {fileID: 1229065589}
   - {fileID: 2043022040}
+  - {fileID: 1691752111}
