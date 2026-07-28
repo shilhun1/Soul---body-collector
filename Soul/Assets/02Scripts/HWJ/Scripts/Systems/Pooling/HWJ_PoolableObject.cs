@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 /// <summary>
@@ -54,3 +55,4 @@ public class HWJ_PoolableObject : MonoBehaviour
         ownerPool.Despawn(gameObject);
     }
 }
+

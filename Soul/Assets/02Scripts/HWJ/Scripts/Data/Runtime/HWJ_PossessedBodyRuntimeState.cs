@@ -95,6 +95,10 @@ public class HWJ_PossessedBodyRuntimeState
     public float MaxDecayValue => maxDecayValue;
     public float CurrentHpRatio => maxHp > 0f ? Mathf.Clamp01(currentHp / maxHp) : 0f;
     public float CurrentDecayRatio => maxDecayValue > 0f ? Mathf.Clamp01(currentDecayValue / maxDecayValue) : 0f;
+    public float CurrentPossessionMentalValue => Mathf.Max(0f, maxDecayValue - currentDecayValue);
+    public float MaxPossessionMentalValue => maxDecayValue;
+    public float CurrentPossessionMentalRatio => maxDecayValue > 0f ? Mathf.Clamp01(CurrentPossessionMentalValue / maxDecayValue) : 0f;
+    public bool IsPossessionMentalDepleted => maxDecayValue > 0f && currentDecayValue >= maxDecayValue;
     public bool IsPossessed => isPossessed;
     public bool IsCollapsed => isCollapsed;
     public IReadOnlyList<HWJ_RuntimeBodyEffectState> ActiveEffects => activeEffects;
@@ -145,10 +149,7 @@ public class HWJ_PossessedBodyRuntimeState
         cooldowns.Clear();
         temporaryStatModifiers.Clear();
 
-        if (this.maxDecayValue > 0f && currentDecayValue >= this.maxDecayValue)
-        {
-            MarkCollapsed();
-        }
+        isCollapsed = this.maxHp > 0f && currentHp <= 0f;
     }
 
     public void SetPossessed(bool value)
@@ -182,11 +183,6 @@ public class HWJ_PossessedBodyRuntimeState
     public void SetCurrentDecayValue(float value)
     {
         currentDecayValue = ClampDecay(value);
-
-        if (maxDecayValue > 0f && currentDecayValue >= maxDecayValue)
-        {
-            MarkCollapsed();
-        }
     }
 
     public void ResetDecay(float initialDecayValue)

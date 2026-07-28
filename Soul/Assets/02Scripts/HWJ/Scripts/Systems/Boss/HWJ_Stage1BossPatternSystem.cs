@@ -2,7 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class HWJ_Stage1BossPatternSystem : MonoBehaviour
+public class HWJ_Stage1BossPatternSystem : MonoBehaviour, HWJ_IBossSpecialPatternExecutor
+
 {
     [Header("References")]
     [SerializeField] private HWJ_BossBrainSystem bossBrain;
@@ -33,6 +34,8 @@ public class HWJ_Stage1BossPatternSystem : MonoBehaviour
     [SerializeField] private HWJ_RootObjectDataSO[] possessableMonsterRootObjects;
     [SerializeField] private int minPossessableMonsterSpawnCount = 2;
     [SerializeField] private int maxPossessableMonsterSpawnCount = 3;
+    [InspectorName("패턴4 정신력 잔여 시간 조건")]
+    [Tooltip("플레이어의 빙의체 정신력으로 계산한 남은 시간이 이 값 이하일 때 패턴4 조건을 만족합니다.")]
     [SerializeField] private float pattern4BodyTimeThresholdSeconds = 30f;
     [SerializeField] private float pattern4BossHpRatioThreshold = 0.9f;
     [SerializeField] private float pattern4ArrowHeightAboveFloor = 2.6f;
@@ -66,6 +69,7 @@ public class HWJ_Stage1BossPatternSystem : MonoBehaviour
     private bool pattern5Used;
     private bool phase2TransitionLaserUsed;
 
+    public string ExecutorKey => "stage1_boss";
     public bool IsPatternRunning => activePatternRoutine != null;
 
     private void Awake()
@@ -91,6 +95,14 @@ public class HWJ_Stage1BossPatternSystem : MonoBehaviour
             default:
                 return patternNumber >= 1 && patternNumber <= 5;
         }
+    }
+
+    public bool CanUsePattern(HWJ_BossPatternDataSO pattern, Transform target)
+    {
+        return pattern != null
+            && pattern.UseStageOneSpecialExecution
+            && pattern.PatternNumber > 0
+            && CanUsePattern(pattern.PatternNumber, target);
     }
 
     public bool TryExecutePattern(int patternNumber, Transform target)
@@ -121,6 +133,13 @@ public class HWJ_Stage1BossPatternSystem : MonoBehaviour
             default:
                 return false;
         }
+    }
+
+    public bool TryExecutePattern(HWJ_BossPatternDataSO pattern, Transform target)
+    {
+        return pattern != null
+            && pattern.UseStageOneSpecialExecution
+            && TryExecutePattern(pattern.PatternNumber, target);
     }
 
     public bool TryExecutePhaseTwoTransitionLaser(Transform target, out float totalSeconds)
@@ -355,7 +374,7 @@ public class HWJ_Stage1BossPatternSystem : MonoBehaviour
 
         float hpRatio = runtimeStatus.CurrentHp / runtimeStatus.MaxHp;
         return hpRatio <= pattern4BossHpRatioThreshold
-            && GetPlayerBodyRemainingSeconds(target) <= pattern4BodyTimeThresholdSeconds;
+            && GetPlayerPossessionMentalRemainingSeconds(target) <= pattern4BodyTimeThresholdSeconds;
     }
 
     private bool CanUsePattern5()
@@ -426,16 +445,16 @@ public class HWJ_Stage1BossPatternSystem : MonoBehaviour
         return dangerLanes;
     }
 
-    private float GetPlayerBodyRemainingSeconds(Transform target)
+    private float GetPlayerPossessionMentalRemainingSeconds(Transform target)
     {
-        HWJ_BodyDecaySystem bodyDecay = target.GetComponent<HWJ_BodyDecaySystem>();
+        HWJ_BodyDecaySystem possessionMental = target.GetComponent<HWJ_BodyDecaySystem>();
 
-        if (bodyDecay == null)
+        if (possessionMental == null)
         {
-            bodyDecay = target.GetComponentInParent<HWJ_BodyDecaySystem>();
+            possessionMental = target.GetComponentInParent<HWJ_BodyDecaySystem>();
         }
 
-        if (bodyDecay == null)
+        if (possessionMental == null)
         {
             return float.MaxValue;
         }
@@ -449,12 +468,12 @@ public class HWJ_Stage1BossPatternSystem : MonoBehaviour
 
         if (playerResolver == null || !playerResolver.TryGetTypeData(out HWJ_PlayerTypeDataSO playerData) || playerData.BodyDecay == null)
         {
-            return bodyDecay.RemainingDecayValue;
+            return possessionMental.RemainingPossessionMentalValue;
         }
 
         float tickAmount = Mathf.Max(0.01f, playerData.BodyDecay.decayAmountPerTick);
         float tickSeconds = Mathf.Max(0.01f, playerData.BodyDecay.decayTickSeconds);
-        return bodyDecay.RemainingDecayValue / tickAmount * tickSeconds;
+        return possessionMental.RemainingPossessionMentalValue / tickAmount * tickSeconds;
     }
 
     private void DamageTargetIfInside(Transform target, Vector3 center, float radius, float damageMultiplier)

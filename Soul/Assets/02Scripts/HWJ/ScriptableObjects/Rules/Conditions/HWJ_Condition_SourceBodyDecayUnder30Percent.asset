@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: HWJ_Condition_SourceBodyDecayUnder30Percent
   m_EditorClassIdentifier: Assembly-CSharp::HWJ_BodyDecayConditionSO
   conditionId: source_body_decay_under_30_percent
-  description: Source possessed body remaining decay ratio must be 30 percent or lower.
+  description: Source possessed body remaining possession mental ratio must be 30 percent or lower.
   invertResult: 0
   passWhenContextMissing: 0
   actor: 0
-  requirement: 6
+  requirement: 15
   compareMode: 1
   value: 0
   ratio: 0.3

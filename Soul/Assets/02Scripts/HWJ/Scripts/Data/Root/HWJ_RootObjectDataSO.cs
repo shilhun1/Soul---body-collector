@@ -45,6 +45,7 @@ public class HWJ_RootObjectDataSO : ScriptableObject
     public HWJ_InteractionData Interaction => interaction;
     public HWJ_RewardData Reward => reward;
     public HWJ_ObjectTypeDataSO SelectedTypeData => selectedTypeData;
+    public HWJ_AbilityTag[] AbilityTags => identity != null ? identity.abilityTags : null;
 
     /// <summary>
     /// 선택된 TypeData가 있으면 그 타입을 우선 사용하고, 없으면 Identity의 타입을 사용합니다.
@@ -57,6 +58,28 @@ public class HWJ_RootObjectDataSO : ScriptableObject
     /// 빙의 후 무기별 스킬이나 적 역할을 판단할 때 씁니다.
     /// </summary>
     public HWJ_WeaponType WeaponType => GetWeaponType();
+
+    /// <summary>
+    /// Returns true when this root object grants a specific map gimmick ability.
+    /// This keeps stage gimmicks connected to shared SO data instead of scene-only rules.
+    /// </summary>
+    public bool HasAbilityTag(HWJ_AbilityTag abilityTag)
+    {
+        if (abilityTag == HWJ_AbilityTag.None || identity == null || identity.abilityTags == null)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < identity.abilityTags.Length; i++)
+        {
+            if (identity.abilityTags[i] == abilityTag)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     /// <summary>
     /// 선택된 유형 데이터를 원하는 타입으로 안전하게 꺼냅니다.

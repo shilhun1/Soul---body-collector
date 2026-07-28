@@ -13,19 +13,46 @@ MonoBehaviour:
   m_Name: HWJ_Skill_Axe_Swing
   m_EditorClassIdentifier: Assembly-CSharp::HWJ_SkillActionDataSO
   skillActionId: axe_swing
+  sourceSkillId: 
+  displayName: 
+  skillDescription: 
+  effectId: 
+  soundId: 
   actionType: 1
   requiredWeaponType: 6
+  authoredAttackPower: 0
   damageMultiplier: 1.25
   range: 1.9
   hitRange: 1.9
   durationSeconds: 0.35
   cooldownSeconds: 1
+  hitStartSeconds: 0.08
+  hitActiveSeconds: 0.08
+  recoverySeconds: 0.18
+  movementLockSeconds: 0.18
+  dashCancelStartSeconds: 0.12
+  canDashCancel: 1
   moveDistance: 0
   moveSpeed: 0
   hitCount: 1
   hitIntervalSeconds: 0
+  causesKnockback: 0
+  knockbackDistance: 0
+  causesStagger: 0
+  staggerSeconds: 0
+  launchesTarget: 0
+  launchHeight: 0
+  grantsInvincibility: 0
+  invincibilitySeconds: 0
+  usesCustomBodyDecayAmount: 0
+  customBodyDecayAmount: 0
+  additionalBodyDecayAmount: 0
+  usesComboBodyDecayMultiplier: 0
+  comboBodyDecayMultiplier: 1
+  chargeBodyDecayPerSecond: 0
+  maxChargeBodyDecayAmount: 0
   motionKey: Axe_Swing
   motionSequenceKeys: []
   motionStepIntervalSeconds: 0.12
   projectilePrefab: {fileID: 0}
-  actionEffectPrefab: {fileID: 0}
+  actionEffectPrefab: {fileID: 7710738139687680710, guid: 04cbf5941e6703846868c1a669bd1c67, type: 3}

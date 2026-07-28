@@ -30,6 +30,9 @@ public class HWJ_GameplayDatabaseSO : ScriptableObject
     [Tooltip("플레이어, 몬스터, 보스가 실행하는 스킬 액션 목록입니다.")]
     [InspectorName("스킬 액션 목록")]
     [SerializeField] private HWJ_SkillActionDataSO[] skillActions;
+    [Tooltip("빙의 육신별 스킬 해금 노드 목록입니다. 실행 스킬과 분리해서 해금 조건만 관리합니다.")]
+    [InspectorName("스킬 노드 목록")]
+    [SerializeField] private HWJ_SkillNodeDataSO[] skillNodes;
     [Tooltip("보스 패턴 데이터 목록입니다.")]
     [InspectorName("보스 패턴 목록")]
     [SerializeField] private HWJ_BossPatternDataSO[] bossPatterns;
@@ -39,6 +42,9 @@ public class HWJ_GameplayDatabaseSO : ScriptableObject
     [Tooltip("게임오버 창 설정 목록입니다.")]
     [InspectorName("게임오버 설정 목록")]
     [SerializeField] private HWJ_GameOverDataSO[] gameOverWindows;
+    [Tooltip("처음 시작 타이틀 화면 설정 목록입니다.")]
+    [InspectorName("타이틀 화면 설정 목록")]
+    [SerializeField] private HWJ_TitleScreenDataSO[] titleScreens;
 
     [Header("조건과 규칙 데이터")]
     [Tooltip("공통 조건 SO 목록입니다.")]
@@ -57,9 +63,11 @@ public class HWJ_GameplayDatabaseSO : ScriptableObject
     public HWJ_StatOrbDataSO[] StatOrbs => statOrbs;
     public HWJ_LevelUpDataSO[] LevelTables => levelTables;
     public HWJ_SkillActionDataSO[] SkillActions => skillActions;
+    public HWJ_SkillNodeDataSO[] SkillNodes => skillNodes;
     public HWJ_BossPatternDataSO[] BossPatterns => bossPatterns;
     public HWJ_HealthBarDataSO[] HealthBars => healthBars;
     public HWJ_GameOverDataSO[] GameOverWindows => gameOverWindows;
+    public HWJ_TitleScreenDataSO[] TitleScreens => titleScreens;
     public HWJ_GameplayConditionSO[] Conditions => conditions;
     public HWJ_GameplayRuleSO[] GameplayRules => gameplayRules;
     public HWJ_RuleExecutionCoreSO[] RuleExecutionCores => ruleExecutionCores;
@@ -164,6 +172,48 @@ public class HWJ_GameplayDatabaseSO : ScriptableObject
         return false;
     }
 
+    public bool TryGetSkillNode(string nodeId, out HWJ_SkillNodeDataSO skillNode)
+    {
+        skillNode = null;
+
+        if (skillNodes == null)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < skillNodes.Length; i++)
+        {
+            if (skillNodes[i] != null && skillNodes[i].NodeId == nodeId)
+            {
+                skillNode = skillNodes[i];
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public bool TryGetSkillNodeBySkillAction(string skillActionId, out HWJ_SkillNodeDataSO skillNode)
+    {
+        skillNode = null;
+
+        if (skillNodes == null)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < skillNodes.Length; i++)
+        {
+            if (skillNodes[i] != null && skillNodes[i].MatchesSkillAction(skillActionId))
+            {
+                skillNode = skillNodes[i];
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public bool TryGetLevelTable(string tableId, out HWJ_LevelUpDataSO levelTable)
     {
         levelTable = null;
@@ -178,6 +228,31 @@ public class HWJ_GameplayDatabaseSO : ScriptableObject
             if (levelTables[i] != null && levelTables[i].TableId == tableId)
             {
                 levelTable = levelTables[i];
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// 타이틀 화면 ID로 시작 화면 데이터를 찾습니다.
+    /// 씬 또는 UI 시스템이 직접 에셋 참조를 들고 있지 않을 때 데이터베이스를 통해 조회할 수 있습니다.
+    /// </summary>
+    public bool TryGetTitleScreen(string titleScreenId, out HWJ_TitleScreenDataSO titleScreen)
+    {
+        titleScreen = null;
+
+        if (titleScreens == null)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < titleScreens.Length; i++)
+        {
+            if (titleScreens[i] != null && titleScreens[i].TitleScreenId == titleScreenId)
+            {
+                titleScreen = titleScreens[i];
                 return true;
             }
         }
@@ -289,6 +364,13 @@ public class HWJ_GameplayDatabaseSO : ScriptableObject
             data => data != null ? data.SkillActionId : null);
         ValidateStableIds(
             entries,
+            "SkillNode",
+            skillNodes,
+            "REQ-SKILL-NODE",
+            "NodeId",
+            data => data != null ? data.NodeId : null);
+        ValidateStableIds(
+            entries,
             "BossPattern",
             bossPatterns,
             "REQ-7",
@@ -308,6 +390,13 @@ public class HWJ_GameplayDatabaseSO : ScriptableObject
             "REQ-7",
             "GameOverId",
             data => data != null ? data.GameOverId : null);
+        ValidateStableIds(
+            entries,
+            "TitleScreen",
+            titleScreens,
+            "REQ-7",
+            "TitleScreenId",
+            data => data != null ? data.TitleScreenId : null);
         ValidateStableIds(
             entries,
             "Condition",

@@ -6,6 +6,7 @@ public class HWJ_KnockbackSystem : MonoBehaviour
     private const float VelocityScale = 1.6f;
 
     [SerializeField] private Rigidbody2D body;
+    [SerializeField] private HWJ_RuntimeStatusSystem runtimeStatus;
     [SerializeField] private bool preserveVerticalVelocity = true;
     [SerializeField] private float remainingTime;
     [SerializeField] private float duration;
@@ -19,6 +20,11 @@ public class HWJ_KnockbackSystem : MonoBehaviour
         {
             body = GetComponent<Rigidbody2D>();
         }
+
+        if (runtimeStatus == null)
+        {
+            runtimeStatus = GetComponent<HWJ_RuntimeStatusSystem>();
+        }
     }
 
     public void PlayKnockback(Vector2 direction, float power, float durationSeconds)
@@ -28,7 +34,12 @@ public class HWJ_KnockbackSystem : MonoBehaviour
             body = GetComponent<Rigidbody2D>();
         }
 
-        if (body == null || power <= 0f)
+        if (runtimeStatus == null)
+        {
+            runtimeStatus = GetComponent<HWJ_RuntimeStatusSystem>();
+        }
+
+        if (body == null || power <= 0f || runtimeStatus != null && runtimeStatus.ShouldIgnoreKnockback)
         {
             return;
         }

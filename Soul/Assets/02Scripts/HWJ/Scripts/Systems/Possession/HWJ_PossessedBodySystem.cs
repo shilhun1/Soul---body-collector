@@ -13,6 +13,8 @@ public class HWJ_PossessedBodySystem : MonoBehaviour
     public bool HasCurrentBody => currentBodyState != null
         && currentBodyState.IsPossessed
         && !currentBodyState.IsCollapsed;
+    public bool IsCurrentPossessionMentalDepleted => currentBodyState != null
+        && currentBodyState.IsPossessionMentalDepleted;
 
     private void Awake()
     {
@@ -133,7 +135,7 @@ public class HWJ_PossessedBodySystem : MonoBehaviour
         }
 
         currentBodyState.SetCurrentDecayValue(value);
-        runtimeStateMessage = "Possessed body runtime decay updated.";
+        runtimeStateMessage = "Possessed body runtime possession mental updated.";
         RaiseRuntimeStateChanged();
         return true;
     }

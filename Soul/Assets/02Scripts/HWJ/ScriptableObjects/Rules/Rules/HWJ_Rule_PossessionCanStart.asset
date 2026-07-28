@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: HWJ_Rule_PossessionCanStart
   m_EditorClassIdentifier: Assembly-CSharp::HWJ_GameplayRuleSO
   ruleId: possession_can_start
-  description: Soul player can start possession only against a valid defeated body in range.
+  description: Soul player can start possession only against a valid defeated non-boss enemy body in range.
   passWhenNoCondition: 0
   rootCondition: {fileID: 11400000, guid: aa000002000000000000000000000003, type: 2}

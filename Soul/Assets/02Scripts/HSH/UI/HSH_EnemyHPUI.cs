@@ -2,8 +2,8 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// 적 생성 시 하이라키의 Canvas를 찾아 체력바 UI를 생성하고, 적 발 밑을 따라다니게 하는 스크립트입니다.
-/// 적(Enemy) 프리팹 최상단에 붙여서 사용하세요.
+/// 적 생성 시 하이라키의 메인 HUD Canvas를 찾아 체력바 UI를 생성하고, 적 발 밑을 따라다니게 하는 스크립트입니다.
+/// 씬 이동 및 다중 캔버스 환경에서도 안전하게 메인 캔버스를 찾고 체력바를 재할당합니다.
 /// </summary>
 public class HSH_EnemyHPUI : MonoBehaviour
 {
@@ -23,35 +23,24 @@ public class HSH_EnemyHPUI : MonoBehaviour
     private HWJ_RuntimeStatusSystem statusSystem;
     private GameObject spawnedUI;
     private Slider hpSlider;
-
+    private Canvas targetCanvas;
     private Camera mainCam;
 
     private void Start()
     {
         statusSystem = GetComponent<HWJ_RuntimeStatusSystem>();
-        mainCam = Camera.main;
-
-        // 1. 하이라키에서 캔버스를 찾아서 UI 생성
-        if (hpUIPrefab != null)
-        {
-            Canvas mainCanvas = FindAnyObjectByType<Canvas>();
-            if (mainCanvas != null)
-            {
-                // 캔버스의 자식으로 UI 생성 (캔버스 중앙 등에 임시로 생성됨)
-                spawnedUI = Instantiate(hpUIPrefab, mainCanvas.transform);
-            }
-            else
-            {
-                spawnedUI = Instantiate(hpUIPrefab);
-            }
-
-            // 2. 생성된 UI 안에서 Slider 컴포넌트 찾기
-            hpSlider = spawnedUI.GetComponentInChildren<Slider>();
-        }
+        EnsureUI();
     }
 
     private void Update()
     {
+        // 씬 이동 등으로 UI나 캔버스가 파괴되었을 경우 자동으로 탐색 및 재할당
+        if (spawnedUI == null)
+        {
+            targetCanvas = null;
+            EnsureUI();
+        }
+
         if (statusSystem != null && hpSlider != null && spawnedUI != null)
         {
             float maxHp = statusSystem.MaxHp;
@@ -85,7 +74,13 @@ public class HSH_EnemyHPUI : MonoBehaviour
     
     private void LateUpdate()
     {
-        // 3. UI가 적을 계속 따라다니도록 위치 업데이트 (Screen Space 캔버스용)
+        // 씬 전환 등으로 카메라가 파괴/변경되었을 때 메인 카메라 다시 갱신
+        if (mainCam == null)
+        {
+            mainCam = Camera.main;
+        }
+
+        // UI가 적을 계속 따라다니도록 위치 업데이트 (Screen Space 캔버스용)
         if (spawnedUI != null && mainCam != null)
         {
             // 적의 실제 월드(3D/2D) 위치를 모니터 화면(UI 스크린) 좌표로 변환합니다.
@@ -94,6 +89,69 @@ public class HSH_EnemyHPUI : MonoBehaviour
             // 변환된 스크린 좌표를 UI의 위치로 지정합니다.
             spawnedUI.transform.position = screenPos;
         }
+    }
+
+    /// <summary>
+    /// 씬 내의 적절한 메인 HUD 캔버스를 찾아 UI를 생성합니다.
+    /// </summary>
+    private void EnsureUI()
+    {
+        if (hpUIPrefab == null) return;
+
+        if (targetCanvas == null)
+        {
+            targetCanvas = FindMainHUDCanvas();
+        }
+
+        if (targetCanvas != null)
+        {
+            spawnedUI = Instantiate(hpUIPrefab, targetCanvas.transform);
+            hpSlider = spawnedUI.GetComponentInChildren<Slider>();
+        }
+        else
+        {
+            spawnedUI = Instantiate(hpUIPrefab);
+            hpSlider = spawnedUI.GetComponentInChildren<Slider>();
+        }
+    }
+
+    /// <summary>
+    /// 무작위 Canvas 탐색 대신, 활성화된 ScreenSpace 메인 HUD Canvas를 우회 탐색합니다.
+    /// </summary>
+    private Canvas FindMainHUDCanvas()
+    {
+        Canvas[] canvases = FindObjectsByType<Canvas>(FindObjectsSortMode.None);
+        
+        // 1순위: 활성화된 ScreenSpace 캔버스 중 이름에 HUD, Main, UI, Game 등이 포함된 캔버스
+        foreach (var c in canvases)
+        {
+            if (c != null && c.gameObject.activeInHierarchy && c.enabled)
+            {
+                if (c.renderMode == RenderMode.ScreenSpaceOverlay || c.renderMode == RenderMode.ScreenSpaceCamera)
+                {
+                    string name = c.gameObject.name.ToLower();
+                    if (name.Contains("hud") || name.Contains("main") || name.Contains("ui") || name.Contains("game"))
+                    {
+                        return c;
+                    }
+                }
+            }
+        }
+
+        // 2순위: 이름 조건이 맞지 않더라도 활성화된 ScreenSpace 캔버스 중 첫 번째
+        foreach (var c in canvases)
+        {
+            if (c != null && c.gameObject.activeInHierarchy && c.enabled)
+            {
+                if (c.renderMode == RenderMode.ScreenSpaceOverlay || c.renderMode == RenderMode.ScreenSpaceCamera)
+                {
+                    return c;
+                }
+            }
+        }
+
+        // 3순위: Fallback
+        return FindFirstObjectByType<Canvas>();
     }
 
     private void OnDisable()

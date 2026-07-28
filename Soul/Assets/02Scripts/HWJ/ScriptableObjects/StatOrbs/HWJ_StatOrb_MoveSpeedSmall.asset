@@ -16,6 +16,7 @@ MonoBehaviour:
   displayName: Move Speed Small
   orbType: 1
   amount: 0.25
+  maxStackCount: 5
   isPermanent: 1
   durationSeconds: 0
   orbPrefab: {fileID: 2163829312950750603, guid: 73a86c6781bd80f4e95a7a7447d44656, type: 3}

@@ -29,6 +29,9 @@ public class HWJ_PlayerMovementSystem : MonoBehaviour
     [Space(8f)]
     [Header("Soul Collision")]
     [SerializeField] private bool phaseThroughCollidersInSoul = true;
+    [SerializeField] private bool swapLayerInSoulState = true;
+    [SerializeField] private string soulLayerName = "Soul";
+    [SerializeField] private string bodyLayerName = "Player";
     [SerializeField] private bool isSoulCollisionMode;
 
     [Space(8f)]
@@ -50,6 +53,8 @@ public class HWJ_PlayerMovementSystem : MonoBehaviour
     private bool jumpCutApplied;
     private Collider2D[] ownedColliders;
     private bool[] originalColliderTriggerStates;
+    private int originalRootLayer;
+    private bool hasOriginalRootLayer;
     private readonly Collider2D[] groundHits = new Collider2D[8];
     private int groundHitCount;
     private readonly List<HWJ_TemporaryIgnoredCollider> ignoredPlatformColliders =
@@ -62,6 +67,7 @@ public class HWJ_PlayerMovementSystem : MonoBehaviour
         AutoWireReferences();
         CacheOriginalGravityScale();
         CacheOwnedColliders();
+        CacheOriginalRootLayer();
         lastJumpPressedTime = -999f;
         lastGroundedTime = -999f;
     }
@@ -658,7 +664,7 @@ public class HWJ_PlayerMovementSystem : MonoBehaviour
         {
             Collider2D ownedCollider = ownedColliders[i];
 
-            if (ownedCollider == null)
+            if (ownedCollider == null || ownedCollider.isTrigger)
             {
                 continue;
             }
@@ -850,7 +856,7 @@ public class HWJ_PlayerMovementSystem : MonoBehaviour
             {
                 Collider2D targetCollider = targetColliders[j];
 
-                if (targetCollider == null || targetCollider == ownedCollider)
+                if (targetCollider == null || targetCollider.isTrigger || targetCollider == ownedCollider)
                 {
                     continue;
                 }
@@ -897,7 +903,52 @@ public class HWJ_PlayerMovementSystem : MonoBehaviour
             ownedColliders[i].isTrigger = enabled || originalColliderTriggerStates[i];
         }
 
+        ApplySoulLayer(enabled);
         isSoulCollisionMode = enabled;
+    }
+
+    private void CacheOriginalRootLayer()
+    {
+        if (hasOriginalRootLayer)
+        {
+            return;
+        }
+
+        originalRootLayer = gameObject.layer;
+        hasOriginalRootLayer = true;
+    }
+
+    private void ApplySoulLayer(bool enabled)
+    {
+        if (!swapLayerInSoulState)
+        {
+            return;
+        }
+
+        CacheOriginalRootLayer();
+        int targetLayer = enabled ? LayerMask.NameToLayer(soulLayerName) : LayerMask.NameToLayer(bodyLayerName);
+
+        if (targetLayer < 0)
+        {
+            targetLayer = enabled ? originalRootLayer : originalRootLayer;
+        }
+
+        SetLayerRecursively(transform, targetLayer);
+    }
+
+    private static void SetLayerRecursively(Transform root, int layer)
+    {
+        if (root == null || layer < 0)
+        {
+            return;
+        }
+
+        root.gameObject.layer = layer;
+
+        for (int i = 0; i < root.childCount; i++)
+        {
+            SetLayerRecursively(root.GetChild(i), layer);
+        }
     }
 
     private void OnDrawGizmosSelected()

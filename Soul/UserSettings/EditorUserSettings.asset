@@ -12,31 +12,34 @@ EditorUserSettings:
       value: 2550581500
       flags: 0
     RecentlyUsedSceneGuid-0:
-      value: 5a08575f5207595a0f5d59741173094444164f7d7d2a23317c7a4465bbe1646d
+      value: 51505107570459085957557211710744441519297c7d203478794d37e3b96169
       flags: 0
     RecentlyUsedSceneGuid-1:
-      value: 520100045551580f55595d26447759444e4f49737a7b2736747d1b67bbb36168
+      value: 500307535200080a585d55201576064414161d2c292d236779784e67b5b0316b
       flags: 0
     RecentlyUsedSceneGuid-2:
-      value: 5a0902035654580c08565a7a4874594413161a7b2e7f77692c7e4f30b6b3616f
+      value: 51020d55030d0b095958097240220d44464e412f2d702266757c4a32e4e3303b
       flags: 0
     RecentlyUsedSceneGuid-3:
-      value: 500307535200080a585d55201576064414161d2c292d236779784e67b5b0316b
+      value: 5a50045155575e59590c547747225a441215192f287872347c7b4c6ae4b0663d
       flags: 0
     RecentlyUsedSceneGuid-4:
-      value: 5003525753040859095c0f2748740a441216487f7f797365752d4464b3b8363d
+      value: 5550015350575a5e59560d77492206444416482e792b20657e7b1c61b5e6616d
       flags: 0
     RecentlyUsedSceneGuid-5:
-      value: 540603005c0d58585a0a097b41260a444f164b2e75797666757b4b64b5e5316d
+      value: 5a0902035654580c08565a7a4874594413161a7b2e7f77692c7e4f30b6b3616f
+      flags: 0
+    RecentlyUsedSceneGuid-6:
+      value: 5b045050040c5a5e5d0f5b7048730944104f4d7d282e27327e784564b6b3616e
       flags: 0
     RecentlyUsedSceneGuid-7:
-      value: 500307535200080a585d55201576064414161d2c292d236779784e67b5b0316b
+      value: 06075704040d580b555e5a7440215e44104f4f2f2e7127357f2f1b65e3b63068
       flags: 0
     RecentlyUsedSceneGuid-8:
-      value: 5709025403545b590b0d0d2345255a444116487b2d717e607c704e37b6e43739
+      value: 5a55035255005d020b0b552745710a44124f4f78787f703175284c66e1e36c6d
       flags: 0
     RecentlyUsedSceneGuid-9:
-      value: 50540d5755050c5f5c5b0d7b457b0d44421540297a7d20612b7b4561b3b2363d
+      value: 53500c55510d0d5d555f5b7b40775b4415161c78787f20322e2c1f6be4b7366b
       flags: 0
     vcSharedLogLevel:
       value: 0d5e400f0650
@@ -46,7 +49,7 @@ EditorUserSettings:
   m_VCDebugCmd: 0
   m_VCDebugOut: 0
   m_SemanticMergeMode: 2
-  m_DesiredImportWorkerCount: 6
+  m_DesiredImportWorkerCount: 5
   m_StandbyImportWorkerCount: 2
   m_IdleImportWorkerShutdownDelay: 60000
   m_VCShowFailedCheckout: 1

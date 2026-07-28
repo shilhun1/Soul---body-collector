@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 public static class HWJ_SaveSchema
 {
-    public const int CurrentVersion = 1;
+    public const int CurrentVersion = 3;
 }
 
 /// <summary>
@@ -158,18 +158,37 @@ public class HWJ_SaveBodyRuntimeData
 }
 
 [Serializable]
+public class HWJ_SaveStatOrbStackData
+{
+    public string statOrbId;
+    public int stackCount;
+}
+
+[Serializable]
 public class HWJ_SaveGrowthRuntimeData
 {
     public int currentLevel = 1;
     public int currentExperience;
     public int skillPoint;
     public List<string> unlockedSkillIds = new List<string>();
+    public List<string> unlockedSkillNodeIds = new List<string>();
+    public List<HWJ_SaveStatOrbStackData> statOrbStacks = new List<HWJ_SaveStatOrbStackData>();
 
     public void EnsureLists()
     {
         if (unlockedSkillIds == null)
         {
             unlockedSkillIds = new List<string>();
+        }
+
+        if (unlockedSkillNodeIds == null)
+        {
+            unlockedSkillNodeIds = new List<string>();
+        }
+
+        if (statOrbStacks == null)
+        {
+            statOrbStacks = new List<HWJ_SaveStatOrbStackData>();
         }
     }
 }
@@ -476,10 +495,42 @@ public static class HWJ_SaveDataFactory
             skillPoint = snapshot.skillPoint,
             unlockedSkillIds = snapshot.unlockedSkillIds != null
                 ? new List<string>(snapshot.unlockedSkillIds)
-                : new List<string>()
+                : new List<string>(),
+            unlockedSkillNodeIds = snapshot.unlockedSkillNodeIds != null
+                ? new List<string>(snapshot.unlockedSkillNodeIds)
+                : new List<string>(),
+            statOrbStacks = CreateStatOrbStackData(snapshot.statOrbStacks)
         };
         growthData.EnsureLists();
         return growthData;
+    }
+
+    private static List<HWJ_SaveStatOrbStackData> CreateStatOrbStackData(HWJ_RuntimeStatOrbStackSnapshot[] snapshots)
+    {
+        List<HWJ_SaveStatOrbStackData> saveStacks = new List<HWJ_SaveStatOrbStackData>();
+
+        if (snapshots == null)
+        {
+            return saveStacks;
+        }
+
+        for (int i = 0; i < snapshots.Length; i++)
+        {
+            HWJ_RuntimeStatOrbStackSnapshot snapshot = snapshots[i];
+
+            if (string.IsNullOrEmpty(snapshot.statOrbId) || snapshot.stackCount <= 0)
+            {
+                continue;
+            }
+
+            saveStacks.Add(new HWJ_SaveStatOrbStackData
+            {
+                statOrbId = snapshot.statOrbId,
+                stackCount = snapshot.stackCount
+            });
+        }
+
+        return saveStacks;
     }
 
     private static HWJ_SaveStageRuntimeData CreateStageData(HWJ_RuntimeStageFlowSnapshot snapshot)

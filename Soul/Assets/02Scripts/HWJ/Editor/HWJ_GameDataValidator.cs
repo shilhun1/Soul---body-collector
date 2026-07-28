@@ -48,6 +48,7 @@ public static class HWJ_GameDataValidator
         ValidateRootObjects(validationIssues);
         ValidateObjectTypeData(validationIssues, skillActionIds, rootObjectIds, playerSkillIds, ruleExecutionCoreIds);
         ValidateSkillActions(validationIssues);
+        ValidateSkillNodes(validationIssues, skillActionIds);
         ValidateLevelTables(validationIssues);
         ValidateSpawnTables(validationIssues);
         ValidateStatOrbs(validationIssues);
@@ -110,6 +111,7 @@ public static class HWJ_GameDataValidator
     {
         Dictionary<string, string> firstPathById = new Dictionary<string, string>();
         HWJ_RootObjectDataSO[] rootObjects = LoadAssets<HWJ_RootObjectDataSO>();
+        HashSet<string> statOrbIds = CollectStatOrbIds();
 
         for (int i = 0; i < rootObjects.Length; i++)
         {
@@ -179,10 +181,79 @@ public static class HWJ_GameDataValidator
                 AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Warning, "MODEL_PREFAB_MISSING", "REQ-14", assetPath, "Model.modelPrefab", "RootObjectData has no model prefab.", "Assign the prefab used by spawners and scene setup.");
             }
 
-            if (rootObject.Reward != null && rootObject.Reward.dropsStatOrb && string.IsNullOrWhiteSpace(rootObject.Reward.statOrbId))
+            if (rootObject.Reward != null)
             {
-                AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "STAT_ORB_REWARD_ID_MISSING", "REQ-14", assetPath, "Reward.statOrbId", "Reward is configured to drop a stat orb but statOrbId is empty.", "Set statOrbId to an existing stat orb ID.");
+                ValidateRewardData(validationIssues, rootObject.Reward, statOrbIds, assetPath);
             }
+        }
+    }
+
+    private static void ValidateRewardData(
+        List<HWJ_EditorValidationIssue> validationIssues,
+        HWJ_RewardData rewardData,
+        HashSet<string> statOrbIds,
+        string assetPath)
+    {
+        if (rewardData.dropsStatOrb)
+        {
+            bool hasFixedStatOrbId = !string.IsNullOrWhiteSpace(rewardData.statOrbId);
+            bool hasRandomCandidates = rewardData.statOrbCandidates != null && rewardData.statOrbCandidates.Length > 0;
+
+            if (!hasFixedStatOrbId && !hasRandomCandidates && !rewardData.useAllRegisteredStatOrbsWhenEmpty)
+            {
+                AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "STAT_ORB_REWARD_SOURCE_MISSING", "REQ-14", assetPath, "Reward.statOrbId", "Reward is configured to drop a stat orb but has no fixed ID, random candidates, or database fallback.", "Set statOrbId, add statOrbCandidates, or enable useAllRegisteredStatOrbsWhenEmpty.");
+            }
+        }
+
+        if (rewardData.statOrbDropChance < 0f || rewardData.statOrbDropChance > 1f)
+        {
+            AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "STAT_ORB_DROP_CHANCE_INVALID", "REQ-14", assetPath, "Reward.statOrbDropChance", "Stat orb drop chance must be between 0 and 1.", "Clamp statOrbDropChance into 0..1.");
+        }
+
+        if (rewardData.statOrbSpawnRadius < 0f)
+        {
+            AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "STAT_ORB_SPAWN_RADIUS_NEGATIVE", "REQ-14", assetPath, "Reward.statOrbSpawnRadius", "Stat orb spawn radius cannot be negative.", "Set statOrbSpawnRadius to 0 or a positive value.");
+        }
+
+        if (!string.IsNullOrWhiteSpace(rewardData.statOrbId)
+            && statOrbIds != null
+            && !statOrbIds.Contains(rewardData.statOrbId.Trim()))
+        {
+            AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "STAT_ORB_REWARD_ID_UNKNOWN", "REQ-14", assetPath, "Reward.statOrbId", $"Stat orb ID '{rewardData.statOrbId}' does not exist.", "Use an OrbId from a HWJ_StatOrbDataSO asset.");
+        }
+
+        if (rewardData.statOrbCandidates != null)
+        {
+            for (int i = 0; i < rewardData.statOrbCandidates.Length; i++)
+            {
+                HWJ_StatOrbRewardEntry candidate = rewardData.statOrbCandidates[i];
+                string fieldPrefix = $"Reward.statOrbCandidates[{i}]";
+
+                if (candidate == null)
+                {
+                    AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "STAT_ORB_CANDIDATE_NULL", "REQ-14", assetPath, fieldPrefix, "Stat orb random candidate slot is empty.", "Remove the empty slot or assign candidate values.");
+                    continue;
+                }
+
+                if (string.IsNullOrWhiteSpace(candidate.statOrbId))
+                {
+                    AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "STAT_ORB_CANDIDATE_ID_MISSING", "REQ-14", assetPath, fieldPrefix + ".statOrbId", "Stat orb random candidate ID is empty.", "Set statOrbId to an existing stat orb ID.");
+                }
+                else if (statOrbIds != null && !statOrbIds.Contains(candidate.statOrbId.Trim()))
+                {
+                    AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "STAT_ORB_CANDIDATE_ID_UNKNOWN", "REQ-14", assetPath, fieldPrefix + ".statOrbId", $"Stat orb candidate ID '{candidate.statOrbId}' does not exist.", "Use an OrbId from a HWJ_StatOrbDataSO asset.");
+                }
+
+                if (candidate.weight <= 0)
+                {
+                    AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "STAT_ORB_CANDIDATE_WEIGHT_INVALID", "REQ-14", assetPath, fieldPrefix + ".weight", "Stat orb candidate weight must be greater than 0.", "Set weight to at least 1.");
+                }
+            }
+        }
+
+        if (rewardData.dropsExperienceOrb && rewardData.experienceOrbPrefab == null)
+        {
+            AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "EXPERIENCE_ORB_PREFAB_MISSING", "REQ-14", assetPath, "Reward.experienceOrbPrefab", "Reward is configured to drop an experience orb but the orb prefab is missing.", "Assign a prefab with HWJ_ExperienceOrbPickupSystem or disable dropsExperienceOrb.");
         }
     }
 
@@ -242,26 +313,26 @@ public static class HWJ_GameDataValidator
     {
         if (bodyDecayData == null)
         {
-            AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "DECAY_DATA_MISSING", "REQ-10", assetPath, fieldPrefix, "Body decay data is missing.", "Create body decay data for possessed body runtime.");
+            AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "POSSESSION_MENTAL_DATA_MISSING", "REQ-10", assetPath, fieldPrefix, "Possession mental data is missing.", "Create possession mental data for possessed body runtime.");
             return;
         }
 
         if (bodyDecayData.maxDecayValue <= 0f)
         {
-            AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "DECAY_MAX_INVALID", "REQ-10", assetPath, $"{fieldPrefix}.maxDecayValue", "Max decay value must be greater than 0.", "Set maxDecayValue to a positive value.");
+            AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "POSSESSION_MENTAL_MAX_INVALID", "REQ-10", assetPath, $"{fieldPrefix}.maxDecayValue", "Max possession mental value must be greater than 0.", "Set maxDecayValue to a positive possession mental value.");
         }
 
         if (bodyDecayData.initialDecayValue < 0f || bodyDecayData.initialDecayValue > bodyDecayData.maxDecayValue)
         {
-            AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "DECAY_INITIAL_OUT_OF_RANGE", "REQ-10", assetPath, $"{fieldPrefix}.initialDecayValue", "Initial decay must be between 0 and maxDecayValue.", "Clamp initialDecayValue into the valid decay range.");
+            AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "POSSESSION_MENTAL_INITIAL_OUT_OF_RANGE", "REQ-10", assetPath, $"{fieldPrefix}.initialDecayValue", "Initial consumed possession mental must be between 0 and maxDecayValue.", "Clamp initialDecayValue into the valid possession mental range.");
         }
 
-        ValidateNonNegative(validationIssues, bodyDecayData.decayTickSeconds, "REQ-10", assetPath, $"{fieldPrefix}.decayTickSeconds", "DECAY_TICK_NEGATIVE");
-        ValidateNonNegative(validationIssues, bodyDecayData.decayAmountPerTick, "REQ-10", assetPath, $"{fieldPrefix}.decayAmountPerTick", "DECAY_TICK_AMOUNT_NEGATIVE");
-        ValidateNonNegative(validationIssues, bodyDecayData.moveDecayPerSecond, "REQ-10", assetPath, $"{fieldPrefix}.moveDecayPerSecond", "DECAY_MOVE_NEGATIVE");
-        ValidateNonNegative(validationIssues, bodyDecayData.basicAttackDecayAmount, "REQ-10", assetPath, $"{fieldPrefix}.basicAttackDecayAmount", "DECAY_ATTACK_NEGATIVE");
-        ValidateNonNegative(validationIssues, bodyDecayData.skillDecayAmount, "REQ-10", assetPath, $"{fieldPrefix}.skillDecayAmount", "DECAY_SKILL_NEGATIVE");
-        ValidateNonNegative(validationIssues, bodyDecayData.hitDecayPenalty, "REQ-10", assetPath, $"{fieldPrefix}.hitDecayPenalty", "DECAY_HIT_NEGATIVE");
+        ValidateNonNegative(validationIssues, bodyDecayData.decayTickSeconds, "REQ-10", assetPath, $"{fieldPrefix}.decayTickSeconds", "POSSESSION_MENTAL_TICK_NEGATIVE");
+        ValidateNonNegative(validationIssues, bodyDecayData.decayAmountPerTick, "REQ-10", assetPath, $"{fieldPrefix}.decayAmountPerTick", "POSSESSION_MENTAL_TICK_AMOUNT_NEGATIVE");
+        ValidateNonNegative(validationIssues, bodyDecayData.moveDecayPerSecond, "REQ-10", assetPath, $"{fieldPrefix}.moveDecayPerSecond", "POSSESSION_MENTAL_MOVE_NEGATIVE");
+        ValidateNonNegative(validationIssues, bodyDecayData.basicAttackDecayAmount, "REQ-10", assetPath, $"{fieldPrefix}.basicAttackDecayAmount", "POSSESSION_MENTAL_ATTACK_NEGATIVE");
+        ValidateNonNegative(validationIssues, bodyDecayData.skillDecayAmount, "REQ-10", assetPath, $"{fieldPrefix}.skillDecayAmount", "POSSESSION_MENTAL_SKILL_NEGATIVE");
+        ValidateNonNegative(validationIssues, bodyDecayData.hitDecayPenalty, "REQ-10", assetPath, $"{fieldPrefix}.hitDecayPenalty", "POSSESSION_MENTAL_HIT_NEGATIVE");
     }
 
     private static void ValidateEnemyAIData(
@@ -296,10 +367,17 @@ public static class HWJ_GameDataValidator
             ValidateNonNegative(validationIssues, enemyType.AI.attackRecoverySeconds, "REQ-14", assetPath, "AI.attackRecoverySeconds", "ENEMY_AI_ATTACK_RECOVERY_SECONDS_NEGATIVE");
             ValidateNonNegative(validationIssues, enemyType.AI.repathSeconds, "REQ-14", assetPath, "AI.repathSeconds", "ENEMY_AI_REPATH_SECONDS_NEGATIVE");
             ValidateNonNegative(validationIssues, enemyType.AI.defaultSkillCooldownSeconds, "REQ-14", assetPath, "AI.defaultSkillCooldownSeconds", "ENEMY_AI_DEFAULT_SKILL_COOLDOWN_NEGATIVE");
+            ValidateNonNegative(validationIssues, enemyType.AI.basicAttackIntervalSeconds, "REQ-14", assetPath, "AI.basicAttackIntervalSeconds", "ENEMY_AI_BASIC_ATTACK_INTERVAL_NEGATIVE");
+            ValidateNonNegative(validationIssues, enemyType.AI.skillCycleResetDelaySeconds, "REQ-14", assetPath, "AI.skillCycleResetDelaySeconds", "ENEMY_AI_SKILL_CYCLE_RESET_DELAY_NEGATIVE");
 
             if (Mathf.Approximately(enemyType.AI.decisionIntervalSeconds, 0f))
             {
                 AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Warning, "ENEMY_AI_DECISION_INTERVAL_ZERO", "REQ-14", assetPath, "AI.decisionIntervalSeconds", "Enemy decision interval is 0 and can make AI evaluate every frame.", "Use a small positive interval such as 0.05 or 0.1 unless per-frame AI is intentional.");
+            }
+
+            if (enemyType.AI.skillCycleCount < 0)
+            {
+                AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "ENEMY_AI_SKILL_CYCLE_COUNT_NEGATIVE", "REQ-14", assetPath, "AI.skillCycleCount", "Enemy skill cycle count cannot be negative.", "Set skillCycleCount to 0 or a positive value. Use 3 for the fixed 1 -> 2 -> 3 monster skill loop.");
             }
 
             if (Mathf.Approximately(enemyType.AI.attackPrepareSeconds, 0f))
@@ -370,6 +448,16 @@ public static class HWJ_GameDataValidator
     {
         ValidateSkillSet(validationIssues, bossType.SkillCycle, skillActionIds, assetPath, "SkillCycle", "REQ-7");
         ValidateBossEntryRequirements(validationIssues, bossType.EntryRequirements, rootObjectIds, playerSkillIds, ruleExecutionCoreIds, assetPath);
+
+        if (bossType.PossessionBody != null && bossType.PossessionBody.canBePossessed)
+        {
+            AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "BOSS_POSSESSION_NOT_ALLOWED", "REQ-9", assetPath, "PossessionBody.canBePossessed", "Boss type data cannot be configured as possessable.", "Disable canBePossessed on boss type data. Bosses are combat targets, not possession bodies.");
+        }
+
+        if (bossType.PossessionBody != null && bossType.PossessionBody.overrideBodyDecayOnPossession)
+        {
+            AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Warning, "BOSS_POSSESSION_MENTAL_OVERRIDE_UNUSED", "REQ-9", assetPath, "PossessionBody.overrideBodyDecayOnPossession", "Boss possession mental override is ignored because bosses cannot be possessed.", "Disable overrideBodyDecayOnPossession on boss type data.");
+        }
 
         if (bossType.FSM != null)
         {
@@ -442,7 +530,7 @@ public static class HWJ_GameDataValidator
 
         if (requirements.maximumCurrentDecayRatio < 0f || requirements.maximumCurrentDecayRatio > 1f)
         {
-            AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "BOSS_ENTRY_DECAY_RATIO_OUT_OF_RANGE", "REQ-12", assetPath, "EntryRequirements.maximumCurrentDecayRatio", "Maximum current decay ratio must be between 0 and 1.", "Clamp maximumCurrentDecayRatio into 0..1.");
+            AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "BOSS_ENTRY_POSSESSION_MENTAL_RATIO_OUT_OF_RANGE", "REQ-12", assetPath, "EntryRequirements.maximumCurrentDecayRatio", "Maximum consumed possession mental ratio must be between 0 and 1.", "Clamp maximumCurrentDecayRatio into 0..1.");
         }
 
         HashSet<string> allowedBodyIds = ValidateConfiguredIdList(
@@ -621,6 +709,174 @@ public static class HWJ_GameDataValidator
         }
     }
 
+    private static void ValidateSkillNodes(
+        List<HWJ_EditorValidationIssue> validationIssues,
+        HashSet<string> skillActionIds)
+    {
+        Dictionary<string, string> firstPathByNodeId = new Dictionary<string, string>();
+        Dictionary<string, HWJ_SkillNodeDataSO> nodeById = new Dictionary<string, HWJ_SkillNodeDataSO>();
+        Dictionary<string, string> assetPathByNodeId = new Dictionary<string, string>();
+        HWJ_SkillNodeDataSO[] skillNodes = LoadAssets<HWJ_SkillNodeDataSO>();
+
+        for (int i = 0; i < skillNodes.Length; i++)
+        {
+            HWJ_SkillNodeDataSO skillNode = skillNodes[i];
+
+            if (skillNode == null)
+            {
+                continue;
+            }
+
+            string assetPath = GetAssetPath(skillNode);
+            ValidateStableId(validationIssues, firstPathByNodeId, "REQ-SKILL-NODE", assetPath, "NodeId", skillNode.NodeId);
+
+            if (!string.IsNullOrWhiteSpace(skillNode.NodeId) && !nodeById.ContainsKey(skillNode.NodeId))
+            {
+                nodeById.Add(skillNode.NodeId, skillNode);
+                assetPathByNodeId.Add(skillNode.NodeId, assetPath);
+            }
+
+            if (string.IsNullOrWhiteSpace(skillNode.PossessedBodyId))
+            {
+                AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "SKILL_NODE_BODY_ID_MISSING", "REQ-SKILL-NODE", assetPath, "possessedBodyId", "Skill node has no possessed body ID.", "Assign the planning body ID such as 1101, 1201, 1301, 1401, or 1501.");
+            }
+
+            if (skillNode.WeaponType == HWJ_WeaponType.None)
+            {
+                AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "SKILL_NODE_WEAPON_NONE", "REQ-SKILL-NODE", assetPath, "weaponType", "Skill node has no weapon type, so it cannot be matched to the possessed body weapon.", "Choose Sword, Lance, Axe, Bow, Shield, or another concrete weapon type.");
+            }
+
+            if (skillNode.AuthoredSkillStep <= 0)
+            {
+                AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "SKILL_NODE_STEP_INVALID", "REQ-SKILL-NODE", assetPath, "skillStep", "Skill node step must be greater than 0.", "Set the common unlock step to 1 or higher.");
+            }
+
+            if (skillNode.AuthoredRequiredLevel <= 0)
+            {
+                AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "SKILL_NODE_REQUIRED_LEVEL_INVALID", "REQ-SKILL-NODE", assetPath, "requiredLevel", "Skill node required level must be greater than 0.", "Set requiredLevel to 1 or higher.");
+            }
+
+            if (skillNode.AuthoredSkillPointCost < 0)
+            {
+                AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "SKILL_NODE_COST_NEGATIVE", "REQ-SKILL-NODE", assetPath, "skillPointCost", "Skill node cost cannot be negative.", "Set skillPointCost to 0 or a positive number.");
+            }
+
+            string resolvedSkillActionId = skillNode.SkillActionId;
+
+            if (string.IsNullOrWhiteSpace(resolvedSkillActionId))
+            {
+                AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "SKILL_NODE_ACTION_ID_MISSING", "REQ-SKILL-NODE", assetPath, "skillActionId", "Skill node is not linked to a skill action ID.", "Assign skillActionId or a HWJ_SkillActionDataSO asset.");
+            }
+            else if (skillActionIds != null && !skillActionIds.Contains(resolvedSkillActionId))
+            {
+                AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "SKILL_NODE_ACTION_ID_UNKNOWN", "REQ-SKILL-NODE", assetPath, "skillActionId", $"Skill node references unknown skill action ID '{resolvedSkillActionId}'.", "Create a matching HWJ_SkillActionDataSO, register the correct action asset, or update the ID.");
+            }
+
+            if (skillNode.SkillAction != null
+                && !string.IsNullOrWhiteSpace(skillNode.AuthoredSkillActionId)
+                && skillNode.SkillAction.SkillActionId != skillNode.AuthoredSkillActionId)
+            {
+                AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Warning, "SKILL_NODE_ACTION_ID_ASSET_MISMATCH", "REQ-SKILL-NODE", assetPath, "skillActionId", "Skill node has both a skill action asset and a different typed skillActionId. Runtime uses the asset ID first.", "Make the typed skillActionId match the linked asset ID, or clear the typed ID.");
+            }
+
+            if (skillNode.AuthoredSkillStep == 1 && skillNode.HasPrerequisite)
+            {
+                AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Warning, "SKILL_NODE_STEP_ONE_PREREQUISITE", "REQ-SKILL-NODE", assetPath, "prerequisiteNodeId", "Step 1 skill node has a prerequisite. Starting nodes are expected to have none.", "Clear prerequisiteNodeId or change the skill step.");
+            }
+
+            if (skillNode.AuthoredSkillStep > 1 && !skillNode.HasPrerequisite)
+            {
+                AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Warning, "SKILL_NODE_HIGH_STEP_NO_PREREQUISITE", "REQ-SKILL-NODE", assetPath, "prerequisiteNodeId", "Skill node above step 1 has no prerequisite.", "Assign the previous node ID unless this node is intentionally independent.");
+            }
+        }
+
+        ValidateSkillNodePrerequisites(validationIssues, nodeById, assetPathByNodeId);
+    }
+
+    private static void ValidateSkillNodePrerequisites(
+        List<HWJ_EditorValidationIssue> validationIssues,
+        Dictionary<string, HWJ_SkillNodeDataSO> nodeById,
+        Dictionary<string, string> assetPathByNodeId)
+    {
+        if (nodeById == null)
+        {
+            return;
+        }
+
+        foreach (KeyValuePair<string, HWJ_SkillNodeDataSO> pair in nodeById)
+        {
+            HWJ_SkillNodeDataSO skillNode = pair.Value;
+
+            if (skillNode == null || !skillNode.HasPrerequisite)
+            {
+                continue;
+            }
+
+            string assetPath = GetAssetPath(skillNode);
+            if (assetPathByNodeId != null && assetPathByNodeId.TryGetValue(pair.Key, out string storedAssetPath))
+            {
+                assetPath = storedAssetPath;
+            }
+
+            string prerequisiteNodeId = skillNode.PrerequisiteNodeId;
+
+            if (prerequisiteNodeId == skillNode.NodeId)
+            {
+                AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "SKILL_NODE_PREREQUISITE_SELF", "REQ-SKILL-NODE", assetPath, "prerequisiteNodeId", "Skill node points to itself as a prerequisite.", "Assign a previous node ID or clear the prerequisite.");
+                continue;
+            }
+
+            if (!nodeById.TryGetValue(prerequisiteNodeId, out HWJ_SkillNodeDataSO prerequisiteNode) || prerequisiteNode == null)
+            {
+                AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "SKILL_NODE_PREREQUISITE_MISSING", "REQ-SKILL-NODE", assetPath, "prerequisiteNodeId", $"Prerequisite skill node '{prerequisiteNodeId}' does not exist.", "Create the prerequisite node asset or update prerequisiteNodeId.");
+                continue;
+            }
+
+            if (prerequisiteNode.SkillStep >= skillNode.SkillStep)
+            {
+                AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Warning, "SKILL_NODE_PREREQUISITE_STEP_ORDER", "REQ-SKILL-NODE", assetPath, "skillStep", "Prerequisite node step is not lower than the current node step.", "Use a prerequisite from an earlier common unlock step.");
+            }
+
+            if (HasSkillNodeCycle(skillNode, nodeById))
+            {
+                AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "SKILL_NODE_PREREQUISITE_CYCLE", "REQ-SKILL-NODE", assetPath, "prerequisiteNodeId", "Skill node prerequisite chain contains a cycle.", "Break the cycle by assigning a one-way previous node chain.");
+            }
+        }
+    }
+
+    private static bool HasSkillNodeCycle(
+        HWJ_SkillNodeDataSO startNode,
+        Dictionary<string, HWJ_SkillNodeDataSO> nodeById)
+    {
+        if (startNode == null || nodeById == null)
+        {
+            return false;
+        }
+
+        HashSet<string> visitedNodeIds = new HashSet<string>();
+        HWJ_SkillNodeDataSO currentNode = startNode;
+
+        while (currentNode != null && currentNode.HasPrerequisite)
+        {
+            if (string.IsNullOrWhiteSpace(currentNode.NodeId))
+            {
+                return false;
+            }
+
+            if (!visitedNodeIds.Add(currentNode.NodeId))
+            {
+                return true;
+            }
+
+            if (!nodeById.TryGetValue(currentNode.PrerequisiteNodeId, out currentNode))
+            {
+                return false;
+            }
+        }
+
+        return false;
+    }
+
     private static void ValidateSkillActionTiming(
         List<HWJ_EditorValidationIssue> validationIssues,
         HWJ_SkillActionDataSO skillAction,
@@ -740,12 +996,45 @@ public static class HWJ_GameDataValidator
             }
 
             SerializedObject serializedLevelTable = new SerializedObject(levelTable);
+            SerializedProperty skillPointPerLevel = serializedLevelTable.FindProperty("skillPointPerLevel");
+            SerializedProperty skillPointRewardsByLevelUp = serializedLevelTable.FindProperty("skillPointRewardsByLevelUp");
             SerializedProperty experienceArray = serializedLevelTable.FindProperty("experienceToNextLevel");
+            int expectedTransitionCount = Mathf.Max(0, levelTable.MaxLevel - 1);
+
+            if (skillPointPerLevel != null && skillPointPerLevel.intValue < 0)
+            {
+                AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "LEVEL_SKILL_POINT_PER_LEVEL_NEGATIVE", "REQ-14", assetPath, "skillPointPerLevel", "Skill point per level cannot be negative.", "Set skillPointPerLevel to 0 or higher.");
+            }
+
+            if (skillPointRewardsByLevelUp != null && skillPointRewardsByLevelUp.isArray)
+            {
+                if (expectedTransitionCount > 0
+                    && skillPointRewardsByLevelUp.arraySize > 0
+                    && skillPointRewardsByLevelUp.arraySize < expectedTransitionCount)
+                {
+                    AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Warning, "LEVEL_SKILL_POINT_TABLE_SHORT", "REQ-14", assetPath, "skillPointRewardsByLevelUp", "Skill point reward table is shorter than the level transition count.", "Fill one skill point reward value per level transition or leave the table empty to use skillPointPerLevel.");
+                }
+
+                for (int rewardIndex = 0; rewardIndex < skillPointRewardsByLevelUp.arraySize; rewardIndex++)
+                {
+                    int skillPointReward = skillPointRewardsByLevelUp.GetArrayElementAtIndex(rewardIndex).intValue;
+
+                    if (skillPointReward < 0)
+                    {
+                        AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "LEVEL_SKILL_POINT_REWARD_NEGATIVE", "REQ-14", assetPath, $"skillPointRewardsByLevelUp[{rewardIndex}]", "Skill point reward cannot be negative.", "Set the reward to 0 or higher.");
+                    }
+                }
+            }
 
             if (experienceArray == null || !experienceArray.isArray || experienceArray.arraySize == 0)
             {
                 AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Warning, "EXPERIENCE_TABLE_EMPTY", "REQ-14", assetPath, "experienceToNextLevel", "Experience table is empty.", "Add experience requirements for each level transition.");
                 continue;
+            }
+
+            if (expectedTransitionCount > 0 && experienceArray.arraySize < expectedTransitionCount)
+            {
+                AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Warning, "EXPERIENCE_TABLE_SHORT", "REQ-14", assetPath, "experienceToNextLevel", "Experience table is shorter than the level transition count.", "Fill one experience requirement per level transition.");
             }
 
             int previousExperience = 0;
@@ -840,6 +1129,11 @@ public static class HWJ_GameDataValidator
                 AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Warning, "STAT_ORB_AMOUNT_ZERO", "REQ-14", assetPath, "amount", "Stat orb amount is 0.", "Set a non-zero amount unless this orb is intentionally cosmetic.");
             }
 
+            if (statOrb.ConfiguredMaxStackCount <= 0)
+            {
+                AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "STAT_ORB_STACK_LIMIT_INVALID", "REQ-14", assetPath, "maxStackCount", "Stat orb max stack count must be greater than 0.", "Set maxStackCount to at least 1.");
+            }
+
             if (statOrb.OrbPrefab == null)
             {
                 AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Warning, "STAT_ORB_PREFAB_MISSING", "REQ-14", assetPath, "orbPrefab", "Stat orb has no pickup prefab.", "Assign the pickup prefab used by reward drops.");
@@ -869,7 +1163,9 @@ public static class HWJ_GameDataValidator
                 AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "BOSS_PATTERN_HP_RATIO_INVALID", "REQ-12", assetPath, "hpRatio", "Boss pattern HP ratio must be between 0 and 1.", "Clamp hpRatio into 0..1.");
             }
 
-            if (bossPattern.SkillActions == null || bossPattern.SkillActions.Length == 0)
+            bool patternUsesCustomCode = bossPattern.UseCustomPatternExecutor || bossPattern.UseStageOneSpecialExecution;
+
+            if ((bossPattern.SkillActions == null || bossPattern.SkillActions.Length == 0) && !patternUsesCustomCode)
             {
                 AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Warning, "BOSS_PATTERN_SKILLS_EMPTY", "REQ-12", assetPath, "skillActions", "Boss pattern has no skill actions.", "Assign at least one skill action or confirm this pattern is handled fully by custom code.");
             }
@@ -3062,6 +3358,22 @@ public static class HWJ_GameDataValidator
         }
 
         return playerSkillIds;
+    }
+
+    private static HashSet<string> CollectStatOrbIds()
+    {
+        HashSet<string> statOrbIds = new HashSet<string>();
+        HWJ_StatOrbDataSO[] statOrbs = LoadAssets<HWJ_StatOrbDataSO>();
+
+        for (int i = 0; i < statOrbs.Length; i++)
+        {
+            if (statOrbs[i] != null && !string.IsNullOrWhiteSpace(statOrbs[i].OrbId))
+            {
+                statOrbIds.Add(statOrbs[i].OrbId.Trim());
+            }
+        }
+
+        return statOrbIds;
     }
 
     private static HashSet<string> CollectGameplayRuleIds()

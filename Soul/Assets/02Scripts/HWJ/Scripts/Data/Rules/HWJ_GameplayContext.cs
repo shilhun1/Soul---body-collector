@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public enum HWJ_GameplayActorSlot
@@ -42,11 +43,14 @@ public enum HWJ_PossessionRequirement
 {
     SourceCanPossess,
     SourceIsSoulState,
-    TargetIsEnemyOrBoss,
+    TargetIsEnemy,
+    [Obsolete("보스는 빙의 대상에서 제외되었습니다. TargetIsEnemy를 사용하세요.")]
+    TargetIsEnemyOrBoss = TargetIsEnemy,
     TargetCanBePossessed,
     TargetDefeatedIfRequired,
     WithinPossessionRange,
-    TargetCorpseAvailable
+    TargetCorpseAvailable,
+    SourceCanPayPossessionSpiritMentalCost
 }
 
 public enum HWJ_SkillRequirement
@@ -78,7 +82,16 @@ public enum HWJ_BodyDecayRequirement
     RemainingDecayValueCompare,
     RemainingDecayRatioCompare,
     DangerLevelAtLeast,
-    DangerLevelEquals
+    DangerLevelEquals,
+    PossessionMentalDraining,
+    PossessionMentalNotDraining,
+    HasPossessionMentalRemaining,
+    ConsumedPossessionMentalValueCompare,
+    ConsumedPossessionMentalRatioCompare,
+    RemainingPossessionMentalValueCompare,
+    RemainingPossessionMentalRatioCompare,
+    PossessionMentalDangerLevelAtLeast,
+    PossessionMentalDangerLevelEquals
 }
 
 public enum HWJ_AIRequirement
@@ -138,7 +151,11 @@ public enum HWJ_RuntimeStatField
     Defense,
     AttackSpeed,
     BodyDecayValue,
-    BodyDecayRatio
+    BodyDecayRatio,
+    PossessionMentalConsumedValue,
+    PossessionMentalConsumedRatio,
+    PossessionMentalRemainingValue,
+    PossessionMentalRemainingRatio
 }
 
 public class HWJ_GameplayContext
@@ -320,6 +337,11 @@ public class HWJ_GameplayContext
         return resolver != null ? resolver.GetComponent<HWJ_BodyDecaySystem>() : null;
     }
 
+    public HWJ_BodyDecaySystem GetPossessionMental(HWJ_GameplayActorSlot actor)
+    {
+        return GetBodyDecay(actor);
+    }
+
     public HWJ_MonsterAISystem GetMonsterAI(HWJ_GameplayActorSlot actor)
     {
         HWJ_RootObjectDataResolver resolver = GetResolver(actor);
@@ -384,10 +406,10 @@ public class HWJ_GameplayContext
             return possessionData != null;
         }
 
-        if (resolver.TryGetTypeData(out HWJ_BossTypeDataSO bossData))
+        if (resolver.TryGetTypeData(out HWJ_BossTypeDataSO _))
         {
-            possessionData = bossData.PossessionBody;
-            return possessionData != null;
+            // 보스는 전투 대상이지만 빙의 대상은 아니므로 공통 빙의 조건 데이터에서도 제외한다.
+            return false;
         }
 
         return false;

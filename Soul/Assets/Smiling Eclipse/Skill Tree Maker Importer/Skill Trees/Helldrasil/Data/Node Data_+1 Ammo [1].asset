@@ -17,10 +17,11 @@ MonoBehaviour:
   icon: {fileID: 21300000, guid: d24a530ae59e0c0448a9eda175e58ac1, type: 3}
   position: {x: 2562, y: 2357}
   cost: 10
-  costCoeficient: 5
+  costPerSkillLevel: 1
   startLevel: 0
   maxLevel: 5
   nodeIndex: 0
+  scale: 1
   childNodes:
   - {fileID: 11400000, guid: fe0edca8ddd972b45894cb406f46167d, type: 2}
   - {fileID: 11400000, guid: a05ea1cd8a3e11b4a90f33c9e06103af, type: 2}

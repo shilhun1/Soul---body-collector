@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: HWJ_BowMotionProfile
   m_EditorClassIdentifier: 
   weaponType: 5
-  animatorController: {fileID: 0}
+  animatorController: {fileID: 9100000, guid: 2c23b9de715632b49a516ce81402666d, type: 2}
   defaultAttackMotionKey: Bow_Shoot
   motions:
   - motionKey: Bow_Draw

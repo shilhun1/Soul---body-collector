@@ -2,7 +2,7 @@ using UnityEngine;
 
 /// <summary>
 /// 플레이어 유형 전용 데이터 에셋입니다.
-/// RootObjectDataSO의 Selected Type에 넣으면 조작, 스킬, 성장, 소울, 빙의, 부패 데이터가 함께 적용됩니다.
+/// RootObjectDataSO의 Selected Type에 넣으면 조작, 스킬, 성장, 소울, 빙의, 빙의체 정신력 데이터가 함께 적용됩니다.
 /// </summary>
 [CreateAssetMenu(fileName = "HWJ_PlayerTypeData", menuName = "HWJ/Data/Type Data/Player")]
 public class HWJ_PlayerTypeDataSO : HWJ_ObjectTypeDataSO
@@ -40,8 +40,8 @@ public class HWJ_PlayerTypeDataSO : HWJ_ObjectTypeDataSO
     [Tooltip("플레이어가 빙의를 시도할 수 있는지와 빙의 범위를 설정합니다.")]
     [InspectorName("빙의 데이터")]
     [SerializeField] private HWJ_PossessionData possession = new HWJ_PossessionData();
-    [Tooltip("빙의한 몸의 부패 시간, 행동별 부패 증가량, 붕괴 조건을 설정합니다.")]
-    [InspectorName("육신 부패 데이터")]
+    [Tooltip("빙의한 몸을 유지하는 정신력 총량, 시간/행동별 정신력 소모량, 정신력 0 처리 조건을 설정합니다.")]
+    [InspectorName("빙의체 정신력 데이터")]
     [SerializeField] private HWJ_BodyDecayData bodyDecay = new HWJ_BodyDecayData();
 
     public HWJ_ControlData Control => control;

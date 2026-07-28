@@ -14,10 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HWJ_SkillActionDataSO
   skillActionId: player_shield_ground_strike
   sourceSkillId: 1503
-  displayName: "Ground Strike"
-  skillDescription: "방패를 아래로 찍어 적을 공격한다."
-  effectId: ""
-  soundId: ""
+  displayName: Ground Strike
+  skillDescription: "\uBC29\uD328\uB97C \uC544\uB798\uB85C \uCC0D\uC5B4 \uC801\uC744
+    \uACF5\uACA9\uD55C\uB2E4."
+  effectId: 
+  soundId: 
   actionType: 5
   requiredWeaponType: 7
   authoredAttackPower: 25
@@ -55,4 +56,4 @@ MonoBehaviour:
   motionSequenceKeys: []
   motionStepIntervalSeconds: 0.12
   projectilePrefab: {fileID: 0}
-  actionEffectPrefab: {fileID: 0}
+  actionEffectPrefab: {fileID: 2839771277650202955, guid: b025e67d13607de4da20a9df72f2c07d, type: 3}

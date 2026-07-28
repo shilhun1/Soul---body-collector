@@ -20,6 +20,16 @@ public class HSH_LEVELTEXTUI : MonoBehaviour
         UpdateText();
     }
 
+    // 외부에서 레벨을 직접 지정하고 텍스트를 업데이트하는 함수
+    public void SetLevel(int level)
+    {
+        if (currentLevel != level)
+        {
+            currentLevel = level;
+            UpdateText();
+        }
+    }
+
     // 레벨을 1 증가시키고 텍스트를 업데이트하는 함수
     public void LevelUp()
     {

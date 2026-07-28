@@ -1,48 +1,107 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using TMPro; // TextMeshPro를 사용하기 위한 네임스페이스
+using TMPro;
+
+/// <summary>
+/// 대사 화자 구분 (NPC 또는 플레이어)
+/// </summary>
+public enum DialogueSpeaker
+{
+    NPC,
+    Player
+}
+
+/// <summary>
+/// 단일 대사 데이터 (화자 + 대사 내용)
+/// </summary>
+[System.Serializable]
+public class DialogueData
+{
+    [Tooltip("대사 화자 (NPC 또는 Player)")]
+    public DialogueSpeaker speaker = DialogueSpeaker.NPC;
+
+    [TextArea(2, 5)]
+    public string sentence;
+}
 
 public class HSH_NPCDialogue : MonoBehaviour
 {
-    [Header("UI 연결 (Inspector에서 할당)")]
-    public GameObject bubbleObject; // 말풍선 전체 오브젝트 (끄고 켜기 위함)
-    public RectTransform bubbleBackground; // 크기가 변할 말풍선 배경 이미지의 RectTransform
-    public TextMeshProUGUI dialogueText; // 대사가 출력될 TextMeshProUGUI 텍스트
+    [Header("--- NPC 말풍선 UI ---")]
+    public GameObject npcBubbleObject;
+    public RectTransform npcBubbleBackground;
+    public TextMeshProUGUI npcDialogueText;
+    public Vector3 npcBubbleOffset = new Vector3(0, 2.5f, 0);
+    public Transform npcTransform;
 
-    [Header("말풍선 설정")]
-    public float typingSpeed = 0.05f; // 글자 출력 속도 (숫자가 작을수록 빠름)
-    public Vector2 padding = new Vector2(50f, 50f); // 텍스트와 말풍선 배경 사이의 여백 (X, Y)
+    [Header("--- 플레이어 말풍선 UI ---")]
+    public GameObject playerBubbleObject;
+    public RectTransform playerBubbleBackground;
+    public TextMeshProUGUI playerDialogueText;
+    public Vector3 playerBubbleOffset = new Vector3(0, 2.5f, 0);
+    [Tooltip("플레이어 위치 참조 (비워두면 코드에서 자동으로 'Player' 태그 또는 플레이어 오브젝트를 찾습니다)")]
+    public Transform playerTransform;
 
-    [Header("위치 설정")]
-    public Vector3 bubbleOffset = new Vector3(0, 2.5f, 0); // NPC 위치 기준으로 얼마나 위에 띄울지 (Y축)
-    public Transform npcTransform; // 기준점 (비워두면 이 스크립트가 붙은 오브젝트 위치 사용)
-    public bool isScreenSpaceUI = true; // 캔버스가 일반 화면 UI(Screen Space - Overlay)인 경우 체크
+    [Header("--- 말풍선 공통 설정 ---")]
+    public float typingSpeed = 0.05f;
+    public Vector2 padding = new Vector2(50f, 50f);
+    public bool isScreenSpaceUI = true;
 
-    
-    [Header("대사 내용")]
+    [Header("--- 순서 지정 대사 데이터 목록 ---")]
+    [Tooltip("인스펙터의 리스트 순서(0, 1, 2...)대로 대사가 진행되며 화자(NPC/Player)를 지정할 수 있습니다.")]
+    public List<DialogueData> dialogueList = new List<DialogueData>();
+
+    [Header("--- [하위 호환 전용] 기존 단일 UI 및 대사 목록 ---")]
+    public GameObject bubbleObject;
+    public RectTransform bubbleBackground;
+    public TextMeshProUGUI dialogueText;
+    public Vector3 bubbleOffset = new Vector3(0, 2.5f, 0);
+
     [TextArea(3, 5)]
-    public string[] dialogues; // NPC가 할 대사 목록
+    public string[] dialogues;
 
     private Coroutine dialogueCoroutine;
-    
-    // 상호작용 관련 변수
-    private bool isPlayerInRange = false; // 플레이어가 근처에 있는지 확인
-    private bool isTyping = false; // 현재 타자치는 연출이 진행중인지
-    private int currentDialogueIndex = 0; // 현재 진행중인 대사 순서
+    private bool isPlayerInRange = false;
+    private bool isTyping = false;
+    private int currentDialogueIndex = 0;
+
+    // 현재 활성화된 화자 및 UI 참조
+    private DialogueSpeaker currentSpeaker = DialogueSpeaker.NPC;
+    private TextMeshProUGUI currentActiveText;
+    private RectTransform currentActiveBackground;
+
+    private void Awake()
+    {
+        // 기존(구버전) Inspector 세팅 하위 호환 처리
+        if (npcBubbleObject == null && bubbleObject != null)
+        {
+            npcBubbleObject = bubbleObject;
+            npcBubbleBackground = bubbleBackground;
+            npcDialogueText = dialogueText;
+            npcBubbleOffset = bubbleOffset;
+        }
+
+        // 기존 dialogues (string[]) 목록을 dialogueList로 자동 변환
+        if ((dialogueList == null || dialogueList.Count == 0) && (dialogues != null && dialogues.Length > 0))
+        {
+            dialogueList = new List<DialogueData>();
+            foreach (string line in dialogues)
+            {
+                dialogueList.Add(new DialogueData { speaker = DialogueSpeaker.NPC, sentence = line });
+            }
+        }
+    }
 
     private void Start()
     {
-        // 처음 시작 시 말풍선을 숨깁니다.
-        if (bubbleObject != null)
-        {
-            bubbleObject.SetActive(false);
-        }
+        // 시작 시 모든 말풍선 숨김 및 플레이어 자동 탐색 시도
+        HideAllBubbles();
+        EnsurePlayerTransform();
     }
 
     private void Update()
     {
-        // 플레이어가 범위 안에 있고 'E' 키를 눌렀을 때 상호작용 발생 (New Input System 기준)
+        // 플레이어가 근처에 있고 'E' 키 입력 시 대화 상호작용
         if (isPlayerInRange && UnityEngine.InputSystem.Keyboard.current != null)
         {
             if (UnityEngine.InputSystem.Keyboard.current.eKey.wasPressedThisFrame)
@@ -54,61 +113,110 @@ public class HSH_NPCDialogue : MonoBehaviour
 
     private void LateUpdate()
     {
-        // 말풍선이 활성화되어 있을 때 항상 NPC 머리 위쪽 위치를 따라다니도록 강제
-        if (bubbleObject != null && bubbleObject.activeSelf)
+        // 1. NPC 말풍선 위치 갱신
+        if (npcBubbleObject != null && npcBubbleObject.activeSelf)
         {
-            // npcTransform을 따로 연결 안했으면, 이 스크립트가 붙어있는 오브젝트를 기준으로 삼습니다.
             Transform target = npcTransform != null ? npcTransform : transform;
-            Vector3 targetWorldPosition = target.position + bubbleOffset;
+            UpdateBubblePosition(npcBubbleObject, target.position + npcBubbleOffset);
+        }
 
-            if (isScreenSpaceUI && Camera.main != null)
+        // 2. 플레이어 말풍선 위치 갱신 (플레이어 위치 자동 수급)
+        if (playerBubbleObject != null && playerBubbleObject.activeSelf)
+        {
+            EnsurePlayerTransform();
+            if (playerTransform != null)
             {
-                // 캔버스가 화면(Screen Space - Overlay) 방식일 때, 월드 위치를 캔버스 화면 좌표로 변환합니다.
-                bubbleObject.transform.position = Camera.main.WorldToScreenPoint(targetWorldPosition);
-            }
-            else
-            {
-                // 캔버스가 월드(World Space) 방식일 때
-                bubbleObject.transform.position = targetWorldPosition;
+                UpdateBubblePosition(playerBubbleObject, playerTransform.position + playerBubbleOffset);
             }
         }
     }
 
     /// <summary>
-    /// 상호작용 키(E키)를 누르면 실행되는 로직
+    /// 여러 NPC가 있는 상황에서도 코드 단에서 플레이어의 Transform을 자동으로 찾아 보장하는 메쏘드입니다.
+    /// </summary>
+    public Transform EnsurePlayerTransform()
+    {
+        if (playerTransform != null && playerTransform.gameObject.activeInHierarchy)
+        {
+            return playerTransform;
+        }
+
+        // 1순위: "Player" 태그를 가진 오브젝트 탐색
+        GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+        if (playerObj != null)
+        {
+            playerTransform = playerObj.transform;
+            return playerTransform;
+        }
+
+        // 2순위: 씬 내 플레이어 이동/상태 관련 대표 스크립트 기반 탐색
+        var movementScript = FindFirstObjectByType<hys_Player_Movement>();
+        if (movementScript != null)
+        {
+            playerTransform = movementScript.transform;
+            return playerTransform;
+        }
+
+        return playerTransform;
+    }
+
+    private void UpdateBubblePosition(GameObject bubbleObj, Vector3 worldPosition)
+    {
+        if (isScreenSpaceUI && Camera.main != null)
+        {
+            bubbleObj.transform.position = Camera.main.WorldToScreenPoint(worldPosition);
+        }
+        else
+        {
+            bubbleObj.transform.position = worldPosition;
+        }
+    }
+
+    /// <summary>
+    /// 대화 진행 (E 키 눌렀을 때 호출) - 순서대로 대사 재생
     /// </summary>
     private void Interact()
     {
-        if (dialogues == null || dialogues.Length == 0) return;
+        if (dialogueList == null || dialogueList.Count == 0) return;
 
-        // 말풍선이 꺼져있다면 (처음 상호작용)
-        if (!bubbleObject.activeSelf)
+        EnsurePlayerTransform(); // 플레이어 위치 최신화
+
+        bool anyBubbleActive = (npcBubbleObject != null && npcBubbleObject.activeSelf) ||
+                               (playerBubbleObject != null && playerBubbleObject.activeSelf);
+
+        // 첫 번째 대사 시작
+        if (!anyBubbleActive)
         {
-            currentDialogueIndex = 0; // 첫 번째 대사부터
+            currentDialogueIndex = 0;
             PlayDialogue(currentDialogueIndex);
         }
         else
         {
-            // 타이핑 연출 중이라면 한 번 더 눌렀을 때 즉시 전체 문장을 출력 (스킵 기능)
+            // 타이핑 중이면 즉시 전체 문장 출력 (스킵)
             if (isTyping)
             {
                 if (dialogueCoroutine != null) StopCoroutine(dialogueCoroutine);
-                dialogueText.text = dialogues[currentDialogueIndex];
-                UpdateBubbleSize();
+
+                DialogueData currentData = dialogueList[currentDialogueIndex];
+                if (currentActiveText != null)
+                {
+                    currentActiveText.text = currentData.sentence;
+                    UpdateBubbleSize();
+                }
                 isTyping = false;
             }
             else
             {
-                // 타이핑이 끝난 상태라면 다음 대사로 넘어가기
+                // 다음 대사 순서로 넘어가기 (0 -> 1 -> 2 -> ...)
                 currentDialogueIndex++;
-                
-                if (currentDialogueIndex < dialogues.Length)
+
+                if (currentDialogueIndex < dialogueList.Count)
                 {
                     PlayDialogue(currentDialogueIndex);
                 }
                 else
                 {
-                    // 모든 대사가 끝났다면 말풍선 끄기
+                    // 모든 대사 완료 시 종료
                     EndDialogue();
                 }
             }
@@ -117,38 +225,64 @@ public class HSH_NPCDialogue : MonoBehaviour
 
     private void PlayDialogue(int index)
     {
+        if (index < 0 || index >= dialogueList.Count) return;
+
         if (dialogueCoroutine != null)
         {
             StopCoroutine(dialogueCoroutine);
         }
 
-        bubbleObject.SetActive(true);
-        dialogueCoroutine = StartCoroutine(TypeSentence(dialogues[index]));
+        DialogueData data = dialogueList[index];
+        currentSpeaker = data.speaker;
+
+        // 화자(NPC / Player)에 따라 말풍선 교체
+        if (currentSpeaker == DialogueSpeaker.NPC)
+        {
+            if (playerBubbleObject != null) playerBubbleObject.SetActive(false);
+            if (npcBubbleObject != null) npcBubbleObject.SetActive(true);
+
+            currentActiveBackground = npcBubbleBackground;
+            currentActiveText = npcDialogueText;
+        }
+        else // Player
+        {
+            EnsurePlayerTransform();
+
+            if (npcBubbleObject != null) npcBubbleObject.SetActive(false);
+            if (playerBubbleObject != null) playerBubbleObject.SetActive(true);
+
+            currentActiveBackground = playerBubbleBackground;
+            currentActiveText = playerDialogueText;
+        }
+
+        if (currentActiveText != null)
+        {
+            dialogueCoroutine = StartCoroutine(TypeSentence(data.sentence));
+        }
     }
 
     private IEnumerator TypeSentence(string sentence)
     {
         isTyping = true;
-        dialogueText.text = "";
+        currentActiveText.text = "";
 
-        // 문장을 한 글자씩 쪼개서 반복
         foreach (char letter in sentence.ToCharArray())
         {
-            dialogueText.text += letter;
-            UpdateBubbleSize(); // 글자가 추가될 때마다 크기 변경
+            currentActiveText.text += letter;
+            UpdateBubbleSize();
             yield return new WaitForSeconds(typingSpeed);
         }
 
-        isTyping = false; // 타이핑 종료
+        isTyping = false;
     }
 
     private void UpdateBubbleSize()
     {
-        if (bubbleBackground != null && dialogueText != null)
+        if (currentActiveBackground != null && currentActiveText != null)
         {
-            dialogueText.ForceMeshUpdate();
-            Vector2 textSize = dialogueText.GetRenderedValues(false);
-            bubbleBackground.sizeDelta = textSize + padding;
+            currentActiveText.ForceMeshUpdate();
+            Vector2 textSize = currentActiveText.GetRenderedValues(false);
+            currentActiveBackground.sizeDelta = textSize + padding;
         }
     }
 
@@ -158,29 +292,44 @@ public class HSH_NPCDialogue : MonoBehaviour
         {
             StopCoroutine(dialogueCoroutine);
         }
-        
-        dialogueText.text = "";
-        isTyping = false;
-        
-        if (bubbleObject != null)
+
+        if (currentActiveText != null)
         {
-            bubbleObject.SetActive(false);
+            currentActiveText.text = "";
         }
+
+        isTyping = false;
+        HideAllBubbles();
+    }
+
+    private void HideAllBubbles()
+    {
+        if (npcBubbleObject != null) npcBubbleObject.SetActive(false);
+        if (playerBubbleObject != null) playerBubbleObject.SetActive(false);
+        if (bubbleObject != null) bubbleObject.SetActive(false);
     }
 
     // --- 플레이어 감지 (Trigger) ---
-    
-    // 플레이어가 NPC 주변(Trigger)에 들어왔을 때
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        // 필요하다면 collision.CompareTag("Player") 등으로 플레이어만 필터링 가능
-        isPlayerInRange = true;
+        if (collision.CompareTag("Player") || collision.name.Contains("Player") || collision.GetComponent<hys_Player_Movement>() != null)
+        {
+            isPlayerInRange = true;
+            playerTransform = collision.transform;
+        }
+        else
+        {
+            isPlayerInRange = true;
+            if (playerTransform == null)
+            {
+                playerTransform = collision.transform;
+            }
+        }
     }
 
-    // 플레이어가 NPC 주변에서 멀어질 때
     private void OnTriggerExit2D(Collider2D collision)
     {
         isPlayerInRange = false;
-        EndDialogue(); // 멀어지면 대사창 강제 종료
+        EndDialogue();
     }
 }

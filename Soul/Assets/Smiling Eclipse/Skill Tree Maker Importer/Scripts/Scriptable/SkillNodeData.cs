@@ -17,8 +17,12 @@ namespace SmilingEclipse.STMImporter
         public int nodeIndex;
         public float scale = 1f;
 
-        // Liga��es com outras skills
-        public List<SkillNodeData> childNodes;   // skills desbloqueadas a partir desta
-        public List<SkillNodeData> parentNodes;     // skill necess�ria antes desta
+        // Ligacoes com outras skills
+        public List<SkillNodeData> childNodes;
+        public List<SkillNodeData> parentNodes;
+
+        [Header("HWJ Integration")]
+        [Tooltip("HWJ 스킬 데이터 연동")]
+        public HWJ_SkillNodeDataSO hwjSkillData;
     }
 }

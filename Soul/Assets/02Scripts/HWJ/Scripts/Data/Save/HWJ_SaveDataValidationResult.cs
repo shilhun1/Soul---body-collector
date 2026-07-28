@@ -26,6 +26,7 @@ public enum HWJ_SaveDataValidationFailureCode
     InvalidGrowthLevel,
     NegativeExperience,
     NegativeSkillPoint,
+    InvalidStatOrbStackCount,
     EmptyStableId,
     DuplicateStableId,
     InvalidInputBinding,
@@ -315,34 +316,34 @@ public static class HWJ_SaveDataRuntimeValidator
     {
         if (bodyData.maxDecayValue < 0f)
         {
-            return Fail(HWJ_SaveDataValidationFailureCode.InvalidDecayRange, "player.body.maxDecayValue", "Max decay value cannot be negative.");
+            return Fail(HWJ_SaveDataValidationFailureCode.InvalidDecayRange, "player.body.maxDecayValue", "Max possession mental value cannot be negative.");
         }
 
         if (requiresBodyValues && bodyData.maxDecayValue <= 0f)
         {
-            return Fail(HWJ_SaveDataValidationFailureCode.InvalidDecayRange, "player.body.maxDecayValue", "Active body decay requires max decay value greater than 0.");
+            return Fail(HWJ_SaveDataValidationFailureCode.InvalidDecayRange, "player.body.maxDecayValue", "Active possession mental requires maxDecayValue greater than 0.");
         }
 
         if (bodyData.currentDecayValue < 0f)
         {
-            return Fail(HWJ_SaveDataValidationFailureCode.InvalidDecayRange, "player.body.currentDecayValue", "Current decay value cannot be negative.");
+            return Fail(HWJ_SaveDataValidationFailureCode.InvalidDecayRange, "player.body.currentDecayValue", "Consumed possession mental value cannot be negative.");
         }
 
         if (bodyData.remainingDecayValue < 0f)
         {
-            return Fail(HWJ_SaveDataValidationFailureCode.InvalidDecayRange, "player.body.remainingDecayValue", "Remaining decay value cannot be negative.");
+            return Fail(HWJ_SaveDataValidationFailureCode.InvalidDecayRange, "player.body.remainingDecayValue", "Remaining possession mental value cannot be negative.");
         }
 
         if (bodyData.maxDecayValue > 0f)
         {
             if (bodyData.currentDecayValue > bodyData.maxDecayValue)
             {
-                return Fail(HWJ_SaveDataValidationFailureCode.InvalidDecayRange, "player.body.currentDecayValue", "Current decay value cannot exceed max decay value.");
+                return Fail(HWJ_SaveDataValidationFailureCode.InvalidDecayRange, "player.body.currentDecayValue", "Consumed possession mental value cannot exceed maxDecayValue.");
             }
 
             if (bodyData.remainingDecayValue > bodyData.maxDecayValue)
             {
-                return Fail(HWJ_SaveDataValidationFailureCode.InvalidDecayRange, "player.body.remainingDecayValue", "Remaining decay value cannot exceed max decay value.");
+                return Fail(HWJ_SaveDataValidationFailureCode.InvalidDecayRange, "player.body.remainingDecayValue", "Remaining possession mental value cannot exceed maxDecayValue.");
             }
         }
 
@@ -373,7 +374,21 @@ public static class HWJ_SaveDataRuntimeValidator
             return Fail(HWJ_SaveDataValidationFailureCode.NegativeSkillPoint, "player.growth.skillPoint", "Skill point cannot be negative.");
         }
 
-        return ValidateStableIdList(growthData.unlockedSkillIds, "player.growth.unlockedSkillIds");
+        HWJ_SaveDataValidationResult unlockedSkillResult = ValidateStableIdList(growthData.unlockedSkillIds, "player.growth.unlockedSkillIds");
+
+        if (!unlockedSkillResult.Succeeded)
+        {
+            return unlockedSkillResult;
+        }
+
+        HWJ_SaveDataValidationResult unlockedSkillNodeResult = ValidateStableIdList(growthData.unlockedSkillNodeIds, "player.growth.unlockedSkillNodeIds");
+
+        if (!unlockedSkillNodeResult.Succeeded)
+        {
+            return unlockedSkillNodeResult;
+        }
+
+        return ValidateStatOrbStackList(growthData.statOrbStacks, "player.growth.statOrbStacks");
     }
 
     private static HWJ_SaveDataValidationResult ValidateStageData(HWJ_SaveStageRuntimeData stageData)
@@ -572,6 +587,46 @@ public static class HWJ_SaveDataRuntimeValidator
             if (!seenIds.Add(id))
             {
                 return Fail(HWJ_SaveDataValidationFailureCode.DuplicateStableId, fieldName, $"Stable id '{id}' is duplicated.");
+            }
+        }
+
+        return HWJ_SaveDataValidationResult.Success();
+    }
+
+    private static HWJ_SaveDataValidationResult ValidateStatOrbStackList(
+        List<HWJ_SaveStatOrbStackData> statOrbStacks,
+        string fieldPrefix)
+    {
+        if (statOrbStacks == null)
+        {
+            return HWJ_SaveDataValidationResult.Success();
+        }
+
+        HashSet<string> seenIds = new HashSet<string>();
+
+        for (int i = 0; i < statOrbStacks.Count; i++)
+        {
+            HWJ_SaveStatOrbStackData stackData = statOrbStacks[i];
+            string entryPrefix = $"{fieldPrefix}[{i}]";
+
+            if (stackData == null)
+            {
+                return Fail(HWJ_SaveDataValidationFailureCode.EmptyStableId, entryPrefix, "Stat orb stack entry is null.");
+            }
+
+            if (string.IsNullOrWhiteSpace(stackData.statOrbId))
+            {
+                return Fail(HWJ_SaveDataValidationFailureCode.EmptyStableId, entryPrefix + ".statOrbId", "Stat orb id is empty.");
+            }
+
+            if (!seenIds.Add(stackData.statOrbId))
+            {
+                return Fail(HWJ_SaveDataValidationFailureCode.DuplicateStableId, entryPrefix + ".statOrbId", $"Stat orb id '{stackData.statOrbId}' is duplicated.");
+            }
+
+            if (stackData.stackCount < 0)
+            {
+                return Fail(HWJ_SaveDataValidationFailureCode.InvalidStatOrbStackCount, entryPrefix + ".stackCount", "Stat orb stack count cannot be negative.");
             }
         }
 

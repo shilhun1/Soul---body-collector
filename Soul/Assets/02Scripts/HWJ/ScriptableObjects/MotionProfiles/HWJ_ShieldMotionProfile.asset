@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: HWJ_ShieldMotionProfile
   m_EditorClassIdentifier: 
   weaponType: 7
-  animatorController: {fileID: 0}
+  animatorController: {fileID: 9100000, guid: e7dbebedc075b6e4c906d118b6103330, type: 2}
   defaultAttackMotionKey: Shield_Bash
   motions:
   - motionKey: Shield_Guard

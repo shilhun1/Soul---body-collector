@@ -2,17 +2,25 @@ using UnityEngine;
 
 [RequireComponent(typeof(HWJ_RootObjectDataResolver))]
 [RequireComponent(typeof(HWJ_SoulSystem))]
+[DisallowMultipleComponent]
+[AddComponentMenu("HWJ/Systems/Possession Mental System (Compatibility Body Decay)")]
 public class HWJ_BodyDecaySystem : MonoBehaviour
 {
+    [Header("참조")]
     [SerializeField] private HWJ_RootObjectDataResolver dataResolver;
     [SerializeField] private HWJ_SoulSystem soulSystem;
     [SerializeField] private HWJ_PossessionSystem possessionSystem;
     [SerializeField] private HWJ_PossessedBodySystem possessedBodySystem;
-    [SerializeField] private HWJ_RuntimeStatusSystem runtimeStatus;
-    [SerializeField] private HWJ_CollapseSystem collapseSystem;
+
+    [Space(8f)]
+    [Header("빙의체 정신력 런타임")]
+    [Tooltip("기존 부패 수치와 같은 값입니다. 정신력 기준으로는 '이미 소모한 정신력'을 의미합니다.")]
     [SerializeField] private float currentDecayValue;
+    [Tooltip("빙의체에 들어갈 때 소모 정신력 값을 초기화합니다.")]
     [SerializeField] private bool resetDecayWhenEnterBody = true;
+    [Tooltip("현재 빙의체 정신력이 시간/행동에 따라 소모되고 있는지 표시합니다.")]
     [SerializeField] private bool isDecaying;
+    [Tooltip("마지막 정신력 처리 결과입니다. UI와 디버깅에서 상태 확인용으로 사용합니다.")]
     [SerializeField] private string runtimeStateMessage;
 
     private float decayTimer;
@@ -40,6 +48,14 @@ public class HWJ_BodyDecaySystem : MonoBehaviour
     public bool IsDecaying => isDecaying;
     public HWJ_DecayDangerLevel CurrentDangerLevel => ResolveDangerLevel();
     public string RuntimeStateMessage => runtimeStateMessage;
+    public float ConsumedPossessionMentalValue => CurrentDecayValue;
+    public float CurrentPossessionMentalValue => RemainingDecayValue;
+    public float MaxPossessionMentalValue => MaxDecayValue;
+    public float RemainingPossessionMentalValue => RemainingDecayValue;
+    public float ConsumedPossessionMentalRatio => CurrentDecayRatio;
+    public float CurrentPossessionMentalRatio => RemainingDecayRatio;
+    public float RemainingPossessionMentalRatio => RemainingDecayRatio;
+    public bool HasPossessionMentalRemaining => HasDecayRemaining;
 
     private void Reset()
     {
@@ -95,19 +111,19 @@ public class HWJ_BodyDecaySystem : MonoBehaviour
 
         if (possessionSystem == null || !possessionSystem.HasActivePossessedBody)
         {
-            StopDecay("Body decay waits for an active possessed corpse.");
+            StopDecay("Possession mental waits for an active possessed body.");
             return;
         }
 
         if (!TryGetBodyDecayData(out HWJ_BodyDecayData bodyDecay))
         {
-            StopDecay("Missing player BodyDecay data.");
+            StopDecay("Missing player possession mental data.");
             return;
         }
 
         if (!bodyDecay.startDecayOnEnterBody)
         {
-            StopDecay("Body decay is disabled on the PlayerTypeData asset.");
+            StopDecay("Possession mental drain is disabled on the PlayerTypeData asset.");
             return;
         }
 
@@ -117,11 +133,11 @@ public class HWJ_BodyDecaySystem : MonoBehaviour
         }
 
         isDecaying = true;
-        runtimeStateMessage = "Body decay is running.";
+        runtimeStateMessage = "Possession mental drain is running.";
 
         if (MaxDecayValue > 0f && currentDecayValue >= MaxDecayValue)
         {
-            TryEnterSoulStateWhenDecayMaxed(bodyDecay);
+            TryReleasePossessionWhenMentalDepleted(bodyDecay);
             return;
         }
 
@@ -135,7 +151,7 @@ public class HWJ_BodyDecaySystem : MonoBehaviour
 
         decayTimer = 0f;
         ApplyDecayAmount(bodyDecay.decayAmountPerTick, "time_tick", bodyDecay);
-        TryEnterSoulStateWhenDecayMaxed(bodyDecay);
+        TryReleasePossessionWhenMentalDepleted(bodyDecay);
         SavePlayerRuntimeSnapshotIfOwner();
     }
 
@@ -175,32 +191,8 @@ public class HWJ_BodyDecaySystem : MonoBehaviour
 
     public void ApplyHitDecayPenalty(float incomingDamage)
     {
-        ResolveReferences();
-
-        if (soulSystem == null
-            || soulSystem.CurrentState != HWJ_SoulRuntimeState.Body
-            || possessionSystem == null
-            || !possessionSystem.HasActivePossessedBody)
-        {
-            return;
-        }
-
-        if (!TryGetBodyDecayData(out HWJ_BodyDecayData bodyDecay))
-        {
-            return;
-        }
-
-        if (!hasInitializedDecay)
-        {
-            SetDecayToInitial(bodyDecay);
-        }
-
-        SyncDecayFromRuntimeBodyState();
-
-        float decayPenalty = Mathf.Max(bodyDecay.hitDecayPenalty, incomingDamage);
-        ApplyDecayAmount(decayPenalty, "hit", bodyDecay);
-        TryEnterSoulStateWhenDecayMaxed(bodyDecay);
-        SavePlayerRuntimeSnapshotIfOwner();
+        // 피격은 HP만 감소합니다. 기존 코드 호환을 위해 메서드는 남겨두지만 정신력은 변경하지 않습니다.
+        runtimeStateMessage = "Hit damage reduced HP only. Possession mental was not changed.";
     }
 
     public void ApplyMoveDecay(float deltaSeconds)
@@ -211,7 +203,7 @@ public class HWJ_BodyDecaySystem : MonoBehaviour
         }
 
         ApplyDecayAmount(bodyDecay.moveDecayPerSecond * Mathf.Max(0f, deltaSeconds), "move", bodyDecay);
-        TryEnterSoulStateWhenDecayMaxed(bodyDecay);
+        TryReleasePossessionWhenMentalDepleted(bodyDecay);
         SavePlayerRuntimeSnapshotIfOwner();
     }
 
@@ -243,7 +235,7 @@ public class HWJ_BodyDecaySystem : MonoBehaviour
         }
 
         ApplyDecayAmount(ResolveSkillActionDecayAmount(bodyDecay.basicAttackDecayAmount, skillAction, chargeSeconds, applyComboBodyDecayMultiplier), "basic_attack", bodyDecay);
-        TryEnterSoulStateWhenDecayMaxed(bodyDecay);
+        TryReleasePossessionWhenMentalDepleted(bodyDecay);
         SavePlayerRuntimeSnapshotIfOwner();
     }
 
@@ -275,7 +267,7 @@ public class HWJ_BodyDecaySystem : MonoBehaviour
         }
 
         ApplyDecayAmount(ResolveSkillActionDecayAmount(bodyDecay.skillDecayAmount, skillAction, chargeSeconds, applyComboBodyDecayMultiplier), "skill", bodyDecay);
-        TryEnterSoulStateWhenDecayMaxed(bodyDecay);
+        TryReleasePossessionWhenMentalDepleted(bodyDecay);
         SavePlayerRuntimeSnapshotIfOwner();
     }
 
@@ -287,7 +279,28 @@ public class HWJ_BodyDecaySystem : MonoBehaviour
         }
 
         ApplyDecayAmount(rawDecayAmount + bodyDecay.actionDecayAmount, "action", bodyDecay);
-        TryEnterSoulStateWhenDecayMaxed(bodyDecay);
+        TryReleasePossessionWhenMentalDepleted(bodyDecay);
+        SavePlayerRuntimeSnapshotIfOwner();
+    }
+
+    /// <summary>
+    /// 기존 부패 시스템을 그대로 사용하되, 외부 코드가 정신력 비용이라는 이름으로 호출할 수 있게 만든 호환 API입니다.
+    /// 별도 정신력 시스템을 새로 만들지 않고 같은 런타임 값을 사용합니다.
+    /// </summary>
+    public void ApplyPossessionMentalCost(float rawMentalCost)
+    {
+        ApplyPossessionMentalCost(rawMentalCost, "possession_mental_cost");
+    }
+
+    public void ApplyPossessionMentalCost(float rawMentalCost, string reason)
+    {
+        if (!TryBeginActionDecay(out HWJ_BodyDecayData bodyDecay))
+        {
+            return;
+        }
+
+        ApplyDecayAmount(rawMentalCost, string.IsNullOrWhiteSpace(reason) ? "possession_mental_cost" : reason, bodyDecay);
+        TryReleasePossessionWhenMentalDepleted(bodyDecay);
         SavePlayerRuntimeSnapshotIfOwner();
     }
 
@@ -313,20 +326,17 @@ public class HWJ_BodyDecaySystem : MonoBehaviour
             possessedBodySystem = GetComponent<HWJ_PossessedBodySystem>();
         }
 
-        if (runtimeStatus == null)
-        {
-            runtimeStatus = GetComponent<HWJ_RuntimeStatusSystem>();
-        }
-
-        if (collapseSystem == null)
-        {
-            collapseSystem = GetComponent<HWJ_CollapseSystem>();
-        }
     }
 
     private bool TryGetBodyDecayData(out HWJ_BodyDecayData bodyDecay)
     {
         bodyDecay = null;
+
+        if (possessionSystem != null
+            && possessionSystem.TryGetActivePossessedBodyDecayData(out bodyDecay))
+        {
+            return true;
+        }
 
         if (dataResolver == null || !dataResolver.TryGetTypeData(out HWJ_PlayerTypeDataSO playerData))
         {
@@ -352,7 +362,7 @@ public class HWJ_BodyDecaySystem : MonoBehaviour
         runtimeStateMessage = message;
     }
 
-    private void TryEnterSoulStateWhenDecayMaxed(HWJ_BodyDecayData bodyDecay)
+    private void TryReleasePossessionWhenMentalDepleted(HWJ_BodyDecayData bodyDecay)
     {
         if (MaxDecayValue <= 0f || currentDecayValue < MaxDecayValue)
         {
@@ -365,28 +375,18 @@ public class HWJ_BodyDecaySystem : MonoBehaviour
 
         if (!bodyDecay.enterSoulStateWhenMaxed && !bodyDecay.enterSoulStateWhenEmpty)
         {
-            possessedBodySystem?.MarkCurrentBodyCollapsed();
-            runtimeStateMessage = "Body decay reached max, but soul transition is disabled.";
+            runtimeStateMessage = ResolveDepletedMessage(bodyDecay, "빙의체 정신력이 0이 되었지만 영혼 전환이 비활성화되어 있습니다.");
             return;
         }
 
-        if (collapseSystem != null)
+        runtimeStateMessage = ResolveDepletedMessage(bodyDecay, "빙의체 정신력이 0이 되어 영혼 상태로 복귀합니다.");
+
+        if (possessionSystem != null && possessionSystem.ReleasePossessedBodyByMentalDepletion())
         {
-            HWJ_BodyCollapseResult collapseResult = collapseSystem.TryCollapseCurrentBody(HWJ_BodyCollapseReason.DecayMaxed);
-            runtimeStateMessage = collapseResult.Message;
             return;
         }
 
-        possessedBodySystem?.MarkCurrentBodyCollapsed();
-
-        if (soulSystem == null)
-        {
-            runtimeStateMessage = "Body decay reached max, but HWJ_SoulSystem is missing.";
-            return;
-        }
-
-        runtimeStateMessage = "Body decay reached max. Entering soul state.";
-        soulSystem.EnterSoulState();
+        soulSystem?.EnterSoulState(false, HWJ_PossessedBodyExitReason.MentalDepleted);
     }
 
     private void SetCurrentDecayValue(float value, HWJ_BodyDecayData bodyDecay)
@@ -446,62 +446,18 @@ public class HWJ_BodyDecaySystem : MonoBehaviour
             return;
         }
 
-        float previousDecayValue = currentDecayValue;
         SetCurrentDecayValue(currentDecayValue + finalAmount, bodyDecay);
-        runtimeStateMessage = $"Body decay increased by {finalAmount:0.###}. Reason: {reason}.";
-        ApplyPossessedBodyHpLossForDecay(currentDecayValue - previousDecayValue, bodyDecay);
+        runtimeStateMessage = $"빙의체 정신력 소모 {finalAmount:0.###}. 사유: {reason}. 남은 정신력: {RemainingPossessionMentalValue:0.###}.";
     }
 
-    private void ApplyPossessedBodyHpLossForDecay(float appliedDecayAmount, HWJ_BodyDecayData bodyDecay)
+    private static string ResolveDepletedMessage(HWJ_BodyDecayData bodyDecay, string fallbackMessage)
     {
-        if (appliedDecayAmount <= 0f || !TryGetCurrentPossessedBodyState(out HWJ_PossessedBodyRuntimeState bodyState))
+        if (bodyDecay != null && !string.IsNullOrWhiteSpace(bodyDecay.depletedMessage))
         {
-            return;
+            return bodyDecay.depletedMessage;
         }
 
-        float maxDecayValue = bodyDecay != null
-            ? Mathf.Max(0f, bodyDecay.maxDecayValue)
-            : bodyState.MaxDecayValue;
-
-        if (maxDecayValue <= 0f)
-        {
-            return;
-        }
-
-        // Possessed body HP represents remaining usable body time, so decay progress must lower HP instead of healing it.
-        float hpLoss = bodyState.MaxHp * Mathf.Clamp01(appliedDecayAmount / maxDecayValue);
-        possessedBodySystem.SetCurrentHp(bodyState.CurrentHp - hpLoss);
-        runtimeStatus?.RefreshCurrentHpFromData(false);
-        TryEnterSoulStateWhenPossessedBodyHpEmpty();
-    }
-
-    private void TryEnterSoulStateWhenPossessedBodyHpEmpty()
-    {
-        if (!TryGetCurrentPossessedBodyState(out HWJ_PossessedBodyRuntimeState bodyState)
-            || bodyState.CurrentHp > 0f)
-        {
-            return;
-        }
-
-        isDecaying = false;
-
-        if (collapseSystem != null)
-        {
-            HWJ_BodyCollapseResult collapseResult = collapseSystem.TryCollapseCurrentBody(HWJ_BodyCollapseReason.HpDepleted);
-            runtimeStateMessage = collapseResult.Message;
-            return;
-        }
-
-        possessedBodySystem?.MarkCurrentBodyCollapsed();
-
-        if (soulSystem == null)
-        {
-            runtimeStateMessage = "Possessed body HP reached 0, but HWJ_SoulSystem is missing.";
-            return;
-        }
-
-        runtimeStateMessage = "Possessed body HP reached 0. Entering soul state.";
-        soulSystem.EnterSoulState();
+        return fallbackMessage;
     }
 
     private static float ResolveSkillActionDecayAmount(

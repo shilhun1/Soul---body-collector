@@ -1,0 +1,239 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &1163633934383483722
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5130169356440744871}
+  - component: {fileID: 8128942778095687147}
+  m_Layer: 0
+  m_Name: HWJ_ObjectPoolSystem
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5130169356440744871
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1163633934383483722}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 4837241195431833919}
+  m_Father: {fileID: 5263691163736497305}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8128942778095687147
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1163633934383483722}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 38062aff0d1848efb2b27b25f8f282b2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: HWJ.Runtime::HWJ_ObjectPoolSystem
+  poolData: {fileID: 11400000, guid: aafa5750b4b26a846b19017250384e6d, type: 2}
+  poolRoot: {fileID: 4837241195431833919}
+  prewarmOnAwake: 1
+--- !u!1 &5392108701490500445
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6333034184947541635}
+  - component: {fileID: 9150421677799659569}
+  m_Layer: 0
+  m_Name: HWJ_SpawnerSystem
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6333034184947541635
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5392108701490500445}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5263691163736497305}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &9150421677799659569
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5392108701490500445}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a98db9e131bb430c98af03cd24647bcf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: HWJ.Runtime::HWJ_SpawnerSystem
+  spawnTable: {fileID: 0}
+  spawnPoints: []
+  objectPool: {fileID: 0}
+  autoCollectSpawnPoints: 1
+  spawnOnStart: 1
+  lastSpawnResult: 
+--- !u!1 &7499904071463286314
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4837241195431833919}
+  m_Layer: 0
+  m_Name: PoolStorage
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4837241195431833919
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7499904071463286314}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5130169356440744871}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &8095828532746751215
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5263691163736497305}
+  - component: {fileID: 347395526488909541}
+  - component: {fileID: 2509025518950698301}
+  m_Layer: 0
+  m_Name: HWJ_Runtime_GameplayCore
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5263691163736497305
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8095828532746751215}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 5130169356440744871}
+  - {fileID: 6333034184947541635}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &347395526488909541
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8095828532746751215}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a35bb3b9f5c74931ab9df3722a724ad9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: HWJ.Runtime::HWJ_GameManager
+  database: {fileID: 11400000, guid: 6b7ea88a0b8a62845b87b7fa7f4874da, type: 2}
+  objectPool: {fileID: 8128942778095687147}
+  spawner: {fileID: 9150421677799659569}
+  dontDestroyOnLoad: 1
+  playerResolver: {fileID: 0}
+  playerInput: {fileID: 0}
+  playerStatus: {fileID: 0}
+  playerLevel: {fileID: 0}
+  playerStatOrbProgress: {fileID: 0}
+  playerSoul: {fileID: 0}
+  playerBodyDecay: {fileID: 0}
+  playerPossession: {fileID: 0}
+  autoFindPlayerResolverInScene: 1
+  autoAddMissingPlayerCoreSystems: 1
+  autoPlacePlayerAtSceneStart: 1
+  autoBindSceneCamerasToPlayer: 1
+  sceneBootstrapRetrySeconds: 1
+  lastSceneBootstrapResult: 
+  preservePlayerRuntimeAcrossScenes: 1
+  hasPlayerRuntimeSnapshot: 0
+  savedCurrentHp: 0
+  savedSoulHp: 0
+  savedPossessedBodyHp: 0
+  hasBodyDecaySnapshot: 0
+  savedBodyDecayValue: 0
+  hasPlayerGrowthSnapshot: 0
+  savedLevel: 0
+  savedExperience: 0
+  savedSkillPoint: 0
+  hasPlayerStatOrbSnapshot: 0
+  savedStatOrbStacks: []
+  hasPlayerPossessionSnapshot: 0
+  savedHasActivePossessedBody: 0
+  savedPossessedRootObjectId: 
+  savedPossessedRootObjectData: {fileID: 0}
+  savedHasPossessedVisualSnapshot: 0
+  savedPossessedVisualSprite: {fileID: 0}
+  savedPossessedVisualColor: {r: 1, g: 1, b: 1, a: 1}
+  savedPossessedVisualFlipX: 0
+  savedPossessedVisualFlipY: 0
+  savedPossessedAnimatorController: {fileID: 0}
+  togglePauseWithEscape: 1
+  isPaused: 0
+  timeScaleBeforePause: 1
+--- !u!114 &2509025518950698301
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8095828532746751215}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c48a87cb2254016b872f5e06a6d5a33, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: HWJ.Runtime::HWJ_GameOverWindowSystem
+  gameOverData: {fileID: 11400000, guid: 843942034cef17e40bf3d6b9f5ed4385, type: 2}
+  soulSystem: {fileID: 0}
+  runtimeStatus: {fileID: 0}
+  objectPool: {fileID: 8128942778095687147}
+  windowRoot: {fileID: 0}

@@ -42,6 +42,21 @@ GameObject:
   - component: {fileID: 4791092712753511554}
   - component: {fileID: 7306498609729525474}
   - component: {fileID: 76495676241952358}
+  - component: {fileID: 2690584980826440458}
+  - component: {fileID: 956680528019074898}
+  - component: {fileID: 1035507654165921643}
+  - component: {fileID: 1964383745731018270}
+  - component: {fileID: 2205230448337949559}
+  - component: {fileID: 4424047700109143949}
+  - component: {fileID: 6365980342217979315}
+  - component: {fileID: 434855429459685950}
+  - component: {fileID: 1537928457533740796}
+  - component: {fileID: 7520831210811984596}
+  - component: {fileID: 823268740365522345}
+  - component: {fileID: 3064550888994180965}
+  - component: {fileID: 1382163762534688655}
+  - component: {fileID: 4173710758634228115}
+  - component: {fileID: 1429079523913109884}
   m_Layer: 0
   m_Name: HWJ_Model_Enemy_Corpse_Axe
   m_TagString: Untagged
@@ -114,17 +129,17 @@ SpriteRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 10
+  m_SortingOrder: 20
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: 8c62faf583e29c743b11ddcb2ff91d7f, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_FlipX: 0
+  m_FlipX: 1
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 1, y: 1}
+  m_Size: {x: 2, y: 2}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 0
+  m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
 --- !u!61 &76495676241952358
 BoxCollider2D:
@@ -160,18 +175,439 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0, y: 0}
+  m_Offset: {x: 0, y: -0.08}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0, y: 0}
-    oldSize: {x: 0, y: 0}
-    newSize: {x: 0, y: 0}
-    adaptiveTilingThreshold: 0
+    pivot: {x: 0.5, y: 0.5}
+    oldSize: {x: 2, y: 2}
+    newSize: {x: 2, y: 2}
+    adaptiveTilingThreshold: 0.5
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 0.8, y: 1}
+  m_Size: {x: 1.1, y: 1.65}
   m_EdgeRadius: 0
+--- !u!50 &2690584980826440458
+Rigidbody2D:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4816403081166471119}
+  m_BodyType: 0
+  m_Simulated: 1
+  m_UseFullKinematicContacts: 0
+  m_UseAutoMass: 0
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_GravityScale: 3
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_Interpolate: 1
+  m_SleepingMode: 1
+  m_CollisionDetection: 1
+  m_Constraints: 4
+--- !u!114 &956680528019074898
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4816403081166471119}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0657200c43504c80b4bb531708d60a6e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: HWJ.Runtime::HWJ_RuntimeObjectContext
+  dataResolver: {fileID: 0}
+  runtimeStatus: {fileID: 0}
+  combatSystem: {fileID: 0}
+  soulSystem: {fileID: 0}
+  possessionSystem: {fileID: 0}
+  bodyDecaySystem: {fileID: 0}
+  possessedBodySystem: {fileID: 0}
+  skillActionSystem: {fileID: 0}
+  levelProgressState: {fileID: 0}
+  skillUnlockState: {fileID: 0}
+  statOrbProgressState: {fileID: 0}
+--- !u!114 &1035507654165921643
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4816403081166471119}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f32f827d95cc9f74ba04b1c551f6aee7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: HWJ.Runtime::HWJ_RootObjectDataResolver
+  rootObjectData: {fileID: 11400000, guid: cc000000000000000000000000000003, type: 2}
+--- !u!114 &1964383745731018270
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4816403081166471119}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cc45360a6ce147cca5614a4263769485, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: HWJ.Runtime::HWJ_RuntimeStatusSystem
+  runtimeContext: {fileID: 0}
+  dataResolver: {fileID: 0}
+  possessionSystem: {fileID: 0}
+  soulSystem: {fileID: 0}
+  bodyDecaySystem: {fileID: 0}
+  possessedBodySystem: {fileID: 0}
+  collapseSystem: {fileID: 0}
+  motionSystem: {fileID: 0}
+  bossBrain: {fileID: 0}
+  currentState: 1
+  currentHp: 0
+  soulHp: 0
+  possessedBodyHp: 0
+  moveLockEndTime: 0
+  attackLockEndTime: 0
+  dashLockEndTime: 0
+  hitStunEndTime: 0
+  invincibleEndTime: 0
+  hitReactionImmuneEndTime: 0
+  hitReactionLimitEndTime: 0
+  hitReactionWindowEndTime: 0
+  hitReactionCountInWindow: 0
+  ignorePlayerMonsterBodyCollision: 1
+  ignoreMonsterBodyCollision: 1
+  bodyCollisionRefreshSeconds: 0.25
+--- !u!114 &2205230448337949559
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4816403081166471119}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ced03549c17815c4e8d8da454730c989, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: HWJ.Runtime::HWJ_CombatSystem
+  runtimeContext: {fileID: 0}
+  dataResolver: {fileID: 0}
+  possessionSystem: {fileID: 0}
+  runtimeStatus: {fileID: 0}
+  bossBrain: {fileID: 0}
+  useGameplayDamageRules: 1
+  commonDamageExecutionCore: {fileID: 0}
+  commonDamageExecutionCoreId: common_damage_execution
+  commonDamageRule: {fileID: 0}
+  commonDamageRuleId: damage_can_apply_common
+  playerDamageToEnemyExecutionCore: {fileID: 0}
+  playerDamageToEnemyExecutionCoreId: player_damage_to_enemy_execution
+  playerDamageToEnemyRule: {fileID: 0}
+  playerDamageToEnemyRuleId: player_damage_to_enemy
+  grantKillRewards: 1
+  lastDamageRuleResult: 
+  lastRewardResult: 
+--- !u!114 &4424047700109143949
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4816403081166471119}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 48e6a80f0f364342b8eceab1dd18672a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: HWJ.Runtime::HWJ_CombatExecutionSystem
+  dataResolver: {fileID: 0}
+  runtimeStatus: {fileID: 0}
+  combatSystem: {fileID: 0}
+  motionSystem: {fileID: 0}
+  targetLayer:
+    serializedVersion: 2
+    m_Bits: 0
+  useObjectTypeDefaultTargetFilter: 0
+  canDamagePlayer: 1
+  canDamageEnemy: 0
+  canDamageBoss: 0
+  canDamageNpc: 0
+  attackOffset: {x: 0, y: 0}
+  fallbackAttackRange: 1.4
+  damageMultiplier: 1
+  playMotionOnExecute: 1
+  motionKey: 
+  lastExecutionResult: 
+  lastDamageApplied: 0
+--- !u!114 &6365980342217979315
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4816403081166471119}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: de3eecdc3f534b1dba0a2ff2d29a2115, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: HWJ.Runtime::HWJ_SkillActionSystem
+  dataResolver: {fileID: 0}
+  runtimeStatus: {fileID: 0}
+  combatSystem: {fileID: 0}
+  combatExecutionSystem: {fileID: 0}
+  possessionSystem: {fileID: 0}
+  playerSkillUnlock: {fileID: 0}
+  motionSystem: {fileID: 0}
+  objectPool: {fileID: 0}
+  database: {fileID: 0}
+  body: {fileID: 0}
+  localSkillActions: []
+  actionEffectSpawnOffset: {x: 0.8, y: 0.15}
+  mirrorActionEffectByFacing: 1
+  useGameplaySkillRule: 1
+  skillUseExecutionCore: {fileID: 0}
+  skillUseExecutionCoreId: skill_use_execution
+  skillUseRule: {fileID: 0}
+  skillUseRuleId: skill_can_use
+  lastSkillResult: 
+  lastDamageApplied: 0
+--- !u!114 &434855429459685950
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4816403081166471119}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b9d1eaf04a3c4ef2bd8ea13a81c9286d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: HWJ.Runtime::HWJ_KnockbackSystem
+  body: {fileID: 0}
+  runtimeStatus: {fileID: 0}
+  preserveVerticalVelocity: 1
+  remainingTime: 0
+  duration: 0
+  startVelocity: {x: 0, y: 0}
+--- !u!114 &1537928457533740796
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4816403081166471119}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 03f9dec66ecc42f48a0d1f01938ff196, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: HWJ.Runtime::HWJ_CharacterMotionSystem
+  animator: {fileID: 4173710758634228115}
+  spriteRenderer: {fileID: 7306498609729525474}
+  body: {fileID: 2690584980826440458}
+  dataResolver: {fileID: 1035507654165921643}
+  runtimeStatus: {fileID: 1964383745731018270}
+  playerMovement: {fileID: 0}
+  soulSystem: {fileID: 0}
+  possessionSystem: {fileID: 0}
+  fallbackMotionProfile: {fileID: 11400000, guid: 547147d969024a598455fe7cde9c535c, type: 2}
+  weaponMotionProfiles:
+  - {fileID: 11400000, guid: 547147d969024a598455fe7cde9c535c, type: 2}
+  speedParameter: Speed
+  horizontalSpeedParameter: HorizontalSpeed
+  verticalSpeedParameter: VerticalSpeed
+  isMovingParameter: IsMoving
+  isGroundedParameter: IsGrounded
+  isPossessedParameter: IsPossessed
+  isSoulParameter: IsSoul
+  isDeadParameter: IsDead
+  runtimeStateParameter: RuntimeState
+  weaponTypeParameter: WeaponType
+  attackTriggerParameter: AttackTrigger
+  jumpTriggerParameter: JumpTrigger
+  doubleJumpTriggerParameter: DoubleJumpTrigger
+  dropJumpTriggerParameter: DropJumpTrigger
+  dashTriggerParameter: DashTrigger
+  hitTriggerParameter: HitTrigger
+  deadTriggerParameter: DeadTrigger
+  flipSpriteByMoveDirection: 1
+  useInitialSpriteFlipAsRightFacing: 1
+  flipTransformScaleWhenNoSpriteRenderer: 0
+  moveThreshold: 0.05
+  facingThreshold: 0.01
+--- !u!114 &7520831210811984596
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4816403081166471119}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6ee1ef8aeb834df3a54d8cce92df7028, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: HWJ.Runtime::HWJ_PossessionBodyState
+  isConsumed: 0
+  isReleasedAfterPossession: 0
+  isRemovedAfterPossession: 0
+  wasAliveWhenPossessed: 0
+  restoreObjectOnPossessionExit: 0
+--- !u!114 &823268740365522345
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4816403081166471119}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a5f8c63648b54ae99ff878df44de13dc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: HWJ.Runtime::HWJ_EnemyNavigationSystem
+  dataResolver: {fileID: 0}
+  runtimeStatus: {fileID: 0}
+  skillActionSystem: {fileID: 0}
+  motionSystem: {fileID: 0}
+  monsterAI: {fileID: 0}
+  body: {fileID: 0}
+  target: {fileID: 0}
+  autoFindPlayerTarget: 1
+  chaseOnlyBodyState: 1
+  faceOnlyBodyState: 1
+  horizontalMoveOnly: 1
+  fallbackTrackingRange: 8
+  fallbackStoppingDistance: 1
+  targetSearchIntervalSeconds: 0.5
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 0
+--- !u!114 &3064550888994180965
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4816403081166471119}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 70fa387beda542c4ae0bcac954b124e8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: HWJ.Runtime::HWJ_EnemyAttackSystem
+  dataResolver: {fileID: 0}
+  runtimeStatus: {fileID: 0}
+  combatExecutionSystem: {fileID: 0}
+  skillActionSystem: {fileID: 0}
+  monsterAI: {fileID: 0}
+  target: {fileID: 0}
+  autoFindPlayerTarget: 1
+  autoAttackWhenNoBehaviorDriver: 1
+  attackOnlyBodyState: 1
+  useSkillCycle: 1
+  showSkillWarning: 1
+  skillWarningDelaySeconds: 1
+  skillWarningColor: {r: 1, g: 0.15, b: 0.05, a: 0.85}
+  skillWarningLineWidth: 0.06
+  fallbackAttackRange: 1.2
+  fallbackAttackIntervalSeconds: 1.5
+  fallbackSkillCycleCount: 3
+  fallbackMonsterSkillCooldownSeconds: 3
+  fallbackSkillCycleDelaySeconds: 5
+  targetSearchIntervalSeconds: 0.5
+  lastAttackResult: 
+  lastDamageApplied: 0
+--- !u!114 &1382163762534688655
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4816403081166471119}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 26789bf4b63bff04dbd9989c608c5c9c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: HWJ.Runtime::HWJ_MonsterAISystem
+  dataResolver: {fileID: 0}
+  runtimeStatus: {fileID: 0}
+  enemyAttackSystem: {fileID: 0}
+  skillActionSystem: {fileID: 0}
+  motionSystem: {fileID: 0}
+  knockbackSystem: {fileID: 0}
+  body: {fileID: 0}
+  target: {fileID: 0}
+  driveBehavior: 1
+  autoFindPlayerTarget: 1
+  targetOnlyBodyState: 1
+  horizontalMoveOnly: 1
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 0
+  fallbackTrackingRange: 8
+  fallbackAttackRange: 1.2
+  targetSearchIntervalSeconds: 0.5
+  useGameplayTargetRule: 1
+  targetExecutionCore: {fileID: 0}
+  targetExecutionCoreId: monster_target_execution
+  targetDetectRule: {fileID: 0}
+  targetDetectRuleId: monster_detect_player_body
+  lastTargetRuleResult: 
+  raiseActionResultEvents: 1
+  raiseRepeatedActionResultEvents: 0
+  currentState: 0
+  lastTransitionFailureCode: 0
+  lastTransitionMessage: 
+  lastActionFailureCode: 0
+  lastActionMessage: 
+--- !u!95 &4173710758634228115
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4816403081166471119}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 505ff94f681cd234992102eb26a96be1, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &1429079523913109884
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4816403081166471119}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d1add6c8debe32248bd2f8dfe2811000, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: HWJ.Runtime::HWJ_HitEffectSystem
+  runtimeStatus: {fileID: 1964383745731018270}
+  dataResolver: {fileID: 1035507654165921643}
+  hitEffectPrefab: {fileID: 2211602562660978242, guid: 2bc7f49c6582563418f8a2c4dc022f75, type: 3}
+  hitEffectSocket: {fileID: 0}
+  hitEffectSocketName: Hit
+  fallbackOffset: {x: 0, y: 0.2}
+  ignoreZeroDamage: 1
+  minSpawnIntervalSeconds: 0.03
+  fallbackDestroyDelaySeconds: 1.25
 --- !u!1 &4846068213811611793
 GameObject:
   m_ObjectHideFlags: 0

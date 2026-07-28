@@ -8,11 +8,13 @@ public class HWJ_RuntimeObjectContext : MonoBehaviour
     [SerializeField] private HWJ_CombatSystem combatSystem;
     [SerializeField] private HWJ_SoulSystem soulSystem;
     [SerializeField] private HWJ_PossessionSystem possessionSystem;
+    [InspectorName("빙의체 정신력 시스템")]
     [SerializeField] private HWJ_BodyDecaySystem bodyDecaySystem;
     [SerializeField] private HWJ_PossessedBodySystem possessedBodySystem;
     [SerializeField] private HWJ_SkillActionSystem skillActionSystem;
     [SerializeField] private HWJ_LevelUpSystem levelProgressState;
     [SerializeField] private HWJ_SkillUnlockSystem skillUnlockState;
+    [SerializeField] private HWJ_StatOrbProgressSystem statOrbProgressState;
 
     public HWJ_RootObjectDataResolver DataResolver
     {
@@ -68,6 +70,15 @@ public class HWJ_RuntimeObjectContext : MonoBehaviour
         }
     }
 
+    public HWJ_BodyDecaySystem PossessionMentalSystem
+    {
+        get
+        {
+            ResolveReferences();
+            return bodyDecaySystem;
+        }
+    }
+
     public HWJ_PossessedBodySystem PossessedBodySystem
     {
         get
@@ -101,6 +112,15 @@ public class HWJ_RuntimeObjectContext : MonoBehaviour
         {
             ResolveReferences();
             return skillUnlockState;
+        }
+    }
+
+    public HWJ_StatOrbProgressSystem StatOrbProgressState
+    {
+        get
+        {
+            ResolveReferences();
+            return statOrbProgressState;
         }
     }
 
@@ -177,7 +197,7 @@ public class HWJ_RuntimeObjectContext : MonoBehaviour
             sourceReceivedDamageData = GetEffectiveReceivedDamageData(),
             runtimeStats = HWJ_RuntimeStatSnapshot.FromStatus(runtimeStatus),
             runtimeBody = HWJ_RuntimeBodySnapshot.FromSystems(soulSystem, possessionSystem, bodyDecaySystem, possessedBodySystem),
-            runtimeGrowth = HWJ_RuntimeGrowthSnapshot.FromSystems(levelProgressState, skillUnlockState)
+            runtimeGrowth = HWJ_RuntimeGrowthSnapshot.FromSystems(levelProgressState, skillUnlockState, statOrbProgressState)
         };
     }
 
@@ -231,6 +251,11 @@ public class HWJ_RuntimeObjectContext : MonoBehaviour
         if (skillUnlockState == null)
         {
             skillUnlockState = GetComponent<HWJ_SkillUnlockSystem>();
+        }
+
+        if (statOrbProgressState == null)
+        {
+            statOrbProgressState = GetComponent<HWJ_StatOrbProgressSystem>();
         }
     }
 }

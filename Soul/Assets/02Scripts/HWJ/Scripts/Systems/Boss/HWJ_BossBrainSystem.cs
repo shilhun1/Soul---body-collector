@@ -110,7 +110,8 @@ public class HWJ_BossBrainSystem : MonoBehaviour
             return;
         }
 
-        if (stageOnePatternSystem != null && stageOnePatternSystem.IsPatternRunning)
+        if ((patternSystem != null && patternSystem.IsSpecialPatternRunning)
+            || (stageOnePatternSystem != null && stageOnePatternSystem.IsPatternRunning))
         {
             SetBossState(HWJ_BossFSMState.Attack);
             FaceTarget();
@@ -366,7 +367,9 @@ public class HWJ_BossBrainSystem : MonoBehaviour
         StopHorizontalMovement();
         phaseTransitionTimer -= Time.deltaTime;
 
-        bool isTransitionPatternRunning = stageOnePatternSystem != null && stageOnePatternSystem.IsPatternRunning;
+        bool isTransitionPatternRunning =
+            (patternSystem != null && patternSystem.IsSpecialPatternRunning)
+            || (stageOnePatternSystem != null && stageOnePatternSystem.IsPatternRunning);
 
         if (phaseTransitionTimer <= 0f && !isTransitionPatternRunning)
         {
@@ -648,6 +651,7 @@ public class HWJ_BossBrainSystem : MonoBehaviour
     private void CancelCurrentBossActions()
     {
         skillActionSystem?.CancelCurrentAction();
+        patternSystem?.CancelActiveSpecialPatterns();
         stageOnePatternSystem?.CancelActivePattern();
     }
 

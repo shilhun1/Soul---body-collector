@@ -23,8 +23,11 @@ MonoBehaviour:
   - {fileID: 11400000, guid: dd000000000000000000000000000003, type: 2}
   - {fileID: 11400000, guid: dd000000000000000000000000000004, type: 2}
   - {fileID: 11400000, guid: dd000000000000000000000000000005, type: 2}
+  - {fileID: 11400000, guid: dd000000000000000000000000000006, type: 2}
+  - {fileID: 11400000, guid: dd000000000000000000000000000007, type: 2}
   - {fileID: 11400000, guid: b1f0a5c00123456789abcdef00000001, type: 2}
-  objectPoolData: {fileID: 0}
+  - {fileID: 11400000, guid: fbc165530a6849babf31363c8491519d, type: 2}
+  objectPoolData: {fileID: 11400000, guid: aafa5750b4b26a846b19017250384e6d, type: 2}
   spawnTables: []
   statOrbs:
   - {fileID: 11400000, guid: ab220000000000000000000000000001, type: 2}
@@ -70,14 +73,45 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 50c3f35ca701a8395fc8c5016aff0d29, type: 2}
   - {fileID: 11400000, guid: ebc66c7b29ea32a2798cce66b5d2002a, type: 2}
   - {fileID: 11400000, guid: 857792b8e17d9c566eb1d0187ffaa697, type: 2}
+  skillNodes:
+  - {fileID: 11400000, guid: 6ab809209b7c47caa7d4e022a9b65122, type: 2}
+  - {fileID: 11400000, guid: 716d8f9b5a5e45feb02a25d90709e8ec, type: 2}
+  - {fileID: 11400000, guid: 0177fd9fc9a14841a0c19b414e32094d, type: 2}
+  - {fileID: 11400000, guid: 01e20824a0a3478fa6369bf2e8e03e78, type: 2}
+  - {fileID: 11400000, guid: f40be9907d0246cfa157107813f96923, type: 2}
+  - {fileID: 11400000, guid: 8f45c23555e44ceab9f8add036d61944, type: 2}
+  - {fileID: 11400000, guid: 84f40c65eced414ca6ad263465d1ff12, type: 2}
+  - {fileID: 11400000, guid: 49249c67605b445094153aee596c4cb0, type: 2}
+  - {fileID: 11400000, guid: ae7b7fefc78046cbacde2e85118c494c, type: 2}
+  - {fileID: 11400000, guid: 43b0c44f5e064d79a5c8e1d4b765479a, type: 2}
+  - {fileID: 11400000, guid: 4c4b16d69e2e4391afcfe49cf08eb668, type: 2}
+  - {fileID: 11400000, guid: b297ea11afb94f57be54100477d62f49, type: 2}
+  - {fileID: 11400000, guid: 50ecb2b3a5444f1190fbce469b20b1bc, type: 2}
+  - {fileID: 11400000, guid: f481aa50cc3046908179bc91fcaa5233, type: 2}
+  - {fileID: 11400000, guid: 291515cb3a36409ab64cf15795d0fe1b, type: 2}
+  - {fileID: 11400000, guid: 01d1f3a421dc42ee84e131ddfdcfc294, type: 2}
+  - {fileID: 11400000, guid: 0b0c232c2c2142f0b7041d1db8bff330, type: 2}
+  - {fileID: 11400000, guid: 3697d668c4bf48178aa6306bd0dd34b3, type: 2}
+  - {fileID: 11400000, guid: a0601e96fdad471789133513f3e1a7c2, type: 2}
+  - {fileID: 11400000, guid: 69d5353b32994a589b2d48fb58e4c706, type: 2}
   bossPatterns:
   - {fileID: 11400000, guid: 5df2a78a508e4727a39aacd980dd1105, type: 2}
   - {fileID: 11400000, guid: 4a03edc3fa9f4886a3cc244588bb1104, type: 2}
   - {fileID: 11400000, guid: 1b7d52e2b65c4e6db7f0c2f52dcf1101, type: 2}
   - {fileID: 11400000, guid: 2d8a75951d154ed6a87dc8cf25ca1102, type: 2}
   - {fileID: 11400000, guid: 3c64f0e7a8a44ab2bb2f903da3ef1103, type: 2}
+  - {fileID: 11400000, guid: 663cbdea01c446a6af6aa9676369abbc, type: 2}
+  - {fileID: 11400000, guid: 5ed953be3efe46d3bb33c21220cc58af, type: 2}
+  - {fileID: 11400000, guid: d08c7d07239c492fbcb0574d9bb24c44, type: 2}
+  - {fileID: 11400000, guid: 521f968fb627414998d892b240d0f9c3, type: 2}
+  - {fileID: 11400000, guid: 8bc12606843144638c17b86e5ad8bfeb, type: 2}
+  - {fileID: 11400000, guid: d26b28ad6d4643f09780db86d4a9a2f7, type: 2}
+  - {fileID: 11400000, guid: 466f3db318444790be1ec05fbebc7d15, type: 2}
   healthBars: []
-  gameOverWindows: []
+  gameOverWindows:
+  - {fileID: 11400000, guid: 843942034cef17e40bf3d6b9f5ed4385, type: 2}
+  titleScreens:
+  - {fileID: 11400000, guid: 7f55d620fb873ae4fac8aded52b769b3, type: 2}
   conditions:
   - {fileID: 11400000, guid: aa000001000000000000000000000001, type: 2}
   - {fileID: 11400000, guid: aa000001000000000000000000000002, type: 2}
@@ -122,6 +156,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: aa000001000000000000000000000014, type: 2}
   - {fileID: 11400000, guid: aa000001000000000000000000000015, type: 2}
   - {fileID: 11400000, guid: aa000001000000000000000000000016, type: 2}
+  - {fileID: 11400000, guid: aa000001000000000000000000000017, type: 2}
   - {fileID: 11400000, guid: aa000002000000000000000000000007, type: 2}
   gameplayRules:
   - {fileID: 11400000, guid: aa000003000000000000000000000001, type: 2}

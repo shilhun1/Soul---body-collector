@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// 체력바와 부패/영혼 상태 표시 규칙을 관리하는 ScriptableObject입니다.
+/// 체력바와 빙의체 정신력/영혼 상태 표시 규칙을 관리하는 ScriptableObject입니다.
 /// HealthBarSystem이 현재 상태에 맞는 색상과 표시 방식을 읽습니다.
 /// </summary>
 [CreateAssetMenu(fileName = "HWJ_HealthBarData", menuName = "HWJ/Data/System/Health Bar")]

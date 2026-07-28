@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 7167953164601464451}
   - component: {fileID: 6787321964915792221}
   - component: {fileID: 7579501130321288886}
+  - component: {fileID: 1307595647517727009}
   m_Layer: 0
   m_Name: HWJ_StatOrb_AttackPowerSmall_Prefab
   m_TagString: Untagged
@@ -83,15 +84,15 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 80
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: 2030f24555964cd45851b7411c21449c, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 1, y: 1}
+  m_Size: {x: 5.1, y: 5.1}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 0
+  m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
 --- !u!58 &6787321964915792221
 CircleCollider2D:
@@ -141,6 +142,42 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 13cae500e299423d8ed2801586ad0897, type: 3}
   m_Name: 
   m_EditorClassIdentifier: HWJ.Runtime::HWJ_StatOrbPickupSystem
+  collectDelaySeconds: 0.35
   statOrbData: {fileID: 11400000, guid: ab220000000000000000000000000003, type: 2}
   objectPool: {fileID: 0}
   destroyOnCollect: 1
+  targetTransform: {fileID: 0}
+  targetStatus: {fileID: 0}
+  moveToTarget: 1
+  autoResolvePlayerTarget: 1
+  attractionStartDistance: 4
+  collectDistance: 0.45
+  targetSearchIntervalSeconds: 0.25
+  moveSpeed: 2.25
+  acceleration: 5.5
+  initialDelaySeconds: 0.25
+  lifeTimeSeconds: 12
+  controlAnimatorSpeed: 1
+  animationSpeedMultiplier: 0.55
+--- !u!95 &1307595647517727009
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3726267153045181684}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: a4f66066139c6de4e916f51a7a173058, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0

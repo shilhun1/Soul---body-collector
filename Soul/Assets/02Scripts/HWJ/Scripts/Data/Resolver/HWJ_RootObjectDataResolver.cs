@@ -19,6 +19,7 @@ public class HWJ_RootObjectDataResolver : MonoBehaviour
     public HWJ_ObjectTypeDataSO TypeData => rootObjectData != null ? rootObjectData.SelectedTypeData : null;
     public HWJ_ObjectType ObjectType => rootObjectData != null ? rootObjectData.ObjectType : HWJ_ObjectType.Player;
     public HWJ_WeaponType WeaponType => GetWeaponType();
+    public HWJ_AbilityTag[] AbilityTags => rootObjectData != null ? rootObjectData.AbilityTags : null;
 
     /// <summary>
     /// 런타임에 생성된 오브젝트에 RootObjectData를 주입합니다.
@@ -51,6 +52,14 @@ public class HWJ_RootObjectDataResolver : MonoBehaviour
     public bool IsObjectType(HWJ_ObjectType objectType)
     {
         return rootObjectData != null && rootObjectData.ObjectType == objectType;
+    }
+
+    /// <summary>
+    /// Lets interaction and map gimmick systems query possessed-body abilities through one component.
+    /// </summary>
+    public bool HasAbilityTag(HWJ_AbilityTag abilityTag)
+    {
+        return rootObjectData != null && rootObjectData.HasAbilityTag(abilityTag);
     }
 
     private HWJ_WeaponType GetWeaponType()

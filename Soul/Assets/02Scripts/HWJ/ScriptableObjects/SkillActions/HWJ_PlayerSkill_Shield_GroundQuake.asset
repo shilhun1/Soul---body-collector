@@ -14,10 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HWJ_SkillActionDataSO
   skillActionId: player_shield_ground_quake
   sourceSkillId: 1505
-  displayName: "Ground Quake"
-  skillDescription: "방패로 땅을 찍어 충격파를 일으켜 적을 공격한다."
-  effectId: ""
-  soundId: ""
+  displayName: Ground Quake
+  skillDescription: "\uBC29\uD328\uB85C \uB545\uC744 \uCC0D\uC5B4 \uCDA9\uACA9\uD30C\uB97C
+    \uC77C\uC73C\uCF1C \uC801\uC744 \uACF5\uACA9\uD55C\uB2E4."
+  effectId: 
+  soundId: 
   actionType: 5
   requiredWeaponType: 7
   authoredAttackPower: 15
@@ -55,4 +56,4 @@ MonoBehaviour:
   motionSequenceKeys: []
   motionStepIntervalSeconds: 0.12
   projectilePrefab: {fileID: 0}
-  actionEffectPrefab: {fileID: 0}
+  actionEffectPrefab: {fileID: 2839771277650202955, guid: b025e67d13607de4da20a9df72f2c07d, type: 3}

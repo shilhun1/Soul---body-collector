@@ -21,6 +21,8 @@ public readonly struct HWJ_RewardGrantResult
     public readonly HWJ_RewardData RewardData;
     public readonly int ExperienceGranted;
     public readonly int SkillPointGranted;
+    public readonly bool ExperienceOrbSpawned;
+    public readonly bool ExperienceGrantedImmediately;
     public readonly bool StatOrbGranted;
     public readonly Vector3 RewardPosition;
     public readonly string RewardClaimId;
@@ -34,6 +36,8 @@ public readonly struct HWJ_RewardGrantResult
         HWJ_RewardData rewardData,
         int experienceGranted,
         int skillPointGranted,
+        bool experienceOrbSpawned,
+        bool experienceGrantedImmediately,
         bool statOrbGranted,
         Vector3 rewardPosition,
         string rewardClaimId,
@@ -46,6 +50,8 @@ public readonly struct HWJ_RewardGrantResult
         RewardData = rewardData;
         ExperienceGranted = experienceGranted;
         SkillPointGranted = skillPointGranted;
+        ExperienceOrbSpawned = experienceOrbSpawned;
+        ExperienceGrantedImmediately = experienceGrantedImmediately;
         StatOrbGranted = statOrbGranted;
         RewardPosition = rewardPosition;
         RewardClaimId = rewardClaimId;
@@ -56,6 +62,10 @@ public readonly struct HWJ_RewardGrantResult
         HWJ_RootObjectDataResolver defeatedResolver,
         HWJ_RootObjectDataResolver rewardSourceResolver,
         HWJ_RewardData rewardData,
+        int experienceGranted,
+        int skillPointGranted,
+        bool experienceOrbSpawned,
+        bool experienceGrantedImmediately,
         bool statOrbGranted,
         Vector3 rewardPosition,
         string rewardClaimId,
@@ -67,8 +77,10 @@ public readonly struct HWJ_RewardGrantResult
             defeatedResolver,
             rewardSourceResolver,
             rewardData,
-            rewardData != null ? Mathf.Max(0, rewardData.experienceReward) : 0,
-            rewardData != null ? Mathf.Max(0, rewardData.skillPointReward) : 0,
+            experienceGranted,
+            skillPointGranted,
+            experienceOrbSpawned,
+            experienceGrantedImmediately,
             statOrbGranted,
             rewardPosition,
             rewardClaimId,
@@ -90,6 +102,8 @@ public readonly struct HWJ_RewardGrantResult
             null,
             0,
             0,
+            false,
+            false,
             false,
             Vector3.zero,
             rewardClaimId,
@@ -220,18 +234,44 @@ public static class HWJ_RewardUtility
                 rewardClaimId);
         }
 
-        if (playerLevel != null)
+        bool experienceOrbSpawned = TrySpawnExperienceOrbReward(
+            rewardData,
+            playerLevel,
+            rewardSourceResolver,
+            rewardPosition);
+        bool experienceGrantedImmediately = false;
+        int experienceGranted = 0;
+        int skillPointGranted = 0;
+
+        if (!experienceOrbSpawned && playerLevel != null && rewardData.experienceReward > 0)
         {
-            playerLevel.AddReward(rewardData);
+            playerLevel.AddExperience(rewardData.experienceReward);
+            experienceGranted = Mathf.Max(0, rewardData.experienceReward);
+            experienceGrantedImmediately = true;
         }
 
-        bool statOrbGranted = TryGrantStatOrbReward(rewardData, playerStatus, rewardPosition);
+        if (playerLevel != null && rewardData.skillPointReward > 0)
+        {
+            playerLevel.AddSkillPoint(rewardData.skillPointReward);
+            skillPointGranted = Mathf.Max(0, rewardData.skillPointReward);
+        }
 
-        string message = $"Reward granted. Exp:{rewardData.experienceReward}, SkillPoint:{rewardData.skillPointReward}, StatOrb:{statOrbGranted}.";
+        bool statOrbGranted = TryGrantStatOrbReward(
+            rewardData,
+            defeatedResolver,
+            playerStatus,
+            rewardSourceResolver,
+            rewardPosition);
+
+        string message = $"Reward granted. Exp:{experienceGranted}, SkillPoint:{skillPointGranted}, ExpOrb:{experienceOrbSpawned}, StatOrb:{statOrbGranted}.";
         HWJ_RewardGrantResult result = HWJ_RewardGrantResult.Success(
             defeatedResolver,
             rewardSourceResolver,
             rewardData,
+            experienceGranted,
+            skillPointGranted,
+            experienceOrbSpawned,
+            experienceGrantedImmediately,
             statOrbGranted,
             rewardPosition,
             rewardClaimId,
@@ -272,30 +312,132 @@ public static class HWJ_RewardUtility
             defeatedObjectId);
     }
 
-    private static bool TryGrantStatOrbReward(
+    private static bool TrySpawnExperienceOrbReward(
         HWJ_RewardData rewardData,
-        HWJ_RuntimeStatusSystem playerStatus,
+        HWJ_LevelUpSystem playerLevel,
+        HWJ_RootObjectDataResolver rewardSourceResolver,
         Vector3 rewardPosition)
     {
-        if (rewardData == null || !rewardData.dropsStatOrb || string.IsNullOrEmpty(rewardData.statOrbId))
+        if (rewardData == null
+            || !rewardData.dropsExperienceOrb
+            || rewardData.experienceReward <= 0
+            || rewardData.experienceOrbPrefab == null
+            || playerLevel == null)
         {
             return false;
         }
 
-        if (!HWJ_GameAccess.TryGetStatOrb(rewardData.statOrbId, out HWJ_StatOrbDataSO statOrbData)
+        Vector3 spawnPosition = rewardPosition + ResolveExperienceOrbOffset(rewardData.experienceOrbSpawnRadius);
+        GameObject orbObject = HWJ_GameAccess.Spawn(rewardData.experienceOrbPrefab, spawnPosition, Quaternion.identity);
+
+        if (orbObject == null)
+        {
+            orbObject = Object.Instantiate(rewardData.experienceOrbPrefab, spawnPosition, Quaternion.identity);
+        }
+
+        if (orbObject == null)
+        {
+            return false;
+        }
+
+        HWJ_ExperienceOrbPickupSystem experienceOrb = orbObject.GetComponent<HWJ_ExperienceOrbPickupSystem>();
+
+        if (experienceOrb == null)
+        {
+            experienceOrb = orbObject.AddComponent<HWJ_ExperienceOrbPickupSystem>();
+        }
+
+        Transform targetTransform = rewardSourceResolver != null ? rewardSourceResolver.transform : playerLevel.transform;
+        experienceOrb.Initialize(rewardData.experienceReward, playerLevel, targetTransform);
+        return true;
+    }
+
+    private static Vector3 ResolveExperienceOrbOffset(float radius)
+    {
+        float clampedRadius = Mathf.Max(0f, radius);
+
+        if (clampedRadius <= 0f)
+        {
+            return Vector3.zero;
+        }
+
+        Vector2 randomOffset = Random.insideUnitCircle * clampedRadius;
+        return new Vector3(randomOffset.x, randomOffset.y, 0f);
+    }
+
+    private static bool TryGrantStatOrbReward(
+        HWJ_RewardData rewardData,
+        HWJ_RootObjectDataResolver defeatedResolver,
+        HWJ_RuntimeStatusSystem playerStatus,
+        HWJ_RootObjectDataResolver rewardSourceResolver,
+        Vector3 rewardPosition)
+    {
+        if (rewardData == null)
+        {
+            return false;
+        }
+
+        bool isGuaranteedDrop = IsGuaranteedStatOrbDrop(defeatedResolver);
+
+        if (!rewardData.dropsStatOrb && !isGuaranteedDrop)
+        {
+            return false;
+        }
+
+        float statOrbDropChance = Mathf.Clamp01(rewardData.statOrbDropChance);
+
+        if (!isGuaranteedDrop && statOrbDropChance <= 0f)
+        {
+            return false;
+        }
+
+        if (!isGuaranteedDrop && Random.value > statOrbDropChance)
+        {
+            return false;
+        }
+
+        if (!TrySelectStatOrbRewardData(
+            rewardData,
+            isGuaranteedDrop,
+            playerStatus,
+            out HWJ_StatOrbDataSO statOrbData)
             || statOrbData == null)
+        {
+            return false;
+        }
+
+        if (playerStatus != null && !playerStatus.CanApplyStatOrb(statOrbData))
         {
             return false;
         }
 
         if (statOrbData.OrbPrefab != null)
         {
-            GameObject orbObject = HWJ_GameAccess.Spawn(statOrbData.OrbPrefab, rewardPosition, Quaternion.identity);
+            Vector3 spawnPosition = rewardPosition + ResolveRewardOrbOffset(rewardData.statOrbSpawnRadius);
+            GameObject orbObject = HWJ_GameAccess.Spawn(statOrbData.OrbPrefab, spawnPosition, Quaternion.identity);
 
-            if (orbObject != null)
+            if (orbObject == null)
             {
-                return true;
+                orbObject = Object.Instantiate(statOrbData.OrbPrefab, spawnPosition, Quaternion.identity);
             }
+
+            if (orbObject == null)
+            {
+                return false;
+            }
+
+            HWJ_StatOrbPickupSystem statOrbPickup = orbObject.GetComponent<HWJ_StatOrbPickupSystem>();
+
+            if (statOrbPickup == null)
+            {
+                statOrbPickup = orbObject.AddComponent<HWJ_StatOrbPickupSystem>();
+            }
+
+            Transform targetTransform = rewardSourceResolver != null
+                ? rewardSourceResolver.transform
+                : playerStatus != null ? playerStatus.transform : null;
+            statOrbPickup.Initialize(statOrbData, playerStatus, targetTransform, HWJ_GameAccess.ObjectPool);
+            return true;
         }
 
         if (playerStatus == null)
@@ -303,8 +445,184 @@ public static class HWJ_RewardUtility
             return false;
         }
 
-        playerStatus.ApplyStatOrb(statOrbData);
-        return true;
+        return playerStatus.TryApplyStatOrb(statOrbData);
+    }
+
+    private static bool IsGuaranteedStatOrbDrop(HWJ_RootObjectDataResolver defeatedResolver)
+    {
+        return defeatedResolver != null
+            && defeatedResolver.TryGetTypeData(out HWJ_EnemyTypeDataSO enemyTypeData)
+            && enemyTypeData != null
+            && enemyTypeData.Role != null
+            && enemyTypeData.Role.guaranteesStatOrb;
+    }
+
+    private static bool TrySelectStatOrbRewardData(
+        HWJ_RewardData rewardData,
+        bool useAllRegisteredFallback,
+        HWJ_RuntimeStatusSystem playerStatus,
+        out HWJ_StatOrbDataSO statOrbData)
+    {
+        statOrbData = null;
+
+        if (TrySelectWeightedStatOrbCandidate(rewardData, playerStatus, out statOrbData))
+        {
+            return true;
+        }
+
+        if (!string.IsNullOrWhiteSpace(rewardData.statOrbId)
+            && HWJ_GameAccess.TryGetStatOrb(rewardData.statOrbId, out statOrbData)
+            && statOrbData != null
+            && (playerStatus == null || playerStatus.CanApplyStatOrb(statOrbData)))
+        {
+            return true;
+        }
+
+        if (useAllRegisteredFallback || rewardData.useAllRegisteredStatOrbsWhenEmpty)
+        {
+            return TrySelectRegisteredStatOrb(playerStatus, out statOrbData);
+        }
+
+        statOrbData = null;
+        return false;
+    }
+
+    private static bool TrySelectWeightedStatOrbCandidate(
+        HWJ_RewardData rewardData,
+        HWJ_RuntimeStatusSystem playerStatus,
+        out HWJ_StatOrbDataSO statOrbData)
+    {
+        statOrbData = null;
+
+        if (rewardData.statOrbCandidates == null || rewardData.statOrbCandidates.Length == 0)
+        {
+            return false;
+        }
+
+        int totalWeight = 0;
+
+        for (int i = 0; i < rewardData.statOrbCandidates.Length; i++)
+        {
+            HWJ_StatOrbRewardEntry candidate = rewardData.statOrbCandidates[i];
+
+            if (!TryResolveEligibleStatOrbCandidate(candidate, playerStatus, out _))
+            {
+                continue;
+            }
+
+            totalWeight += Mathf.Max(0, candidate.weight);
+        }
+
+        if (totalWeight <= 0)
+        {
+            return false;
+        }
+
+        int selectedWeight = Random.Range(0, totalWeight);
+
+        for (int i = 0; i < rewardData.statOrbCandidates.Length; i++)
+        {
+            HWJ_StatOrbRewardEntry candidate = rewardData.statOrbCandidates[i];
+
+            if (!TryResolveEligibleStatOrbCandidate(candidate, playerStatus, out HWJ_StatOrbDataSO candidateData))
+            {
+                continue;
+            }
+
+            selectedWeight -= Mathf.Max(0, candidate.weight);
+
+            if (selectedWeight < 0)
+            {
+                statOrbData = candidateData;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool TryResolveEligibleStatOrbCandidate(
+        HWJ_StatOrbRewardEntry candidate,
+        HWJ_RuntimeStatusSystem playerStatus,
+        out HWJ_StatOrbDataSO statOrbData)
+    {
+        statOrbData = null;
+
+        if (candidate == null
+            || candidate.weight <= 0
+            || string.IsNullOrWhiteSpace(candidate.statOrbId)
+            || !HWJ_GameAccess.TryGetStatOrb(candidate.statOrbId, out statOrbData)
+            || statOrbData == null)
+        {
+            return false;
+        }
+
+        return playerStatus == null || playerStatus.CanApplyStatOrb(statOrbData);
+    }
+
+    private static bool TrySelectRegisteredStatOrb(
+        HWJ_RuntimeStatusSystem playerStatus,
+        out HWJ_StatOrbDataSO statOrbData)
+    {
+        statOrbData = null;
+        HWJ_GameplayDatabaseSO database = HWJ_GameAccess.Database;
+
+        if (database == null || database.StatOrbs == null || database.StatOrbs.Length == 0)
+        {
+            return false;
+        }
+
+        int eligibleCount = 0;
+
+        for (int i = 0; i < database.StatOrbs.Length; i++)
+        {
+            HWJ_StatOrbDataSO candidate = database.StatOrbs[i];
+
+            if (candidate != null && (playerStatus == null || playerStatus.CanApplyStatOrb(candidate)))
+            {
+                eligibleCount++;
+            }
+        }
+
+        if (eligibleCount <= 0)
+        {
+            return false;
+        }
+
+        int selectedIndex = Random.Range(0, eligibleCount);
+
+        for (int i = 0; i < database.StatOrbs.Length; i++)
+        {
+            HWJ_StatOrbDataSO candidate = database.StatOrbs[i];
+
+            if (candidate == null || (playerStatus != null && !playerStatus.CanApplyStatOrb(candidate)))
+            {
+                continue;
+            }
+
+            if (selectedIndex == 0)
+            {
+                statOrbData = candidate;
+                return true;
+            }
+
+            selectedIndex--;
+        }
+
+        return false;
+    }
+
+    private static Vector3 ResolveRewardOrbOffset(float radius)
+    {
+        float clampedRadius = Mathf.Max(0f, radius);
+
+        if (clampedRadius <= 0f)
+        {
+            return Vector3.zero;
+        }
+
+        Vector2 randomOffset = Random.insideUnitCircle * clampedRadius;
+        return new Vector3(randomOffset.x, randomOffset.y, 0f);
     }
 
     private static string ResolveDefeatedObjectId(HWJ_RootObjectDataResolver defeatedResolver)

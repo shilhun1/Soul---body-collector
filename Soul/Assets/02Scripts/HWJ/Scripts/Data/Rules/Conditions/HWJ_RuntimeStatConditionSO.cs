@@ -83,39 +83,75 @@ public class HWJ_RuntimeStatConditionSO : HWJ_GameplayConditionSO
                 currentValue = status.AttackSpeed;
                 return true;
             case HWJ_RuntimeStatField.BodyDecayValue:
-                return TryGetBodyDecayValue(context, out currentValue);
+                return TryGetPossessionMentalConsumedValue(context, out currentValue);
             case HWJ_RuntimeStatField.BodyDecayRatio:
-                return TryGetBodyDecayRatio(context, out currentValue);
+                return TryGetPossessionMentalConsumedRatio(context, out currentValue);
+            case HWJ_RuntimeStatField.PossessionMentalConsumedValue:
+                return TryGetPossessionMentalConsumedValue(context, out currentValue);
+            case HWJ_RuntimeStatField.PossessionMentalConsumedRatio:
+                return TryGetPossessionMentalConsumedRatio(context, out currentValue);
+            case HWJ_RuntimeStatField.PossessionMentalRemainingValue:
+                return TryGetPossessionMentalRemainingValue(context, out currentValue);
+            case HWJ_RuntimeStatField.PossessionMentalRemainingRatio:
+                return TryGetPossessionMentalRemainingRatio(context, out currentValue);
             default:
                 return false;
         }
     }
 
-    private bool TryGetBodyDecayValue(HWJ_GameplayContext context, out float currentValue)
+    private bool TryGetPossessionMentalConsumedValue(HWJ_GameplayContext context, out float currentValue)
     {
         currentValue = 0f;
-        HWJ_BodyDecaySystem bodyDecay = context.GetBodyDecay(actor);
+        HWJ_BodyDecaySystem possessionMental = context.GetPossessionMental(actor);
 
-        if (bodyDecay == null)
+        if (possessionMental == null)
         {
             return false;
         }
 
-        currentValue = bodyDecay.CurrentDecayValue;
+        currentValue = possessionMental.ConsumedPossessionMentalValue;
         return true;
     }
 
-    private bool TryGetBodyDecayRatio(HWJ_GameplayContext context, out float currentValue)
+    private bool TryGetPossessionMentalConsumedRatio(HWJ_GameplayContext context, out float currentValue)
     {
         currentValue = 0f;
-        HWJ_BodyDecaySystem bodyDecay = context.GetBodyDecay(actor);
+        HWJ_BodyDecaySystem possessionMental = context.GetPossessionMental(actor);
 
-        if (bodyDecay == null)
+        if (possessionMental == null)
         {
             return false;
         }
 
-        currentValue = bodyDecay.CurrentDecayRatio;
+        currentValue = possessionMental.ConsumedPossessionMentalRatio;
+        return true;
+    }
+
+    private bool TryGetPossessionMentalRemainingValue(HWJ_GameplayContext context, out float currentValue)
+    {
+        currentValue = 0f;
+        HWJ_BodyDecaySystem possessionMental = context.GetPossessionMental(actor);
+
+        if (possessionMental == null)
+        {
+            return false;
+        }
+
+        currentValue = possessionMental.RemainingPossessionMentalValue;
+        return true;
+    }
+
+    private bool TryGetPossessionMentalRemainingRatio(HWJ_GameplayContext context, out float currentValue)
+    {
+        currentValue = 0f;
+        HWJ_BodyDecaySystem possessionMental = context.GetPossessionMental(actor);
+
+        if (possessionMental == null)
+        {
+            return false;
+        }
+
+        currentValue = possessionMental.RemainingPossessionMentalRatio;
         return true;
     }
 }

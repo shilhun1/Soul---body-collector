@@ -17,5 +17,23 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/01Scenes/HSH_1-2.unity
     guid: 169d949c2c90b6148a9e24e234967c67
+  - enabled: 1
+    path: Assets/01Scenes/Title.unity
+    guid: 31b03f9dcce59324dbfa117d3bc24f76
+  - enabled: 1
+    path: Assets/01Scenes/2-1.unity
+    guid: 3e9100ed15a958244b8c65f1f28212be
+  - enabled: 1
+    path: Assets/01Scenes/HWJ_Stage1_01_RuinedVillage.unity
+    guid: 0a8348df817904d4cad247fbceb8f7b3
+  - enabled: 1
+    path: Assets/01Scenes/HWJ_Stage1_02_RuinedOutpost.unity
+    guid: 2393f8b246e00a24099ea8d6857afcdc
+  - enabled: 1
+    path: Assets/01Scenes/HWJ_Stage1_03_BackRoad.unity
+    guid: 2aea21034990a2842bac05fd500da951
+  - enabled: 1
+    path: Assets/01Scenes/HWJ_Stage1_04_MidBossBarracks.unity
+    guid: d52a8a4a01b85aa4b91d3bb10d708c71
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0

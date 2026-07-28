@@ -1,4 +1,8 @@
+using System;
+using System.Collections;
+using System.Reflection;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 #if ENABLE_INPUT_SYSTEM
 using UnityEngine.InputSystem;
@@ -22,12 +26,14 @@ public class HWJ_GameManager : MonoBehaviour
     [SerializeField] private bool dontDestroyOnLoad = true;
 
     [Space(8f)]
-    [Header("Player Runtime References")]
+    [Header("플레이어 런타임 참조")]
     [SerializeField] private HWJ_RootObjectDataResolver playerResolver;
     [SerializeField] private HWJ_PlayerInputSystem playerInput;
     [SerializeField] private HWJ_RuntimeStatusSystem playerStatus;
     [SerializeField] private HWJ_LevelUpSystem playerLevel;
+    [SerializeField] private HWJ_StatOrbProgressSystem playerStatOrbProgress;
     [SerializeField] private HWJ_SoulSystem playerSoul;
+    [InspectorName("플레이어 빙의체 정신력")]
     [SerializeField] private HWJ_BodyDecaySystem playerBodyDecay;
     [SerializeField] private HWJ_PossessionSystem playerPossession;
 
@@ -37,18 +43,29 @@ public class HWJ_GameManager : MonoBehaviour
     [SerializeField] private bool autoAddMissingPlayerCoreSystems = true;
 
     [Space(8f)]
-    [Header("Player Runtime Persistence")]
+    [Header("Scene Auto Bootstrap")]
+    [SerializeField] private bool autoPlacePlayerAtSceneStart = true;
+    [SerializeField] private bool autoBindSceneCamerasToPlayer = true;
+    [SerializeField] private float sceneBootstrapRetrySeconds = 1f;
+    [SerializeField] private string lastSceneBootstrapResult;
+
+    [Space(8f)]
+    [Header("플레이어 런타임 유지")]
     [SerializeField] private bool preservePlayerRuntimeAcrossScenes = true;
     [SerializeField] private bool hasPlayerRuntimeSnapshot;
     [SerializeField] private float savedCurrentHp;
     [SerializeField] private float savedSoulHp;
     [SerializeField] private float savedPossessedBodyHp;
+    [InspectorName("빙의체 정신력 스냅샷 보유")]
     [SerializeField] private bool hasBodyDecaySnapshot;
+    [InspectorName("저장된 소모 정신력")]
     [SerializeField] private float savedBodyDecayValue;
     [SerializeField] private bool hasPlayerGrowthSnapshot;
     [SerializeField] private int savedLevel;
     [SerializeField] private int savedExperience;
     [SerializeField] private int savedSkillPoint;
+    [SerializeField] private bool hasPlayerStatOrbSnapshot;
+    [SerializeField] private HWJ_RuntimeStatOrbStackSnapshot[] savedStatOrbStacks = new HWJ_RuntimeStatOrbStackSnapshot[0];
     [SerializeField] private bool hasPlayerPossessionSnapshot;
     [SerializeField] private bool savedHasActivePossessedBody;
     [SerializeField] private string savedPossessedRootObjectId;
@@ -73,10 +90,14 @@ public class HWJ_GameManager : MonoBehaviour
     public HWJ_PlayerInputSystem PlayerInput => playerInput;
     public HWJ_RuntimeStatusSystem PlayerStatus => playerStatus;
     public HWJ_LevelUpSystem PlayerLevel => playerLevel;
+    public HWJ_StatOrbProgressSystem PlayerStatOrbProgress => playerStatOrbProgress;
     public HWJ_SoulSystem PlayerSoul => playerSoul;
     public HWJ_BodyDecaySystem PlayerBodyDecay => playerBodyDecay;
+    public HWJ_BodyDecaySystem PlayerPossessionMental => playerBodyDecay;
     public HWJ_PossessionSystem PlayerPossession => playerPossession;
     public bool IsPaused => isPaused;
+
+    private Coroutine sceneBootstrapRoutine;
 
     private void Awake()
     {
@@ -102,6 +123,22 @@ public class HWJ_GameManager : MonoBehaviour
         }
     }
 
+    private void OnEnable()
+    {
+        SceneManager.sceneLoaded -= HandleSceneLoaded;
+        SceneManager.sceneLoaded += HandleSceneLoaded;
+    }
+
+    private void Start()
+    {
+        QueueSceneBootstrap("manager start");
+    }
+
+    private void OnDisable()
+    {
+        SceneManager.sceneLoaded -= HandleSceneLoaded;
+    }
+
     private void OnDestroy()
     {
         if (Instance == this)
@@ -121,6 +158,385 @@ public class HWJ_GameManager : MonoBehaviour
     private void LateUpdate()
     {
         SavePlayerRuntimeSnapshot();
+    }
+
+    private void HandleSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        QueueSceneBootstrap($"scene loaded: {scene.name}");
+    }
+
+    private void QueueSceneBootstrap(string source)
+    {
+        if (!isActiveAndEnabled)
+        {
+            return;
+        }
+
+        if (sceneBootstrapRoutine != null)
+        {
+            StopCoroutine(sceneBootstrapRoutine);
+        }
+
+        sceneBootstrapRoutine = StartCoroutine(SceneBootstrapRoutine(source));
+    }
+
+    private IEnumerator SceneBootstrapRoutine(string source)
+    {
+        bool placedPlayer = !autoPlacePlayerAtSceneStart;
+        bool boundCameras = !autoBindSceneCamerasToPlayer;
+        float endTime = Time.realtimeSinceStartup + Mathf.Max(0.05f, sceneBootstrapRetrySeconds);
+
+        do
+        {
+            ResolveSceneReferences();
+
+            if (!placedPlayer && TryPlacePlayerAtSceneStart())
+            {
+                placedPlayer = true;
+            }
+
+            if (!boundCameras && TryBindSceneCamerasToPlayer())
+            {
+                boundCameras = true;
+            }
+
+            if (placedPlayer && boundCameras)
+            {
+                break;
+            }
+
+            yield return null;
+        }
+        while (Time.realtimeSinceStartup < endTime);
+
+        lastSceneBootstrapResult = $"{source} | playerStart={placedPlayer} | cameras={boundCameras}";
+        sceneBootstrapRoutine = null;
+    }
+
+    private bool TryPlacePlayerAtSceneStart()
+    {
+        HWJ_PlayerStartSystem[] startSystems = FindObjectsByType<HWJ_PlayerStartSystem>(
+            FindObjectsInactive.Include,
+            FindObjectsSortMode.None);
+
+        for (int i = 0; i < startSystems.Length; i++)
+        {
+            if (startSystems[i] != null && startSystems[i].TryPlacePlayerAtStart())
+            {
+                playerResolver = PlayerResolver != null ? PlayerResolver : FindPlayerResolverInScene();
+
+                if (playerResolver != null)
+                {
+                    HWJ_PlayerStartSystem.NormalizePlayerVisualOffset(playerResolver.transform);
+                }
+
+                return true;
+            }
+        }
+
+        if (playerResolver == null)
+        {
+            playerResolver = FindPlayerResolverInScene();
+        }
+
+        if (playerResolver == null)
+        {
+            return false;
+        }
+
+        Transform startTransform = FindBestScenePlayerStartTransform();
+
+        if (startTransform == null)
+        {
+            return false;
+        }
+
+        Transform playerTransform = playerResolver.transform;
+        playerTransform.SetPositionAndRotation(startTransform.position, startTransform.rotation);
+
+        if (playerTransform.TryGetComponent(out Rigidbody2D body))
+        {
+            body.linearVelocity = Vector2.zero;
+            body.angularVelocity = 0f;
+        }
+
+        HWJ_PlayerStartSystem.NormalizePlayerVisualOffset(playerTransform);
+
+        RegisterPlayer(playerResolver);
+        return true;
+    }
+
+    private bool TryBindSceneCamerasToPlayer()
+    {
+        if (playerResolver == null)
+        {
+            playerResolver = FindPlayerResolverInScene();
+        }
+
+        if (playerResolver == null)
+        {
+            return false;
+        }
+
+        int boundCount = 0;
+        Transform playerTransform = playerResolver.transform;
+
+        HWJ_PlayerCameraFollowSystem[] followSystems = FindObjectsByType<HWJ_PlayerCameraFollowSystem>(
+            FindObjectsInactive.Include,
+            FindObjectsSortMode.None);
+
+        for (int i = 0; i < followSystems.Length; i++)
+        {
+            if (followSystems[i] == null)
+            {
+                continue;
+            }
+
+            followSystems[i].SetTarget(playerResolver);
+            boundCount++;
+        }
+
+        MonoBehaviour[] behaviours = FindObjectsByType<MonoBehaviour>(
+            FindObjectsInactive.Include,
+            FindObjectsSortMode.None);
+
+        for (int i = 0; i < behaviours.Length; i++)
+        {
+            MonoBehaviour behaviour = behaviours[i];
+
+            if (behaviour == null || !IsCinemachineCameraComponent(behaviour))
+            {
+                continue;
+            }
+
+            if (TryAssignCinemachineTrackingTarget(behaviour, playerTransform))
+            {
+                boundCount++;
+            }
+        }
+
+        return boundCount > 0;
+    }
+
+    private static Transform FindBestScenePlayerStartTransform()
+    {
+        string requestedPointId = null;
+
+        if (HWJ_SceneTransitionTransfer.TryPeekTargetSpawnPointId(out string transitionSpawnPointId))
+        {
+            requestedPointId = transitionSpawnPointId;
+        }
+
+        HWJ_SpawnPoint[] points = FindObjectsByType<HWJ_SpawnPoint>(
+            FindObjectsInactive.Include,
+            FindObjectsSortMode.None);
+
+        HWJ_SpawnPoint typedFallbackPoint = null;
+        HWJ_SpawnPoint namedFallbackPoint = null;
+
+        for (int i = 0; i < points.Length; i++)
+        {
+            HWJ_SpawnPoint point = points[i];
+
+            if (point == null)
+            {
+                continue;
+            }
+
+            if (!string.IsNullOrWhiteSpace(requestedPointId)
+                && string.Equals(point.PointId, requestedPointId, StringComparison.OrdinalIgnoreCase))
+            {
+                return point.transform;
+            }
+
+            if (point.SpawnPointType == HWJ_SpawnPointType.PlayerStart)
+            {
+                typedFallbackPoint ??= point;
+                continue;
+            }
+
+            if (namedFallbackPoint == null && IsLikelyPlayerStartMarker(point))
+            {
+                namedFallbackPoint = point;
+            }
+        }
+
+        if (typedFallbackPoint != null)
+        {
+            return typedFallbackPoint.transform;
+        }
+
+        if (namedFallbackPoint != null)
+        {
+            return namedFallbackPoint.transform;
+        }
+
+        return FindNamedPlayerStartTransform(requestedPointId);
+    }
+
+    private static bool IsLikelyPlayerStartMarker(HWJ_SpawnPoint point)
+    {
+        return point != null
+            && (IsLikelyPlayerStartName(point.PointId) || IsLikelyPlayerStartName(point.gameObject.name));
+    }
+
+    private static Transform FindNamedPlayerStartTransform(string requestedPointId)
+    {
+        Transform[] transforms = FindObjectsByType<Transform>(
+            FindObjectsInactive.Include,
+            FindObjectsSortMode.None);
+
+        Transform namedFallback = null;
+
+        for (int i = 0; i < transforms.Length; i++)
+        {
+            Transform candidate = transforms[i];
+
+            if (candidate == null)
+            {
+                continue;
+            }
+
+            if (!string.IsNullOrWhiteSpace(requestedPointId)
+                && string.Equals(candidate.name, requestedPointId, StringComparison.OrdinalIgnoreCase))
+            {
+                return candidate;
+            }
+
+            if (namedFallback == null && IsLikelyPlayerStartName(candidate.name))
+            {
+                namedFallback = candidate;
+            }
+        }
+
+        return namedFallback;
+    }
+
+    private static bool IsLikelyPlayerStartName(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return false;
+        }
+
+        string normalized = value
+            .Replace(" ", string.Empty)
+            .Replace("_", string.Empty)
+            .Replace("-", string.Empty)
+            .Replace("(", string.Empty)
+            .Replace(")", string.Empty)
+            .ToLowerInvariant();
+
+        return normalized.Contains("playerstart", StringComparison.Ordinal)
+            && !normalized.Contains("system", StringComparison.Ordinal)
+            && !normalized.Contains("visual", StringComparison.Ordinal);
+    }
+
+    private static bool IsCinemachineCameraComponent(MonoBehaviour behaviour)
+    {
+        Type type = behaviour.GetType();
+        string fullName = type.FullName ?? string.Empty;
+        return fullName == "Unity.Cinemachine.CinemachineCamera"
+            || fullName == "Cinemachine.CinemachineVirtualCamera"
+            || type.Name == "CinemachineCamera"
+            || type.Name == "CinemachineVirtualCamera";
+    }
+
+    private static bool TryAssignCinemachineTrackingTarget(MonoBehaviour cameraComponent, Transform target)
+    {
+        if (cameraComponent == null || target == null)
+        {
+            return false;
+        }
+
+        Type type = cameraComponent.GetType();
+        bool assigned = TrySetTransformProperty(type, cameraComponent, "Follow", target);
+
+        assigned |= TrySetCinemachineTargetProperty(type, cameraComponent, target);
+        assigned |= TrySetCinemachineTargetField(type, cameraComponent, target);
+        return assigned;
+    }
+
+    private static bool TrySetTransformProperty(Type type, object owner, string propertyName, Transform target)
+    {
+        PropertyInfo property = type.GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public);
+
+        if (property == null || !property.CanWrite || !typeof(Transform).IsAssignableFrom(property.PropertyType))
+        {
+            return false;
+        }
+
+        property.SetValue(owner, target);
+        return true;
+    }
+
+    private static bool TrySetCinemachineTargetProperty(Type type, object owner, Transform target)
+    {
+        PropertyInfo targetProperty = type.GetProperty("Target", BindingFlags.Instance | BindingFlags.Public);
+
+        if (targetProperty == null || !targetProperty.CanRead || !targetProperty.CanWrite)
+        {
+            return false;
+        }
+
+        object targetValue = targetProperty.GetValue(owner);
+
+        if (!TrySetTrackingTargetOnValue(ref targetValue, target))
+        {
+            return false;
+        }
+
+        targetProperty.SetValue(owner, targetValue);
+        return true;
+    }
+
+    private static bool TrySetCinemachineTargetField(Type type, object owner, Transform target)
+    {
+        FieldInfo targetField = type.GetField("Target", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+
+        if (targetField == null)
+        {
+            return false;
+        }
+
+        object targetValue = targetField.GetValue(owner);
+
+        if (!TrySetTrackingTargetOnValue(ref targetValue, target))
+        {
+            return false;
+        }
+
+        targetField.SetValue(owner, targetValue);
+        return true;
+    }
+
+    private static bool TrySetTrackingTargetOnValue(ref object targetValue, Transform target)
+    {
+        if (targetValue == null)
+        {
+            return false;
+        }
+
+        Type targetType = targetValue.GetType();
+        FieldInfo trackingField = targetType.GetField("TrackingTarget", BindingFlags.Instance | BindingFlags.Public);
+
+        if (trackingField != null && typeof(Transform).IsAssignableFrom(trackingField.FieldType))
+        {
+            trackingField.SetValue(targetValue, target);
+            return true;
+        }
+
+        PropertyInfo trackingProperty = targetType.GetProperty("TrackingTarget", BindingFlags.Instance | BindingFlags.Public);
+
+        if (trackingProperty != null
+            && trackingProperty.CanWrite
+            && typeof(Transform).IsAssignableFrom(trackingProperty.PropertyType))
+        {
+            trackingProperty.SetValue(targetValue, target);
+            return true;
+        }
+
+        return false;
     }
 
     public void SetPaused(bool paused)
@@ -265,6 +681,7 @@ public class HWJ_GameManager : MonoBehaviour
 
         playerStatus = resolver.GetComponent<HWJ_RuntimeStatusSystem>();
         playerLevel = resolver.GetComponent<HWJ_LevelUpSystem>();
+        playerStatOrbProgress = resolver.GetComponent<HWJ_StatOrbProgressSystem>();
         playerSoul = resolver.GetComponent<HWJ_SoulSystem>();
         playerBodyDecay = resolver.GetComponent<HWJ_BodyDecaySystem>();
         playerPossession = resolver.GetComponent<HWJ_PossessionSystem>();
@@ -279,14 +696,23 @@ public class HWJ_GameManager : MonoBehaviour
 
         GameObject playerObject = resolver.gameObject;
 
-        // These components are required for the current vertical slice: spirit, possession, decay, collapse, and rediscovery.
+        // 현재 핵심 루프에 필요한 영혼, 빙의, 정신력, 붕괴, 재탐색 컴포넌트를 보강한다.
         EnsureComponent<HWJ_RuntimeStatusSystem>(playerObject);
+        EnsureComponent<HWJ_StatOrbProgressSystem>(playerObject);
         EnsureComponent<HWJ_SoulSystem>(playerObject);
         EnsureComponent<HWJ_PossessedBodySystem>(playerObject);
         EnsureComponent<HWJ_PossessionSystem>(playerObject);
-        EnsureComponent<HWJ_BodyDecaySystem>(playerObject);
+        EnsurePossessionMentalComponent(playerObject);
         EnsureComponent<HWJ_CollapseSystem>(playerObject);
         EnsureComponent<HWJ_BodyDiscoverySystem>(playerObject);
+    }
+
+    private static void EnsurePossessionMentalComponent(GameObject owner)
+    {
+        if (owner.GetComponent<HWJ_BodyDecaySystem>() == null)
+        {
+            owner.AddComponent<HWJ_PossessionMentalSystem>();
+        }
     }
 
     private static T EnsureComponent<T>(GameObject owner) where T : Component
@@ -325,6 +751,7 @@ public class HWJ_GameManager : MonoBehaviour
 
         playerStatus = null;
         playerLevel = null;
+        playerStatOrbProgress = null;
         playerSoul = null;
         playerBodyDecay = null;
         playerPossession = null;
@@ -373,11 +800,27 @@ public class HWJ_GameManager : MonoBehaviour
             savedSkillPoint = playerLevel.SkillPoint;
             hasPlayerGrowthSnapshot = true;
         }
+
+        if (playerStatOrbProgress == null && playerResolver != null)
+        {
+            playerStatOrbProgress = playerResolver.GetComponent<HWJ_StatOrbProgressSystem>();
+        }
+
+        if (playerStatOrbProgress != null)
+        {
+            savedStatOrbStacks = playerStatOrbProgress.CreateSnapshot();
+            hasPlayerStatOrbSnapshot = true;
+        }
     }
 
     private void ApplyPlayerRuntimeSnapshot()
     {
         ApplyPlayerPossessionSnapshot();
+
+        if (playerStatOrbProgress != null && hasPlayerStatOrbSnapshot)
+        {
+            playerStatOrbProgress.RestoreStatOrbStacks(savedStatOrbStacks, playerStatus, database);
+        }
 
         if (playerStatus != null && hasPlayerRuntimeSnapshot)
         {
@@ -530,6 +973,12 @@ public class HWJ_GameManager : MonoBehaviour
         return database != null && database.TryGetLevelTable(tableId, out levelTable);
     }
 
+    public bool TryGetTitleScreen(string titleScreenId, out HWJ_TitleScreenDataSO titleScreenData)
+    {
+        titleScreenData = null;
+        return database != null && database.TryGetTitleScreen(titleScreenId, out titleScreenData);
+    }
+
     /// <summary>
     /// 스킬 행동 ID로 데이터베이스에서 스킬 행동 데이터를 찾습니다.
     /// 플레이어, 적, 보스 스킬 시스템이 같은 조회 경로를 사용할 수 있습니다.
@@ -538,6 +987,18 @@ public class HWJ_GameManager : MonoBehaviour
     {
         skillActionData = null;
         return database != null && database.TryGetSkillAction(skillActionId, out skillActionData);
+    }
+
+    public bool TryGetSkillNode(string nodeId, out HWJ_SkillNodeDataSO skillNodeData)
+    {
+        skillNodeData = null;
+        return database != null && database.TryGetSkillNode(nodeId, out skillNodeData);
+    }
+
+    public bool TryGetSkillNodeBySkillAction(string skillActionId, out HWJ_SkillNodeDataSO skillNodeData)
+    {
+        skillNodeData = null;
+        return database != null && database.TryGetSkillNodeBySkillAction(skillActionId, out skillNodeData);
     }
 
     public bool TryGetGameplayRule(string ruleId, out HWJ_GameplayRuleSO gameplayRule)
