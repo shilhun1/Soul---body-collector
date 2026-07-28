@@ -47,6 +47,11 @@ public class hys_Player_Movement : MonoBehaviour
     [SerializeField] private int maxDashCount = 2;
     [SerializeField] private bool canAirDash = true;
 
+    [Header("Monster Body Pass Through")]
+    // 플레이어는 일반 몬스터와 보스의 고체 몸체를 통과하고 공격 판정 Trigger는 유지합니다.
+    [SerializeField] private bool passThroughMonsterBodies = true;
+    [SerializeField, Min(0.05f)] private float monsterCollisionRefreshSeconds = 0.25f;
+
     [Header("Dash Recovery")]
     // 기본값은 후딜레이가 끝날 때까지 모든 행동을 막습니다.
     [SerializeField] private bool allowMoveDuringDashRecovery;
@@ -65,7 +70,9 @@ public class hys_Player_Movement : MonoBehaviour
 
     [Header("Soul State")]
     [SerializeField] private HWJ_SoulSystem soulSystem;
+    [SerializeField] private hys_Player_Animator playerAnimator;
     [SerializeField] private bool disableBodyMovementInSoulState = true;
+    [SerializeField] private bool lockMovementDuringPossessionAnimation = true;
 
     [Header("Pass Platform")]
     // 아래+점프로 통과 가능한 발판 처리 값입니다.
@@ -76,6 +83,8 @@ public class hys_Player_Movement : MonoBehaviour
 
     private Rigidbody2D rb;
     private hys_Player_State playerState;
+    private hys_Player_Attack playerAttack;
+    private HWJ_RuntimeStatusSystem runtimeStatus;
     private Collider2D[] playerColliders;
     private float moveInput;
     private float lastMoveDirection = 1f;
@@ -99,6 +108,22 @@ public class hys_Player_Movement : MonoBehaviour
     private float landingEndTime;
     private float dashDirection = 1f;
     private readonly HashSet<Collider2D> ignoredPlatforms = new HashSet<Collider2D>();
+
+    private struct hys_IgnoredMonsterCollisionPair
+    {
+        public Collider2D playerCollider;
+        public Collider2D monsterCollider;
+
+        public hys_IgnoredMonsterCollisionPair(Collider2D player, Collider2D monster)
+        {
+            playerCollider = player;
+            monsterCollider = monster;
+        }
+    }
+
+    private readonly List<hys_IgnoredMonsterCollisionPair> ignoredMonsterCollisionPairs =
+        new List<hys_IgnoredMonsterCollisionPair>();
+    private float nextMonsterCollisionRefreshTime;
 
     // 다른 스크립트가 대시/무적 여부를 확인할 수 있게 공개합니다.
     public bool Is_Dashing { get; private set; }
@@ -146,8 +171,12 @@ public class hys_Player_Movement : MonoBehaviour
         // 필요한 컴포넌트와 기본 중력 값을 캐싱합니다.
         rb = GetComponent<Rigidbody2D>();
         playerState = GetComponent<hys_Player_State>();
+        playerAttack = GetComponent<hys_Player_Attack>();
+        runtimeStatus = GetComponent<HWJ_RuntimeStatusSystem>();
         soulSystem = soulSystem != null ? soulSystem : GetComponent<HWJ_SoulSystem>();
+        playerAnimator = playerAnimator != null ? playerAnimator : GetComponent<hys_Player_Animator>();
         playerColliders = GetComponents<Collider2D>();
+        RefreshMonsterBodyCollisionIgnores();
         defaultGravityScale = rb.gravityScale;
         wasGrounded = IsGrounded();
 
@@ -159,10 +188,12 @@ public class hys_Player_Movement : MonoBehaviour
 
     private void Update()
     {
-        if (ShouldSkipBodyMovementForSoulState())
+        TickMonsterBodyPassThrough();
+
+        if (ShouldSkipBodyMovement())
         {
             CancelBodyMovementStateForSoulState();
-            ApplySoulGravityOverride();
+            ApplyLockedMovementPhysics();
             return;
         }
 
@@ -178,10 +209,10 @@ public class hys_Player_Movement : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (ShouldSkipBodyMovementForSoulState())
+        if (ShouldSkipBodyMovement())
         {
             CancelBodyMovementStateForSoulState();
-            ApplySoulGravityOverride();
+            ApplyLockedMovementPhysics();
             return;
         }
 
@@ -204,6 +235,13 @@ public class hys_Player_Movement : MonoBehaviour
                 rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0f);
             }
 
+            return;
+        }
+
+        if (playerAttack != null && playerAttack.ShouldLockGroundMovementForStationaryAttack)
+        {
+            // 활과 방패의 지상 공격 중에는 중력과 접지는 유지하고 좌우 입력만 잠급니다.
+            rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
             return;
         }
 
@@ -241,20 +279,42 @@ public class hys_Player_Movement : MonoBehaviour
         }
     }
 
-    private bool ShouldSkipBodyMovementForSoulState()
+    private bool ShouldSkipBodyMovement()
     {
-        return disableBodyMovementInSoulState &&
+        bool isSoulMovementState = disableBodyMovementInSoulState &&
             soulSystem != null &&
             (soulSystem.CurrentState == HWJ_SoulRuntimeState.BodyToSoul ||
              soulSystem.CurrentState == HWJ_SoulRuntimeState.Soul);
+
+        // 빙의 연출 중에는 새 육체의 이동·점프·대시 입력을 받지 않습니다.
+        bool isPossessionAnimationLocked = lockMovementDuringPossessionAnimation &&
+            playerAnimator != null &&
+            playerAnimator.IsPossessionTransitionPlaying;
+
+        return isSoulMovementState || isPossessionAnimationLocked;
     }
 
-    private void ApplySoulGravityOverride()
+    private void ApplyLockedMovementPhysics()
     {
-        if (rb != null)
+        if (rb == null)
+        {
+            return;
+        }
+
+        bool isSoulMovementState = disableBodyMovementInSoulState &&
+            soulSystem != null &&
+            (soulSystem.CurrentState == HWJ_SoulRuntimeState.BodyToSoul ||
+             soulSystem.CurrentState == HWJ_SoulRuntimeState.Soul);
+
+        if (isSoulMovementState)
         {
             rb.gravityScale = 0f;
+            return;
         }
+
+        // 빙의 모션 중에는 수평 이동만 멈추고 중력은 유지해 바닥 접촉이 풀리지 않게 합니다.
+        rb.gravityScale = defaultGravityScale;
+        rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
     }
 
     private void ClearBodyMovementInput()
@@ -608,6 +668,15 @@ public class hys_Player_Movement : MonoBehaviour
     public void EnableDashInvincibility()
     {
         Is_Invincible = true;
+
+        // 실제 피해를 처리하는 HWJ 전투 시스템에도 대시 무적 시간을 전달합니다.
+        if (runtimeStatus != null)
+        {
+            float leadSeconds = dashInvincibilityEndLeadFrames /
+                Mathf.Max(1f, dashAnimationFrameRate);
+            float invincibleSeconds = Mathf.Max(0f, dashDuration - leadSeconds);
+            runtimeStatus.GrantInvincibility(invincibleSeconds);
+        }
     }
 
     public void DisableDashInvincibility()
@@ -832,6 +901,83 @@ public class hys_Player_Movement : MonoBehaviour
         return playerBounds.min.y < platformBounds.max.y + 0.05f;
     }
 
+    private void TickMonsterBodyPassThrough()
+    {
+        if (!passThroughMonsterBodies)
+        {
+            if (ignoredMonsterCollisionPairs.Count > 0)
+            {
+                RestoreMonsterBodyCollisions();
+            }
+            return;
+        }
+
+        if (Time.time < nextMonsterCollisionRefreshTime)
+        {
+            return;
+        }
+
+        nextMonsterCollisionRefreshTime = Time.time + Mathf.Max(0.05f, monsterCollisionRefreshSeconds);
+        RefreshMonsterBodyCollisionIgnores();
+    }
+
+    private void RefreshMonsterBodyCollisionIgnores()
+    {
+        if (!passThroughMonsterBodies)
+        {
+            RestoreMonsterBodyCollisions();
+            return;
+        }
+
+        EnsurePlayerColliders();
+        HWJ_RootObjectDataResolver playerResolver = GetComponentInParent<HWJ_RootObjectDataResolver>();
+        HWJ_RootObjectDataResolver[] combatBodies =
+            FindObjectsByType<HWJ_RootObjectDataResolver>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+
+        foreach (HWJ_RootObjectDataResolver combatBody in combatBodies)
+        {
+            if (combatBody == null || combatBody == playerResolver)
+            {
+                continue;
+            }
+
+            Collider2D[] monsterColliders = combatBody.GetComponentsInChildren<Collider2D>(true);
+            foreach (Collider2D monsterCollider in monsterColliders)
+            {
+                // 공격 감지용 Trigger는 그대로 두고 밀어내는 고체 몸체만 통과합니다.
+                if (monsterCollider == null || monsterCollider.isTrigger)
+                {
+                    continue;
+                }
+
+                foreach (Collider2D playerCollider in playerColliders)
+                {
+                    if (playerCollider == null || Physics2D.GetIgnoreCollision(playerCollider, monsterCollider))
+                    {
+                        continue;
+                    }
+
+                    Physics2D.IgnoreCollision(playerCollider, monsterCollider, true);
+                    ignoredMonsterCollisionPairs.Add(
+                        new hys_IgnoredMonsterCollisionPair(playerCollider, monsterCollider));
+                }
+            }
+        }
+    }
+
+    private void RestoreMonsterBodyCollisions()
+    {
+        foreach (hys_IgnoredMonsterCollisionPair pair in ignoredMonsterCollisionPairs)
+        {
+            if (pair.playerCollider != null && pair.monsterCollider != null)
+            {
+                Physics2D.IgnoreCollision(pair.playerCollider, pair.monsterCollider, false);
+            }
+        }
+
+        ignoredMonsterCollisionPairs.Clear();
+    }
+
     private void SetIgnoreCollision(Collider2D platform, bool ignore)
     {
         // 플레이어가 여러 콜라이더를 가질 수 있어서 전부 처리합니다.
@@ -865,9 +1011,11 @@ public class hys_Player_Movement : MonoBehaviour
     private bool IsPassPlatform(Collider2D target)
     {
         // Pass 태그 또는 PlatformEffector2D를 가진 One Way Platform을 통과 대상으로 봅니다.
+        // CompareTag는 프로젝트에 태그가 아직 반영되지 않았을 때 예외를 내므로 실제 태그 문자열을 안전하게 비교합니다.
         return target != null &&
             !IsPlayerCollider(target) &&
-            (target.CompareTag(passPlatformTag) || target.GetComponent<PlatformEffector2D>() != null);
+            (string.Equals(target.gameObject.tag, passPlatformTag, System.StringComparison.Ordinal) ||
+             target.GetComponent<PlatformEffector2D>() != null);
     }
 
     private void OnDisable()
@@ -886,6 +1034,7 @@ public class hys_Player_Movement : MonoBehaviour
         }
 
         ignoredPlatforms.Clear();
+        RestoreMonsterBodyCollisions();
         dashRoutine = null;
         dashCooldownRoutine = null;
         isDashCoolingDown = false;
