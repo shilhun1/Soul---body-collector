@@ -18,6 +18,7 @@ MonoBehaviour:
     objectType: 1
     faction: 3
     weaponType: 0
+    abilityTags: 
   status:
     level: 1
     maxHp: 100
@@ -63,6 +64,13 @@ MonoBehaviour:
   reward:
     experienceReward: 20
     skillPointReward: 0
+    dropsExperienceOrb: 1
+    experienceOrbPrefab: {fileID: 840010000000000001, guid: 22e7a47c526c4d51871f4bd3bdf889db, type: 3}
+    experienceOrbSpawnRadius: 0.35
     dropsStatOrb: 1
+    statOrbDropChance: 1
+    statOrbSpawnRadius: 0.75
     statOrbId: stat_move_speed_small
+    statOrbCandidates: []
+    useAllRegisteredStatOrbsWhenEmpty: 0
   selectedTypeData: {fileID: 11400000, guid: bb000000000000000000000000000002, type: 2}

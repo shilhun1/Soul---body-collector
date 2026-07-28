@@ -27,7 +27,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: dd000000000000000000000000000007, type: 2}
   - {fileID: 11400000, guid: b1f0a5c00123456789abcdef00000001, type: 2}
   - {fileID: 11400000, guid: fbc165530a6849babf31363c8491519d, type: 2}
-  objectPoolData: {fileID: 0}
+  objectPoolData: {fileID: 11400000, guid: aafa5750b4b26a846b19017250384e6d, type: 2}
   spawnTables: []
   statOrbs:
   - {fileID: 11400000, guid: ab220000000000000000000000000001, type: 2}
