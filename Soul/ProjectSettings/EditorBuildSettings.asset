@@ -35,5 +35,11 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/01Scenes/HWJ_Stage1_04_MidBossBarracks.unity
     guid: d52a8a4a01b85aa4b91d3bb10d708c71
+  - enabled: 1
+    path: Assets/01Scenes/1-1.unity
+    guid: 844a467c81ee0e245a0a8c471af1a213
+  - enabled: 1
+    path: Assets/01Scenes/1-2.unity
+    guid: ab451e1acd77cc54889f5415fc0638a7
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0
