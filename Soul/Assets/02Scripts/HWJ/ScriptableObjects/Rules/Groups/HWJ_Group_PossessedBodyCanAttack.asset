@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: HWJ_Group_PossessedBodyCanAttack
   m_EditorClassIdentifier: Assembly-CSharp::HWJ_ConditionGroupSO
   conditionId: group_possessed_body_can_attack
-  description: Possessed body attack requires an active body, attack permission, loaded body stats, and remaining decay.
+  description: Possessed body attack requires an active body, attack permission, loaded body stats, and remaining possession mental.
   invertResult: 0
   passWhenContextMissing: 0
   groupMode: 0

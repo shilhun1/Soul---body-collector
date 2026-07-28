@@ -13,8 +13,14 @@ MonoBehaviour:
   m_Name: HWJ_SkillActionData
   m_EditorClassIdentifier: Assembly-CSharp::HWJ_SkillActionDataSO
   skillActionId: Player_Basic_Attack
+  sourceSkillId: 
+  displayName: 
+  skillDescription: 
+  effectId: 
+  soundId: 
   actionType: 1
   requiredWeaponType: 0
+  authoredAttackPower: 0
   damageMultiplier: 1
   range: 2
   hitRange: 2
@@ -30,8 +36,23 @@ MonoBehaviour:
   moveSpeed: 0
   hitCount: 1
   hitIntervalSeconds: 0
+  causesKnockback: 0
+  knockbackDistance: 0
+  causesStagger: 0
+  staggerSeconds: 0
+  launchesTarget: 0
+  launchHeight: 0
+  grantsInvincibility: 0
+  invincibilitySeconds: 0
+  usesCustomBodyDecayAmount: 0
+  customBodyDecayAmount: 0
+  additionalBodyDecayAmount: 0
+  usesComboBodyDecayMultiplier: 0
+  comboBodyDecayMultiplier: 1
+  chargeBodyDecayPerSecond: 0
+  maxChargeBodyDecayAmount: 0
   motionKey: 
   motionSequenceKeys: []
   motionStepIntervalSeconds: 0.12
   projectilePrefab: {fileID: 0}
-  actionEffectPrefab: {fileID: 0}
+  actionEffectPrefab: {fileID: 7815009906001981100, guid: 174f53d1dad38ee4da8865e2289f7718, type: 3}

@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: HWJ_Condition_TargetObject_EnemyOrBoss
   m_EditorClassIdentifier: Assembly-CSharp::HWJ_ObjectTypeConditionSO
   conditionId: target_object_enemy_or_boss
-  description: Target object type must be Enemy. Boss is also accepted.
+  description: Target object type must be Enemy. Boss is not accepted for possession.
   invertResult: 0
   passWhenContextMissing: 0
   actor: 1
   requiredObjectType: 1
-  treatBossAsEnemy: 1
+  treatBossAsEnemy: 0

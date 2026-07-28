@@ -14,10 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HWJ_SkillActionDataSO
   skillActionId: player_bow_penta_strike
   sourceSkillId: 1403
-  displayName: "Penta Strike"
-  skillDescription: "공중으로 도약해 아래로 한 번에 5발을 발사해 적을 공격한다."
-  effectId: ""
-  soundId: ""
+  displayName: Penta Strike
+  skillDescription: "\uACF5\uC911\uC73C\uB85C \uB3C4\uC57D\uD574 \uC544\uB798\uB85C
+    \uD55C \uBC88\uC5D0 5\uBC1C\uC744 \uBC1C\uC0AC\uD574 \uC801\uC744 \uACF5\uACA9\uD55C\uB2E4."
+  effectId: 
+  soundId: 
   actionType: 2
   requiredWeaponType: 5
   authoredAttackPower: 16
@@ -55,4 +56,4 @@ MonoBehaviour:
   motionSequenceKeys: []
   motionStepIntervalSeconds: 0.12
   projectilePrefab: {fileID: 5062887714543854764, guid: 528dff6452e5a154f8ac9bc4630ff040, type: 3}
-  actionEffectPrefab: {fileID: 0}
+  actionEffectPrefab: {fileID: 3843272902822455368, guid: 05ae783d768bf0545814d126f70b5730, type: 3}

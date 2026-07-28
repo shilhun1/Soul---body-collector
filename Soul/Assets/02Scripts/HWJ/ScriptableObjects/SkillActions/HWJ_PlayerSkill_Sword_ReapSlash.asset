@@ -14,10 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HWJ_SkillActionDataSO
   skillActionId: player_sword_reap_slash
   sourceSkillId: 1102
-  displayName: "Reap Slash"
-  skillDescription: "검을 사선으로 크게 휘둘러 적을 공격한다."
-  effectId: ""
-  soundId: ""
+  displayName: Reap Slash
+  skillDescription: "\uAC80\uC744 \uC0AC\uC120\uC73C\uB85C \uD06C\uAC8C \uD718\uB458\uB7EC
+    \uC801\uC744 \uACF5\uACA9\uD55C\uB2E4."
+  effectId: 
+  soundId: 
   actionType: 1
   requiredWeaponType: 3
   authoredAttackPower: 15
@@ -55,4 +56,4 @@ MonoBehaviour:
   motionSequenceKeys: []
   motionStepIntervalSeconds: 0.12
   projectilePrefab: {fileID: 0}
-  actionEffectPrefab: {fileID: 0}
+  actionEffectPrefab: {fileID: 7815009906001981100, guid: 174f53d1dad38ee4da8865e2289f7718, type: 3}

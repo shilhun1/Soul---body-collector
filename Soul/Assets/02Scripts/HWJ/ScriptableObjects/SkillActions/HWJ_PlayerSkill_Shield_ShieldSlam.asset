@@ -14,10 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HWJ_SkillActionDataSO
   skillActionId: player_shield_shield_slam
   sourceSkillId: 1502
-  displayName: "Shield Slam"
-  skillDescription: "방패로 적을 밀어 기절시키며 공격한다."
-  effectId: ""
-  soundId: ""
+  displayName: Shield Slam
+  skillDescription: "\uBC29\uD328\uB85C \uC801\uC744 \uBC00\uC5B4 \uAE30\uC808\uC2DC\uD0A4\uBA70
+    \uACF5\uACA9\uD55C\uB2E4."
+  effectId: 
+  soundId: 
   actionType: 4
   requiredWeaponType: 7
   authoredAttackPower: 20
@@ -55,4 +56,4 @@ MonoBehaviour:
   motionSequenceKeys: []
   motionStepIntervalSeconds: 0.12
   projectilePrefab: {fileID: 0}
-  actionEffectPrefab: {fileID: 0}
+  actionEffectPrefab: {fileID: 2839771277650202955, guid: b025e67d13607de4da20a9df72f2c07d, type: 3}

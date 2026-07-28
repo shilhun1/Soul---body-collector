@@ -17,7 +17,8 @@ MonoBehaviour:
     displayName: Axe Corpse Enemy
     objectType: 1
     faction: 3
-    weaponType: 0
+    weaponType: 6
+    abilityTags: 03000000
   status:
     level: 1
     maxHp: 100
@@ -28,7 +29,7 @@ MonoBehaviour:
     bodyWeight: 1
   model:
     modelPrefab: {fileID: 4816403081166471119, guid: 4a094748baf292848abc8123e5d89341, type: 3}
-    animatorController: {fileID: 0}
+    animatorController: {fileID: 9100000, guid: 505ff94f681cd234992102eb26a96be1, type: 2}
     heartEffectSocketName: 
     hitEffectSocketName: 
     possessedEyeSocketName: 
@@ -63,9 +64,9 @@ MonoBehaviour:
   reward:
     experienceReward: 25
     skillPointReward: 0
-    dropsExperienceOrb: 0
-    experienceOrbPrefab: {fileID: 0}
-    experienceOrbSpawnRadius: 0
+    dropsExperienceOrb: 1
+    experienceOrbPrefab: {fileID: 840010000000000001, guid: 22e7a47c526c4d51871f4bd3bdf889db, type: 3}
+    experienceOrbSpawnRadius: 0.35
     dropsStatOrb: 1
     statOrbDropChance: 1
     statOrbSpawnRadius: 0.75

@@ -14,10 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HWJ_SkillActionDataSO
   skillActionId: player_lance_rising_spear
   sourceSkillId: 1204
-  displayName: "Rising spear"
-  skillDescription: "창을 땅에 찍는다. 찍은 후 땅에서 여러 스피어들이 나온다."
-  effectId: ""
-  soundId: ""
+  displayName: Rising spear
+  skillDescription: "\uCC3D\uC744 \uB545\uC5D0 \uCC0D\uB294\uB2E4. \uCC0D\uC740 \uD6C4
+    \uB545\uC5D0\uC11C \uC5EC\uB7EC \uC2A4\uD53C\uC5B4\uB4E4\uC774 \uB098\uC628\uB2E4."
+  effectId: 
+  soundId: 
   actionType: 5
   requiredWeaponType: 4
   authoredAttackPower: 30
@@ -55,4 +56,4 @@ MonoBehaviour:
   motionSequenceKeys: []
   motionStepIntervalSeconds: 0.12
   projectilePrefab: {fileID: 0}
-  actionEffectPrefab: {fileID: 0}
+  actionEffectPrefab: {fileID: 1789818940086245750, guid: 10fe42cf5010cd149a67ad97d1679dc1, type: 3}

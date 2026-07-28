@@ -14,10 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HWJ_SkillActionDataSO
   skillActionId: player_axe_earth_breaker
   sourceSkillId: 1305
-  displayName: "Earth Breaker"
-  skillDescription: "도끼와 함께 도약하여 적을 내리 찍는다."
-  effectId: ""
-  soundId: ""
+  displayName: Earth Breaker
+  skillDescription: "\uB3C4\uB07C\uC640 \uD568\uAED8 \uB3C4\uC57D\uD558\uC5EC \uC801\uC744
+    \uB0B4\uB9AC \uCC0D\uB294\uB2E4."
+  effectId: 
+  soundId: 
   actionType: 5
   requiredWeaponType: 6
   authoredAttackPower: 60
@@ -55,4 +56,4 @@ MonoBehaviour:
   motionSequenceKeys: []
   motionStepIntervalSeconds: 0.12
   projectilePrefab: {fileID: 0}
-  actionEffectPrefab: {fileID: 0}
+  actionEffectPrefab: {fileID: 7710738139687680710, guid: 04cbf5941e6703846868c1a669bd1c67, type: 3}

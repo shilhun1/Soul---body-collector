@@ -14,10 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HWJ_SkillActionDataSO
   skillActionId: player_sword_force_slash
   sourceSkillId: 1104
-  displayName: "Force Slash"
-  skillDescription: "전방으로 거대한 검기를 날려 적을 공격한다."
-  effectId: ""
-  soundId: ""
+  displayName: Force Slash
+  skillDescription: "\uC804\uBC29\uC73C\uB85C \uAC70\uB300\uD55C \uAC80\uAE30\uB97C
+    \uB0A0\uB824 \uC801\uC744 \uACF5\uACA9\uD55C\uB2E4."
+  effectId: 
+  soundId: 
   actionType: 2
   requiredWeaponType: 3
   authoredAttackPower: 30
@@ -55,4 +56,4 @@ MonoBehaviour:
   motionSequenceKeys: []
   motionStepIntervalSeconds: 0.12
   projectilePrefab: {fileID: 6123444099088108134, guid: 9cf4f102adaf7694bae11e7010bab686, type: 3}
-  actionEffectPrefab: {fileID: 0}
+  actionEffectPrefab: {fileID: 7815009906001981100, guid: 174f53d1dad38ee4da8865e2289f7718, type: 3}

@@ -20,13 +20,13 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
     [Tooltip("플레이어의 영혼, 육신, 사망 상태를 확인하는 시스템입니다.")]
     [InspectorName("영혼 시스템")]
     [SerializeField] private HWJ_SoulSystem soulSystem;
-    [Tooltip("빙의한 육신의 부패 진행 상태와 붕괴 조건을 확인할 때 사용합니다.")]
-    [InspectorName("육신 부패 시스템")]
+    [Tooltip("빙의 유지 정신력의 시간/행동 소모를 확인할 때 사용합니다. 기존 BodyDecay 시스템명을 호환용으로 유지합니다.")]
+    [InspectorName("빙의체 정신력 시스템")]
     [SerializeField] private HWJ_BodyDecaySystem bodyDecaySystem;
     [Tooltip("현재 빙의한 육신의 런타임 HP와 육신 전용 상태를 관리하는 시스템입니다.")]
     [InspectorName("빙의 육신 시스템")]
     [SerializeField] private HWJ_PossessedBodySystem possessedBodySystem;
-    [Tooltip("HP 또는 부패도 조건으로 육신이 무너질 때 입력 차단과 영혼 복귀를 처리하는 시스템입니다.")]
+    [Tooltip("HP가 0이 되어 육신이 무너질 때 입력 차단과 영혼 복귀를 처리하는 시스템입니다.")]
     [InspectorName("육신 붕괴 시스템")]
     [SerializeField] private HWJ_CollapseSystem collapseSystem;
     [Tooltip("이동, 점프, 대쉬 같은 캐릭터 움직임 잠금 상태를 반영할 때 사용하는 시스템입니다.")]
@@ -104,6 +104,12 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
     public float PossessedBodyHp => possessedBodyHp;
     public float SoulMaxHp => GetOwnerBaseStatusValue(status => status.maxHp) + maxHpBonus;
     public float MaxHp => GetRuntimeBodyMaxHpOrBase() + maxHpBonus;
+    public float CurrentSpiritMentalValue => soulHp;
+    public float MaxSpiritMentalValue => SoulMaxHp;
+    public float SpiritMentalRatio => MaxSpiritMentalValue > 0f
+        ? Mathf.Clamp01(CurrentSpiritMentalValue / MaxSpiritMentalValue)
+        : 0f;
+    public bool HasSpiritMentalRemaining => MaxSpiritMentalValue <= 0f || CurrentSpiritMentalValue > 0f;
     public float MoveSpeed => GetBaseStatusValue(status => status.moveSpeed) + moveSpeedBonus;
     public float AttackPower => GetBaseStatusValue(status => status.attackPower) + attackPowerBonus;
     public float Defense => GetBaseStatusValue(status => status.defense) + defenseBonus;
@@ -123,9 +129,20 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
     public bool CanAttack => !IsDead && Time.time >= attackLockEndTime && !IsHitStunned;
     public bool CanDash => !IsDead && Time.time >= dashLockEndTime && !IsHitStunned;
     public float KnockbackScale => 1f / Mathf.Max(0.01f, GetKnockbackWeight());
-    public bool IsDead => currentState == HWJ_RuntimeState.Dead
-        || (soulSystem != null && soulSystem.CurrentState == HWJ_SoulRuntimeState.Dead)
-        || (soulSystem == null && UsesHp && currentHp <= 0f);
+    public bool IsDead
+    {
+        get
+        {
+            if (soulSystem != null)
+            {
+                bool soulSystemDead = soulSystem.CurrentState == HWJ_SoulRuntimeState.Dead;
+                bool runtimeDead = currentState == HWJ_RuntimeState.Dead;
+                return (soulSystemDead || runtimeDead) && CurrentSpiritMentalValue <= 0f;
+            }
+
+            return currentState == HWJ_RuntimeState.Dead || UsesHp && currentHp <= 0f;
+        }
+    }
 
     private void Awake()
     {
@@ -295,14 +312,6 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
             return;
         }
 
-        if (TryApplyPossessedBodyDecayDamage(damage, source, sourceDamage))
-        {
-            HWJ_GameplayEvents.RaiseDamageApplied(
-                new HWJ_DamageEvent(this, source, sourceDamage, damage, currentHp, IsDead));
-            SavePlayerRuntimeSnapshotIfOwner();
-            return;
-        }
-
         bool wasDead = IsDead;
         currentHp = Mathf.Max(0f, currentHp - damage);
         CacheCurrentHpForActiveState();
@@ -317,8 +326,9 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
             ApplyHitReaction(damage, sourceDamage);
         }
 
+        float remainingHpAfterDamage = currentHp;
         HWJ_GameplayEvents.RaiseDamageApplied(
-            new HWJ_DamageEvent(this, source, sourceDamage, damage, currentHp, !wasDead && IsDead));
+            new HWJ_DamageEvent(this, source, sourceDamage, damage, remainingHpAfterDamage, !wasDead && IsDead));
         SavePlayerRuntimeSnapshotIfOwner();
     }
 
@@ -337,6 +347,52 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
 
         currentHp = Mathf.Min(MaxHp, currentHp + amount);
         CacheCurrentHpForActiveState();
+    }
+
+    /// <summary>
+    /// 기존 SoulHp 값을 영혼 정신력으로 사용하는 호환 API입니다.
+    /// 영혼 상태의 기믹, 빙의 시도, 특수 이동이 정신력을 소모할 때 사용합니다.
+    /// </summary>
+    public bool TryApplySpiritMentalCost(float mentalCost)
+    {
+        return TryApplySpiritMentalCost(mentalCost, "spirit_mental_cost");
+    }
+
+    public bool TryApplySpiritMentalCost(float mentalCost, string reason)
+    {
+        ResolveReferences();
+
+        if (mentalCost <= 0f)
+        {
+            return true;
+        }
+
+        if (soulSystem != null && soulSystem.CurrentState != HWJ_SoulRuntimeState.Soul)
+        {
+            return false;
+        }
+
+        soulHp = Mathf.Max(0f, soulHp - mentalCost);
+
+        if (soulSystem == null || soulSystem.CurrentState == HWJ_SoulRuntimeState.Soul)
+        {
+            currentHp = soulHp;
+        }
+
+        if (soulHp <= 0f)
+        {
+            if (soulSystem != null)
+            {
+                soulSystem.EnterDeadState();
+            }
+            else
+            {
+                SetState(HWJ_RuntimeState.Dead);
+            }
+        }
+
+        SavePlayerRuntimeSnapshotIfOwner();
+        return true;
     }
 
     /// <summary>
@@ -837,28 +893,6 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
         return soulHp;
     }
 
-    private bool TryApplyPossessedBodyDecayDamage(float damage, Component source, HWJ_DamageData sourceDamage)
-    {
-        if (soulSystem == null
-            || soulSystem.CurrentState != HWJ_SoulRuntimeState.Body
-            || possessionSystem == null
-            || !possessionSystem.HasActivePossessedBody
-            || bodyDecaySystem == null)
-        {
-            return false;
-        }
-
-        ApplyPostHitTimers(source, sourceDamage);
-        bodyDecaySystem.ApplyHitDecayPenalty(damage);
-
-        if (soulSystem.CurrentState == HWJ_SoulRuntimeState.Body)
-        {
-            ApplyHitReaction(damage, sourceDamage);
-        }
-
-        return true;
-    }
-
     private void ApplyHitReaction(float damage, HWJ_DamageData sourceDamage)
     {
         bool reactionBlockedBySuperArmor = HasSuperArmor;
@@ -961,7 +995,7 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
             }
 
             possessedBodySystem?.MarkCurrentBodyCollapsed();
-            soulSystem.EnterSoulState(false);
+            soulSystem.EnterSoulState(false, HWJ_PossessedBodyExitReason.HpDepleted);
             return;
         }
 

@@ -1985,9 +1985,9 @@ public class HWJ_CoreSystemsPlayModeTests
     }
 
     [UnityTest]
-    public IEnumerator PossessionSystem_UsesBossBodyDecayOverrideForPossessableMidBoss()
+    public IEnumerator PossessionSystem_BlocksBossPossessionEvenWhenBossDataAllowsPossession()
     {
-        GameObject player = CreatePlayerObject("PlayerPossessesMidBoss", true, 120f, 1f);
+        GameObject player = CreatePlayerObject("PlayerCannotPossessMidBoss", true, 120f, 1f);
         HWJ_BossTypeDataSO bossData = CreateBossTypeData();
         bossData.PossessionBody.canBePossessed = true;
         bossData.PossessionBody.requiresDefeatedState = true;
@@ -2018,18 +2018,10 @@ public class HWJ_CoreSystemsPlayModeTests
         yield return null;
 
         HWJ_PossessionSystem possession = player.GetComponent<HWJ_PossessionSystem>();
-        HWJ_BodyDecaySystem bodyDecay = player.GetComponent<HWJ_BodyDecaySystem>();
-        HWJ_PlayerTypeDataSO playerData = player.GetComponent<HWJ_RootObjectDataResolver>()
-            .RootObjectData.SelectedTypeData as HWJ_PlayerTypeDataSO;
 
-        Assert.IsTrue(possession.TryPossess(boss.GetComponent<HWJ_RootObjectDataResolver>()));
-        Assert.IsTrue(possession.HasActivePossessedBody);
-        Assert.AreEqual(240f, bodyDecay.MaxDecayValue, 0.001f);
-        Assert.AreEqual(120f, playerData.BodyDecay.maxDecayValue, 0.001f);
-
-        Assert.IsTrue(possession.TryGetPossessedBodyRuntimeState(out HWJ_PossessedBodyRuntimeState bodyState));
-        Assert.AreEqual(240f, bodyState.MaxDecayValue, 0.001f);
-        Assert.AreEqual(0f, bodyState.CurrentDecayValue, 0.001f);
+        Assert.IsFalse(possession.TryPossess(boss.GetComponent<HWJ_RootObjectDataResolver>()));
+        Assert.IsFalse(possession.HasActivePossessedBody);
+        Assert.AreEqual(HWJ_PossessionFailureCode.BossPossessionBlocked, possession.LastPossessionFailureCode);
 
         Object.Destroy(player);
         Object.Destroy(boss);
@@ -2163,7 +2155,7 @@ public class HWJ_CoreSystemsPlayModeTests
     }
 
     [UnityTest]
-    public IEnumerator BodyDecaySystem_IncreasesDecayWhenPossessedBodyIsHit()
+    public IEnumerator BodyDecaySystem_DoesNotReducePossessionMentalWhenPossessedBodyIsHit()
     {
         GameObject player = CreatePlayerObject("PlayerWithDecay", true, 5f, 2f);
         GameObject enemy = CreateCombatObject(
@@ -2188,10 +2180,10 @@ public class HWJ_CoreSystemsPlayModeTests
         bodyDecay.RestoreDecaySnapshot(1f);
         bodyDecay.ApplyHitDecayPenalty(2f);
 
-        Assert.AreEqual(3f, bodyDecay.CurrentDecayValue, 0.001f);
-        Assert.AreEqual(2f, bodyDecay.RemainingDecayValue, 0.001f);
+        Assert.AreEqual(1f, bodyDecay.CurrentDecayValue, 0.001f);
+        Assert.AreEqual(4f, bodyDecay.RemainingDecayValue, 0.001f);
         Assert.IsTrue(possession.TryGetPossessedBodyRuntimeState(out HWJ_PossessedBodyRuntimeState bodyState));
-        Assert.AreEqual(3f, bodyState.CurrentDecayValue, 0.001f);
+        Assert.AreEqual(1f, bodyState.CurrentDecayValue, 0.001f);
 
         Object.Destroy(player);
         Object.Destroy(enemy);

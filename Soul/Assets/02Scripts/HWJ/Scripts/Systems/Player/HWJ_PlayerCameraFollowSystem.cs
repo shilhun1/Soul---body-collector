@@ -8,9 +8,21 @@ public class HWJ_PlayerCameraFollowSystem : MonoBehaviour
 {
     [SerializeField] private Transform target;
     [SerializeField] private HWJ_RootObjectDataResolver targetDataResolver;
+    [SerializeField] private bool autoFindPlayerTarget = true;
+
+    /// <summary>
+    /// Lets scene bootstrap code reconnect this camera after the player is moved, spawned, or replaced during scene loads.
+    /// </summary>
+    public void SetTarget(HWJ_RootObjectDataResolver resolver)
+    {
+        targetDataResolver = resolver;
+        target = resolver != null ? resolver.transform : null;
+    }
 
     private void LateUpdate()
     {
+        ResolveTarget();
+
         if (target == null || targetDataResolver == null || !targetDataResolver.TryGetTypeData(out HWJ_PlayerTypeDataSO playerData))
         {
             return;
@@ -29,5 +41,44 @@ public class HWJ_PlayerCameraFollowSystem : MonoBehaviour
         }
 
         transform.position = Vector3.Lerp(transform.position, targetPosition, Time.deltaTime * playerData.Camera.followSpeed);
+    }
+
+    private void ResolveTarget()
+    {
+        if (!autoFindPlayerTarget || (target != null && targetDataResolver != null))
+        {
+            return;
+        }
+
+        HWJ_RootObjectDataResolver resolver = null;
+
+        if (HWJ_GameAccess.HasManager && HWJ_GameAccess.Manager.PlayerResolver != null)
+        {
+            resolver = HWJ_GameAccess.Manager.PlayerResolver;
+        }
+
+        if (resolver == null)
+        {
+            HWJ_RootObjectDataResolver[] resolvers = FindObjectsByType<HWJ_RootObjectDataResolver>(
+                FindObjectsInactive.Exclude,
+                FindObjectsSortMode.None);
+
+            for (int i = 0; i < resolvers.Length; i++)
+            {
+                if (resolvers[i] != null && resolvers[i].ObjectType == HWJ_ObjectType.Player)
+                {
+                    resolver = resolvers[i];
+                    break;
+                }
+            }
+        }
+
+        if (resolver == null)
+        {
+            return;
+        }
+
+        targetDataResolver = resolver;
+        target = resolver.transform;
     }
 }

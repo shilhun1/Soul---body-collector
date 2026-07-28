@@ -17,7 +17,8 @@ MonoBehaviour:
     displayName: Bow Corpse Enemy
     objectType: 1
     faction: 3
-    weaponType: 0
+    weaponType: 5
+    abilityTags: 01000000
   status:
     level: 1
     maxHp: 100
@@ -28,7 +29,7 @@ MonoBehaviour:
     bodyWeight: 1
   model:
     modelPrefab: {fileID: 3641732250860638636, guid: dcfac49b6c06bcd4bacf677932e1174e, type: 3}
-    animatorController: {fileID: 0}
+    animatorController: {fileID: 9100000, guid: 2c23b9de715632b49a516ce81402666d, type: 2}
     heartEffectSocketName: 
     hitEffectSocketName: 
     possessedEyeSocketName: 
@@ -63,9 +64,9 @@ MonoBehaviour:
   reward:
     experienceReward: 10
     skillPointReward: 0
-    dropsExperienceOrb: 0
-    experienceOrbPrefab: {fileID: 0}
-    experienceOrbSpawnRadius: 0
+    dropsExperienceOrb: 1
+    experienceOrbPrefab: {fileID: 840010000000000001, guid: 22e7a47c526c4d51871f4bd3bdf889db, type: 3}
+    experienceOrbSpawnRadius: 0.35
     dropsStatOrb: 1
     statOrbDropChance: 1
     statOrbSpawnRadius: 0.75

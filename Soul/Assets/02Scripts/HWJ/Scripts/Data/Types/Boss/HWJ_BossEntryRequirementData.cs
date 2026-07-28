@@ -38,8 +38,8 @@ public class HWJ_BossEntryRequirementData
     [InspectorName("최소 현재 HP")]
     [Tooltip("빙의한 몸의 현재 HP가 이 값 이상이어야 합니다.")]
     public float minimumCurrentHp = 1f;
-    [InspectorName("최대 현재 부패 비율")]
-    [Tooltip("빙의한 몸의 현재 부패 비율이 이 값 이하여야 합니다.")]
+    [InspectorName("최대 정신력 소모 비율")]
+    [Tooltip("빙의한 몸의 정신력 소모 비율이 이 값 이하여야 합니다. 0.3이면 정신력을 30% 이하로만 소모한 상태여야 합니다.")]
     [Range(0f, 1f)] public float maximumCurrentDecayRatio = 1f;
 
     [Header("스킬 조건")]

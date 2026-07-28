@@ -23,6 +23,8 @@ public class HWJ_SkillActionSystem : MonoBehaviour
     [SerializeField] private HWJ_GameplayDatabaseSO database;
     [SerializeField] private Rigidbody2D body;
     [SerializeField] private HWJ_SkillActionDataSO[] localSkillActions;
+    [SerializeField] private Vector2 actionEffectSpawnOffset = new Vector2(0.8f, 0.15f);
+    [SerializeField] private bool mirrorActionEffectByFacing = true;
     [SerializeField] private bool useGameplaySkillRule = true;
     [SerializeField] private HWJ_RuleExecutionCoreSO skillUseExecutionCore;
     [SerializeField] private string skillUseExecutionCoreId = "skill_use_execution";
@@ -364,7 +366,7 @@ public class HWJ_SkillActionSystem : MonoBehaviour
 
         if (skillAction.ActionEffectPrefab != null)
         {
-            SpawnPooled(skillAction.ActionEffectPrefab);
+            SpawnActionEffect(skillAction.ActionEffectPrefab);
         }
 
         switch (skillAction.ActionType)
@@ -587,7 +589,9 @@ public class HWJ_SkillActionSystem : MonoBehaviour
             range,
             skillAction.DamageMultiplier,
             skillAction.MotionKey,
-            false);
+            false,
+            skillAction,
+            HWJ_GimmickHitSource.DashContact);
 
         if (damaged)
         {
@@ -680,7 +684,9 @@ public class HWJ_SkillActionSystem : MonoBehaviour
             range,
             skillAction.DamageMultiplier,
             skillAction.MotionKey,
-            playMotion);
+            playMotion,
+            skillAction,
+            HWJ_GimmickHitSource.AreaAttack);
 
         lastDamageApplied = combatExecutionSystem.LastDamageApplied;
         lastSkillResult = damaged
@@ -748,6 +754,11 @@ public class HWJ_SkillActionSystem : MonoBehaviour
 
     private GameObject SpawnPooled(GameObject prefab)
     {
+        return SpawnPooled(prefab, transform.position, transform.rotation);
+    }
+
+    private GameObject SpawnPooled(GameObject prefab, Vector3 position, Quaternion rotation)
+    {
         if (prefab == null)
         {
             return null;
@@ -755,11 +766,29 @@ public class HWJ_SkillActionSystem : MonoBehaviour
 
         if (objectPool != null)
         {
-            return objectPool.Spawn(prefab, transform.position, transform.rotation);
+            return objectPool.Spawn(prefab, position, rotation);
         }
 
-        GameObject spawned = HWJ_GameAccess.Spawn(prefab, transform.position, transform.rotation);
-        return spawned != null ? spawned : Instantiate(prefab, transform.position, transform.rotation);
+        GameObject spawned = HWJ_GameAccess.Spawn(prefab, position, rotation);
+        return spawned != null ? spawned : Instantiate(prefab, position, rotation);
+    }
+
+    private GameObject SpawnActionEffect(GameObject prefab)
+    {
+        float facingDirection = GetFacingDirection();
+        Vector3 offset = new Vector3(actionEffectSpawnOffset.x * facingDirection, actionEffectSpawnOffset.y, 0f);
+        GameObject spawned = SpawnPooled(prefab, transform.position + offset, transform.rotation);
+
+        if (spawned == null || !mirrorActionEffectByFacing)
+        {
+            return spawned;
+        }
+
+        // Slash prefabs are authored facing right; negative root scale mirrors them for left-facing attacks.
+        Vector3 scale = spawned.transform.localScale;
+        scale.x = Mathf.Abs(scale.x) * (facingDirection < 0f ? -1f : 1f);
+        spawned.transform.localScale = scale;
+        return spawned;
     }
 
     private Vector2 ResolveSkillDirection(Transform target)
@@ -1032,6 +1061,18 @@ internal class HWJ_RuntimeSkillProjectile : MonoBehaviour
             if (hit == null || owner != null && hit.transform.IsChildOf(owner))
             {
                 continue;
+            }
+
+            if (HWJ_WeaponGimmickActivatorUtility.TryActivateFromHit(
+                hit,
+                owner,
+                skillAction,
+                HWJ_GimmickHitSource.Projectile,
+                out bool consumeProjectile,
+                out _)
+                && consumeProjectile)
+            {
+                return true;
             }
 
             HWJ_RootObjectDataResolver targetResolver = hit.GetComponentInParent<HWJ_RootObjectDataResolver>();

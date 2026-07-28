@@ -14,10 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HWJ_SkillActionDataSO
   skillActionId: player_lance_rapid_stinger
   sourceSkillId: 1203
-  displayName: "Rapid Stinger"
-  skillDescription: "창으로 적을 여러번 찌른다."
-  effectId: ""
-  soundId: ""
+  displayName: Rapid Stinger
+  skillDescription: "\uCC3D\uC73C\uB85C \uC801\uC744 \uC5EC\uB7EC\uBC88 \uCC0C\uB978\uB2E4."
+  effectId: 
+  soundId: 
   actionType: 1
   requiredWeaponType: 4
   authoredAttackPower: 25
@@ -55,4 +55,4 @@ MonoBehaviour:
   motionSequenceKeys: []
   motionStepIntervalSeconds: 0.12
   projectilePrefab: {fileID: 0}
-  actionEffectPrefab: {fileID: 0}
+  actionEffectPrefab: {fileID: 1789818940086245750, guid: 10fe42cf5010cd149a67ad97d1679dc1, type: 3}

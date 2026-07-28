@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: HWJ_LanceMotionProfile
   m_EditorClassIdentifier: 
   weaponType: 4
-  animatorController: {fileID: 0}
+  animatorController: {fileID: 9100000, guid: 1e0e948dd8abcc74ca0eda0f8203e0bf, type: 2}
   defaultAttackMotionKey: Lance_ChargeThrust
   motions:
   - motionKey: Lance_ChargeThrust

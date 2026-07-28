@@ -1,42 +1,49 @@
 using UnityEngine;
 
 /// <summary>
-/// Experience reward orb that can move toward a target and grants XP once collected.
-/// The orb stores runtime XP only; definition data remains on the defeated object's RewardData.
+/// Runtime pickup for experience reward orbs.
+/// It grants XP on contact and softly pulls itself toward the active player when close enough.
 /// </summary>
 public class HWJ_ExperienceOrbPickupSystem : MonoBehaviour
 {
-    [Header("구슬 먹는 시간")]
-    [SerializeField] private float collectDelaySeconds;
+    [Header("Collect")]
+    [SerializeField] private float collectDelaySeconds = 0.35f;
 
-    [Header("경험치 구슬")]
+    [Header("Experience Orb")]
     [SerializeField] private int experienceAmount;
     [SerializeField] private bool destroyOnCollect = true;
     [SerializeField] private GameObject collectEffectPrefab;
 
-    [Header("흡수 이동")]
+    [Header("Attraction")]
     [SerializeField] private Transform targetTransform;
     [SerializeField] private HWJ_LevelUpSystem targetLevelSystem;
     [SerializeField] private bool moveToTarget = true;
-    [SerializeField] private float attractionStartDistance = 3f;
-    [SerializeField] private float collectDistance = 0.35f;
-    [SerializeField] private float moveSpeed = 4f;
-    [SerializeField] private float acceleration = 10f;
-    [SerializeField] private float initialDelaySeconds = 0.15f;
+    [SerializeField] private bool autoResolvePlayerTarget = true;
+    [SerializeField] private float attractionStartDistance = 4f;
+    [SerializeField] private float collectDistance = 0.45f;
+    [SerializeField] private float targetSearchIntervalSeconds = 0.25f;
+    [SerializeField] private float moveSpeed = 2.25f;
+    [SerializeField] private float acceleration = 5.5f;
+    [SerializeField] private float initialDelaySeconds = 0.25f;
     [SerializeField] private float lifeTimeSeconds = 12f;
+
+    [Header("Visual")]
+    [SerializeField] private bool controlAnimatorSpeed = true;
+    [SerializeField] private float animationSpeedMultiplier = 0.55f;
 
     private bool isCollected;
     private float spawnedTime;
     private float currentMoveSpeed;
+    private float nextTargetSearchTime;
 
     public int ExperienceAmount => Mathf.Max(0, experienceAmount);
     public bool IsCollected => isCollected;
 
     private void OnEnable()
     {
-        spawnedTime = Time.time;
-        currentMoveSpeed = Mathf.Max(0f, moveSpeed);
-        isCollected = false;
+        ResetRuntimeState();
+        ApplyAnimatorSpeed();
+        TryResolvePlayerTargetIfNeeded(true);
     }
 
     private void Update()
@@ -51,6 +58,8 @@ public class HWJ_ExperienceOrbPickupSystem : MonoBehaviour
             DespawnOrb();
             return;
         }
+
+        TryResolvePlayerTargetIfNeeded(false);
 
         if (!moveToTarget || targetTransform == null || targetLevelSystem == null)
         {
@@ -107,9 +116,9 @@ public class HWJ_ExperienceOrbPickupSystem : MonoBehaviour
             collectEffectPrefab = collectEffect;
         }
 
-        spawnedTime = Time.time;
-        currentMoveSpeed = Mathf.Max(0f, moveSpeed);
-        isCollected = false;
+        ResetRuntimeState();
+        ApplyAnimatorSpeed();
+        TryResolvePlayerTargetIfNeeded(true);
     }
 
     public bool TryCollect(GameObject collector)
@@ -131,7 +140,7 @@ public class HWJ_ExperienceOrbPickupSystem : MonoBehaviour
 
     public bool TryCollect(HWJ_LevelUpSystem levelSystem)
     {
-        if (!CancollectNow() || isCollected || levelSystem == null || ExperienceAmount <= 0)
+        if (!CanCollectNow() || isCollected || levelSystem == null || ExperienceAmount <= 0)
         {
             return false;
         }
@@ -147,9 +156,71 @@ public class HWJ_ExperienceOrbPickupSystem : MonoBehaviour
 
         return true;
     }
-    private bool CancollectNow()
+
+    private void ResetRuntimeState()
+    {
+        spawnedTime = Time.time;
+        currentMoveSpeed = Mathf.Max(0f, moveSpeed);
+        nextTargetSearchTime = 0f;
+        isCollected = false;
+    }
+
+    private bool CanCollectNow()
     {
         return Time.time - spawnedTime >= Mathf.Max(0f, collectDelaySeconds);
+    }
+
+    private void TryResolvePlayerTargetIfNeeded(bool force)
+    {
+        if (!autoResolvePlayerTarget)
+        {
+            return;
+        }
+
+        if (targetTransform != null && targetLevelSystem == null)
+        {
+            targetLevelSystem = targetTransform.GetComponent<HWJ_LevelUpSystem>();
+
+            if (targetLevelSystem == null)
+            {
+                targetLevelSystem = targetTransform.GetComponentInParent<HWJ_LevelUpSystem>();
+            }
+        }
+
+        if (targetTransform != null && targetLevelSystem != null)
+        {
+            return;
+        }
+
+        if (!force && Time.time < nextTargetSearchTime)
+        {
+            return;
+        }
+
+        nextTargetSearchTime = Time.time + Mathf.Max(0.05f, targetSearchIntervalSeconds);
+
+        if (HWJ_PickupTargetUtility.TryResolvePlayerLevelTarget(
+            out HWJ_LevelUpSystem resolvedLevelSystem,
+            out Transform resolvedTargetTransform))
+        {
+            targetLevelSystem = resolvedLevelSystem;
+            targetTransform = resolvedTargetTransform;
+        }
+    }
+
+    private void ApplyAnimatorSpeed()
+    {
+        if (!controlAnimatorSpeed)
+        {
+            return;
+        }
+
+        Animator animator = GetComponent<Animator>();
+
+        if (animator != null)
+        {
+            animator.speed = Mathf.Max(0.05f, animationSpeedMultiplier);
+        }
     }
 
     private void SpawnCollectEffect()
@@ -184,5 +255,70 @@ public class HWJ_ExperienceOrbPickupSystem : MonoBehaviour
         }
 
         gameObject.SetActive(false);
+    }
+}
+
+/// <summary>
+/// Shared lookup helpers for pickup objects that should fly toward the active player.
+/// This lives with the pickup systems so the current generated HWJ runtime project includes it immediately.
+/// </summary>
+public static class HWJ_PickupTargetUtility
+{
+    public static bool TryResolvePlayerLevelTarget(out HWJ_LevelUpSystem levelSystem, out Transform targetTransform)
+    {
+        levelSystem = null;
+        targetTransform = null;
+
+        if (TryResolvePlayerResolver(out HWJ_RootObjectDataResolver resolver))
+        {
+            levelSystem = resolver.GetComponent<HWJ_LevelUpSystem>();
+            targetTransform = resolver.transform;
+            return levelSystem != null;
+        }
+
+        return false;
+    }
+
+    public static bool TryResolvePlayerStatusTarget(out HWJ_RuntimeStatusSystem statusSystem, out Transform targetTransform)
+    {
+        statusSystem = null;
+        targetTransform = null;
+
+        if (TryResolvePlayerResolver(out HWJ_RootObjectDataResolver resolver))
+        {
+            statusSystem = resolver.GetComponent<HWJ_RuntimeStatusSystem>();
+            targetTransform = resolver.transform;
+            return statusSystem != null;
+        }
+
+        return false;
+    }
+
+    private static bool TryResolvePlayerResolver(out HWJ_RootObjectDataResolver resolver)
+    {
+        resolver = null;
+
+        if (HWJ_GameAccess.HasManager && HWJ_GameAccess.Manager.PlayerResolver != null)
+        {
+            resolver = HWJ_GameAccess.Manager.PlayerResolver;
+            return true;
+        }
+
+        HWJ_RootObjectDataResolver[] resolvers = Object.FindObjectsByType<HWJ_RootObjectDataResolver>(
+            FindObjectsInactive.Exclude,
+            FindObjectsSortMode.None);
+
+        for (int i = 0; i < resolvers.Length; i++)
+        {
+            HWJ_RootObjectDataResolver candidate = resolvers[i];
+
+            if (candidate != null && candidate.ObjectType == HWJ_ObjectType.Player)
+            {
+                resolver = candidate;
+                return true;
+            }
+        }
+
+        return false;
     }
 }

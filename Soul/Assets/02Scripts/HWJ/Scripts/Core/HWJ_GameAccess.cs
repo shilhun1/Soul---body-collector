@@ -10,7 +10,9 @@ public static class HWJ_GameAccess
     public static HWJ_GameManager Manager => HWJ_GameManager.Instance;
     public static HWJ_GameplayDatabaseSO Database => HasManager ? Manager.Database : null;
     public static HWJ_ObjectPoolSystem ObjectPool => HasManager ? Manager.ObjectPool : null;
+    public static HWJ_RootObjectDataResolver PlayerResolver => HasManager ? Manager.PlayerResolver : null;
     public static HWJ_PlayerInputSystem PlayerInput => HasManager ? Manager.PlayerInput : null;
+    public static HWJ_BodyDecaySystem PlayerPossessionMental => HasManager ? Manager.PlayerPossessionMental : null;
 
     /// <summary>
     /// GameManager가 있으면 풀 기반 생성으로 연결하고, 없으면 null을 반환합니다.
@@ -56,6 +58,12 @@ public static class HWJ_GameAccess
     {
         levelTable = null;
         return HasManager && Manager.TryGetLevelTable(tableId, out levelTable);
+    }
+
+    public static bool TryGetTitleScreen(string titleScreenId, out HWJ_TitleScreenDataSO titleScreenData)
+    {
+        titleScreenData = null;
+        return HasManager && Manager.TryGetTitleScreen(titleScreenId, out titleScreenData);
     }
 
     /// <summary>

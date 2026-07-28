@@ -14,10 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HWJ_SkillActionDataSO
   skillActionId: player_lance_piercing_drive
   sourceSkillId: 1202
-  displayName: "Piercing Drive"
-  skillDescription: "창을 앞으로 돌진하며 적을 공격한다."
-  effectId: ""
-  soundId: ""
+  displayName: Piercing Drive
+  skillDescription: "\uCC3D\uC744 \uC55E\uC73C\uB85C \uB3CC\uC9C4\uD558\uBA70 \uC801\uC744
+    \uACF5\uACA9\uD55C\uB2E4."
+  effectId: 
+  soundId: 
   actionType: 4
   requiredWeaponType: 4
   authoredAttackPower: 10
@@ -55,4 +56,4 @@ MonoBehaviour:
   motionSequenceKeys: []
   motionStepIntervalSeconds: 0.12
   projectilePrefab: {fileID: 0}
-  actionEffectPrefab: {fileID: 0}
+  actionEffectPrefab: {fileID: 1789818940086245750, guid: 10fe42cf5010cd149a67ad97d1679dc1, type: 3}

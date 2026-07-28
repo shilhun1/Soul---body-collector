@@ -14,10 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HWJ_SkillActionDataSO
   skillActionId: player_sword_final_slash
   sourceSkillId: 1105
-  displayName: "Final Slash"
-  skillDescription: "앞으로 이동하며 빠르게 연속베기를 가해 적을 공격한다."
-  effectId: ""
-  soundId: ""
+  displayName: Final Slash
+  skillDescription: "\uC55E\uC73C\uB85C \uC774\uB3D9\uD558\uBA70 \uBE60\uB974\uAC8C
+    \uC5F0\uC18D\uBCA0\uAE30\uB97C \uAC00\uD574 \uC801\uC744 \uACF5\uACA9\uD55C\uB2E4."
+  effectId: 
+  soundId: 
   actionType: 4
   requiredWeaponType: 3
   authoredAttackPower: 55
@@ -55,4 +56,4 @@ MonoBehaviour:
   motionSequenceKeys: []
   motionStepIntervalSeconds: 0.12
   projectilePrefab: {fileID: 0}
-  actionEffectPrefab: {fileID: 0}
+  actionEffectPrefab: {fileID: 7815009906001981100, guid: 174f53d1dad38ee4da8865e2289f7718, type: 3}

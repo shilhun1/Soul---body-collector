@@ -353,12 +353,6 @@ public static class HWJ_SceneRuntimeSmokeBridge
                 continue;
             }
 
-            if (resolver.TryGetTypeData(out HWJ_BossTypeDataSO bossData)
-                && bossData.PossessionBody != null
-                && bossData.PossessionBody.canBePossessed)
-            {
-                count++;
-            }
         }
 
         return count;

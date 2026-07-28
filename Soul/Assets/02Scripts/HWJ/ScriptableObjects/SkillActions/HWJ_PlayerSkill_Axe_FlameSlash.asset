@@ -14,10 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HWJ_SkillActionDataSO
   skillActionId: player_axe_flame_slash
   sourceSkillId: 1303
-  displayName: "Flame Slash"
-  skillDescription: "도끼에 오라를 둘러 적을 공격한다. 공격할 때 불꽃이 나온다."
-  effectId: ""
-  soundId: ""
+  displayName: Flame Slash
+  skillDescription: "\uB3C4\uB07C\uC5D0 \uC624\uB77C\uB97C \uB458\uB7EC \uC801\uC744
+    \uACF5\uACA9\uD55C\uB2E4. \uACF5\uACA9\uD560 \uB54C \uBD88\uAF43\uC774 \uB098\uC628\uB2E4."
+  effectId: 
+  soundId: 
   actionType: 4
   requiredWeaponType: 6
   authoredAttackPower: 15
@@ -55,4 +56,4 @@ MonoBehaviour:
   motionSequenceKeys: []
   motionStepIntervalSeconds: 0.12
   projectilePrefab: {fileID: 0}
-  actionEffectPrefab: {fileID: 0}
+  actionEffectPrefab: {fileID: 7710738139687680710, guid: 04cbf5941e6703846868c1a669bd1c67, type: 3}

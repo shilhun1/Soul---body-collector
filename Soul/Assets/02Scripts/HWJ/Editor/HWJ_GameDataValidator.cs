@@ -313,26 +313,26 @@ public static class HWJ_GameDataValidator
     {
         if (bodyDecayData == null)
         {
-            AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "DECAY_DATA_MISSING", "REQ-10", assetPath, fieldPrefix, "Body decay data is missing.", "Create body decay data for possessed body runtime.");
+            AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "POSSESSION_MENTAL_DATA_MISSING", "REQ-10", assetPath, fieldPrefix, "Possession mental data is missing.", "Create possession mental data for possessed body runtime.");
             return;
         }
 
         if (bodyDecayData.maxDecayValue <= 0f)
         {
-            AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "DECAY_MAX_INVALID", "REQ-10", assetPath, $"{fieldPrefix}.maxDecayValue", "Max decay value must be greater than 0.", "Set maxDecayValue to a positive value.");
+            AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "POSSESSION_MENTAL_MAX_INVALID", "REQ-10", assetPath, $"{fieldPrefix}.maxDecayValue", "Max possession mental value must be greater than 0.", "Set maxDecayValue to a positive possession mental value.");
         }
 
         if (bodyDecayData.initialDecayValue < 0f || bodyDecayData.initialDecayValue > bodyDecayData.maxDecayValue)
         {
-            AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "DECAY_INITIAL_OUT_OF_RANGE", "REQ-10", assetPath, $"{fieldPrefix}.initialDecayValue", "Initial decay must be between 0 and maxDecayValue.", "Clamp initialDecayValue into the valid decay range.");
+            AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "POSSESSION_MENTAL_INITIAL_OUT_OF_RANGE", "REQ-10", assetPath, $"{fieldPrefix}.initialDecayValue", "Initial consumed possession mental must be between 0 and maxDecayValue.", "Clamp initialDecayValue into the valid possession mental range.");
         }
 
-        ValidateNonNegative(validationIssues, bodyDecayData.decayTickSeconds, "REQ-10", assetPath, $"{fieldPrefix}.decayTickSeconds", "DECAY_TICK_NEGATIVE");
-        ValidateNonNegative(validationIssues, bodyDecayData.decayAmountPerTick, "REQ-10", assetPath, $"{fieldPrefix}.decayAmountPerTick", "DECAY_TICK_AMOUNT_NEGATIVE");
-        ValidateNonNegative(validationIssues, bodyDecayData.moveDecayPerSecond, "REQ-10", assetPath, $"{fieldPrefix}.moveDecayPerSecond", "DECAY_MOVE_NEGATIVE");
-        ValidateNonNegative(validationIssues, bodyDecayData.basicAttackDecayAmount, "REQ-10", assetPath, $"{fieldPrefix}.basicAttackDecayAmount", "DECAY_ATTACK_NEGATIVE");
-        ValidateNonNegative(validationIssues, bodyDecayData.skillDecayAmount, "REQ-10", assetPath, $"{fieldPrefix}.skillDecayAmount", "DECAY_SKILL_NEGATIVE");
-        ValidateNonNegative(validationIssues, bodyDecayData.hitDecayPenalty, "REQ-10", assetPath, $"{fieldPrefix}.hitDecayPenalty", "DECAY_HIT_NEGATIVE");
+        ValidateNonNegative(validationIssues, bodyDecayData.decayTickSeconds, "REQ-10", assetPath, $"{fieldPrefix}.decayTickSeconds", "POSSESSION_MENTAL_TICK_NEGATIVE");
+        ValidateNonNegative(validationIssues, bodyDecayData.decayAmountPerTick, "REQ-10", assetPath, $"{fieldPrefix}.decayAmountPerTick", "POSSESSION_MENTAL_TICK_AMOUNT_NEGATIVE");
+        ValidateNonNegative(validationIssues, bodyDecayData.moveDecayPerSecond, "REQ-10", assetPath, $"{fieldPrefix}.moveDecayPerSecond", "POSSESSION_MENTAL_MOVE_NEGATIVE");
+        ValidateNonNegative(validationIssues, bodyDecayData.basicAttackDecayAmount, "REQ-10", assetPath, $"{fieldPrefix}.basicAttackDecayAmount", "POSSESSION_MENTAL_ATTACK_NEGATIVE");
+        ValidateNonNegative(validationIssues, bodyDecayData.skillDecayAmount, "REQ-10", assetPath, $"{fieldPrefix}.skillDecayAmount", "POSSESSION_MENTAL_SKILL_NEGATIVE");
+        ValidateNonNegative(validationIssues, bodyDecayData.hitDecayPenalty, "REQ-10", assetPath, $"{fieldPrefix}.hitDecayPenalty", "POSSESSION_MENTAL_HIT_NEGATIVE");
     }
 
     private static void ValidateEnemyAIData(
@@ -449,6 +449,16 @@ public static class HWJ_GameDataValidator
         ValidateSkillSet(validationIssues, bossType.SkillCycle, skillActionIds, assetPath, "SkillCycle", "REQ-7");
         ValidateBossEntryRequirements(validationIssues, bossType.EntryRequirements, rootObjectIds, playerSkillIds, ruleExecutionCoreIds, assetPath);
 
+        if (bossType.PossessionBody != null && bossType.PossessionBody.canBePossessed)
+        {
+            AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "BOSS_POSSESSION_NOT_ALLOWED", "REQ-9", assetPath, "PossessionBody.canBePossessed", "Boss type data cannot be configured as possessable.", "Disable canBePossessed on boss type data. Bosses are combat targets, not possession bodies.");
+        }
+
+        if (bossType.PossessionBody != null && bossType.PossessionBody.overrideBodyDecayOnPossession)
+        {
+            AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Warning, "BOSS_POSSESSION_MENTAL_OVERRIDE_UNUSED", "REQ-9", assetPath, "PossessionBody.overrideBodyDecayOnPossession", "Boss possession mental override is ignored because bosses cannot be possessed.", "Disable overrideBodyDecayOnPossession on boss type data.");
+        }
+
         if (bossType.FSM != null)
         {
             if (bossType.FSM.phaseTwoHpRatio <= 0f || bossType.FSM.phaseTwoHpRatio >= 1f)
@@ -520,7 +530,7 @@ public static class HWJ_GameDataValidator
 
         if (requirements.maximumCurrentDecayRatio < 0f || requirements.maximumCurrentDecayRatio > 1f)
         {
-            AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "BOSS_ENTRY_DECAY_RATIO_OUT_OF_RANGE", "REQ-12", assetPath, "EntryRequirements.maximumCurrentDecayRatio", "Maximum current decay ratio must be between 0 and 1.", "Clamp maximumCurrentDecayRatio into 0..1.");
+            AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "BOSS_ENTRY_POSSESSION_MENTAL_RATIO_OUT_OF_RANGE", "REQ-12", assetPath, "EntryRequirements.maximumCurrentDecayRatio", "Maximum consumed possession mental ratio must be between 0 and 1.", "Clamp maximumCurrentDecayRatio into 0..1.");
         }
 
         HashSet<string> allowedBodyIds = ValidateConfiguredIdList(
