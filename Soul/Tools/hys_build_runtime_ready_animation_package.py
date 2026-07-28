@@ -67,7 +67,7 @@ def add_asset(selected: set[Path], path: Path) -> None:
 
 
 def collect_initial_assets(project: Path, output_dir: Path) -> set[Path]:
-    """플레이어·무기 몬스터·영혼 애니메이션과 관련 hys 스크립트를 고른다."""
+    """RuntimeReady 프리팹과 플레이어·몬스터·영혼 애니메이션을 함께 고른다."""
     assets = project / "Assets"
     selected: set[Path] = set()
 
@@ -77,6 +77,7 @@ def collect_initial_assets(project: Path, output_dir: Path) -> set[Path]:
     for weapon in WEAPON_NAMES:
         add_tree(selected, enemy_root / weapon)
     add_tree(selected, assets / "05Anims" / "Soul_Anims")
+    add_tree(selected, assets / "Resources" / "hys" / "PlayerSkillEffects")
 
     legacy_sword = assets / "05Anims" / "Player_Anims"
     add_asset(selected, legacy_sword / "hys_Player_Sword.controller")
@@ -87,13 +88,21 @@ def collect_initial_assets(project: Path, output_dir: Path) -> set[Path]:
     add_tree(selected, hys_scripts / "Animation")
     add_tree(selected, hys_scripts / "Player")
 
-    # 보스/몬스터를 포함해 이름으로 명확히 드러나는 애니메이션 연동 hys 스크립트도 포함한다.
-    for script in hys_scripts.rglob("*.cs"):
-        lowered = script.name.lower()
-        if "animator" in lowered or "animation" in lowered:
-            selected.add(script)
+    # RuntimeReady 무기 몬스터에 실제로 부착되는 공통 생명주기만 추가합니다.
+    # 별도 보스 데이터 타입이 필요한 브리지는 독립 패키지의 컴파일을 깨뜨리므로 제외합니다.
+    add_asset(selected, hys_scripts / "Monster" / "hys_MonsterAnimatorLifecycle.cs")
 
-    return {p.resolve() for p in selected if output_dir.resolve() not in p.resolve().parents}
+    runtime_ready = assets / "02Scripts" / "HWJ" / "Prefabs" / "Generated" / "RuntimeReady"
+    add_asset(selected, runtime_ready / "HWJ_Runtime_Player_Soul.prefab")
+    add_tree(selected, runtime_ready / "Enemies")
+    add_tree(selected, runtime_ready / "Corpses")
+
+    # 패키지 전용 모션 프로필은 결과 폴더 안에 있지만 패키지/목록 파일 자체는 선택하지 않습니다.
+    profile_root = output_dir / "Profiles"
+    if profile_root.exists():
+        add_tree(selected, profile_root)
+
+    return {p.resolve() for p in selected}
 
 
 def build_guid_map(assets_root: Path, output_dir: Path) -> dict[str, Path]:
@@ -200,6 +209,8 @@ def write_manifest(project: Path, selected: set[Path], manifest_path: Path, pack
         "",
         "- Sword, Axe, Bow, Lance, Shield 플레이어 애니메이션 클립/컨트롤러",
         "- Sword, Axe, Bow, Lance, Shield 무기 몬스터 애니메이션 클립/컨트롤러",
+        "- RuntimeReady 플레이어·Possessable/NoCorpse 몬스터·시체 프리팹",
+        "- 플레이어/몬스터 분리 모션 프로필과 플레이어 스킬 애니메이션/이펙트",
         "- 영혼 애니메이션",
         "- `hys` 애니메이션 관련 스크립트와 플레이어 스크립트(이동 포함)",
         "- 클립/컨트롤러가 참조하는 스프라이트 의존성",
@@ -240,6 +251,8 @@ def validate_package(project: Path, selected: set[Path], package_path: Path) -> 
         "Assets/02Scripts/hys/Player/hys_Player_Movement.cs",
         "Assets/02Scripts/hys/Animation/hys_Player_Animator.cs",
         "Assets/02Scripts/hys/Animation/hys_Ghost_Animator.cs",
+        "Assets/02Scripts/HWJ/Prefabs/Generated/RuntimeReady/HWJ_Runtime_Player_Soul.prefab",
+        "Assets/Resources/hys/PlayerSkillEffects/hys_SkillEffect_CircularSlash.png",
     }
     missing = required - paths
     if missing:
@@ -255,6 +268,24 @@ def validate_package(project: Path, selected: set[Path], package_path: Path) -> 
                 raise RuntimeError(f"{weapon} 플레이어 컨트롤러 누락")
         if not any(path.startswith(enemy_prefix) and path.endswith(".controller") for path in paths):
             raise RuntimeError(f"{weapon} 몬스터 컨트롤러 누락")
+        player_skill_prefix = f"Assets/05Anims/hys_Player_Anims/{weapon}/Skills/"
+        if not any(path.startswith(player_skill_prefix) and path.endswith(".anim") for path in paths):
+            raise RuntimeError(f"{weapon} 플레이어 스킬 클립 누락")
+        profile_prefix = (
+            "Assets/02Scripts/HWJ/Prefabs/Generated/RuntimeReady/"
+            "hys_Animation_RuntimeReady/Profiles/"
+        )
+        for role in ("Player", "Monster"):
+            profile_path = f"{profile_prefix}hys_RuntimeReady_{role}_{weapon}MotionProfile.asset"
+            if profile_path not in paths:
+                raise RuntimeError(f"{weapon} {role} 모션 프로필 누락")
+        for kind in ("Possessable", "NoCorpse"):
+            prefab_path = (
+                "Assets/02Scripts/HWJ/Prefabs/Generated/RuntimeReady/Enemies/"
+                f"HWJ_Runtime_Enemy_{kind}_{weapon}.prefab"
+            )
+            if prefab_path not in paths:
+                raise RuntimeError(f"{weapon} {kind} 몬스터 프리팹 누락")
 
 
 def main() -> None:

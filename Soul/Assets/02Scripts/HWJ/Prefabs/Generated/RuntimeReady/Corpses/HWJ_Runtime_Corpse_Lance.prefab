@@ -74,6 +74,7 @@ GameObject:
   - component: {fileID: 2711063188671770220}
   - component: {fileID: 5340788038568828886}
   - component: {fileID: 8919134167647811615}
+  - component: {fileID: 8922392100332234660}
   m_Layer: 0
   m_Name: HWJ_Runtime_Corpse_Lance
   m_TagString: Untagged
@@ -437,6 +438,25 @@ MonoBehaviour:
   isRemovedAfterPossession: 0
   wasAliveWhenPossessed: 0
   restoreObjectOnPossessionExit: 0
+--- !u!114 &8922392100332234660
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1226580960962396733}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9be1035620d845f0bc3b6c10263b2bbc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::hys_MonsterAnimatorLifecycle
+  animator: {fileID: 8448660689508970426}
+  runtimeStatus: {fileID: 5940049958928825952}
+  body: {fileID: 2530240399752784968}
+  baseLayerIndex: 0
+  patternReturnNormalizedTime: 0.98
+  patternReturnTransitionSeconds: 0.05
+  deathFreezeNormalizedTime: 0.995
 --- !u!1 &2312640453364408949
 GameObject:
   m_ObjectHideFlags: 0
@@ -679,6 +699,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7640449710497052329, guid: 3d378a8fa18ee9f40bdb6bcc533fe53e, type: 3}
+      propertyPath: m_Controller
+      value: 
+      objectReference: {fileID: 9100000, guid: 8f080680b3f54cf78bea21fc623a092a, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

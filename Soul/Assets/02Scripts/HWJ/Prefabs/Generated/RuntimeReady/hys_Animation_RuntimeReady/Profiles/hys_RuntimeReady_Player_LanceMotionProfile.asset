@@ -1,0 +1,146 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9439ef0c4074fcd978157833a6dcd67, type: 3}
+  m_Name: hys_RuntimeReady_Player_LanceMotionProfile
+  m_EditorClassIdentifier: HWJ.Runtime::HWJ_MotionProfileSO
+  weaponType: 4
+  animatorController: {fileID: 9100000, guid: 6666e53a3312adb4ab9ba3080393ec78, type: 2}
+  defaultAttackMotionKey: Lance_ChargeThrust
+  motions:
+  - motionKey: Lance_ChargeThrust
+    animatorTriggerName: 
+    animatorStateName: hys_Lance_Attack1
+    layerIndex: 0
+    transitionSeconds: 0.03
+    useTrigger: 0
+    useCrossFade: 1
+    resetTriggerBeforeSet: 1
+  - motionKey: Lance_ThrustCombo1
+    animatorTriggerName: 
+    animatorStateName: hys_Lance_Attack1
+    layerIndex: 0
+    transitionSeconds: 0.03
+    useTrigger: 0
+    useCrossFade: 1
+    resetTriggerBeforeSet: 1
+  - motionKey: Lance_ThrustCombo2
+    animatorTriggerName: 
+    animatorStateName: hys_Lance_Attack2
+    layerIndex: 0
+    transitionSeconds: 0.03
+    useTrigger: 0
+    useCrossFade: 1
+    resetTriggerBeforeSet: 1
+  - motionKey: Lance_ThrustCombo3
+    animatorTriggerName: 
+    animatorStateName: hys_Lance_Attack1
+    layerIndex: 0
+    transitionSeconds: 0.03
+    useTrigger: 0
+    useCrossFade: 1
+    resetTriggerBeforeSet: 1
+  - motionKey: Lance_ThrustCombo4
+    animatorTriggerName: 
+    animatorStateName: hys_Lance_Attack2
+    layerIndex: 0
+    transitionSeconds: 0.03
+    useTrigger: 0
+    useCrossFade: 1
+    resetTriggerBeforeSet: 1
+  - motionKey: Lance_FinisherThrust
+    animatorTriggerName: 
+    animatorStateName: hys_Lance_Attack2
+    layerIndex: 0
+    transitionSeconds: 0.03
+    useTrigger: 0
+    useCrossFade: 1
+    resetTriggerBeforeSet: 1
+  - motionKey: PlayerSkill_Lance_PiercingDrive
+    animatorTriggerName: PlayerSkill_Lance_PiercingDrive
+    animatorStateName: 
+    layerIndex: 0
+    transitionSeconds: 0.03
+    useTrigger: 1
+    useCrossFade: 0
+    resetTriggerBeforeSet: 1
+  - motionKey: PlayerSkill_Lance_RapidStinger
+    animatorTriggerName: PlayerSkill_Lance_RapidStinger
+    animatorStateName: 
+    layerIndex: 0
+    transitionSeconds: 0.03
+    useTrigger: 1
+    useCrossFade: 0
+    resetTriggerBeforeSet: 1
+  - motionKey: PlayerSkill_Lance_RisingSpear
+    animatorTriggerName: PlayerSkill_Lance_RisingSpear
+    animatorStateName: 
+    layerIndex: 0
+    transitionSeconds: 0.03
+    useTrigger: 1
+    useCrossFade: 0
+    resetTriggerBeforeSet: 1
+  - motionKey: PlayerSkill_Lance_BurstLance
+    animatorTriggerName: PlayerSkill_Lance_BurstLance
+    animatorStateName: 
+    layerIndex: 0
+    transitionSeconds: 0.03
+    useTrigger: 1
+    useCrossFade: 0
+    resetTriggerBeforeSet: 1
+  - motionKey: Jump
+    animatorTriggerName: 
+    animatorStateName: hys_Lance_Jump_Start
+    layerIndex: 0
+    transitionSeconds: 0.03
+    useTrigger: 0
+    useCrossFade: 1
+    resetTriggerBeforeSet: 1
+  - motionKey: DoubleJump
+    animatorTriggerName: 
+    animatorStateName: hys_Lance_Jump_Start
+    layerIndex: 0
+    transitionSeconds: 0.03
+    useTrigger: 0
+    useCrossFade: 1
+    resetTriggerBeforeSet: 1
+  - motionKey: DropJump
+    animatorTriggerName: 
+    animatorStateName: hys_Lance_Jump_Fall
+    layerIndex: 0
+    transitionSeconds: 0.03
+    useTrigger: 0
+    useCrossFade: 1
+    resetTriggerBeforeSet: 1
+  - motionKey: Dash
+    animatorTriggerName: 
+    animatorStateName: hys_Lance_Dash
+    layerIndex: 0
+    transitionSeconds: 0.03
+    useTrigger: 0
+    useCrossFade: 1
+    resetTriggerBeforeSet: 1
+  - motionKey: Hit
+    animatorTriggerName: 
+    animatorStateName: hys_Lance_Hit
+    layerIndex: 0
+    transitionSeconds: 0.03
+    useTrigger: 0
+    useCrossFade: 1
+    resetTriggerBeforeSet: 1
+  - motionKey: Dead
+    animatorTriggerName: 
+    animatorStateName: hys_Lance_Die
+    layerIndex: 0
+    transitionSeconds: 0.03
+    useTrigger: 0
+    useCrossFade: 1
+    resetTriggerBeforeSet: 1

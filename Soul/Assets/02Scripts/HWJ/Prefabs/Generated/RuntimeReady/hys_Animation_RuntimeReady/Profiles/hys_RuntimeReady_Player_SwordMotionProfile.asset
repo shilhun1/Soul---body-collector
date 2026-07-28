@@ -1,0 +1,122 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9439ef0c4074fcd978157833a6dcd67, type: 3}
+  m_Name: hys_RuntimeReady_Player_SwordMotionProfile
+  m_EditorClassIdentifier: HWJ.Runtime::HWJ_MotionProfileSO
+  weaponType: 3
+  animatorController: {fileID: 9100000, guid: 7bf1f3b7ee0d44e3a8ad40716fdf3e12, type: 2}
+  defaultAttackMotionKey: Sword_DiagonalSlash
+  motions:
+  - motionKey: Sword_DiagonalSlash
+    animatorTriggerName: 
+    animatorStateName: hys_Sword_Attack1
+    layerIndex: 0
+    transitionSeconds: 0.03
+    useTrigger: 0
+    useCrossFade: 1
+    resetTriggerBeforeSet: 1
+  - motionKey: Sword_UpDiagonalSlash
+    animatorTriggerName: 
+    animatorStateName: hys_Sword_Attack2
+    layerIndex: 0
+    transitionSeconds: 0.03
+    useTrigger: 0
+    useCrossFade: 1
+    resetTriggerBeforeSet: 1
+  - motionKey: Sword_SwordWave
+    animatorTriggerName: 
+    animatorStateName: hys_Sword_Attack2
+    layerIndex: 0
+    transitionSeconds: 0.03
+    useTrigger: 0
+    useCrossFade: 1
+    resetTriggerBeforeSet: 1
+  - motionKey: PlayerSkill_Sword_ReapSlash
+    animatorTriggerName: PlayerSkill_Sword_ReapSlash
+    animatorStateName: 
+    layerIndex: 0
+    transitionSeconds: 0.03
+    useTrigger: 1
+    useCrossFade: 0
+    resetTriggerBeforeSet: 1
+  - motionKey: PlayerSkill_Sword_DashSlash
+    animatorTriggerName: PlayerSkill_Sword_DashSlash
+    animatorStateName: 
+    layerIndex: 0
+    transitionSeconds: 0.03
+    useTrigger: 1
+    useCrossFade: 0
+    resetTriggerBeforeSet: 1
+  - motionKey: PlayerSkill_Sword_ForceSlash
+    animatorTriggerName: PlayerSkill_Sword_ForceSlash
+    animatorStateName: 
+    layerIndex: 0
+    transitionSeconds: 0.03
+    useTrigger: 1
+    useCrossFade: 0
+    resetTriggerBeforeSet: 1
+  - motionKey: PlayerSkill_Sword_FinalSlash
+    animatorTriggerName: PlayerSkill_Sword_FinalSlash
+    animatorStateName: 
+    layerIndex: 0
+    transitionSeconds: 0.03
+    useTrigger: 1
+    useCrossFade: 0
+    resetTriggerBeforeSet: 1
+  - motionKey: Jump
+    animatorTriggerName: 
+    animatorStateName: hys_Sword_Jump_Start
+    layerIndex: 0
+    transitionSeconds: 0.03
+    useTrigger: 0
+    useCrossFade: 1
+    resetTriggerBeforeSet: 1
+  - motionKey: DoubleJump
+    animatorTriggerName: 
+    animatorStateName: hys_Sword_Jump_Start
+    layerIndex: 0
+    transitionSeconds: 0.03
+    useTrigger: 0
+    useCrossFade: 1
+    resetTriggerBeforeSet: 1
+  - motionKey: DropJump
+    animatorTriggerName: 
+    animatorStateName: hys_Sword_Jump_Fall
+    layerIndex: 0
+    transitionSeconds: 0.03
+    useTrigger: 0
+    useCrossFade: 1
+    resetTriggerBeforeSet: 1
+  - motionKey: Dash
+    animatorTriggerName: 
+    animatorStateName: hys_Sword_Dash
+    layerIndex: 0
+    transitionSeconds: 0.03
+    useTrigger: 0
+    useCrossFade: 1
+    resetTriggerBeforeSet: 1
+  - motionKey: Hit
+    animatorTriggerName: 
+    animatorStateName: hys_Sword_Hit
+    layerIndex: 0
+    transitionSeconds: 0.03
+    useTrigger: 0
+    useCrossFade: 1
+    resetTriggerBeforeSet: 1
+  - motionKey: Dead
+    animatorTriggerName: 
+    animatorStateName: hys_Sword_Die
+    layerIndex: 0
+    transitionSeconds: 0.03
+    useTrigger: 0
+    useCrossFade: 1
+    resetTriggerBeforeSet: 1

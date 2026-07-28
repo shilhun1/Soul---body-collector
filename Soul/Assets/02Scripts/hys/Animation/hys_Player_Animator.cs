@@ -181,6 +181,14 @@ public class hys_Player_Animator : MonoBehaviour
     private void Awake()
     {
         CacheReferences();
+
+        // Animator가 자식 오브젝트에 있는 RuntimeReady 프리팹에서도 이벤트 수신기가 같은 위치에 붙게 합니다.
+        GameObject effectHost = animator != null ? animator.gameObject : gameObject;
+        if (effectHost.GetComponent<hys_PlayerSkillEffectPlayer>() == null)
+        {
+            effectHost.AddComponent<hys_PlayerSkillEffectPlayer>();
+        }
+
         CacheParameterHashes();
         ResetJumpVersion();
         ResetDashVersion();
