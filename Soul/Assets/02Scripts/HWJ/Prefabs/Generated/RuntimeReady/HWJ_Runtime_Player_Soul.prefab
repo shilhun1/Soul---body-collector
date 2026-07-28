@@ -802,10 +802,10 @@ MonoBehaviour:
   switchControllerInSoulState: 1
   bodyAnimatorController: {fileID: 9100000, guid: 7bf1f3b7ee0d44e3a8ad40716fdf3e12, type: 2}
   swordAnimatorController: {fileID: 9100000, guid: 7bf1f3b7ee0d44e3a8ad40716fdf3e12, type: 2}
-  axeAnimatorController: {fileID: 9100000, guid: 1ca0d71c50c0dc746b9b1c487e8b6ccf, type: 2}
-  bowAnimatorController: {fileID: 9100000, guid: d4eae6f8cb6f70b42bf556768b799113, type: 2}
-  lanceAnimatorController: {fileID: 9100000, guid: 6666e53a3312adb4ab9ba3080393ec78, type: 2}
-  shieldAnimatorController: {fileID: 9100000, guid: c5d0d32da5328a64eb514f96141b96bb, type: 2}
+  axeAnimatorController: {fileID: 9100000, guid: 599415dea68801044be68024d36be975, type: 2}
+  bowAnimatorController: {fileID: 9100000, guid: d9deadc807dd1574fb3e8cd9489f9fdc, type: 2}
+  lanceAnimatorController: {fileID: 9100000, guid: aad5f0980164ee94aabe8a56759e5264, type: 2}
+  shieldAnimatorController: {fileID: 9100000, guid: 89bd85230e046244dbfa5dbec3f779a7, type: 2}
   ghostAnimatorController: {fileID: 9100000, guid: c6f2487dc9f49504eb0a822be80f2686, type: 2}
   switchGhostControllerOnBodyToSoul: 1
   ghostPossessionStateName: Possession

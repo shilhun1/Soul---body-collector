@@ -806,6 +806,14 @@ MonoBehaviour:
   inactiveDuration: 2.4
   damageCooldown: 1
   knockbackPower: 18
+  detectPlayer: 0
+  detectionDistance: 4
+  detectDirection: {x: 0, y: 1}
+  animator: {fileID: 0}
+  attackTriggerName: Attack
+  activeBoolName: IsActive
+  steamCollider: {fileID: 0}
+  activeOffset: {x: 0, y: 1.5}
   steamParticles: {fileID: 0}
 --- !u!61 &250148013
 BoxCollider2D:
@@ -1716,8 +1724,12 @@ MonoBehaviour:
   damage: 18
   detectionDistance: 3
   delayTime: 0.7
-  protrudeHeight: 0.9
   activeDuration: 1.2
+  coolTime: 0.5
+  animator: {fileID: 0}
+  attackTriggerName: Attack
+  damageCollider: {fileID: 0}
+  activeOffset: {x: 0, y: 1}
 --- !u!61 &492575965
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -3379,11 +3391,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 840020000000000002, guid: eb5580d3385f43608f7941765218d007, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 40
+      value: 43.48
       objectReference: {fileID: 0}
     - target: {fileID: 840020000000000002, guid: eb5580d3385f43608f7941765218d007, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -1.85
+      value: 0.58
       objectReference: {fileID: 0}
     - target: {fileID: 840020000000000002, guid: eb5580d3385f43608f7941765218d007, type: 3}
       propertyPath: m_LocalPosition.z
@@ -4275,12 +4287,14 @@ MonoBehaviour:
   obstacleId: demo.body_obstacle.sword_body
   requirementMode: 2
   allowedWeaponTypes: 03000000
+  allowedAbilityTags: 
   allowedBodyObjectIds: []
   requiredBodyObjectType: 1
   openWhenRequirementMet: 1
   updateContinuously: 1
   requirePlayerTag: 1
   openByWeaponSkillHit: 0
+  requireWeaponSkillHitToOpen: 0
   stayOpenAfterWeaponSkillHit: 1
   consumeProjectileOnWeaponHit: 1
   requiredHitWeaponType: 0
@@ -4805,12 +4819,14 @@ MonoBehaviour:
   obstacleId: demo.body_obstacle.soul_only
   requirementMode: 0
   allowedWeaponTypes: 
+  allowedAbilityTags: 
   allowedBodyObjectIds: []
   requiredBodyObjectType: 1
   openWhenRequirementMet: 1
   updateContinuously: 1
   requirePlayerTag: 1
   openByWeaponSkillHit: 0
+  requireWeaponSkillHitToOpen: 0
   stayOpenAfterWeaponSkillHit: 1
   consumeProjectileOnWeaponHit: 1
   requiredHitWeaponType: 0
@@ -5026,6 +5042,14 @@ MonoBehaviour:
   inactiveDuration: 2.4
   damageCooldown: 1
   knockbackPower: 18
+  detectPlayer: 0
+  detectionDistance: 4
+  detectDirection: {x: 0, y: 1}
+  animator: {fileID: 0}
+  attackTriggerName: Attack
+  activeBoolName: IsActive
+  steamCollider: {fileID: 0}
+  activeOffset: {x: 0, y: 1.5}
   steamParticles: {fileID: 0}
 --- !u!61 &1508073321
 BoxCollider2D:
@@ -5427,8 +5451,12 @@ MonoBehaviour:
   damage: 20
   detectionDistance: 3
   delayTime: 0.7
-  protrudeHeight: 0.9
   activeDuration: 1.2
+  coolTime: 0.5
+  animator: {fileID: 0}
+  attackTriggerName: Attack
+  damageCollider: {fileID: 0}
+  activeOffset: {x: 0, y: 1}
 --- !u!61 &1544730629
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -7064,7 +7092,7 @@ SpriteRenderer:
   m_Size: {x: 0.23, y: 0.21}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 1
+  m_WasSpriteAssigned: 0
   m_SpriteSortPoint: 0
 --- !u!1 &1823436018
 GameObject:
@@ -8509,10 +8537,13 @@ MonoBehaviour:
   isGrounded: 0
   groundLayer:
     serializedVersion: 2
-    m_Bits: 64
+    m_Bits: 0
   groundCheckOffset: {x: 0, y: -0.55}
   groundCheckSize: {x: 0.7, y: 0.12}
   phaseThroughCollidersInSoul: 1
+  swapLayerInSoulState: 1
+  soulLayerName: Soul
+  bodyLayerName: Player
   isSoulCollisionMode: 0
   ignoreEnemyBodyCollision: 1
   enemyCollisionRefreshSeconds: 0.25
