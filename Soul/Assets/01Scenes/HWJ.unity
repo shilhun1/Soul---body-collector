@@ -520,7 +520,7 @@ Transform:
   m_GameObject: {fileID: 190039054}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -5, y: -1.5, z: -10}
+  m_LocalPosition: {x: -10.25, y: -1.65, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -3383,7 +3383,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 840020000000000002, guid: eb5580d3385f43608f7941765218d007, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -1.85
+      value: -1.67
       objectReference: {fileID: 0}
     - target: {fileID: 840020000000000002, guid: eb5580d3385f43608f7941765218d007, type: 3}
       propertyPath: m_LocalPosition.z
@@ -3480,10 +3480,14 @@ PrefabInstance:
     - target: {fileID: 840020000000000014, guid: eb5580d3385f43608f7941765218d007, type: 3}
       propertyPath: m_Sprite
       value: 
-      objectReference: {fileID: 21300000, guid: d272ea7ed0206004e9cf9feb3bd19689, type: 3}
+      objectReference: {fileID: 0}
     - target: {fileID: 840020000000000014, guid: eb5580d3385f43608f7941765218d007, type: 3}
       propertyPath: m_WasSpriteAssigned
-      value: 1
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5114194407865569662, guid: eb5580d3385f43608f7941765218d007, type: 3}
+      propertyPath: introDialogue
+      value: "\uC654\uAD70."
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -3780,6 +3784,15 @@ MonoBehaviour:
   requireInteractInput: 1
   spiritMentalCost: 5
   requirePlayerTag: 1
+  allowWeaponSkillHitActivation: 0
+  requirePossessedPlayerHit: 1
+  requiredHitWeaponType: 0
+  requiredHitSkillActionType: 0
+  requiredHitSkillActionId: 
+  consumeProjectileOnWeaponHit: 1
+  requiredHitCount: 1
+  hitComboWindowSeconds: 1.5
+  resetHitCountWhenWindowExpires: 1
   activateTargets: []
   deactivateTargets:
   - {fileID: 1800661346}
@@ -3792,6 +3805,7 @@ MonoBehaviour:
   activateTriggerParameter: Activate
   isActivated: 0
   playerInside: 0
+  currentWeaponHitCount: 0
   lastSwitchResult: 
 --- !u!61 &1052494082
 BoxCollider2D:
@@ -4270,6 +4284,17 @@ MonoBehaviour:
   openWhenRequirementMet: 1
   updateContinuously: 1
   requirePlayerTag: 1
+  openByWeaponSkillHit: 0
+  stayOpenAfterWeaponSkillHit: 1
+  consumeProjectileOnWeaponHit: 1
+  requiredHitWeaponType: 0
+  requiredHitSkillActionType: 0
+  requiredHitSkillActionId: 
+  requirePossessedPlayerHit: 1
+  damagePlayerWhenBlocked: 0
+  blockedDamageAmount: 10
+  blockedDamageIntervalSeconds: 0.5
+  damageOnlyPossessedBody: 1
   obstacleColliders:
   - {fileID: 1294144467}
   hideWhenOpen:
@@ -4277,6 +4302,7 @@ MonoBehaviour:
   showWhenOpen: []
   isOpen: 0
   playerInside: 0
+  openedByWeaponHit: 0
   lastObstacleResult: 
 --- !u!1 &1294144465
 GameObject:
@@ -4788,6 +4814,17 @@ MonoBehaviour:
   openWhenRequirementMet: 1
   updateContinuously: 1
   requirePlayerTag: 1
+  openByWeaponSkillHit: 0
+  stayOpenAfterWeaponSkillHit: 1
+  consumeProjectileOnWeaponHit: 1
+  requiredHitWeaponType: 0
+  requiredHitSkillActionType: 0
+  requiredHitSkillActionId: 
+  requirePossessedPlayerHit: 1
+  damagePlayerWhenBlocked: 0
+  blockedDamageAmount: 10
+  blockedDamageIntervalSeconds: 0.5
+  damageOnlyPossessedBody: 1
   obstacleColliders:
   - {fileID: 197983477}
   hideWhenOpen:
@@ -4795,6 +4832,7 @@ MonoBehaviour:
   showWhenOpen: []
   isOpen: 0
   playerInside: 0
+  openedByWeaponHit: 0
   lastObstacleResult: 
 --- !u!1 &1443872505
 GameObject:
@@ -5483,7 +5521,7 @@ Transform:
   m_GameObject: {fileID: 1555970091}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -18, y: -1.65, z: 0}
+  m_LocalPosition: {x: 29.01, y: -1.65, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -5652,6 +5690,8 @@ MonoBehaviour:
   useSceneTransitionTargetSpawnPoint: 1
   placeOnStart: 1
   registerToGameManager: 1
+  preferPersistentPlayerDuringSceneTransition: 1
+  destroySceneFallbackPlayersDuringSceneTransition: 1
   lastPlacementResult: 
 --- !u!4 &1615746692
 Transform:
@@ -5757,7 +5797,7 @@ Transform:
   m_GameObject: {fileID: 1618481795}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -18, y: -1.65, z: -10}
+  m_LocalPosition: {x: -10.25, y: -1.65, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -6437,6 +6477,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: HWJ.Runtime::HWJ_PossessionBodyState
   isConsumed: 0
   isReleasedAfterPossession: 0
+  isRemovedAfterPossession: 0
   wasAliveWhenPossessed: 0
   restoreObjectOnPossessionExit: 0
 --- !u!114 &1796562542
@@ -6960,7 +7001,7 @@ Transform:
   m_GameObject: {fileID: 1808484022}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 18, y: 1.65, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -7066,7 +7107,6 @@ MonoBehaviour:
   playerStatOrbProgress: {fileID: 0}
   playerSoul: {fileID: 2087133896}
   playerBodyDecay: {fileID: 2087133895}
-  playerBodyOverload: {fileID: 0}
   playerPossession: {fileID: 2087133894}
   autoFindPlayerResolverInScene: 1
   autoAddMissingPlayerCoreSystems: 1
@@ -8582,8 +8622,6 @@ MonoBehaviour:
   soulSystem: {fileID: 2087133896}
   possessionSystem: {fileID: 0}
   possessedBodySystem: {fileID: 0}
-  runtimeStatus: {fileID: 0}
-  collapseSystem: {fileID: 0}
   currentDecayValue: 0
   resetDecayWhenEnterBody: 1
   isDecaying: 0
@@ -8727,7 +8765,7 @@ Transform:
   m_GameObject: {fileID: 2087133885}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -18, y: -1.65, z: 0}
+  m_LocalPosition: {x: -10.25, y: -1.65, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -9153,6 +9191,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: HWJ.Runtime::HWJ_PossessionBodyState
   isConsumed: 0
   isReleasedAfterPossession: 0
+  isRemovedAfterPossession: 0
   wasAliveWhenPossessed: 0
   restoreObjectOnPossessionExit: 0
 --- !u!114 &2145742661

@@ -1,0 +1,361 @@
+{
+  "schemaVersion": 1,
+  "auditGeneratedAt": "2026-07-29T23:18:03+09:00",
+  "projectRoot": "C:/GitHub/Soul---body-collector/Soul",
+  "sourceFolder": "Assets/02Scripts/HWJ/Art/Boss",
+  "constraints": {
+    "originalFilesModified": false,
+    "spritesExtracted": false,
+    "animationClipsCreated": false,
+    "animatorControllersModified": false,
+    "reportFilesOnly": true
+  },
+  "classificationDefinitions": {
+    "GAME_READY_SEQUENCE": "Transparent individual frame sequence ready for direct use.",
+    "GAME_READY_SHEET": "Transparent, regular sprite sheet without labels, numbers, or grid overlays.",
+    "CLEANABLE_REFERENCE_SHEET": "Reference sheet that can be cleaned because characters are separable from its opaque background and annotations.",
+    "REFERENCE_ONLY_REJECTED": "Unsafe to use as boss game data without replacement or explicit source confirmation."
+  },
+  "summary": {
+    "scannedImageCount": 8,
+    "gameReadySequenceCount": 0,
+    "gameReadySheetCount": 0,
+    "cleanableReferenceSheetCount": 7,
+    "referenceOnlyRejectedCount": 1,
+    "safeAutomaticSeparationCandidateCount": 4,
+    "conditionalManualReviewCount": 3,
+    "allImagesHaveAlphaChannel": false,
+    "allImagesAreCurrentlyGameReady": false
+  },
+  "existingBossSpriteReference": {
+    "runtimePrefab": "Assets/02Scripts/HWJ/Prefabs/Generated/Bosses/HWJ_MidBoss1_Runtime_Prefab.prefab",
+    "referencedSpriteGuid": "fa57d6926be293d4aa1331f481472c51",
+    "spriteGuidResolvedInAssets": false,
+    "dataModelPrefab": "Assets/02Scripts/HWJ/Prefabs/Generated/Models/HWJ_Model_MidBoss1_Placeholder.prefab",
+    "dataModelPrefabHasSprite": false,
+    "authoritativePixelsPerUnit": null,
+    "authoritativeImporterPivot": null,
+    "sourceImageImporterState": {
+      "textureType": "Default",
+      "spriteMode": "Single",
+      "filterMode": "Bilinear",
+      "pixelsPerUnit": 100,
+      "alignment": "Center",
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaIsTransparency": false,
+      "isAuthoritativeBossSpriteSetting": false
+    },
+    "deferredFallbackRecommendation": {
+      "applied": false,
+      "pixelsPerUnit": 32,
+      "pivotPreset": "Bottom Center",
+      "pivot": {
+        "x": 0.5,
+        "y": 0.0
+      },
+      "filterMode": "Point",
+      "compression": "None",
+      "mipMaps": false,
+      "alphaIsTransparency": true
+    },
+    "finding": "The existing boss sprite importer cannot be inspected because the referenced sprite GUID has no matching .meta file in the current Assets tree."
+  },
+  "images": [
+    {
+      "fileName": "boss2_patten.png",
+      "path": "Assets/02Scripts/HWJ/Art/Boss/boss2_patten.png",
+      "sha256": "2816e5180af0a173ef2b9f442f6ad7b3ddf4a1a4c6a28ceed25543d31a3a3feb",
+      "byteLength": 1934859,
+      "width": 1536,
+      "height": 1024,
+      "colorMode": "RGB",
+      "hasAlphaChannel": false,
+      "background": {
+        "kind": "opaque dark navy",
+        "dominantEdgeRgba": [8, 22, 27, 255],
+        "edgeLikePixelRatio": 0.78768,
+        "blackPixelRatio": 0.029641,
+        "darkPixelRatio": 0.829858
+      },
+      "hasTitle": true,
+      "titles": [
+        "패턴 5. 암영 연무 - 그림자 순간 연격",
+        "패턴 6. 흑뢰 낙인 - 보라색 번개 기둥",
+        "패턴 7. 마력 붕권 - 흑뢰 파동권",
+        "패턴 8. 마령 포박 - 영혼 구속",
+        "패턴 9. 종말의 마투 - 흑뢰 팔문 연격"
+      ],
+      "hasFrameNumbers": true,
+      "hasGridLines": true,
+      "declaredFrameCount": 70,
+      "declaredFrameSize": null,
+      "layout": "5 animation rows, 14 numbered cells per row",
+      "mappedAnimations": [
+        "P2_ShadowCombo",
+        "P2_LightningCast",
+        "P2_DarkWave",
+        "P2_SoulBind",
+        "P2_Ultimate"
+      ],
+      "classification": "CLEANABLE_REFERENCE_SHEET",
+      "safeForAutomaticSeparation": false,
+      "requiresManualReview": true,
+      "reasons": [
+        "Each row has a regular numbered grid and one character per cell.",
+        "Five different animations share one source image.",
+        "Logical frame size is not declared."
+      ],
+      "nextRequiredAction": "Confirm each row crop and logical frame size before any generated extraction."
+    },
+    {
+      "fileName": "death.png",
+      "path": "Assets/02Scripts/HWJ/Art/Boss/death.png",
+      "sha256": "a6c92b20f0348f6252e9914d9ede786b8dce50176b5a15001873ab81cfcbf0bf",
+      "byteLength": 1296182,
+      "width": 1448,
+      "height": 1086,
+      "colorMode": "RGB",
+      "hasAlphaChannel": false,
+      "background": {
+        "kind": "opaque near-black",
+        "dominantEdgeRgba": [15, 15, 15, 255],
+        "edgeLikePixelRatio": 0.875813,
+        "blackPixelRatio": 0.030301,
+        "darkPixelRatio": 0.901178
+      },
+      "hasTitle": false,
+      "titles": [],
+      "hasFrameNumbers": true,
+      "hasGridLines": false,
+      "declaredFrameCount": null,
+      "observedFrameCount": 14,
+      "declaredFrameSize": null,
+      "layout": "5 columns by 3 rows; final row contains 4 observed frames",
+      "mappedAnimations": ["P2_Death"],
+      "classification": "CLEANABLE_REFERENCE_SHEET",
+      "safeForAutomaticSeparation": false,
+      "requiresManualReview": true,
+      "reasons": [
+        "A consistent single character and numbered death progression are visible.",
+        "No title, grid, or logical frame size defines authoritative cell bounds."
+      ],
+      "nextRequiredAction": "Manually confirm frame count, cell bounds, and logical frame size."
+    },
+    {
+      "fileName": "idle.png",
+      "path": "Assets/02Scripts/HWJ/Art/Boss/idle.png",
+      "sha256": "90150f2ccdab6740cf5b205f367e64a9845c7fcc0290c56a771f5d3fc8e50eec",
+      "byteLength": 834475,
+      "width": 1448,
+      "height": 1086,
+      "colorMode": "RGB",
+      "hasAlphaChannel": false,
+      "background": {
+        "kind": "opaque black outer area with dark sheet interior",
+        "dominantEdgeRgba": [0, 0, 0, 255],
+        "edgeLikePixelRatio": 0.550873,
+        "blackPixelRatio": 0.552045,
+        "darkPixelRatio": 0.640604
+      },
+      "hasTitle": true,
+      "titles": ["P1_Idle", "8 frames"],
+      "hasFrameNumbers": true,
+      "hasGridLines": true,
+      "declaredFrameCount": 8,
+      "declaredFrameSize": null,
+      "layout": "8 columns by 1 row",
+      "mappedAnimations": ["P1_Idle"],
+      "classification": "CLEANABLE_REFERENCE_SHEET",
+      "safeForAutomaticSeparation": false,
+      "requiresManualReview": true,
+      "reasons": [
+        "The numbered one-row grid is visually regular.",
+        "Logical frame size is not declared and the image contains a large black outer area."
+      ],
+      "nextRequiredAction": "Confirm the actual grid crop and logical frame size."
+    },
+    {
+      "fileName": "move.png",
+      "path": "Assets/02Scripts/HWJ/Art/Boss/move.png",
+      "sha256": "6f3a04b950165d9c654db1c92dcd2e6877361919bb3ad75878a34c86ecc7369d",
+      "byteLength": 1434951,
+      "width": 1536,
+      "height": 1024,
+      "colorMode": "RGB",
+      "hasAlphaChannel": false,
+      "background": {
+        "kind": "opaque dark navy-gray",
+        "dominantEdgeRgba": [23, 28, 35, 255],
+        "edgeLikePixelRatio": 0.850695,
+        "blackPixelRatio": 0.03095,
+        "darkPixelRatio": 0.051425
+      },
+      "hasTitle": true,
+      "titles": ["P1_Move (Sword Player)", "8 Frames | 64x64"],
+      "hasFrameNumbers": true,
+      "hasGridLines": true,
+      "declaredFrameCount": 8,
+      "declaredFrameSize": {
+        "width": 64,
+        "height": 64
+      },
+      "layout": "4 columns by 2 rows",
+      "mappedAnimations": [],
+      "classification": "REFERENCE_ONLY_REJECTED",
+      "safeForAutomaticSeparation": false,
+      "requiresManualReview": true,
+      "reasons": [
+        "The source title explicitly identifies the entity as Sword Player, not Boss.",
+        "Visual similarity is not sufficient evidence to attach player frames to a boss."
+      ],
+      "nextRequiredAction": "Obtain explicit source confirmation or replace it with a boss-specific Move source."
+    },
+    {
+      "fileName": "patten_1.png",
+      "path": "Assets/02Scripts/HWJ/Art/Boss/patten_1.png",
+      "sha256": "be054ae2a99f7214c647e5eddcc13c2edaeb2fcabdcf7afc082f112b2d4b32c4",
+      "byteLength": 1423130,
+      "width": 1857,
+      "height": 847,
+      "colorMode": "RGB",
+      "hasAlphaChannel": false,
+      "background": {
+        "kind": "opaque dark navy",
+        "dominantEdgeRgba": [9, 14, 18, 255],
+        "edgeLikePixelRatio": 0.831971,
+        "blackPixelRatio": 0.038189,
+        "darkPixelRatio": 0.865156
+      },
+      "hasTitle": true,
+      "titles": ["P1_Attack_Combo (Boss)", "14 Frames | 64x64"],
+      "hasFrameNumbers": true,
+      "hasGridLines": true,
+      "declaredFrameCount": 14,
+      "declaredFrameSize": {
+        "width": 64,
+        "height": 64
+      },
+      "layout": "7 columns by 2 rows",
+      "mappedAnimations": ["P1_Attack_Combo"],
+      "classification": "CLEANABLE_REFERENCE_SHEET",
+      "safeForAutomaticSeparation": true,
+      "requiresManualReview": false,
+      "reasons": [
+        "The title identifies Boss, frame count and logical size are declared, and the grid is regular.",
+        "Labels, numbers, and grid do not visibly overlap the character cells."
+      ],
+      "nextRequiredAction": "Await approval; later extract only into a separate generated path."
+    },
+    {
+      "fileName": "patten_2.png",
+      "path": "Assets/02Scripts/HWJ/Art/Boss/patten_2.png",
+      "sha256": "3b0f77ef7ae41d4beee6b049bab9eb5e821a82319c8992c6f0e31d3853dd8975",
+      "byteLength": 1681785,
+      "width": 1672,
+      "height": 941,
+      "colorMode": "RGB",
+      "hasAlphaChannel": false,
+      "background": {
+        "kind": "opaque dark navy-gray",
+        "dominantEdgeRgba": [21, 26, 33, 255],
+        "edgeLikePixelRatio": 0.8441,
+        "blackPixelRatio": 0.02339,
+        "darkPixelRatio": 0.346021
+      },
+      "hasTitle": true,
+      "titles": ["P1_Attack_Charge (Boss)", "14 Frames | 64x64"],
+      "hasFrameNumbers": true,
+      "hasGridLines": true,
+      "declaredFrameCount": 14,
+      "declaredFrameSize": {
+        "width": 64,
+        "height": 64
+      },
+      "layout": "7 columns by 2 rows",
+      "mappedAnimations": ["P1_Attack_Charge"],
+      "classification": "CLEANABLE_REFERENCE_SHEET",
+      "safeForAutomaticSeparation": true,
+      "requiresManualReview": false,
+      "reasons": [
+        "The title identifies Boss, frame count and logical size are declared, and the grid is regular.",
+        "Labels, numbers, and grid do not visibly overlap the character cells."
+      ],
+      "nextRequiredAction": "Await approval; later extract only into a separate generated path."
+    },
+    {
+      "fileName": "patten_3.png",
+      "path": "Assets/02Scripts/HWJ/Art/Boss/patten_3.png",
+      "sha256": "0588b97c444fd310adae4a35005f788774a7250ae50074fae2b17ca6d25ce2b5",
+      "byteLength": 1399173,
+      "width": 1448,
+      "height": 1086,
+      "colorMode": "RGB",
+      "hasAlphaChannel": false,
+      "background": {
+        "kind": "opaque dark navy-gray",
+        "dominantEdgeRgba": [18, 27, 37, 255],
+        "edgeLikePixelRatio": 0.836029,
+        "blackPixelRatio": 0.021937,
+        "darkPixelRatio": 0.047779
+      },
+      "hasTitle": true,
+      "titles": ["P1_Attack_Uppercut (Boss)", "14 Frames | 64x64"],
+      "hasFrameNumbers": true,
+      "hasGridLines": true,
+      "declaredFrameCount": 14,
+      "declaredFrameSize": {
+        "width": 64,
+        "height": 64
+      },
+      "layout": "7 columns by 2 rows",
+      "mappedAnimations": ["P1_Attack_Uppercut"],
+      "classification": "CLEANABLE_REFERENCE_SHEET",
+      "safeForAutomaticSeparation": true,
+      "requiresManualReview": false,
+      "reasons": [
+        "The title identifies Boss, frame count and logical size are declared, and the grid is regular.",
+        "Labels, numbers, and grid do not visibly overlap the character cells."
+      ],
+      "nextRequiredAction": "Await approval; later extract only into a separate generated path."
+    },
+    {
+      "fileName": "patten_4.png",
+      "path": "Assets/02Scripts/HWJ/Art/Boss/patten_4.png",
+      "sha256": "73b8d8fb54d96a91a20c8b234864aef2bc4206f15fefd74decfe5295a83bc0e6",
+      "byteLength": 1670801,
+      "width": 1448,
+      "height": 1086,
+      "colorMode": "RGB",
+      "hasAlphaChannel": false,
+      "background": {
+        "kind": "opaque dark navy",
+        "dominantEdgeRgba": [15, 22, 31, 255],
+        "edgeLikePixelRatio": 0.853245,
+        "blackPixelRatio": 0.021815,
+        "darkPixelRatio": 0.841242
+      },
+      "hasTitle": true,
+      "titles": ["P1_Attack_GroundSlam (Boss)", "14 Frames | 64x64"],
+      "hasFrameNumbers": true,
+      "hasGridLines": true,
+      "declaredFrameCount": 14,
+      "declaredFrameSize": {
+        "width": 64,
+        "height": 64
+      },
+      "layout": "5 columns by 3 rows; final row contains 4 frames",
+      "mappedAnimations": ["P1_Attack_GroundSlam"],
+      "classification": "CLEANABLE_REFERENCE_SHEET",
+      "safeForAutomaticSeparation": true,
+      "requiresManualReview": false,
+      "reasons": [
+        "The title identifies Boss, frame count and logical size are declared, and the grid is regular.",
+        "Labels, numbers, and grid do not visibly overlap the character cells."
+      ],
+      "nextRequiredAction": "Await approval; later extract only into a separate generated path."
+    }
+  ]
+}

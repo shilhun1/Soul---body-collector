@@ -146,7 +146,37 @@ public enum HWJ_BossFSMState
     Attack,
     PhaseTransition,
     Groggy,
+    Dead,
+    Recover,
+    Stagger
+}
+
+/// <summary>
+/// 격투가 보스의 두 줄 체력 흐름을 나타냅니다.
+/// Phase1 소진은 사망이 아니라 Transition으로 연결되고, Phase2 소진만 Dead가 됩니다.
+/// </summary>
+public enum HWJ_FighterBossPhase
+{
+    Phase1,
+    Transition,
+    Phase2,
     Dead
+}
+
+/// <summary>
+/// 격투가 보스의 전투 행동 상태입니다.
+/// 기존 HWJ_BossFSMState를 외부 UI와 디버그 도구가 읽기 쉬운 이름으로 노출할 때 사용합니다.
+/// </summary>
+public enum HWJ_FighterBossState
+{
+    Intro,
+    Idle,
+    Chase,
+    Attack,
+    Recover,
+    Stagger,
+    PhaseTransition,
+    Death
 }
 
 public enum HWJ_MonsterAIState

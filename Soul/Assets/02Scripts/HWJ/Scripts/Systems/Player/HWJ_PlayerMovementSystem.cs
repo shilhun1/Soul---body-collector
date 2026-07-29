@@ -56,6 +56,7 @@ public class HWJ_PlayerMovementSystem : MonoBehaviour
         new List<HWJ_TemporaryIgnoredCollider>();
 
     public bool IsGrounded => isGrounded;
+    public bool IsDashing => Time.time < dashEndTime;
 
     private void Awake()
     {

@@ -2,6 +2,7 @@
   <Project Path="HWJ.Editor.csproj" />
   <Project Path="HWJ.Runtime.csproj" />
   <Project Path="Assembly-CSharp.csproj" />
+  <Project Path="HWJ.FighterBossPlayModeTests.csproj" />
   <Project Path="HWJ.PlayModeTests.csproj" />
   <Project Path="Assembly-CSharp-Editor.csproj" />
 </Solution>
