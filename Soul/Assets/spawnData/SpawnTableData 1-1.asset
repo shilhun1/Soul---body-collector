@@ -18,7 +18,7 @@ MonoBehaviour:
     spawnPointId: enemy_1
     spawnPointType: 1
     rootObjectData: {fileID: 11400000, guid: cc000000000000000000000000000004, type: 2}
-    prefabOverride: {fileID: 3576862325422680928, guid: d5bf07532af8bbc45a0f20ef875ee17a, type: 3}
+    prefabOverride: {fileID: 3576862325422680928, guid: a59df2ced68ffef41899d729c2e94a7d, type: 3}
     spawnCount: 1
     spawnDelaySeconds: 0
     useSequentialSpawnWhenMultiple: 1
@@ -31,7 +31,7 @@ MonoBehaviour:
   - spawnId: enemy_2
     spawnPointId: enemy_2
     spawnPointType: 1
-    rootObjectData: {fileID: 11400000, guid: cc000000000000000000000000000004, type: 2}
+    rootObjectData: {fileID: 11400000, guid: cc000000000000000000000000000001, type: 2}
     prefabOverride: {fileID: 3576862325422680928, guid: d5bf07532af8bbc45a0f20ef875ee17a, type: 3}
     spawnCount: 1
     spawnDelaySeconds: 0
@@ -45,7 +45,7 @@ MonoBehaviour:
   - spawnId: enemy_3
     spawnPointId: enemy_3
     spawnPointType: 1
-    rootObjectData: {fileID: 11400000, guid: cc000000000000000000000000000004, type: 2}
+    rootObjectData: {fileID: 11400000, guid: cc000000000000000000000000000001, type: 2}
     prefabOverride: {fileID: 3576862325422680928, guid: d5bf07532af8bbc45a0f20ef875ee17a, type: 3}
     spawnCount: 1
     spawnDelaySeconds: 0
@@ -59,8 +59,8 @@ MonoBehaviour:
   - spawnId: enemy_4
     spawnPointId: enemy_4
     spawnPointType: 1
-    rootObjectData: {fileID: 11400000, guid: cc000000000000000000000000000004, type: 2}
-    prefabOverride: {fileID: 3576862325422680928, guid: d5bf07532af8bbc45a0f20ef875ee17a, type: 3}
+    rootObjectData: {fileID: 11400000, guid: cc000000000000000000000000000002, type: 2}
+    prefabOverride: {fileID: 3576862325422680928, guid: b5b460fd804c27741882ca7cb73f719c, type: 3}
     spawnCount: 1
     spawnDelaySeconds: 0
     useSequentialSpawnWhenMultiple: 1
@@ -73,8 +73,8 @@ MonoBehaviour:
   - spawnId: enemy_5
     spawnPointId: enemy_5
     spawnPointType: 1
-    rootObjectData: {fileID: 11400000, guid: cc000000000000000000000000000004, type: 2}
-    prefabOverride: {fileID: 3576862325422680928, guid: d5bf07532af8bbc45a0f20ef875ee17a, type: 3}
+    rootObjectData: {fileID: 11400000, guid: cc000000000000000000000000000003, type: 2}
+    prefabOverride: {fileID: 3576862325422680928, guid: f3be394d9fe9a654c972f7282987f973, type: 3}
     spawnCount: 1
     spawnDelaySeconds: 0
     useSequentialSpawnWhenMultiple: 1
@@ -87,7 +87,7 @@ MonoBehaviour:
   - spawnId: enemy_6
     spawnPointId: enemy_6
     spawnPointType: 1
-    rootObjectData: {fileID: 11400000, guid: cc000000000000000000000000000004, type: 2}
+    rootObjectData: {fileID: 11400000, guid: cc000000000000000000000000000001, type: 2}
     prefabOverride: {fileID: 3576862325422680928, guid: d5bf07532af8bbc45a0f20ef875ee17a, type: 3}
     spawnCount: 1
     spawnDelaySeconds: 0
@@ -102,7 +102,7 @@ MonoBehaviour:
     spawnPointId: enemy_7
     spawnPointType: 1
     rootObjectData: {fileID: 11400000, guid: cc000000000000000000000000000004, type: 2}
-    prefabOverride: {fileID: 3576862325422680928, guid: d5bf07532af8bbc45a0f20ef875ee17a, type: 3}
+    prefabOverride: {fileID: 3576862325422680928, guid: a59df2ced68ffef41899d729c2e94a7d, type: 3}
     spawnCount: 1
     spawnDelaySeconds: 0
     useSequentialSpawnWhenMultiple: 1
@@ -115,7 +115,7 @@ MonoBehaviour:
   - spawnId: enemy_8
     spawnPointId: enemy_8
     spawnPointType: 1
-    rootObjectData: {fileID: 11400000, guid: cc000000000000000000000000000004, type: 2}
+    rootObjectData: {fileID: 11400000, guid: cc000000000000000000000000000001, type: 2}
     prefabOverride: {fileID: 3576862325422680928, guid: d5bf07532af8bbc45a0f20ef875ee17a, type: 3}
     spawnCount: 1
     spawnDelaySeconds: 0
@@ -129,7 +129,7 @@ MonoBehaviour:
   - spawnId: enemy_9
     spawnPointId: enemy_9
     spawnPointType: 1
-    rootObjectData: {fileID: 11400000, guid: cc000000000000000000000000000004, type: 2}
+    rootObjectData: {fileID: 11400000, guid: cc000000000000000000000000000001, type: 2}
     prefabOverride: {fileID: 3576862325422680928, guid: d5bf07532af8bbc45a0f20ef875ee17a, type: 3}
     spawnCount: 1
     spawnDelaySeconds: 0
@@ -143,7 +143,7 @@ MonoBehaviour:
   - spawnId: enemy_10
     spawnPointId: enemy_10
     spawnPointType: 1
-    rootObjectData: {fileID: 11400000, guid: cc000000000000000000000000000004, type: 2}
+    rootObjectData: {fileID: 11400000, guid: cc000000000000000000000000000001, type: 2}
     prefabOverride: {fileID: 3576862325422680928, guid: d5bf07532af8bbc45a0f20ef875ee17a, type: 3}
     spawnCount: 1
     spawnDelaySeconds: 0

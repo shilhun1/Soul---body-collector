@@ -1478,10 +1478,13 @@ MonoBehaviour:
   isGrounded: 0
   groundLayer:
     serializedVersion: 2
-    m_Bits: 64
+    m_Bits: 0
   groundCheckOffset: {x: 0, y: -0.55}
   groundCheckSize: {x: 0.7, y: 0.12}
   phaseThroughCollidersInSoul: 1
+  swapLayerInSoulState: 1
+  soulLayerName: Soul
+  bodyLayerName: Player
   isSoulCollisionMode: 0
   ignoreEnemyBodyCollision: 1
   enemyCollisionRefreshSeconds: 0.25
@@ -1577,6 +1580,8 @@ MonoBehaviour:
   possessionRuleId: possession_can_start
   lastPossessionFailureCode: 0
   lastPossessionResult: 
+  lastLivePossessionRoll: 0
+  lastLivePossessionSuccessChance: 0
 --- !u!114 &1547393510
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1593,8 +1598,6 @@ MonoBehaviour:
   soulSystem: {fileID: 1547393511}
   possessionSystem: {fileID: 0}
   possessedBodySystem: {fileID: 0}
-  runtimeStatus: {fileID: 0}
-  collapseSystem: {fileID: 0}
   currentDecayValue: 0
   resetDecayWhenEnterBody: 1
   isDecaying: 0
@@ -2360,7 +2363,7 @@ SpriteRenderer:
   m_Size: {x: 0.23, y: 0.21}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 1
+  m_WasSpriteAssigned: 0
   m_SpriteSortPoint: 0
 --- !u!224 &1901072571 stripped
 RectTransform:
