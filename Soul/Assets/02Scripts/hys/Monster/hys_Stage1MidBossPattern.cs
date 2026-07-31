@@ -72,6 +72,7 @@ public class hys_Stage1MidBossPattern : MonoBehaviour
 
     [Header("Debug")]
     [SerializeField] private string lastPatternAction;
+    [SerializeField] private int currentPatternNumber;
 
     private readonly List<GameObject> spawnedHelpers = new List<GameObject>();
     private readonly List<Coroutine> delayedDamageRoutines = new List<Coroutine>();
@@ -85,6 +86,8 @@ public class hys_Stage1MidBossPattern : MonoBehaviour
     public bool IsPatternRunning => activeRoutine != null;
     public float PatternCooldownSeconds => patternCooldownSeconds;
     public string LastPatternAction => lastPatternAction;
+    // Animator 브리지가 현재 실행 중인 패턴 상태를 정확히 선택할 때 사용합니다. 6은 페이즈2 레이저입니다.
+    public int CurrentPatternNumber => currentPatternNumber;
 
     private void Awake()
     {
@@ -116,6 +119,7 @@ public class hys_Stage1MidBossPattern : MonoBehaviour
         }
 
         PreparePattern(target, roomCenter, roomSize, finishedCallback, null);
+        currentPatternNumber = patternNumber;
 
         switch (patternNumber)
         {
@@ -150,6 +154,7 @@ public class hys_Stage1MidBossPattern : MonoBehaviour
         }
 
         PreparePattern(target, roomCenter, roomSize, finishedCallback, groggyStartedCallback);
+        currentPatternNumber = 5;
         activeRoutine = StartCoroutine(Pattern5Routine());
         return true;
     }
@@ -162,6 +167,7 @@ public class hys_Stage1MidBossPattern : MonoBehaviour
         }
 
         PreparePattern(target, roomCenter, roomSize, finishedCallback, null);
+        currentPatternNumber = 6;
         activeRoutine = StartCoroutine(PhaseTwoLaserRoutine());
         return true;
     }
@@ -189,6 +195,7 @@ public class hys_Stage1MidBossPattern : MonoBehaviour
         currentTarget = null;
         onPatternFinished = null;
         onGroggyStarted = null;
+        currentPatternNumber = 0;
     }
 
     public void ResetForEncounter()
@@ -395,6 +402,7 @@ public class hys_Stage1MidBossPattern : MonoBehaviour
     private void FinishPattern()
     {
         activeRoutine = null;
+        currentPatternNumber = 0;
         delayedDamageRoutines.Clear();
         Action finishedCallback = onPatternFinished;
         onPatternFinished = null;

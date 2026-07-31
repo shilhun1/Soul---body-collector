@@ -41,6 +41,9 @@ public class hys_MonsterAnimatorLifecycle : MonoBehaviour
     private bool corpseFrozen;
     private float normalAnimatorSpeed = 1f;
     private RigidbodyConstraints2D normalBodyConstraints;
+    private Vector2 previousWorldPosition;
+    private Vector2 sampledWorldVelocity;
+    private bool hasPositionSnapshot;
 
     private void Awake()
     {
@@ -54,6 +57,7 @@ public class hys_MonsterAnimatorLifecycle : MonoBehaviour
         CacheReferences();
         ConfigureStateHashes();
         hasRuntimeStateSnapshot = false;
+        ResetPositionSampling();
 
         if (runtimeStatus == null || !runtimeStatus.IsDead)
         {
@@ -93,14 +97,21 @@ public class hys_MonsterAnimatorLifecycle : MonoBehaviour
     // 이동 속도와 피격 진입 순간만 전달해 같은 모션이 매 프레임 재시작되지 않게 합니다.
     private void UpdateLivingAnimatorParameters()
     {
+        SampleWorldVelocity();
+
         if (hasMoveSpeedParameter)
         {
-            float moveSpeed = body != null ? Mathf.Abs(body.linearVelocity.x) : 0f;
+            // AI가 Transform을 직접 옮길 때도 Walk 상태가 선택되도록 실제 위치 변화량을 함께 사용합니다.
+            float rigidbodySpeed = body != null ? Mathf.Abs(body.linearVelocity.x) : 0f;
+            float moveSpeed = Mathf.Max(rigidbodySpeed, Mathf.Abs(sampledWorldVelocity.x));
             animator.SetFloat(MoveSpeedHash, moveSpeed);
         }
 
-        // 실제 Rigidbody2D의 수직 속도만 전달하여 AI 이동·공격 로직에는 영향을 주지 않습니다.
-        float verticalSpeed = body != null ? body.linearVelocity.y : 0f;
+        // 점프도 Rigidbody 또는 실제 위치 변화 중 더 큰 값을 사용해 상승·최상단·낙하를 구분합니다.
+        float rigidbodyVerticalSpeed = body != null ? body.linearVelocity.y : 0f;
+        float verticalSpeed = Mathf.Abs(rigidbodyVerticalSpeed) >= Mathf.Abs(sampledWorldVelocity.y)
+            ? rigidbodyVerticalSpeed
+            : sampledWorldVelocity.y;
         if (hasVerticalSpeedParameter)
         {
             animator.SetFloat(VerticalSpeedHash, verticalSpeed);
@@ -126,6 +137,28 @@ public class hys_MonsterAnimatorLifecycle : MonoBehaviour
 
         previousRuntimeState = currentState;
         hasRuntimeStateSnapshot = true;
+    }
+
+    private void SampleWorldVelocity()
+    {
+        Vector2 currentPosition = transform.position;
+        if (!hasPositionSnapshot || Time.deltaTime <= Mathf.Epsilon)
+        {
+            previousWorldPosition = currentPosition;
+            sampledWorldVelocity = Vector2.zero;
+            hasPositionSnapshot = true;
+            return;
+        }
+
+        sampledWorldVelocity = (currentPosition - previousWorldPosition) / Time.deltaTime;
+        previousWorldPosition = currentPosition;
+    }
+
+    private void ResetPositionSampling()
+    {
+        previousWorldPosition = transform.position;
+        sampledWorldVelocity = Vector2.zero;
+        hasPositionSnapshot = true;
     }
 
     // 현재 또는 이후의 Sword 대시 로직이 호출할 수 있는 애니메이션 전용 진입점입니다.

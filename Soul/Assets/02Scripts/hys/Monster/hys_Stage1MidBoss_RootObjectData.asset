@@ -18,6 +18,7 @@ MonoBehaviour:
     objectType: 3
     faction: 3
     weaponType: 5
+    abilityTags: 
   status:
     level: 1
     maxHp: 15000
@@ -28,7 +29,7 @@ MonoBehaviour:
     bodyWeight: 3.5
   model:
     modelPrefab: {fileID: 6167908476399693136, guid: c956e0e93a8dbc249a2a7181ead81c79, type: 3}
-    animatorController: {fileID: 0}
+    animatorController: {fileID: 9100000, guid: 8051380a840788d4c96f3291e4b894ca, type: 2}
     heartEffectSocketName: Heart
     hitEffectSocketName: Hit
     possessedEyeSocketName: Eyes
@@ -63,6 +64,13 @@ MonoBehaviour:
   reward:
     experienceReward: 100
     skillPointReward: 1
+    dropsExperienceOrb: 0
+    experienceOrbPrefab: {fileID: 0}
+    experienceOrbSpawnRadius: 0
     dropsStatOrb: 1
+    statOrbDropChance: 1
+    statOrbSpawnRadius: 0.75
     statOrbId: stat_max_hp_small
+    statOrbCandidates: []
+    useAllRegisteredStatOrbsWhenEmpty: 0
   selectedTypeData: {fileID: 11400000, guid: 08cab276e1ae49b4b174663c05c9ee5b, type: 2}
