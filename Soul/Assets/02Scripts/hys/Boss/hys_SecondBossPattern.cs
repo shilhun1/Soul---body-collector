@@ -14,6 +14,22 @@ public enum hys_SecondBossPatternId
     GroundSwordEruption
 }
 
+// Animator가 문자열 디버그 문구 대신 안정적인 번호로 현재 동작 구간을 읽습니다.
+public enum hys_SecondBossAnimationAction
+{
+    None,
+    Dash,
+    ReverseSlash,
+    SummonCommand,
+    TwoHandPrepare,
+    WideSlash,
+    PlantSword,
+    ShockwaveChannel,
+    DashSwordWave,
+    MagicCast,
+    MagicRelease
+}
+
 public class hys_SecondBossPattern : MonoBehaviour
 {
     // 두 번째 보스의 세 가지 전용 패턴과 각 패턴 쿨타임을 실행합니다.
@@ -125,6 +141,7 @@ public class hys_SecondBossPattern : MonoBehaviour
 
     [Header("디버그")]
     [SerializeField] private hys_SecondBossPatternId activePattern = hys_SecondBossPatternId.None;
+    [SerializeField] private hys_SecondBossAnimationAction currentAnimationAction;
     [SerializeField] private bool isGroggy;
     [SerializeField] private int currentPhaseNumber = 1;
     [SerializeField] private string lastPatternAction;
@@ -149,6 +166,7 @@ public class hys_SecondBossPattern : MonoBehaviour
     public bool IsPatternRunning => activeRoutine != null;
     public bool IsGroggy => isGroggy;
     public hys_SecondBossPatternId ActivePattern => activePattern;
+    public hys_SecondBossAnimationAction CurrentAnimationAction => currentAnimationAction;
     public string LastPatternAction => lastPatternAction;
     public int CurrentPhaseNumber => currentPhaseNumber;
 
@@ -284,6 +302,7 @@ public class hys_SecondBossPattern : MonoBehaviour
         if (activeRoutine != null) StopCoroutine(activeRoutine);
         activeRoutine = null;
         activePattern = hys_SecondBossPatternId.None;
+        currentAnimationAction = hys_SecondBossAnimationAction.None;
         isGroggy = false;
         currentTarget = null;
         finishedCallback = null;
@@ -292,6 +311,7 @@ public class hys_SecondBossPattern : MonoBehaviour
 
     private IEnumerator DashReverseSlashRoutine()
     {
+        SetAnimationAction(hys_SecondBossAnimationAction.Dash);
         lastPatternAction = "패턴 1 준비";
         FaceDirection(lockedDirection);
         yield return new WaitForSeconds(Mathf.Max(0.01f, pattern1PrepareSeconds));
@@ -312,6 +332,7 @@ public class hys_SecondBossPattern : MonoBehaviour
             + Vector3.right * reverseDirection * Mathf.Abs(pattern1SlashBoxOffset.x)
             + Vector3.up * pattern1SlashBoxOffset.y;
         ShowRectangleWarning(slashCenter, pattern1SlashBoxSize, pattern1SlashWarningSeconds);
+        SetAnimationAction(hys_SecondBossAnimationAction.ReverseSlash);
         lastPatternAction = "역방향 베기";
         yield return new WaitForSeconds(Mathf.Max(0.01f, pattern1SlashWarningSeconds));
         TryDamageTargetInBox(slashCenter, pattern1SlashBoxSize, pattern1DamageMultiplier);
@@ -370,6 +391,7 @@ public class hys_SecondBossPattern : MonoBehaviour
 
     private IEnumerator SummonCommandRoutine()
     {
+        SetAnimationAction(hys_SecondBossAnimationAction.SummonCommand);
         lastPatternAction = "패턴 2 공격 명령";
         FaceDirection(lockedDirection);
         yield return new WaitForSeconds(Mathf.Max(0f, pattern2CommandSeconds));
@@ -380,6 +402,7 @@ public class hys_SecondBossPattern : MonoBehaviour
 
     private IEnumerator HighSpeedPiercingSlashRoutine()
     {
+        SetAnimationAction(hys_SecondBossAnimationAction.TwoHandPrepare);
         lastPatternAction = "패턴 3 양손 준비 자세";
         FaceDirection(lockedDirection);
         float targetX = currentTarget != null ? currentTarget.position.x : lockedTargetPosition.x;
@@ -397,6 +420,7 @@ public class hys_SecondBossPattern : MonoBehaviour
         // 준비가 끝난 시점의 플레이어 앞쪽 좌표를 다시 계산하되 최초 공격 방향은 유지합니다.
         targetX = currentTarget != null ? currentTarget.position.x : lockedTargetPosition.x;
         destinationX = targetX - lockedDirection * pattern3StopDistance;
+        SetAnimationAction(hys_SecondBossAnimationAction.Dash);
         lastPatternAction = "플레이어 앞까지 무피해 대시";
         yield return MoveHorizontallyTo(
             destinationX,
@@ -409,11 +433,13 @@ public class hys_SecondBossPattern : MonoBehaviour
         Vector3 slashCenter = transform.position
             + Vector3.right * lockedDirection * Mathf.Abs(pattern3SlashBoxOffset.x)
             + Vector3.up * pattern3SlashBoxOffset.y;
+        SetAnimationAction(hys_SecondBossAnimationAction.WideSlash);
         lastPatternAction = "넓은 전방 대검 베기";
         ShowRectangleWarning(slashCenter, pattern3HitBoxSize, pattern3SlashWarningSeconds);
         yield return new WaitForSeconds(Mathf.Max(0.01f, pattern3SlashWarningSeconds));
         TryDamageTargetInBox(slashCenter, pattern3HitBoxSize, pattern3DamageMultiplier);
 
+        SetAnimationAction(hys_SecondBossAnimationAction.None);
         isGroggy = true;
         lastPatternAction = "갑옷 무게로 넘어짐 - 3초 그로기";
         if (runtimeStatus != null && !runtimeStatus.IsDead) runtimeStatus.SetState(HWJ_RuntimeState.Hit);
@@ -476,6 +502,7 @@ public class hys_SecondBossPattern : MonoBehaviour
 
     private IEnumerator DarkMagicSummonAssaultRoutine()
     {
+        SetAnimationAction(hys_SecondBossAnimationAction.PlantSword);
         lastPatternAction = "패턴 4 검을 꽂아 충격파 준비";
         StopHorizontalMovement();
         float patternDirection = lockedDirection == 0f ? 1f : Mathf.Sign(lockedDirection);
@@ -489,6 +516,7 @@ public class hys_SecondBossPattern : MonoBehaviour
             phaseTwoMagicColor);
         yield return new WaitForSeconds(Mathf.Max(0.01f, pattern4PlantSwordSeconds));
 
+        SetAnimationAction(hys_SecondBossAnimationAction.ShockwaveChannel);
         lastPatternAction = "지면을 따라 세로 충격파 연속 발생";
         yield return SequentialGroundShockwaveRoutine();
 
@@ -501,12 +529,14 @@ public class hys_SecondBossPattern : MonoBehaviour
                 + Vector3.up * summonVerticalOffset);
         }
 
+        SetAnimationAction(hys_SecondBossAnimationAction.SummonCommand);
         lastPatternAction = "보스 전방에 빙의 몬스터 2마리 소환";
         SpawnPossessableMonstersAtPositions(assaultAnchors);
         yield return new WaitForSeconds(0.2f);
 
         if (assaultAnchors.Count > 0)
         {
+            SetAnimationAction(hys_SecondBossAnimationAction.DashSwordWave);
             float enterDirection = Mathf.Sign(assaultAnchors[0].x - transform.position.x);
             if (enterDirection == 0f) enterDirection = patternDirection;
             lastPatternAction = "첫 번째 몬스터 위치로 진입";
@@ -667,6 +697,7 @@ public class hys_SecondBossPattern : MonoBehaviour
 
     private IEnumerator MagicSwordEncirclementRoutine()
     {
+        SetAnimationAction(hys_SecondBossAnimationAction.MagicCast);
         lastPatternAction = "패턴 5 플레이어 추적 마력 표식";
         if (currentTarget != null)
         {
@@ -685,6 +716,7 @@ public class hys_SecondBossPattern : MonoBehaviour
         }
 
         // 표식 종료 순간의 위치만 고정하며, 발사 후에는 플레이어를 유도 추적하지 않습니다.
+        SetAnimationAction(hys_SecondBossAnimationAction.MagicRelease);
         Vector3 swordCenter = currentTarget.position;
         int swordCount = Mathf.Max(4, pattern5SwordCount);
         float swordSpeed = Mathf.Max(0.1f, pattern5SwordTravelSpeed);
@@ -722,11 +754,13 @@ public class hys_SecondBossPattern : MonoBehaviour
 
     private IEnumerator GroundSwordEruptionRoutine()
     {
+        SetAnimationAction(hys_SecondBossAnimationAction.MagicCast);
         Vector3 groundPosition = ResolvePattern6GroundPosition();
         lastPatternAction = "패턴 6 플레이어 아래 실제 지면에 거대 검 표식";
         ShowCircleWarning(groundPosition, pattern6EruptionSize.x * 0.5f, pattern6MarkSeconds);
         yield return new WaitForSeconds(Mathf.Max(0.1f, pattern6MarkSeconds));
 
+        SetAnimationAction(hys_SecondBossAnimationAction.MagicRelease);
         Vector3 eruptionCenter = groundPosition + Vector3.up * pattern6EruptionSize.y * 0.5f;
         lastPatternAction = "바닥에서 거대한 마력 검 솟구침";
         ShowRectangleWarning(eruptionCenter, pattern6EruptionSize, pattern6SwordRemainSeconds);
@@ -1031,12 +1065,18 @@ public class hys_SecondBossPattern : MonoBehaviour
         hys_SecondBossPatternId completed = activePattern;
         activeRoutine = null;
         activePattern = hys_SecondBossPatternId.None;
+        currentAnimationAction = hys_SecondBossAnimationAction.None;
         isGroggy = false;
         currentTarget = null;
         if (runtimeStatus != null && !runtimeStatus.IsDead) runtimeStatus.SetState(HWJ_RuntimeState.Idle);
         Action<hys_SecondBossPatternId> callback = finishedCallback;
         finishedCallback = null;
         callback?.Invoke(completed);
+    }
+
+    private void SetAnimationAction(hys_SecondBossAnimationAction action)
+    {
+        currentAnimationAction = action;
     }
 
     private void ShowRectangleWarning(Vector3 center, Vector2 size, float duration)
