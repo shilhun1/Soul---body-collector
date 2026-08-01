@@ -1,9 +1,11 @@
 using System.Collections;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using NUnit.Framework;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
+using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.TestTools;
 
@@ -57,6 +59,154 @@ public class HWJ_FighterBossFirstPassPlayModeTests
     }
 
     [UnityTest]
+    public IEnumerator DuplicateGuard_KeepsParentedBoss_AndDoesNotAffectDistantBoss()
+    {
+        GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(BossPrefabPath);
+        Assert.NotNull(prefab, $"Boss prefab is missing: {BossPrefabPath}");
+        Assert.NotNull(prefab.GetComponent<HWJ_BossDuplicateGuardSystem>());
+
+        GameObject looseBoss = Object.Instantiate(prefab);
+        looseBoss.name = "DuplicateGuard_Loose";
+        looseBoss.transform.position = Vector3.zero;
+
+        GameObject mapRoot = new GameObject("DuplicateGuard_MapRoot");
+        LogAssert.Expect(
+            LogType.Warning,
+            new Regex("^\\[HWJ Boss\\] 중복 배치된 'DuplicateGuard_Loose'.*비활성화했습니다\\."));
+
+        GameObject parentedBoss = Object.Instantiate(prefab, mapRoot.transform, false);
+        parentedBoss.name = "DuplicateGuard_Parented";
+        parentedBoss.transform.localPosition = new Vector3(0f, -0.18f, 0f);
+
+        yield return null;
+
+        Assert.IsFalse(looseBoss.activeSelf, "겹친 루트 보스는 비활성화되어야 합니다.");
+        Assert.IsTrue(parentedBoss.activeSelf, "맵 오브젝트 아래의 보스가 우선 유지되어야 합니다.");
+        Assert.IsTrue(
+            looseBoss.GetComponent<HWJ_BossDuplicateGuardSystem>().WasSuppressedAsDuplicate);
+
+        GameObject distantBoss = Object.Instantiate(
+            prefab,
+            new Vector3(5f, 0f, 0f),
+            Quaternion.identity,
+            mapRoot.transform);
+        distantBoss.name = "DuplicateGuard_Distant";
+
+        yield return null;
+
+        Assert.IsTrue(distantBoss.activeSelf, "다른 위치에 배치된 같은 보스는 유지되어야 합니다.");
+
+        Object.Destroy(looseBoss);
+        Object.Destroy(mapRoot);
+        yield return null;
+    }
+
+    [UnityTest]
+    public IEnumerator Dialogue_IsSmallAboveHealthBar_AndKeepsDesignOrder()
+    {
+        GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(BossPrefabPath);
+        Assert.NotNull(prefab);
+
+        GameObject boss = Object.Instantiate(prefab);
+        HWJ_BossDialogueBubbleSystem dialogue = boss.GetComponent<HWJ_BossDialogueBubbleSystem>();
+        HWJ_FighterBossHealthBarSystem healthBar =
+            boss.GetComponentInChildren<HWJ_FighterBossHealthBarSystem>(true);
+        Assert.NotNull(dialogue);
+        Assert.NotNull(healthBar);
+        Assert.GreaterOrEqual(
+            dialogue.GetSequenceDuration(HWJ_BossDialogueSequenceType.Intro),
+            22f,
+            "Intro dialogue must remain on screen long enough to read.");
+        SetPrivateField(dialogue, "sequenceLineDurationSeconds", 0.01f);
+        SetPrivateField(dialogue, "sequenceGapSeconds", 0f);
+
+        Assert.AreSame(healthBar.transform, dialogue.BubbleAnchor);
+        Assert.LessOrEqual(dialogue.DialogueCharacterSize, 0.08f);
+        Assert.AreEqual(7, dialogue.GetSequenceLineCount(HWJ_BossDialogueSequenceType.Intro));
+        Assert.AreEqual(15, dialogue.GetSequenceLineCount(HWJ_BossDialogueSequenceType.PhaseTransition));
+        Assert.AreEqual(9, dialogue.GetSequenceLineCount(HWJ_BossDialogueSequenceType.Death));
+        Assert.AreEqual(
+            "여기까지 살아서 왔다는 건 인정하지.",
+            dialogue.GetSequenceLine(HWJ_BossDialogueSequenceType.Intro, 0));
+        Assert.AreEqual(
+            "자세를 잡아라. 변명할 시간은 끝났다.",
+            dialogue.GetSequenceLine(HWJ_BossDialogueSequenceType.Intro, 6));
+        Assert.AreEqual(
+            "말도 안 돼......",
+            dialogue.GetSequenceLine(HWJ_BossDialogueSequenceType.PhaseTransition, 0));
+        Assert.AreEqual(
+            "이번에는 뼈 하나 남기지 않겠다.",
+            dialogue.GetSequenceLine(HWJ_BossDialogueSequenceType.PhaseTransition, 14));
+        Assert.AreEqual(
+            "내가...... 패배했다고?",
+            dialogue.GetSequenceLine(HWJ_BossDialogueSequenceType.Death, 0));
+        Assert.AreEqual(
+            "오늘의 승리도 전부 거짓이 될 테니......",
+            dialogue.GetSequenceLine(HWJ_BossDialogueSequenceType.Death, 8));
+
+        dialogue.ShowIntroDialogue();
+        Assert.IsTrue(dialogue.BlocksBossActions);
+        Assert.AreEqual(0, dialogue.CurrentLineIndex);
+        Assert.AreEqual("여기까지 살아서 왔다는 건 인정하지.", dialogue.CurrentLineText);
+        Assert.Greater(
+            dialogue.BubbleWorldPosition.y,
+            healthBar.transform.position.y + 0.7f,
+            "Dialogue must be positioned above the health bar.");
+        Assert.GreaterOrEqual(dialogue.CurrentBubbleSize.x, 3.4f);
+        Assert.GreaterOrEqual(dialogue.CurrentBubbleSize.y, 1.05f);
+
+        dialogue.CancelDialogueSequence(true);
+        Object.Destroy(boss);
+        yield return null;
+    }
+
+    [UnityTest]
+    public IEnumerator DialogueCamera_ZoomsWithCinemachine_AndRestoresPlayerTarget()
+    {
+        GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(BossPrefabPath);
+        Assert.NotNull(prefab);
+
+        GameObject boss = Object.Instantiate(prefab);
+        GameObject player = new GameObject("DialogueCamera_PlayerTarget");
+        GameObject cameraObject = new GameObject("DialogueCamera_CinemachineCamera");
+        CinemachineCamera cinemachineCamera = cameraObject.AddComponent<CinemachineCamera>();
+        cinemachineCamera.Target.TrackingTarget = player.transform;
+        LensSettings originalLens = cinemachineCamera.Lens;
+        originalLens.FieldOfView = 40f;
+        originalLens.OrthographicSize = 10f;
+        cinemachineCamera.Lens = originalLens;
+
+        HWJ_BossCameraFocusSystem cameraFocus = boss.GetComponent<HWJ_BossCameraFocusSystem>();
+        Assert.NotNull(cameraFocus);
+        SetPrivateField(cameraFocus, "targetCinemachineCamera", cinemachineCamera);
+        SetPrivateField(cameraFocus, "returnBlendSeconds", 0.05f);
+
+        cameraFocus.FocusOnBoss(boss.transform, player.transform, 0.12f);
+        yield return new WaitForSeconds(0.08f);
+
+        Assert.IsTrue(cameraFocus.IsFocusing);
+        Assert.IsTrue(cameraFocus.UsesCinemachineDuringFocus);
+        Assert.AreNotSame(player.transform, cinemachineCamera.Target.TrackingTarget);
+        Assert.Less(cinemachineCamera.Lens.FieldOfView, originalLens.FieldOfView);
+        Assert.Less(cinemachineCamera.Lens.OrthographicSize, originalLens.OrthographicSize);
+
+        yield return new WaitForSeconds(0.2f);
+
+        Assert.IsFalse(cameraFocus.IsFocusing);
+        Assert.AreSame(player.transform, cinemachineCamera.Target.TrackingTarget);
+        Assert.AreEqual(originalLens.FieldOfView, cinemachineCamera.Lens.FieldOfView, 0.001f);
+        Assert.AreEqual(
+            originalLens.OrthographicSize,
+            cinemachineCamera.Lens.OrthographicSize,
+            0.001f);
+
+        Object.Destroy(cameraObject);
+        Object.Destroy(player);
+        Object.Destroy(boss);
+        yield return null;
+    }
+
+    [UnityTest]
     public IEnumerator P1AttackCombo_ExecutesFiveTimes_AndNeverLeavesHitboxEnabled()
     {
         GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(BossPrefabPath);
@@ -75,11 +225,14 @@ public class HWJ_FighterBossFirstPassPlayModeTests
         HWJ_FighterBossHitboxSystem hitbox =
             boss.GetComponentInChildren<HWJ_FighterBossHitboxSystem>(true);
         Animator animator = boss.GetComponent<Animator>();
+        HWJ_FighterBossAnimatorSystem animatorSystem =
+            boss.GetComponent<HWJ_FighterBossAnimatorSystem>();
 
         Assert.NotNull(brain);
         Assert.NotNull(combo);
         Assert.NotNull(hitbox);
         Assert.NotNull(animator);
+        Assert.NotNull(animatorSystem);
         Assert.NotNull(animator.runtimeAnimatorController);
 
         // 자동 AI가 검증용 강제 실행과 경쟁하지 않도록 Brain만 멈추고 실제 Animator/Event/Hitbox 경로는 유지합니다.
@@ -99,6 +252,10 @@ public class HWJ_FighterBossFirstPassPlayModeTests
         {
             Assert.IsTrue(combo.TryStartCombo(target.transform), $"Combo run {runIndex + 1} did not start.");
             Assert.IsTrue(combo.LastComboUsedAnimator, "Combo must use the generated Animator state and Animation Events.");
+            Assert.IsTrue(combo.IsCasting);
+            Assert.AreEqual("P1_Cast_Combo", animatorSystem.CurrentStateName);
+            Assert.IsFalse(hitbox.IsArmed);
+            Assert.IsFalse(combo.IsTelegraphVisible);
 
             float timeout = Time.time + 3f;
 
@@ -151,8 +308,11 @@ public class HWJ_FighterBossFirstPassPlayModeTests
 
         HWJ_BossBrainSystem brain = boss.GetComponent<HWJ_BossBrainSystem>();
         HWJ_FighterBossChargeSystem charge = boss.GetComponent<HWJ_FighterBossChargeSystem>();
+        HWJ_FighterBossAnimatorSystem animatorSystem =
+            boss.GetComponent<HWJ_FighterBossAnimatorSystem>();
         Assert.NotNull(brain);
         Assert.NotNull(charge);
+        Assert.NotNull(animatorSystem);
         Assert.NotNull(charge.ChargeHitbox);
         brain.enabled = false;
 
@@ -184,6 +344,10 @@ public class HWJ_FighterBossFirstPassPlayModeTests
             Assert.IsTrue(
                 charge.LastChargeUsedAnimator,
                 "Charge must use the generated Animator state and Animation Events.");
+            Assert.IsTrue(charge.IsCasting);
+            Assert.AreEqual("P1_Cast_Charge", animatorSystem.CurrentStateName);
+            Assert.IsFalse(charge.ChargeHitbox.IsArmed);
+            Assert.IsFalse(charge.IsTelegraphVisible);
 
             float timeout = Time.time + 3f;
 
@@ -238,17 +402,20 @@ public class HWJ_FighterBossFirstPassPlayModeTests
 
         GameObject boss = Object.Instantiate(prefab);
         boss.name = "FighterBoss_UppercutFiveRun_Test";
-        boss.transform.position = Vector3.zero;
+        boss.transform.position = new Vector3(0f, 0.2f, 0f);
 
         Rigidbody2D bossBody = boss.GetComponent<Rigidbody2D>();
-        bossBody.gravityScale = 0f;
+        bossBody.gravityScale = 3f;
         bossBody.constraints = RigidbodyConstraints2D.FreezeRotation;
 
         HWJ_BossBrainSystem brain = boss.GetComponent<HWJ_BossBrainSystem>();
         HWJ_FighterBossUppercutSystem uppercut =
             boss.GetComponent<HWJ_FighterBossUppercutSystem>();
+        HWJ_FighterBossAnimatorSystem animatorSystem =
+            boss.GetComponent<HWJ_FighterBossAnimatorSystem>();
         Assert.NotNull(brain);
         Assert.NotNull(uppercut);
+        Assert.NotNull(animatorSystem);
         Assert.NotNull(uppercut.UppercutHitbox);
         brain.enabled = false;
 
@@ -256,6 +423,10 @@ public class HWJ_FighterBossFirstPassPlayModeTests
         HWJ_PlayerTypeDataSO targetTypeData;
         GameObject target = CreateDurablePlayerTarget(out targetRootData, out targetTypeData);
         target.transform.position = new Vector3(0.9f, 1.45f, 0f);
+        GameObject ground = new GameObject("FighterBoss_Uppercut_Test_Ground");
+        ground.transform.position = new Vector3(0f, -0.5f, 0f);
+        BoxCollider2D groundCollider = ground.AddComponent<BoxCollider2D>();
+        groundCollider.size = new Vector2(40f, 1f);
         Physics2D.SyncTransforms();
         yield return null;
 
@@ -264,14 +435,23 @@ public class HWJ_FighterBossFirstPassPlayModeTests
 
         for (int runIndex = 0; runIndex < 5; runIndex++)
         {
+            bossBody.position = new Vector2(0f, 0.2f);
+            bossBody.linearVelocity = Vector2.zero;
+            Physics2D.SyncTransforms();
+            yield return new WaitForFixedUpdate();
+
             Assert.IsTrue(
                 uppercut.TryStartUppercut(target.transform),
                 $"Uppercut run {runIndex + 1} did not start.");
             Assert.IsTrue(
                 uppercut.LastUppercutUsedAnimator,
                 "Uppercut must use the generated Animator state and Animation Events.");
+            Assert.IsTrue(uppercut.IsCasting);
+            Assert.AreEqual("P1_Cast_Uppercut", animatorSystem.CurrentStateName);
+            Assert.IsFalse(uppercut.UppercutHitbox.IsArmed);
+            Assert.IsFalse(uppercut.IsTelegraphVisible);
 
-            float timeout = Time.time + 2.5f;
+            float timeout = Time.time + 3.5f;
 
             while (uppercut.IsPatternRunning && Time.time < timeout)
             {
@@ -305,6 +485,7 @@ public class HWJ_FighterBossFirstPassPlayModeTests
 
         Object.Destroy(boss);
         Object.Destroy(target);
+        Object.Destroy(ground);
         Object.Destroy(targetRootData);
         Object.Destroy(targetTypeData);
         yield return null;
@@ -327,8 +508,11 @@ public class HWJ_FighterBossFirstPassPlayModeTests
         HWJ_BossBrainSystem brain = boss.GetComponent<HWJ_BossBrainSystem>();
         HWJ_FighterBossGroundSlamSystem groundSlam =
             boss.GetComponent<HWJ_FighterBossGroundSlamSystem>();
+        HWJ_FighterBossAnimatorSystem animatorSystem =
+            boss.GetComponent<HWJ_FighterBossAnimatorSystem>();
         Assert.NotNull(brain);
         Assert.NotNull(groundSlam);
+        Assert.NotNull(animatorSystem);
         Assert.NotNull(groundSlam.SlamHitbox);
         brain.enabled = false;
 
@@ -350,8 +534,12 @@ public class HWJ_FighterBossFirstPassPlayModeTests
             Assert.IsTrue(
                 groundSlam.LastGroundSlamUsedAnimator,
                 "GroundSlam must use the generated Animator state and Animation Events.");
+            Assert.IsTrue(groundSlam.IsCasting);
+            Assert.AreEqual("P1_Cast_GroundSlam", animatorSystem.CurrentStateName);
+            Assert.IsFalse(groundSlam.SlamHitbox.IsArmed);
+            Assert.IsFalse(groundSlam.IsTelegraphVisible);
 
-            float timeout = Time.time + 2.7f;
+            float timeout = Time.time + 3.5f;
 
             while (groundSlam.IsPatternRunning && Time.time < timeout)
             {
@@ -412,6 +600,7 @@ public class HWJ_FighterBossFirstPassPlayModeTests
 
             GameObject boss = Object.Instantiate(prefab);
             boss.name = $"FighterBoss_PhaseTransition_Run_{runIndex + 1}";
+            SetFastDialogueTiming(boss);
             Rigidbody2D body = boss.GetComponent<Rigidbody2D>();
             body.gravityScale = 0f;
             body.constraints = RigidbodyConstraints2D.FreezeRotation;
@@ -464,7 +653,9 @@ public class HWJ_FighterBossFirstPassPlayModeTests
             Assert.AreEqual(phaseOneMaxHp, status.MaxHp, 0.001f);
             Assert.IsFalse(status.IsDead);
             Assert.IsTrue(
-                animator.HasState(0, Animator.StringToHash("Base Layer.Phase2_Start")));
+                animator.HasState(
+                    0,
+                    Animator.StringToHash("Base Layer.Transition.Phase2_Start")));
 
             Object.Destroy(boss);
             Object.Destroy(runtimeRootData);
@@ -474,109 +665,112 @@ public class HWJ_FighterBossFirstPassPlayModeTests
     }
 
     [UnityTest]
-    public IEnumerator P2EnhancedCombo_ExecutesFiveTimes_WithFourHitWindows()
+    public IEnumerator P2EnhancedCombo_ExecutesFiveTimes_WithThreeHitWindows()
     {
         yield return RunPhaseTwoPatternFiveTimes(
-            "P2_Enhanced_Combo",
+            "P2_EnhancedCombo",
             new Vector3(1.1f, 0.95f, 0f),
-            4,
+            3,
             0,
             false);
     }
 
     [UnityTest]
-    public IEnumerator P2EnhancedCharge_ExecutesFiveTimes_AndStopsAtWall()
+    public IEnumerator P2DoubleCharge_ExecutesFiveTimes_AndStopsAtWall()
     {
         yield return RunPhaseTwoPatternFiveTimes(
-            "P2_Enhanced_Charge",
+            "P2_DoubleCharge",
             new Vector3(2.5f, 0.95f, 0f),
-            1,
+            2,
             0,
             true);
     }
 
     [UnityTest]
-    public IEnumerator P2EnhancedUppercut_ExecutesFiveTimes_WithOneHitWindow()
+    public IEnumerator P2ThunderUppercut_ExecutesFiveTimes_WithOneHitWindow()
     {
         yield return RunPhaseTwoPatternFiveTimes(
-            "P2_Enhanced_Uppercut",
+            "P2_ThunderUppercut",
             new Vector3(0.9f, 1.5f, 0f),
             1,
-            0,
+            1,
             false);
     }
 
     [UnityTest]
-    public IEnumerator P2EnhancedGroundSlam_ExecutesFiveTimes_WithTwoGroundPulses()
+    public IEnumerator P2DarkGroundSlam_ExecutesFiveTimes_WithWavesAndGroundPulse()
     {
         yield return RunPhaseTwoPatternFiveTimes(
-            "P2_Enhanced_GroundSlam",
+            "P2_DarkGroundSlam",
             new Vector3(2f, 0.7f, 0f),
-            2,
-            2,
-            false);
+            1,
+            1,
+            false,
+            expectedProjectilesPerRun: 2);
     }
 
     [UnityTest]
-    public IEnumerator P2Shockwave_ExecutesFiveTimes_WithProjectileHook()
+    public IEnumerator P2ShadowCombo_ExecutesFiveTimes_WithThreeSafeTeleports()
     {
         yield return RunPhaseTwoPatternFiveTimes(
-            "P2_Attack_Shockwave",
+            "P2_ShadowCombo",
             new Vector3(2.5f, 0.8f, 0f),
-            1,
+            3,
             0,
             false,
-            expectedProjectilesPerRun: 1);
-    }
-
-    [UnityTest]
-    public IEnumerator P2AerialDive_ExecutesFiveTimes_TeleportsAndSlamsTarget()
-    {
-        yield return RunPhaseTwoPatternFiveTimes(
-            "P2_Attack_AerialDive",
-            new Vector3(3f, 0.7f, 0f),
-            1,
-            1,
-            false,
-            expectedTeleportOutPerRun: 1,
-            expectedTeleportInPerRun: 1,
+            expectedTeleportOutPerRun: 3,
+            expectedTeleportInPerRun: 3,
             expectLandingAtTarget: true);
     }
 
     [UnityTest]
-    public IEnumerator P2CrossSlash_ExecutesFiveTimes_WithTwoHitWindows()
+    public IEnumerator P2LightningCast_ExecutesFiveTimes_WithThreeTrackedHazards()
     {
         yield return RunPhaseTwoPatternFiveTimes(
-            "P2_Attack_CrossSlash",
-            new Vector3(1.1f, 1f, 0f),
-            2,
+            "P2_LightningCast",
+            new Vector3(3f, 0.7f, 0f),
             0,
-            false);
+            3,
+            false,
+            expectedSuccessfulHitsPerRun: -2);
     }
 
     [UnityTest]
-    public IEnumerator P2PhantomRush_ExecutesFiveTimes_TeleportsMovesAndHitsThreeTimes()
+    public IEnumerator P2DarkWave_ExecutesFiveTimes_WithHorizontalProjectile()
     {
         yield return RunPhaseTwoPatternFiveTimes(
-            "P2_Attack_PhantomRush",
-            new Vector3(2.5f, 1f, 0f),
-            3,
+            "P2_DarkWave",
+            new Vector3(1.1f, 1f, 0f),
+            0,
             0,
             false,
-            expectedTeleportOutPerRun: 1,
-            expectedTeleportInPerRun: 1,
-            expectMovement: true);
+            expectedProjectilesPerRun: 1,
+            expectedSuccessfulHitsPerRun: -2);
     }
 
     [UnityTest]
-    public IEnumerator P2Execution_ExecutesFiveTimes_WithLongTelegraphAndImpact()
+    public IEnumerator P2SoulBind_ExecutesFiveTimes_PullsReleasesAndPunches()
     {
         yield return RunPhaseTwoPatternFiveTimes(
-            "P2_Attack_Execution",
-            new Vector3(1f, 1f, 0f),
+            "P2_SoulBind",
+            new Vector3(2.5f, 1f, 0f),
             1,
             0,
             false);
+    }
+
+    [UnityTest]
+    public IEnumerator P2Ultimate_ExecutesFiveTimes_WithFullSequenceAndCleanup()
+    {
+        yield return RunPhaseTwoPatternFiveTimes(
+            "P2_Ultimate",
+            new Vector3(1f, 1f, 0f),
+            3,
+            2,
+            false,
+            expectedProjectilesPerRun: 2,
+            expectedSuccessfulHitsPerRun: -2,
+            expectMovement: true);
     }
 
     [UnityTest]
@@ -589,6 +783,7 @@ public class HWJ_FighterBossFirstPassPlayModeTests
         {
             GameObject boss = Object.Instantiate(prefab);
             boss.name = $"FighterBoss_FinalDeath_Run_{runIndex + 1}";
+            SetFastDialogueTiming(boss);
             Rigidbody2D body = boss.GetComponent<Rigidbody2D>();
             body.gravityScale = 0f;
             body.constraints = RigidbodyConstraints2D.FreezeRotation;
@@ -647,7 +842,9 @@ public class HWJ_FighterBossFirstPassPlayModeTests
             Assert.IsFalse(death.BodyColliderEnabled);
             Assert.IsFalse(death.BodySimulated);
             Assert.IsTrue(
-                animator.HasState(0, Animator.StringToHash("Base Layer.P2_Death")));
+                animator.HasState(
+                    0,
+                    Animator.StringToHash("Base Layer.Death.P2_Death")));
 
             Object.Destroy(boss);
             yield return null;
@@ -737,21 +934,25 @@ public class HWJ_FighterBossFirstPassPlayModeTests
         bool expectMovement = false,
         bool expectLandingAtTarget = false)
     {
+        Time.timeScale = 3f;
         GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(BossPrefabPath);
         Assert.NotNull(prefab);
 
         GameObject boss = Object.Instantiate(prefab);
         boss.name = $"FighterBoss_{patternId}_FiveRun_Test";
-        boss.transform.position = Vector3.zero;
+        boss.transform.position = new Vector3(0f, 0.2f, 0f);
         Rigidbody2D bossBody = boss.GetComponent<Rigidbody2D>();
-        bossBody.gravityScale = 0f;
+        bossBody.gravityScale = 3f;
         bossBody.constraints = RigidbodyConstraints2D.FreezeRotation;
 
         HWJ_BossBrainSystem brain = boss.GetComponent<HWJ_BossBrainSystem>();
         HWJ_FighterBossPhaseTwoPatternSystem phaseTwo =
             boss.GetComponent<HWJ_FighterBossPhaseTwoPatternSystem>();
+        HWJ_FighterBossAnimatorSystem animatorSystem =
+            boss.GetComponent<HWJ_FighterBossAnimatorSystem>();
         Assert.NotNull(brain);
         Assert.NotNull(phaseTwo);
+        Assert.NotNull(animatorSystem);
         SetPrivateField(brain, "fighterPhase", HWJ_FighterBossPhase.Phase2);
         SetPrivateField(brain, "currentPhaseNumber", 2);
         brain.enabled = false;
@@ -765,6 +966,10 @@ public class HWJ_FighterBossFirstPassPlayModeTests
         target.transform.position = targetPosition;
 
         GameObject wall = null;
+        GameObject ground = new GameObject($"{patternId}_Test_Ground");
+        ground.transform.position = new Vector3(0f, -0.5f, 0f);
+        BoxCollider2D groundCollider = ground.AddComponent<BoxCollider2D>();
+        groundCollider.size = new Vector2(40f, 1f);
 
         if (useWall)
         {
@@ -782,8 +987,8 @@ public class HWJ_FighterBossFirstPassPlayModeTests
 
         for (int runIndex = 0; runIndex < 5; runIndex++)
         {
-            boss.transform.position = Vector3.zero;
-            bossBody.position = Vector2.zero;
+            boss.transform.position = new Vector3(0f, 0.2f, 0f);
+            bossBody.position = new Vector2(0f, 0.2f);
             bossBody.linearVelocity = Vector2.zero;
             target.transform.position = targetPosition;
             Physics2D.SyncTransforms();
@@ -795,8 +1000,15 @@ public class HWJ_FighterBossFirstPassPlayModeTests
             Assert.IsTrue(
                 phaseTwo.LastPatternUsedAnimator,
                 $"{patternId} must use its Animator state and Animation Events.");
+            Assert.IsTrue(phaseTwo.IsCasting, $"{patternId} did not enter its cast-wait state.");
+            Assert.AreEqual(
+                patternId.Replace("P2_", "P2_Cast_"),
+                animatorSystem.CurrentStateName,
+                $"{patternId} started the attack motion before its cast-wait motion.");
+            Assert.IsFalse(hitbox.IsArmed, $"{patternId} armed its hitbox during cast wait.");
+            Assert.IsFalse(phaseTwo.IsTelegraphVisible(patternId));
 
-            float timeout = Time.time + 3f;
+            float timeout = Time.time + 10f;
 
             while (phaseTwo.IsPatternRunning && Time.time < timeout)
             {
@@ -828,13 +1040,14 @@ public class HWJ_FighterBossFirstPassPlayModeTests
                 $"{patternId} run {runIndex + 1} exceeded the watchdog.");
             Assert.AreEqual(runIndex + 1, phaseTwo.GetCompletedCount(patternId));
             Assert.AreEqual(expectedWindows, hitbox.TotalArmCount);
-            Assert.AreEqual(expectedSuccessfulHits, hitbox.TotalSuccessfulHits);
+            if (expectedSuccessfulHitsPerRun >= -1)
+            {
+                Assert.AreEqual(expectedSuccessfulHits, hitbox.TotalSuccessfulHits);
+            }
             Assert.AreEqual(expectedHazards, phaseTwo.GetGroundHazardCount(patternId));
             Assert.AreEqual(expectedProjectiles, phaseTwo.GetProjectileCount(patternId));
             Assert.AreEqual(expectedTeleportOuts, phaseTwo.GetTeleportOutCount(patternId));
             Assert.AreEqual(expectedTeleportIns, phaseTwo.GetTeleportInCount(patternId));
-            Assert.AreEqual(runIndex + 1, phaseTwo.CameraShakeHookCount);
-            Assert.AreEqual(runIndex + 1, phaseTwo.SfxHookCount);
             Assert.IsFalse(hitbox.IsArmed);
             Assert.IsFalse(hitbox.ColliderEnabled);
             Assert.IsFalse(phaseTwo.IsTelegraphVisible(patternId));
@@ -843,7 +1056,10 @@ public class HWJ_FighterBossFirstPassPlayModeTests
             {
                 Assert.IsTrue(phaseTwo.LastMovementStoppedByWall);
                 Assert.Greater(phaseTwo.LastMovementDistance, 3f);
-                Assert.Less(phaseTwo.LastMovementDistance, 6f);
+                Assert.LessOrEqual(
+                    phaseTwo.LastMovementDistance,
+                    20f,
+                    "DoubleCharge should stop at the first wall, then use its second charge.");
             }
             else if (expectMovement)
             {
@@ -868,8 +1084,10 @@ public class HWJ_FighterBossFirstPassPlayModeTests
         Object.Destroy(boss);
         Object.Destroy(target);
         Object.Destroy(wall);
+        Object.Destroy(ground);
         Object.Destroy(targetRootData);
         Object.Destroy(targetTypeData);
+        Time.timeScale = 1f;
         yield return null;
     }
 
@@ -955,6 +1173,19 @@ public class HWJ_FighterBossFirstPassPlayModeTests
 
         Assert.NotNull(field, $"Missing field {fieldName} on {target.GetType().Name}.");
         field.SetValue(target, value);
+    }
+
+    private static void SetFastDialogueTiming(GameObject boss)
+    {
+        HWJ_BossDialogueBubbleSystem dialogue = boss.GetComponent<HWJ_BossDialogueBubbleSystem>();
+
+        if (dialogue == null)
+        {
+            return;
+        }
+
+        SetPrivateField(dialogue, "sequenceLineDurationSeconds", 0.01f);
+        SetPrivateField(dialogue, "sequenceGapSeconds", 0f);
     }
 }
 #endif

@@ -29,6 +29,7 @@ public sealed class HWJ_FighterBossPhaseTwoPatternProfile
     [SerializeField] private float hitboxLocalY = 1f;
     [SerializeField] private float damageMultiplier = 1.5f;
     [SerializeField] private float extraKnockbackPower = 10f;
+    [SerializeField, Min(0f)] private float castWaitSeconds = 0.7f;
     [SerializeField] private float watchdogSeconds = 4f;
     [SerializeField] private float movementSpeed = 30f;
     [SerializeField] private float movementDuration = 0.45f;
@@ -45,6 +46,7 @@ public sealed class HWJ_FighterBossPhaseTwoPatternProfile
     public float HitboxLocalY => hitboxLocalY;
     public float DamageMultiplier => damageMultiplier;
     public float ExtraKnockbackPower => extraKnockbackPower;
+    public float CastWaitSeconds => castWaitSeconds;
     public float WatchdogSeconds => watchdogSeconds;
     public float MovementSpeed => movementSpeed;
     public float MovementDuration => movementDuration;
@@ -89,7 +91,6 @@ public sealed class HWJ_FighterBossPhaseTwoPatternSystem :
 
     [Header("Shared Runtime Tuning")]
     [SerializeField] private float teleportWarningSeconds = 0.3f;
-    [SerializeField] private float lightningWarningSeconds = 0.65f;
     [SerializeField] private float lightningIntervalSeconds = 0.45f;
     [SerializeField] private float lingeringHazardSeconds = 1.5f;
     [SerializeField] private float soulBindMaximumDistance = 9f;
@@ -108,9 +109,11 @@ public sealed class HWJ_FighterBossPhaseTwoPatternSystem :
 
     private Coroutine activeRoutine;
     private Coroutine movementRoutine;
+    private Coroutine watchdogRoutine;
     private HWJ_FighterBossPhaseTwoPatternProfile activeProfile;
     private Transform currentTarget;
     private bool isPatternRunning;
+    private bool isCasting;
     private bool isRecovering;
     private bool lastPatternUsedAnimator;
     private bool lastMovementStoppedByWall;
@@ -129,6 +132,7 @@ public sealed class HWJ_FighterBossPhaseTwoPatternSystem :
 
     public string ExecutorKey => PhaseTwoExecutorKey;
     public bool IsPatternRunning => isPatternRunning;
+    public bool IsCasting => isCasting;
     public bool IsRecovering => isRecovering;
     public bool LastPatternUsedAnimator => lastPatternUsedAnimator;
     public bool LastMovementStoppedByWall => lastMovementStoppedByWall;
@@ -237,6 +241,7 @@ public sealed class HWJ_FighterBossPhaseTwoPatternSystem :
         activeProfile = profile;
         currentTarget = target;
         isPatternRunning = true;
+        isCasting = true;
         isRecovering = false;
         lastMovementStoppedByWall = false;
         lastMovementDistance = 0f;
@@ -251,10 +256,12 @@ public sealed class HWJ_FighterBossPhaseTwoPatternSystem :
         bossBrain?.NotifyFighterPatternAttackStarted();
 
         int attackId = GetAttackId(profile.PatternKind);
+        string castStateName = GetCastStateName(profile.PatternKind);
         lastPatternUsedAnimator = animatorSystem != null
-            ? animatorSystem.BeginAttack(attackId, profile.AnimatorState)
-            : PlayLegacyAnimatorState(profile.AnimatorState);
-        activeRoutine = StartCoroutine(RunPatternSequence(profile));
+            ? animatorSystem.BeginCast(attackId, castStateName)
+            : PlayLegacyAnimatorState(castStateName);
+        activeRoutine = StartCoroutine(CastThenRunPatternSequence(profile));
+        watchdogRoutine = StartCoroutine(PatternWatchdogRoutine(profile));
 
         if (activeRoutine == null)
         {
@@ -280,13 +287,15 @@ public sealed class HWJ_FighterBossPhaseTwoPatternSystem :
             movementRoutine = null;
         }
 
+        StopWatchdog();
+
         isPatternRunning = false;
         ForceCleanup(false);
     }
 
     public void ForceCleanupAttackObjects()
     {
-        ForceCleanup(false);
+        CancelActivePattern();
     }
 
     public void MarkPhaseTwoStarted()
@@ -328,6 +337,8 @@ public sealed class HWJ_FighterBossPhaseTwoPatternSystem :
 
     public void OnAnimationTelegraphStart()
     {
+        // 이전 Animation Clip 이벤트와 호환은 유지하되 공격 예고선은 표시하지 않습니다.
+        SetTelegraphVisible(activeProfile, false);
     }
 
     public void OnAnimationEnableHitbox(int strikeNumber)
@@ -381,6 +392,30 @@ public sealed class HWJ_FighterBossPhaseTwoPatternSystem :
     {
     }
 
+    private IEnumerator CastThenRunPatternSequence(HWJ_FighterBossPhaseTwoPatternProfile profile)
+    {
+        SetTelegraphVisible(profile, false);
+        yield return new WaitForSeconds(Mathf.Max(0f, profile.CastWaitSeconds));
+        isCasting = false;
+
+        if (!isPatternRunning)
+        {
+            yield break;
+        }
+
+        bool attackMotionStarted = animatorSystem != null
+            ? animatorSystem.CommitAttack(profile.AnimatorState)
+            : PlayLegacyAnimatorState(profile.AnimatorState);
+
+        if (!attackMotionStarted)
+        {
+            // Animator가 없어도 기믹 검증은 가능하도록 실제 패턴 코루틴은 계속 실행합니다.
+            lastPatternUsedAnimator = false;
+        }
+
+        yield return RunPatternSequence(profile);
+    }
+
     private IEnumerator RunPatternSequence(HWJ_FighterBossPhaseTwoPatternProfile profile)
     {
         switch (profile.PatternKind)
@@ -420,10 +455,29 @@ public sealed class HWJ_FighterBossPhaseTwoPatternSystem :
         }
     }
 
+    private IEnumerator PatternWatchdogRoutine(HWJ_FighterBossPhaseTwoPatternProfile profile)
+    {
+        yield return new WaitForSeconds(Mathf.Max(0.5f, profile.WatchdogSeconds));
+        watchdogRoutine = null;
+
+        if (!isPatternRunning)
+        {
+            yield break;
+        }
+
+        if (activeRoutine != null)
+        {
+            StopCoroutine(activeRoutine);
+            activeRoutine = null;
+        }
+
+        isPatternRunning = false;
+        Debug.LogWarning($"[HWJ] Fighter boss pattern watchdog cleaned up {profile.PatternId}.", this);
+        ForceCleanup(true);
+    }
+
     private IEnumerator EnhancedComboRoutine(HWJ_FighterBossPhaseTwoPatternProfile profile)
     {
-        yield return ShowLineWarning(profile, 2.6f, 0.32f);
-
         for (int strike = 1; strike <= 3 && isPatternRunning; strike++)
         {
             float multiplier = profile.DamageMultiplier * (strike == 3 ? 1.2f : 0.75f + strike * 0.08f);
@@ -447,7 +501,12 @@ public sealed class HWJ_FighterBossPhaseTwoPatternSystem :
         {
             movementDirection = ResolveDirectionToTarget();
             ApplyFacingAndHitboxPosition(profile);
-            yield return ShowLineWarning(profile, ResolveMaximumTravel(profile), charge == 0 ? 0.42f : 0.28f);
+
+            if (charge > 0)
+            {
+                yield return new WaitForSeconds(0.2f);
+            }
+
             ArmProfileHitbox(
                 profile,
                 charge + 1,
@@ -466,8 +525,9 @@ public sealed class HWJ_FighterBossPhaseTwoPatternSystem :
 
     private IEnumerator ThunderUppercutRoutine(HWJ_FighterBossPhaseTwoPatternProfile profile)
     {
-        yield return ShowArcWarning(profile, 0.4f);
         float startY = body != null ? body.position.y : transform.position.y;
+
+        ArmProfileHitbox(profile, 1, profile.DamageMultiplier, profile.ExtraKnockbackPower);
 
         if (body != null)
         {
@@ -476,7 +536,6 @@ public sealed class HWJ_FighterBossPhaseTwoPatternSystem :
             body.linearVelocity = velocity;
         }
 
-        ArmProfileHitbox(profile, 1, profile.DamageMultiplier, profile.ExtraKnockbackPower);
         yield return new WaitForSeconds(0.28f);
         profile.Hitbox?.Disarm();
         float elapsed = 0f;
@@ -498,7 +557,6 @@ public sealed class HWJ_FighterBossPhaseTwoPatternSystem :
 
     private IEnumerator DarkGroundSlamRoutine(HWJ_FighterBossPhaseTwoPatternProfile profile)
     {
-        yield return ShowRingWarning(profile, transform.position, 3.4f, 0.58f);
         ArmProfileHitbox(profile, 1, profile.DamageMultiplier, profile.ExtraKnockbackPower);
         SpawnHorizontalProjectile(profile, -1f, 15f, 7f);
         SpawnHorizontalProjectile(profile, 1f, 15f, 7f);
@@ -513,7 +571,6 @@ public sealed class HWJ_FighterBossPhaseTwoPatternSystem :
     private IEnumerator ShadowComboRoutine(HWJ_FighterBossPhaseTwoPatternProfile profile)
     {
         Vector3 behind = FindSafeTeleportPosition(GetBehindTargetPosition(1.5f));
-        yield return ShowRingWarning(profile, behind, 1.1f, teleportWarningSeconds);
         TeleportOut(profile);
         yield return null;
         TeleportIn(profile, behind);
@@ -522,7 +579,7 @@ public sealed class HWJ_FighterBossPhaseTwoPatternSystem :
         profile.Hitbox?.Disarm();
 
         Vector3 opposite = FindSafeTeleportPosition(GetBehindTargetPosition(-1.5f));
-        yield return ShowRingWarning(profile, opposite, 1.1f, teleportWarningSeconds);
+        yield return new WaitForSeconds(Mathf.Min(0.15f, teleportWarningSeconds));
         TeleportOut(profile);
         yield return null;
         TeleportIn(profile, opposite);
@@ -532,11 +589,7 @@ public sealed class HWJ_FighterBossPhaseTwoPatternSystem :
 
         Vector3 above = FindSafeTeleportPosition(
             currentTarget != null ? currentTarget.position + Vector3.up * 3.5f : transform.position);
-        yield return ShowRingWarning(
-            profile,
-            currentTarget != null ? currentTarget.position : transform.position,
-            1.5f,
-            teleportWarningSeconds);
+        yield return new WaitForSeconds(Mathf.Min(0.15f, teleportWarningSeconds));
         TeleportOut(profile);
         yield return null;
         TeleportIn(profile, above);
@@ -565,7 +618,6 @@ public sealed class HWJ_FighterBossPhaseTwoPatternSystem :
                 ? currentTarget.position
                 : transform.position;
             strikePosition = ClampToArena(strikePosition);
-            yield return ShowRingWarning(profile, strikePosition, 1.15f, lightningWarningSeconds);
             SpawnLingeringHazard(profile, strikePosition, new Vector2(1.65f, 1.9f), lingeringHazardSeconds);
 
             if (strike < 2)
@@ -590,7 +642,6 @@ public sealed class HWJ_FighterBossPhaseTwoPatternSystem :
     {
         movementDirection = ResolveDirectionToTarget();
         ApplyFacingAndHitboxPosition(profile);
-        yield return ShowLineWarning(profile, Mathf.Max(8f, profile.TelegraphRange), 0.8f);
         SpawnHorizontalProjectile(profile, movementDirection, 18f, Mathf.Max(9f, profile.TelegraphRange));
         yield return new WaitForSeconds(0.75f);
         yield return Recovery(profile, 0.7f);
@@ -598,8 +649,6 @@ public sealed class HWJ_FighterBossPhaseTwoPatternSystem :
 
     private IEnumerator SoulBindRoutine(HWJ_FighterBossPhaseTwoPatternProfile profile)
     {
-        yield return ShowLineWarning(profile, soulBindMaximumDistance, 0.5f);
-
         if (!CanMaintainSoulBind())
         {
             yield return Recovery(profile, 0.35f);
@@ -622,7 +671,7 @@ public sealed class HWJ_FighterBossPhaseTwoPatternSystem :
         }
 
         ReleaseSoulBind();
-        yield return ShowLineWarning(profile, 2.2f, 0.35f);
+        yield return new WaitForSeconds(0.2f);
         ArmProfileHitbox(
             profile,
             1,
@@ -638,7 +687,6 @@ public sealed class HWJ_FighterBossPhaseTwoPatternSystem :
         yield return MoveToPositionRoutine(bossBrain != null
             ? bossBrain.BossRoomCenter
             : (Vector2)transform.position, 0.35f);
-        yield return ShowRingWarning(profile, transform.position, 4.2f, 0.65f);
 
         Vector3 targetPosition = currentTarget != null ? currentTarget.position : transform.position;
         SpawnLingeringHazard(
@@ -776,43 +824,16 @@ public sealed class HWJ_FighterBossPhaseTwoPatternSystem :
         float range,
         float seconds)
     {
-        LineRenderer line = profile.TelegraphRenderer;
-
-        if (line != null)
-        {
-            line.transform.position = transform.position;
-            line.useWorldSpace = false;
-            line.loop = false;
-            line.positionCount = 2;
-            line.SetPosition(0, new Vector3(0.25f * movementDirection, 0.9f, 0f));
-            line.SetPosition(1, new Vector3(Mathf.Max(0.5f, range) * movementDirection, 0.9f, 0f));
-            line.enabled = true;
-        }
-
-        yield return new WaitForSeconds(Mathf.Max(0f, seconds));
         SetTelegraphVisible(profile, false);
+        yield return new WaitForSeconds(Mathf.Max(0f, seconds));
     }
 
     private IEnumerator ShowArcWarning(
         HWJ_FighterBossPhaseTwoPatternProfile profile,
         float seconds)
     {
-        LineRenderer line = profile.TelegraphRenderer;
-
-        if (line != null)
-        {
-            line.transform.position = transform.position;
-            line.useWorldSpace = false;
-            line.loop = false;
-            line.positionCount = 3;
-            line.SetPosition(0, new Vector3(0.2f * movementDirection, 0.2f, 0f));
-            line.SetPosition(1, new Vector3(0.9f * movementDirection, 1.5f, 0f));
-            line.SetPosition(2, new Vector3(0.45f * movementDirection, 3.1f, 0f));
-            line.enabled = true;
-        }
-
-        yield return new WaitForSeconds(Mathf.Max(0f, seconds));
         SetTelegraphVisible(profile, false);
+        yield return new WaitForSeconds(Mathf.Max(0f, seconds));
     }
 
     private IEnumerator ShowRingWarning(
@@ -821,10 +842,8 @@ public sealed class HWJ_FighterBossPhaseTwoPatternSystem :
         float radius,
         float seconds)
     {
-        ConfigureRing(profile.TelegraphRenderer, worldPosition, radius);
-        SetTelegraphVisible(profile, true);
-        yield return new WaitForSeconds(Mathf.Max(0f, seconds));
         SetTelegraphVisible(profile, false);
+        yield return new WaitForSeconds(Mathf.Max(0f, seconds));
     }
 
     private void SpawnHorizontalProjectile(
@@ -1223,6 +1242,7 @@ public sealed class HWJ_FighterBossPhaseTwoPatternSystem :
         Record(completedCounts, completedPatternId);
         isPatternRunning = false;
         activeRoutine = null;
+        StopWatchdog();
         ForceCleanup(true);
     }
 
@@ -1243,6 +1263,7 @@ public sealed class HWJ_FighterBossPhaseTwoPatternSystem :
         StopAndReleaseRuntimeObjects();
         RestoreTeleportPresentation();
         ReleaseSoulBind();
+        isCasting = false;
         isRecovering = false;
         currentTarget = null;
         hasActiveHitboxOriginalPosition = false;
@@ -1257,6 +1278,17 @@ public sealed class HWJ_FighterBossPhaseTwoPatternSystem :
         {
             animatorSystem?.EndAttack(false);
         }
+    }
+
+    private void StopWatchdog()
+    {
+        if (watchdogRoutine == null)
+        {
+            return;
+        }
+
+        StopCoroutine(watchdogRoutine);
+        watchdogRoutine = null;
     }
 
     private void ArmProfileHitbox(
@@ -1316,7 +1348,8 @@ public sealed class HWJ_FighterBossPhaseTwoPatternSystem :
     {
         if (profile?.TelegraphRenderer != null)
         {
-            profile.TelegraphRenderer.enabled = visible;
+            // LineRenderer 참조는 기존 프리팹 호환을 위해 남기되 현재 연출에서는 사용하지 않습니다.
+            profile.TelegraphRenderer.enabled = false;
         }
     }
 
@@ -1691,6 +1724,23 @@ public sealed class HWJ_FighterBossPhaseTwoPatternSystem :
     private static int GetAttackId(HWJ_FighterBossPhaseTwoPatternKind kind)
     {
         return 11 + (int)kind;
+    }
+
+    private static string GetCastStateName(HWJ_FighterBossPhaseTwoPatternKind kind)
+    {
+        return kind switch
+        {
+            HWJ_FighterBossPhaseTwoPatternKind.EnhancedCombo => "P2_Cast_EnhancedCombo",
+            HWJ_FighterBossPhaseTwoPatternKind.DoubleCharge => "P2_Cast_DoubleCharge",
+            HWJ_FighterBossPhaseTwoPatternKind.ThunderUppercut => "P2_Cast_ThunderUppercut",
+            HWJ_FighterBossPhaseTwoPatternKind.DarkGroundSlam => "P2_Cast_DarkGroundSlam",
+            HWJ_FighterBossPhaseTwoPatternKind.ShadowCombo => "P2_Cast_ShadowCombo",
+            HWJ_FighterBossPhaseTwoPatternKind.LightningCast => "P2_Cast_LightningCast",
+            HWJ_FighterBossPhaseTwoPatternKind.DarkWave => "P2_Cast_DarkWave",
+            HWJ_FighterBossPhaseTwoPatternKind.SoulBind => "P2_Cast_SoulBind",
+            HWJ_FighterBossPhaseTwoPatternKind.Ultimate => "P2_Cast_Ultimate",
+            _ => string.Empty
+        };
     }
 
     private static int GetCount(Dictionary<string, int> source, string key)

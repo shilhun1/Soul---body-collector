@@ -13,6 +13,7 @@ public class HWJ_FighterBossDeathSystem : MonoBehaviour
     [SerializeField] private Animator animator;
     [SerializeField] private HWJ_FighterBossAnimatorSystem animatorSystem;
     [SerializeField] private HWJ_FighterBossPhaseTwoPatternSystem phaseTwoPatternSystem;
+    [SerializeField] private HWJ_BossDialogueBubbleSystem dialogueBubbleSystem;
     [SerializeField] private Rigidbody2D body;
     [SerializeField] private Collider2D bodyCollider;
     [SerializeField] private float watchdogSeconds = 1.65f;
@@ -69,19 +70,13 @@ public class HWJ_FighterBossDeathSystem : MonoBehaviour
         bool usesAnimator = animatorSystem != null
             ? animatorSystem.HasState(DeathAnimatorState)
             : HasAnimatorState(DeathAnimatorState);
-        deathRoutine = StartCoroutine(DeathWatchdogRoutine(usesAnimator));
 
-        if (usesAnimator)
+        if (dialogueBubbleSystem != null && !dialogueBubbleSystem.IsDeathSequencePlaying)
         {
-            if (animatorSystem != null)
-            {
-                animatorSystem.BeginDeath();
-            }
-            else
-            {
-                animator.Play(GetFullPathHash(DeathAnimatorState), 0, 0f);
-            }
+            dialogueBubbleSystem.ShowDeathDialogue();
         }
+
+        deathRoutine = StartCoroutine(DeathDialogueThenAnimationRoutine(usesAnimator));
 
         return true;
     }
@@ -111,13 +106,34 @@ public class HWJ_FighterBossDeathSystem : MonoBehaviour
         CompleteDeath();
     }
 
-    private IEnumerator DeathWatchdogRoutine(bool usesAnimator)
+    private IEnumerator DeathDialogueThenAnimationRoutine(bool usesAnimator)
     {
-        if (!usesAnimator)
+        // 기획 대사를 모두 보여준 뒤 마지막 쓰러짐 애니메이션을 시작합니다.
+        while (deathRunning
+            && dialogueBubbleSystem != null
+            && dialogueBubbleSystem.IsDeathSequencePlaying)
         {
             yield return null;
+        }
+
+        if (!deathRunning)
+        {
+            yield break;
+        }
+
+        if (!usesAnimator)
+        {
             CompleteDeath();
             yield break;
+        }
+
+        if (animatorSystem != null)
+        {
+            animatorSystem.BeginDeath();
+        }
+        else
+        {
+            animator.Play(GetFullPathHash(DeathAnimatorState), 0, 0f);
         }
 
         float elapsed = 0f;
@@ -170,6 +186,7 @@ public class HWJ_FighterBossDeathSystem : MonoBehaviour
 
         deathRunning = false;
         deathComplete = false;
+        dialogueBubbleSystem?.CancelDialogueSequence(true);
         DisableAllAttackHitboxes();
 
         if (body != null)
@@ -230,6 +247,11 @@ public class HWJ_FighterBossDeathSystem : MonoBehaviour
         if (phaseTwoPatternSystem == null)
         {
             phaseTwoPatternSystem = GetComponent<HWJ_FighterBossPhaseTwoPatternSystem>();
+        }
+
+        if (dialogueBubbleSystem == null)
+        {
+            dialogueBubbleSystem = GetComponent<HWJ_BossDialogueBubbleSystem>();
         }
 
         if (body == null)

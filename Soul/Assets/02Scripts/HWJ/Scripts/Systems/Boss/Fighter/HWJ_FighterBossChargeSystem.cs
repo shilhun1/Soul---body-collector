@@ -11,6 +11,7 @@ public class HWJ_FighterBossChargeSystem :
     HWJ_IFighterBossAnimationEventReceiver
 {
     private const string ChargePatternId = "P1_Attack_Charge";
+    private const string ChargeCastAnimatorState = "P1_Cast_Charge";
     private const string ChargeAnimatorState = "P1_Attack_Charge";
 
     [SerializeField] private HWJ_BossBrainSystem bossBrain;
@@ -24,6 +25,7 @@ public class HWJ_FighterBossChargeSystem :
     [SerializeField] private Transform shoulderRoot;
     [SerializeField] private LineRenderer telegraphRenderer;
     [SerializeField] private string executorKey = "fighter_boss_charge";
+    [SerializeField, Min(0f)] private float castWaitSeconds = 0.75f;
     [SerializeField] private float watchdogSeconds = 2.45f;
     [SerializeField] private float chargeDurationSeconds = 0.5f;
     [SerializeField] private float chargeSpeed = 34f;
@@ -37,6 +39,7 @@ public class HWJ_FighterBossChargeSystem :
     private Coroutine movementRoutine;
     private Transform currentTarget;
     private bool isPatternRunning;
+    private bool isCasting;
     private bool isRecovering;
     private bool lastChargeUsedAnimator;
     private bool lastChargeStoppedByWall;
@@ -46,6 +49,8 @@ public class HWJ_FighterBossChargeSystem :
 
     public string ExecutorKey => executorKey;
     public bool IsPatternRunning => isPatternRunning;
+    public bool IsCasting => isCasting;
+    public float CastWaitSeconds => castWaitSeconds;
     public bool IsRecovering => isRecovering;
     public bool LastChargeUsedAnimator => lastChargeUsedAnimator;
     public bool LastChargeStoppedByWall => lastChargeStoppedByWall;
@@ -96,6 +101,7 @@ public class HWJ_FighterBossChargeSystem :
 
         currentTarget = target;
         isPatternRunning = true;
+        isCasting = true;
         isRecovering = false;
         lastChargeDistance = 0f;
         lastChargeStoppedByWall = false;
@@ -111,10 +117,9 @@ public class HWJ_FighterBossChargeSystem :
         SetTelegraphVisible(false);
         bossBrain?.NotifyComboAttackStarted();
         lastChargeUsedAnimator = animatorSystem != null
-            ? animatorSystem.BeginAttack(2, ChargeAnimatorState)
-            : HasAnimatorState(ChargeAnimatorState);
+            && animatorSystem.BeginCast(2, ChargeCastAnimatorState);
         activeRoutine = StartCoroutine(lastChargeUsedAnimator
-            ? AnimatorWatchdogRoutine()
+            ? CastThenAnimatorWatchdogRoutine()
             : FallbackChargeRoutine());
 
         if (activeRoutine == null)
@@ -148,7 +153,8 @@ public class HWJ_FighterBossChargeSystem :
     public void OnAnimationTelegraphStart()
     {
         ApplyFacing();
-        SetTelegraphVisible(true);
+        // 시전 대기 모션이 공격 방향을 전달하므로 이전 선형 표시는 항상 숨깁니다.
+        SetTelegraphVisible(false);
     }
 
     public void OnAnimationEnableHitbox(int strikeNumber)
@@ -212,11 +218,22 @@ public class HWJ_FighterBossChargeSystem :
         CompleteCharge();
     }
 
-    private IEnumerator AnimatorWatchdogRoutine()
+    private IEnumerator CastThenAnimatorWatchdogRoutine()
     {
-        if (animatorSystem == null)
+        yield return new WaitForSeconds(Mathf.Max(0f, castWaitSeconds));
+        isCasting = false;
+
+        if (!isPatternRunning)
         {
-            animator.Play(GetFullPathHash(ChargeAnimatorState), 0, 0f);
+            yield break;
+        }
+
+        if (animatorSystem == null || !animatorSystem.CommitAttack(ChargeAnimatorState))
+        {
+            isPatternRunning = false;
+            ForceCleanup(true);
+            activeRoutine = null;
+            yield break;
         }
 
         float elapsed = 0f;
@@ -237,11 +254,19 @@ public class HWJ_FighterBossChargeSystem :
 
     private IEnumerator FallbackChargeRoutine()
     {
+        yield return new WaitForSeconds(Mathf.Max(0f, castWaitSeconds));
+        isCasting = false;
+
+        if (!isPatternRunning)
+        {
+            yield break;
+        }
+
         OnAnimationAttackStart();
-        OnAnimationTelegraphStart();
-        yield return new WaitForSeconds(0.55f);
-        OnAnimationApplyMovement();
+        yield return new WaitForSeconds(0.5f);
         OnAnimationEnableHitbox(1);
+        yield return new WaitForSeconds(0.08f);
+        OnAnimationApplyMovement();
         yield return new WaitForSeconds(0.52f);
         OnAnimationStopMovement();
         OnAnimationDisableHitbox();
@@ -384,6 +409,7 @@ public class HWJ_FighterBossChargeSystem :
         StopChargeMovement();
         chargeHitbox?.Disarm();
         SetTelegraphVisible(false);
+        isCasting = false;
         isRecovering = false;
         currentTarget = null;
 

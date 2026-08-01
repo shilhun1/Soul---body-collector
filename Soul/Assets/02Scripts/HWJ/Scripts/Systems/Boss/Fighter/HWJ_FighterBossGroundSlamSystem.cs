@@ -11,6 +11,7 @@ public class HWJ_FighterBossGroundSlamSystem :
     HWJ_IFighterBossAnimationEventReceiver
 {
     private const string PatternId = "P1_Attack_GroundSlam";
+    private const string CastAnimatorState = "P1_Cast_GroundSlam";
     private const string AnimatorState = "P1_Attack_GroundSlam";
 
     [SerializeField] private HWJ_BossBrainSystem bossBrain;
@@ -20,6 +21,7 @@ public class HWJ_FighterBossGroundSlamSystem :
     [SerializeField] private HWJ_FighterBossAnimatorSystem animatorSystem;
     [SerializeField] private LineRenderer telegraphRenderer;
     [SerializeField] private string executorKey = "fighter_boss_ground_slam";
+    [SerializeField, Min(0f)] private float castWaitSeconds = 0.85f;
     [SerializeField] private float watchdogSeconds = 2.1f;
     [SerializeField] private float telegraphRadius = 2.75f;
     [SerializeField] private float damageMultiplier = 1.8f;
@@ -27,6 +29,7 @@ public class HWJ_FighterBossGroundSlamSystem :
 
     private Coroutine activeRoutine;
     private bool isPatternRunning;
+    private bool isCasting;
     private bool isRecovering;
     private bool lastGroundSlamUsedAnimator;
     private int completedGroundSlamCount;
@@ -34,6 +37,8 @@ public class HWJ_FighterBossGroundSlamSystem :
 
     public string ExecutorKey => executorKey;
     public bool IsPatternRunning => isPatternRunning;
+    public bool IsCasting => isCasting;
+    public float CastWaitSeconds => castWaitSeconds;
     public bool IsRecovering => isRecovering;
     public bool LastGroundSlamUsedAnimator => lastGroundSlamUsedAnimator;
     public int CompletedGroundSlamCount => completedGroundSlamCount;
@@ -83,16 +88,16 @@ public class HWJ_FighterBossGroundSlamSystem :
         }
 
         isPatternRunning = true;
+        isCasting = true;
         isRecovering = false;
         slamHitbox?.Disarm();
         ConfigureTelegraph();
         SetTelegraphVisible(false);
         bossBrain?.NotifyComboAttackStarted();
         lastGroundSlamUsedAnimator = animatorSystem != null
-            ? animatorSystem.BeginAttack(4, AnimatorState)
-            : HasAnimatorState(AnimatorState);
+            && animatorSystem.BeginCast(4, CastAnimatorState);
         activeRoutine = StartCoroutine(lastGroundSlamUsedAnimator
-            ? AnimatorWatchdogRoutine()
+            ? CastThenAnimatorWatchdogRoutine()
             : FallbackGroundSlamRoutine());
 
         if (activeRoutine == null)
@@ -125,7 +130,8 @@ public class HWJ_FighterBossGroundSlamSystem :
     public void OnAnimationTelegraphStart()
     {
         ConfigureTelegraph();
-        SetTelegraphVisible(true);
+        // 원형 범위 표시는 제거하고 지면 타격 준비 모션으로 위험을 전달합니다.
+        SetTelegraphVisible(false);
     }
 
     public void OnAnimationEnableHitbox(int strikeNumber)
@@ -186,11 +192,22 @@ public class HWJ_FighterBossGroundSlamSystem :
         CompleteGroundSlam();
     }
 
-    private IEnumerator AnimatorWatchdogRoutine()
+    private IEnumerator CastThenAnimatorWatchdogRoutine()
     {
-        if (animatorSystem == null)
+        yield return new WaitForSeconds(Mathf.Max(0f, castWaitSeconds));
+        isCasting = false;
+
+        if (!isPatternRunning)
         {
-            animator.Play(GetFullPathHash(AnimatorState), 0, 0f);
+            yield break;
+        }
+
+        if (animatorSystem == null || !animatorSystem.CommitAttack(AnimatorState))
+        {
+            isPatternRunning = false;
+            ForceCleanup(true);
+            activeRoutine = null;
+            yield break;
         }
 
         float elapsed = 0f;
@@ -211,8 +228,15 @@ public class HWJ_FighterBossGroundSlamSystem :
 
     private IEnumerator FallbackGroundSlamRoutine()
     {
+        yield return new WaitForSeconds(Mathf.Max(0f, castWaitSeconds));
+        isCasting = false;
+
+        if (!isPatternRunning)
+        {
+            yield break;
+        }
+
         OnAnimationAttackStart();
-        OnAnimationTelegraphStart();
         yield return new WaitForSeconds(0.6f);
         OnAnimationSpawnGroundHazard();
         OnAnimationEnableHitbox(1);
@@ -243,6 +267,7 @@ public class HWJ_FighterBossGroundSlamSystem :
     {
         slamHitbox?.Disarm();
         SetTelegraphVisible(false);
+        isCasting = false;
         isRecovering = false;
 
         if (!returnToIdle)

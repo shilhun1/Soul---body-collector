@@ -11,6 +11,7 @@ public class HWJ_FighterBossUppercutSystem :
     HWJ_IFighterBossAnimationEventReceiver
 {
     private const string PatternId = "P1_Attack_Uppercut";
+    private const string CastAnimatorState = "P1_Cast_Uppercut";
     private const string AnimatorState = "P1_Attack_Uppercut";
 
     [SerializeField] private HWJ_BossBrainSystem bossBrain;
@@ -24,6 +25,7 @@ public class HWJ_FighterBossUppercutSystem :
     [SerializeField] private Transform uppercutRoot;
     [SerializeField] private LineRenderer telegraphRenderer;
     [SerializeField] private string executorKey = "fighter_boss_uppercut";
+    [SerializeField, Min(0f)] private float castWaitSeconds = 0.65f;
     [SerializeField] private float watchdogSeconds = 1.85f;
     [SerializeField] private float hitboxLocalX = 0.78f;
     [SerializeField] private float hitboxLocalY = 1.55f;
@@ -37,6 +39,7 @@ public class HWJ_FighterBossUppercutSystem :
     private Coroutine movementRoutine;
     private Transform currentTarget;
     private bool isPatternRunning;
+    private bool isCasting;
     private bool isRecovering;
     private bool lastUppercutUsedAnimator;
     private bool animationEnded;
@@ -48,6 +51,8 @@ public class HWJ_FighterBossUppercutSystem :
 
     public string ExecutorKey => executorKey;
     public bool IsPatternRunning => isPatternRunning;
+    public bool IsCasting => isCasting;
+    public float CastWaitSeconds => castWaitSeconds;
     public bool IsRecovering => isRecovering;
     public bool LastUppercutUsedAnimator => lastUppercutUsedAnimator;
     public int CompletedUppercutCount => completedUppercutCount;
@@ -98,6 +103,7 @@ public class HWJ_FighterBossUppercutSystem :
 
         currentTarget = target;
         isPatternRunning = true;
+        isCasting = true;
         isRecovering = false;
         animationEnded = false;
         lastUppercutLanded = false;
@@ -115,10 +121,9 @@ public class HWJ_FighterBossUppercutSystem :
         SetTelegraphVisible(false);
         bossBrain?.NotifyComboAttackStarted();
         lastUppercutUsedAnimator = animatorSystem != null
-            ? animatorSystem.BeginAttack(3, AnimatorState)
-            : HasAnimatorState(AnimatorState);
+            && animatorSystem.BeginCast(3, CastAnimatorState);
         activeRoutine = StartCoroutine(lastUppercutUsedAnimator
-            ? AnimatorWatchdogRoutine()
+            ? CastThenAnimatorWatchdogRoutine()
             : FallbackUppercutRoutine());
 
         if (activeRoutine == null)
@@ -152,7 +157,8 @@ public class HWJ_FighterBossUppercutSystem :
     public void OnAnimationTelegraphStart()
     {
         ApplyFacing();
-        SetTelegraphVisible(true);
+        // 보스의 준비 자세만 보여주고 기존 궤적 예고선은 사용하지 않습니다.
+        SetTelegraphVisible(false);
     }
 
     public void OnAnimationEnableHitbox(int strikeNumber)
@@ -220,11 +226,22 @@ public class HWJ_FighterBossUppercutSystem :
         }
     }
 
-    private IEnumerator AnimatorWatchdogRoutine()
+    private IEnumerator CastThenAnimatorWatchdogRoutine()
     {
-        if (animatorSystem == null)
+        yield return new WaitForSeconds(Mathf.Max(0f, castWaitSeconds));
+        isCasting = false;
+
+        if (!isPatternRunning)
         {
-            animator.Play(GetFullPathHash(AnimatorState), 0, 0f);
+            yield break;
+        }
+
+        if (animatorSystem == null || !animatorSystem.CommitAttack(AnimatorState))
+        {
+            isPatternRunning = false;
+            ForceCleanup(true);
+            activeRoutine = null;
+            yield break;
         }
 
         float elapsed = 0f;
@@ -245,11 +262,19 @@ public class HWJ_FighterBossUppercutSystem :
 
     private IEnumerator FallbackUppercutRoutine()
     {
+        yield return new WaitForSeconds(Mathf.Max(0f, castWaitSeconds));
+        isCasting = false;
+
+        if (!isPatternRunning)
+        {
+            yield break;
+        }
+
         OnAnimationAttackStart();
-        OnAnimationTelegraphStart();
-        yield return new WaitForSeconds(0.42f);
-        OnAnimationApplyMovement();
+        yield return new WaitForSeconds(0.4f);
         OnAnimationEnableHitbox(1);
+        yield return new WaitForSeconds(0.06f);
+        OnAnimationApplyMovement();
         yield return new WaitForSeconds(0.28f);
         OnAnimationDisableHitbox();
         OnAnimationCameraShakeHook();
@@ -372,6 +397,7 @@ public class HWJ_FighterBossUppercutSystem :
         StopUppercutMovement();
         uppercutHitbox?.Disarm();
         SetTelegraphVisible(false);
+        isCasting = false;
         isRecovering = false;
         currentTarget = null;
 

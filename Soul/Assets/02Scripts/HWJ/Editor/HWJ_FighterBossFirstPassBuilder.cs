@@ -1077,6 +1077,8 @@ public static class HWJ_FighterBossFirstPassBuilder
             HWJ_CombatSystem combat = GetOrAdd<HWJ_CombatSystem>(root);
             HWJ_BossPatternSystem patternSystem = GetOrAdd<HWJ_BossPatternSystem>(root);
             HWJ_BossBrainSystem brain = GetOrAdd<HWJ_BossBrainSystem>(root);
+            // 씬에 같은 보스 프리팹이 겹쳐 배치되어도 전투와 UI가 이중 실행되지 않게 합니다.
+            GetOrAdd<HWJ_BossDuplicateGuardSystem>(root);
             HWJ_CharacterMotionSystem motion = GetOrAdd<HWJ_CharacterMotionSystem>(root);
             HWJ_FighterBossComboSystem combo = GetOrAdd<HWJ_FighterBossComboSystem>(root);
             HWJ_FighterBossChargeSystem charge = GetOrAdd<HWJ_FighterBossChargeSystem>(root);
@@ -1873,6 +1875,7 @@ public static class HWJ_FighterBossFirstPassBuilder
         }
 
         if (prefab.GetComponent<Animator>() == null
+            || prefab.GetComponent<HWJ_BossDuplicateGuardSystem>() == null
             || prefab.GetComponent<HWJ_FighterBossComboSystem>() == null
             || prefab.GetComponent<HWJ_FighterBossChargeSystem>() == null
             || prefab.GetComponent<HWJ_FighterBossUppercutSystem>() == null

@@ -467,6 +467,8 @@ GameObject:
   - component: {fileID: 588749454145961898}
   - component: {fileID: 5520087505700737991}
   - component: {fileID: 5114194407865569662}
+  - component: {fileID: 774000000000000001}
+  - component: {fileID: 5079741461919464881}
   m_Layer: 0
   m_Name: HWJ_MidBoss1_Runtime_Prefab
   m_TagString: Untagged
@@ -626,7 +628,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 10
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 21300000, guid: fa57d6926be293d4aa1331f481472c51, type: 3}
+  m_Sprite: {fileID: 21300000, guid: e659b0d8248f041821d4caf4437be387, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -634,7 +636,7 @@ SpriteRenderer:
   m_Size: {x: 2, y: 2}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 0
+  m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
 --- !u!114 &840020000000000005
 MonoBehaviour:
@@ -840,7 +842,7 @@ MonoBehaviour:
   stageOnePatternSystem: {fileID: 0}
   skillActionSystem: {fileID: 840020000000000008}
   motionSystem: {fileID: 840020000000000012}
-  cameraFocusSystem: {fileID: 0}
+  cameraFocusSystem: {fileID: 5079741461919464881}
   dialogueBubbleSystem: {fileID: 5114194407865569662}
   fighterComboSystem: {fileID: 8069411240810711009}
   fighterChargeSystem: {fileID: 9203793407288025627}
@@ -988,7 +990,8 @@ MonoBehaviour:
   telegraphRenderer: {fileID: 8775107366317582510}
   attackRoot: {fileID: 2049043980264795436}
   executorKey: fighter_boss_combo
-  watchdogSeconds: 2.25
+  castWaitSeconds: 0.65
+  watchdogSeconds: 3.2
   rightHandLocalX: 1.05
   rightHandLocalY: 0.95
   firstDamageMultiplier: 0.75
@@ -1055,7 +1058,8 @@ MonoBehaviour:
   shoulderRoot: {fileID: 2416451084338231205}
   telegraphRenderer: {fileID: 6987359305266881045}
   executorKey: fighter_boss_charge
-  watchdogSeconds: 2.45
+  castWaitSeconds: 0.75
+  watchdogSeconds: 3.4
   chargeDurationSeconds: 0.5
   chargeSpeed: 34
   arenaWidthTravelRatio: 0.48
@@ -1086,7 +1090,8 @@ MonoBehaviour:
   uppercutRoot: {fileID: 3950979328844138884}
   telegraphRenderer: {fileID: 6493692741609266763}
   executorKey: fighter_boss_uppercut
-  watchdogSeconds: 1.85
+  castWaitSeconds: 0.65
+  watchdogSeconds: 3
   hitboxLocalX: 0.78
   hitboxLocalY: 1.55
   damageMultiplier: 1.65
@@ -1113,7 +1118,8 @@ MonoBehaviour:
   animatorSystem: {fileID: 5520087505700737991}
   telegraphRenderer: {fileID: 5695089634137913792}
   executorKey: fighter_boss_ground_slam
-  watchdogSeconds: 2.1
+  castWaitSeconds: 0.85
+  watchdogSeconds: 3.2
   telegraphRadius: 2.75
   damageMultiplier: 1.8
   extraKnockbackPower: 18
@@ -1148,7 +1154,8 @@ MonoBehaviour:
     hitboxLocalY: 0.95
     damageMultiplier: 1.35
     extraKnockbackPower: 7
-    watchdogSeconds: 4.8
+    castWaitSeconds: 0.55
+    watchdogSeconds: 4
     movementSpeed: 0
     movementDuration: 0
     arenaWidthTravelRatio: 0.45
@@ -1163,7 +1170,8 @@ MonoBehaviour:
     hitboxLocalY: 1
     damageMultiplier: 1.65
     extraKnockbackPower: 19
-    watchdogSeconds: 4.8
+    castWaitSeconds: 0.7
+    watchdogSeconds: 4.5
     movementSpeed: 42
     movementDuration: 0.55
     arenaWidthTravelRatio: 0.55
@@ -1178,7 +1186,8 @@ MonoBehaviour:
     hitboxLocalY: 1.65
     damageMultiplier: 1.95
     extraKnockbackPower: 17
-    watchdogSeconds: 4.8
+    castWaitSeconds: 0.65
+    watchdogSeconds: 5
     movementSpeed: 0
     movementDuration: 0
     arenaWidthTravelRatio: 0.45
@@ -1193,7 +1202,8 @@ MonoBehaviour:
     hitboxLocalY: 0.45
     damageMultiplier: 1.75
     extraKnockbackPower: 20
-    watchdogSeconds: 4.8
+    castWaitSeconds: 0.85
+    watchdogSeconds: 4
     movementSpeed: 0
     movementDuration: 0
     arenaWidthTravelRatio: 0.45
@@ -1208,7 +1218,8 @@ MonoBehaviour:
     hitboxLocalY: 0.8
     damageMultiplier: 1.7
     extraKnockbackPower: 14
-    watchdogSeconds: 4.8
+    castWaitSeconds: 0.55
+    watchdogSeconds: 5
     movementSpeed: 0
     movementDuration: 0
     arenaWidthTravelRatio: 0.45
@@ -1223,7 +1234,8 @@ MonoBehaviour:
     hitboxLocalY: 0.45
     damageMultiplier: 2.1
     extraKnockbackPower: 20
-    watchdogSeconds: 4.8
+    castWaitSeconds: 0.9
+    watchdogSeconds: 7.5
     movementSpeed: 0
     movementDuration: 0
     arenaWidthTravelRatio: 0.45
@@ -1238,7 +1250,8 @@ MonoBehaviour:
     hitboxLocalY: 1
     damageMultiplier: 1.55
     extraKnockbackPower: 8
-    watchdogSeconds: 4.8
+    castWaitSeconds: 0.75
+    watchdogSeconds: 4
     movementSpeed: 0
     movementDuration: 0
     arenaWidthTravelRatio: 0.45
@@ -1253,7 +1266,8 @@ MonoBehaviour:
     hitboxLocalY: 1
     damageMultiplier: 1.45
     extraKnockbackPower: 12
-    watchdogSeconds: 4.8
+    castWaitSeconds: 0.8
+    watchdogSeconds: 4.5
     movementSpeed: 6
     movementDuration: 0.45
     arenaWidthTravelRatio: 0.3
@@ -1268,13 +1282,13 @@ MonoBehaviour:
     hitboxLocalY: 1
     damageMultiplier: 2.6
     extraKnockbackPower: 24
-    watchdogSeconds: 6
+    castWaitSeconds: 1.2
+    watchdogSeconds: 8.5
     movementSpeed: 0
     movementDuration: 0
     arenaWidthTravelRatio: 0.45
     telegraphRange: 1.8
   teleportWarningSeconds: 0.3
-  lightningWarningSeconds: 0.65
   lightningIntervalSeconds: 0.45
   lingeringHazardSeconds: 1.5
   soulBindMaximumDistance: 9
@@ -1297,6 +1311,7 @@ MonoBehaviour:
   animator: {fileID: 1350539276399618024}
   animatorSystem: {fileID: 5520087505700737991}
   phaseTwoPatternSystem: {fileID: 9182620003255924184}
+  dialogueBubbleSystem: {fileID: 5114194407865569662}
   body: {fileID: 840020000000000003}
   bodyCollider: {fileID: 840020000000000004}
   watchdogSeconds: 1.9
@@ -1329,16 +1344,97 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2db8d17bf86c48b38d3d8a7b9ad91e52, type: 3}
   m_Name: 
   m_EditorClassIdentifier: HWJ.Runtime::HWJ_BossDialogueBubbleSystem
-  bubbleAnchor: {fileID: 0}
-  bubbleOffset: {x: 0, y: 2.2, z: 0}
-  introDialogue: "\uC654\uAD70."
-  phaseTwoDialogue: "\uC8FC\uC778\uC774\uC5EC! \uB0B4 \uC721\uCCB4\uC640 \uC601\uD63C\uC744
-    \uBC14\uCE58\uACA0\uB2E4!"
+  bubbleAnchor: {fileID: 6542930118222392105}
+  bubbleOffset: {x: 0, y: 1.15, z: 0}
+  introDialogueSequence:
+  - "\uC5EC\uAE30\uAE4C\uC9C0 \uC0B4\uC544\uC11C \uC654\uB2E4\uB294 \uAC74 \uC778\uC815\uD558\uC9C0."
+  - "\uD558\uC9C0\uB9CC \uC6B4 \uC88B\uAC8C \uC0B4\uC544\uB0A8\uC740 \uAC83\uACFC
+    \uAC15\uD55C \uAC83\uC740 \uC804\uD600 \uB2E4\uB974\uB2E4."
+  - "\uB098\uB294 \uC2E0\uB3C4, \uC655\uB3C4, \uB3D9\uB8CC\uB3C4 \uBBFF\uC9C0 \uC54A\uB294\uB2E4."
+  - "\uB0B4\uAC00 \uBBFF\uB294 \uAC83\uC740 \uC624\uC9C1 \uC774 \uB450 \uC8FC\uBA39\uBFD0\uC774\uB2E4."
+  - "\uC57D\uC790\uB294 \uAC15\uC790\uC758 \uC55E\uC5D0\uC11C \uC4F0\uB7EC\uC9C0\uB294
+    \uAC83\uC774 \uB2F9\uC5F0\uD558\uB2E4."
+  - "\uB124\uAC00 \uC5B4\uB290 \uCABD\uC778\uC9C0, \uC9C0\uAE08 \uC99D\uBA85\uD574
+    \uBD10\uB77C."
+  - "\uC790\uC138\uB97C \uC7A1\uC544\uB77C. \uBCC0\uBA85\uD560 \uC2DC\uAC04\uC740
+    \uB05D\uB0AC\uB2E4."
+  phaseTwoDialogueSequence:
+  - "\uB9D0\uB3C4 \uC548 \uB3FC......"
+  - "\uB0B4 \uC8FC\uBA39\uC774...... \uC57D\uC790\uC5D0\uAC8C \uBC00\uB838\uB2E4\uACE0?"
+  - "\uC544\uB2C8."
+  - "\uC544\uC9C1 \uB0B4\uAC00 \uC57D\uD574\uC9C4 \uAC83\uC774 \uC544\uB2C8\uB2E4."
+  - "\uB0B4 \uC721\uCCB4\uAC00...... \uB0B4 \uD798\uC744 \uB530\uB77C\uC624\uC9C0
+    \uBABB\uD588\uC744 \uBFD0\uC774\uB2E4."
+  - "\uB4E3\uACE0 \uC788\uB098, \uC8FC\uC778\uC774\uC5EC."
+  - "\uB124 \uD798\uC744 \uB0B4\uAC8C \uB118\uACA8\uB77C."
+  - "\uBCF5\uC885\uD558\uB824\uB294 \uAC83\uC774 \uC544\uB2C8\uB2E4."
+  - "\uADF8 \uD798\uC870\uCC28 \uB0B4 \uC8FC\uBA39 \uC544\uB798 \uAD74\uBCF5\uC2DC\uD0A4\uACA0\uB2E4."
+  - "\uADF8\uB798...... \uC774\uAC8C \uC9C4\uC815\uD55C \uD798\uC778\uAC00."
+  - "\uC774\uC81C \uC54C\uACA0\uAD70."
+  - "\uB124\uAC00 \uAC15\uD55C \uAC83\uC774 \uC544\uB2C8\uB2E4."
+  - "\uB0B4\uAC00 \uC9C0\uAE08\uAE4C\uC9C0 \uC2A4\uC2A4\uB85C\uB97C \uC5B5\uB204\uB974\uACE0
+    \uC788\uC5C8\uC744 \uBFD0\uC774\uB2E4."
+  - "\uB450 \uBC88\uC9F8 \uC885\uC774 \uC6B8\uB838\uB2E4."
+  - "\uC774\uBC88\uC5D0\uB294 \uBF08 \uD558\uB098 \uB0A8\uAE30\uC9C0 \uC54A\uACA0\uB2E4."
+  deathDialogueSequence:
+  - "\uB0B4\uAC00...... \uD328\uBC30\uD588\uB2E4\uACE0?"
+  - "\uD798\uC774 \uC804\uBD80\uB77C\uBA74......"
+  - "\uC9C0\uAE08 \uAC15\uD55C \uCABD\uC740...... \uB108\uC778\uAC00......"
+  - "\uB3D9\uC815\uD558\uC9C0 \uB9C8\uB77C."
+  - "\uC2B9\uC790\uAC00 \uD328\uC790\uC5D0\uAC8C \uB0B4\uBBF8\uB294 \uC190\uB9CC\uD07C......
+    \uC5ED\uACA8\uC6B4 \uAC83\uB3C4 \uC5C6\uC73C\uB2C8\uAE4C."
+  - "\uAC00\uB77C......"
+  - "\uADF8\uB9AC\uACE0 \uB05D\uAE4C\uC9C0 \uC774\uACA8\uB77C."
+  - "\uB124\uAC00 \uD55C \uBC88\uC774\uB77C\uB3C4 \uBB34\uB98E \uAFC7\uB294\uB2E4\uBA74......"
+  - "\uC624\uB298\uC758 \uC2B9\uB9AC\uB3C4 \uC804\uBD80 \uAC70\uC9D3\uC774 \uB420
+    \uD14C\uB2C8......"
   soulLostDialogue: "\uB3C4\uB9DD\uCE60 \uC0DD\uAC01\uC778\uAC00."
-  defaultDurationSeconds: 2.2
+  sequenceLineDurationSeconds: 3.2
+  sequenceGapSeconds: 0.12
+  defaultDurationSeconds: 3.2
+  dialogueFontSize: 34
+  dialogueCharacterSize: 0.06
+  maxCharactersPerLine: 18
+  horizontalBubblePadding: 1.4
+  verticalBubblePadding: 0.7
   textColor: {r: 0, g: 0, b: 0, a: 1}
-  bubbleColor: {r: 1, g: 1, b: 1, a: 0.92}
-  sortingOrder: 220
+  bubbleColor: {r: 1, g: 1, b: 1, a: 0.84}
+  sortingOrder: 240
+--- !u!114 &774000000000000001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 840020000000000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7f4b9c0a3e024a58b970bd2c17e6a511, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: HWJ.Runtime::HWJ_BossDuplicateGuardSystem
+  duplicateRadius: 0.5
+  preferParentedInstance: 1
+--- !u!114 &5079741461919464881
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 840020000000000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6a4e39a7c1e346a1a4ad2f8058e6481b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: HWJ.Runtime::HWJ_BossCameraFocusSystem
+  targetCinemachineCamera: {fileID: 0}
+  targetCamera: {fileID: 0}
+  dialogueFocusFieldOfView: 32
+  dialogueFocusOrthographicSize: 4.8
+  zoomLerpSpeed: 4
+  returnBlendSeconds: 0.45
+  focusOffset: {x: 0, y: 1.5}
+  disablePlayerFollowWhileFocusing: 1
+  fallbackPositionLerpSpeed: 6
 --- !u!1 &958775484097472386
 GameObject:
   m_ObjectHideFlags: 0

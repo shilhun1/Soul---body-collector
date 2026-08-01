@@ -11,6 +11,7 @@ public class HWJ_FighterBossComboSystem :
     HWJ_IFighterBossAnimationEventReceiver
 {
     private const string ComboPatternId = "P1_Attack_Combo";
+    private const string ComboCastAnimatorState = "P1_Cast_Combo";
     private const string ComboAnimatorState = "P1_Attack_Combo";
 
     [SerializeField] private HWJ_BossBrainSystem bossBrain;
@@ -22,6 +23,7 @@ public class HWJ_FighterBossComboSystem :
     [SerializeField] private LineRenderer telegraphRenderer;
     [SerializeField] private Transform attackRoot;
     [SerializeField] private string executorKey = "fighter_boss_combo";
+    [SerializeField, Min(0f)] private float castWaitSeconds = 0.65f;
     [SerializeField] private float watchdogSeconds = 2.25f;
     [SerializeField] private float rightHandLocalX = 1.05f;
     [SerializeField] private float rightHandLocalY = 0.95f;
@@ -33,12 +35,15 @@ public class HWJ_FighterBossComboSystem :
     private Coroutine activeRoutine;
     private Transform currentTarget;
     private bool isPatternRunning;
+    private bool isCasting;
     private bool isRecovering;
     private bool lastComboUsedAnimator;
     private int completedComboCount;
 
     public string ExecutorKey => executorKey;
     public bool IsPatternRunning => isPatternRunning;
+    public bool IsCasting => isCasting;
+    public float CastWaitSeconds => castWaitSeconds;
     public bool IsRecovering => isRecovering;
     public bool LastComboUsedAnimator => lastComboUsedAnimator;
     public int CompletedComboCount => completedComboCount;
@@ -87,17 +92,17 @@ public class HWJ_FighterBossComboSystem :
 
         currentTarget = target;
         isPatternRunning = true;
+        isCasting = true;
         isRecovering = false;
         lastComboUsedAnimator = animatorSystem != null
-            ? animatorSystem.BeginAttack(1, ComboAnimatorState)
-            : HasAnimatorState(ComboAnimatorState);
+            && animatorSystem.BeginCast(1, ComboCastAnimatorState);
         ApplyFacingToAttackRoot();
         comboHitbox?.Disarm();
         SetTelegraphVisible(false);
         bossBrain?.NotifyComboAttackStarted();
 
         activeRoutine = StartCoroutine(lastComboUsedAnimator
-            ? AnimatorWatchdogRoutine()
+            ? CastThenAnimatorWatchdogRoutine()
             : FallbackComboRoutine());
 
         if (activeRoutine == null)
@@ -130,7 +135,8 @@ public class HWJ_FighterBossComboSystem :
     public void OnAnimationTelegraphStart()
     {
         ApplyFacingToAttackRoot();
-        SetTelegraphVisible(true);
+        // 이전 버전 Clip의 이벤트가 남아 있어도 선형 예고 표시는 다시 켜지지 않습니다.
+        SetTelegraphVisible(false);
     }
 
     public void OnAnimationEnableHitbox(int strikeNumber)
@@ -202,11 +208,22 @@ public class HWJ_FighterBossComboSystem :
         CompleteCombo();
     }
 
-    private IEnumerator AnimatorWatchdogRoutine()
+    private IEnumerator CastThenAnimatorWatchdogRoutine()
     {
-        if (animatorSystem == null)
+        yield return new WaitForSeconds(Mathf.Max(0f, castWaitSeconds));
+        isCasting = false;
+
+        if (!isPatternRunning)
         {
-            animator.Play(GetFullPathHash(ComboAnimatorState), 0, 0f);
+            yield break;
+        }
+
+        if (animatorSystem == null || !animatorSystem.CommitAttack(ComboAnimatorState))
+        {
+            isPatternRunning = false;
+            ForceCleanup(true);
+            activeRoutine = null;
+            yield break;
         }
 
         float elapsed = 0f;
@@ -227,8 +244,15 @@ public class HWJ_FighterBossComboSystem :
 
     private IEnumerator FallbackComboRoutine()
     {
+        yield return new WaitForSeconds(Mathf.Max(0f, castWaitSeconds));
+        isCasting = false;
+
+        if (!isPatternRunning)
+        {
+            yield break;
+        }
+
         OnAnimationAttackStart();
-        OnAnimationTelegraphStart();
         yield return new WaitForSeconds(0.28f);
         OnAnimationEnableHitbox(1);
         yield return new WaitForSeconds(0.1f);
@@ -264,6 +288,7 @@ public class HWJ_FighterBossComboSystem :
     {
         comboHitbox?.Disarm();
         SetTelegraphVisible(false);
+        isCasting = false;
         isRecovering = false;
         currentTarget = null;
 

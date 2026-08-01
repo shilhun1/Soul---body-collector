@@ -91,6 +91,24 @@ public sealed class HWJ_FighterBossAnimatorSystem : MonoBehaviour
     }
 
     /// <summary>
+    /// 공격 계약을 시작하면서 실제 공격보다 먼저 시전 대기 모션을 재생합니다.
+    /// 시전 중에도 IsAttacking을 유지하므로 AI가 다른 패턴을 중복 실행하지 않습니다.
+    /// </summary>
+    public bool BeginCast(int attackId, string castStateName)
+    {
+        return BeginAttack(attackId, castStateName);
+    }
+
+    /// <summary>
+    /// 진행 중인 시전 대기 모션을 실제 공격 모션으로 전환합니다.
+    /// AttackId와 IsAttacking 값은 유지되어 하나의 공격 흐름으로 처리됩니다.
+    /// </summary>
+    public bool CommitAttack(string attackStateName, float crossFadeSeconds = 0.04f)
+    {
+        return isAttacking && PlayState(attackStateName, crossFadeSeconds);
+    }
+
+    /// <summary>
     /// Clears the attack contract even when an Animation Event is missing.
     /// </summary>
     public void EndAttack(bool returnToIdle = true)
@@ -245,7 +263,8 @@ public sealed class HWJ_FighterBossAnimatorSystem : MonoBehaviour
             };
         }
 
-        if (stateName.StartsWith("P1_Attack_", System.StringComparison.Ordinal))
+        if (stateName.StartsWith("P1_Attack_", System.StringComparison.Ordinal)
+            || stateName.StartsWith("P1_Cast_", System.StringComparison.Ordinal))
         {
             return new[]
             {

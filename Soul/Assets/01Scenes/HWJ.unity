@@ -3470,6 +3470,14 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 0}
     - target: {fileID: 840020000000000014, guid: eb5580d3385f43608f7941765218d007, type: 3}
+      propertyPath: m_FlipX
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 840020000000000014, guid: eb5580d3385f43608f7941765218d007, type: 3}
+      propertyPath: m_FlipY
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 840020000000000014, guid: eb5580d3385f43608f7941765218d007, type: 3}
       propertyPath: m_Size.x
       value: 2
       objectReference: {fileID: 0}

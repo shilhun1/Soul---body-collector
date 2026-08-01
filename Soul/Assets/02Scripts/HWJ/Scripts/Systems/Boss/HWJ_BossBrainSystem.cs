@@ -218,6 +218,14 @@ public class HWJ_BossBrainSystem : MonoBehaviour, HWJ_IHealthDepletionHandler
             return;
         }
 
+        // 시작 대사가 끝나기 전에는 보스가 이동하거나 패턴을 시작하지 않습니다.
+        if (dialogueBubbleSystem != null && dialogueBubbleSystem.BlocksBossActions)
+        {
+            SetBossState(HWJ_BossFSMState.Idle);
+            StopHorizontalMovement();
+            return;
+        }
+
         if (HandleSoulTargetState(bossData))
         {
             return;
@@ -271,14 +279,16 @@ public class HWJ_BossBrainSystem : MonoBehaviour, HWJ_IHealthDepletionHandler
     {
         encounterStarted = true;
         SetBossState(HWJ_BossFSMState.Idle);
-        cameraFocusSystem?.FocusOnBoss(transform, target, GetCameraFocusSeconds());
         dialogueBubbleSystem?.ShowIntroDialogue();
+        FocusCameraForDialogue(HWJ_BossDialogueSequenceType.Intro, GetCameraFocusSeconds());
     }
 
     public void StopBossEncounter()
     {
         encounterStarted = false;
         CancelCurrentBossActions();
+        dialogueBubbleSystem?.CancelDialogueSequence(true);
+        cameraFocusSystem?.StopFocus();
         SetBossState(HWJ_BossFSMState.Inactive);
         StopHorizontalMovement();
     }
@@ -594,7 +604,9 @@ public class HWJ_BossBrainSystem : MonoBehaviour, HWJ_IHealthDepletionHandler
 
         phaseTransitionTimer = transitionDuration;
         runtimeStatus?.GrantInvincibility(phaseTransitionTimer + 0.1f);
-        cameraFocusSystem?.FocusOnBoss(transform, target, Mathf.Max(GetCameraFocusSeconds(), phaseTransitionTimer));
+        FocusCameraForDialogue(
+            HWJ_BossDialogueSequenceType.PhaseTransition,
+            Mathf.Max(GetCameraFocusSeconds(), phaseTransitionTimer));
     }
 
     private void StartTwoBarPhaseTransition()
@@ -618,10 +630,13 @@ public class HWJ_BossBrainSystem : MonoBehaviour, HWJ_IHealthDepletionHandler
         SetBossState(HWJ_BossFSMState.PhaseTransition);
         StopHorizontalMovement();
         fighterAnimatorSystem?.BeginPhaseTransition();
+        dialogueBubbleSystem?.ShowPhaseTwoDialogue();
 
         phaseTransitionTimer = Mathf.Max(0.1f, bossData.FSM.phaseTransitionSeconds);
         runtimeStatus?.GrantInvincibility(phaseTransitionTimer + 0.05f);
-        cameraFocusSystem?.FocusOnBoss(transform, target, Mathf.Max(GetCameraFocusSeconds(), phaseTransitionTimer));
+        FocusCameraForDialogue(
+            HWJ_BossDialogueSequenceType.PhaseTransition,
+            Mathf.Max(GetCameraFocusSeconds(), phaseTransitionTimer));
         UpdateTwoBarTransitionAnimation(0f);
     }
 
@@ -646,7 +661,13 @@ public class HWJ_BossBrainSystem : MonoBehaviour, HWJ_IHealthDepletionHandler
             && ((patternSystem != null && patternSystem.IsSpecialPatternRunning)
                 || (stageOnePatternSystem != null && stageOnePatternSystem.IsPatternRunning));
 
-        if (phaseTransitionTimer <= 0f && !isTransitionPatternRunning)
+        bool isPhaseDialogueRunning = useTwoBarPhaseHealth
+            && dialogueBubbleSystem != null
+            && dialogueBubbleSystem.IsPhaseTransitionSequencePlaying;
+
+        if (phaseTransitionTimer <= 0f
+            && !isTransitionPatternRunning
+            && !isPhaseDialogueRunning)
         {
             if (useTwoBarPhaseHealth && fighterPhase == HWJ_FighterBossPhase.Transition)
             {
@@ -705,9 +726,6 @@ public class HWJ_BossBrainSystem : MonoBehaviour, HWJ_IHealthDepletionHandler
                 break;
             case 1:
                 PlayAnimatorState("PhaseBreak_Prayer");
-                dialogueBubbleSystem?.ShowLine(
-                    "주인이여! 내 육체와 영혼을 바치겠다!",
-                    Mathf.Max(1.2f, phaseTransitionTimer));
                 break;
             case 2:
                 PlayAnimatorState("PhaseBreak_LightningHit");
@@ -1023,6 +1041,8 @@ public class HWJ_BossBrainSystem : MonoBehaviour, HWJ_IHealthDepletionHandler
         {
             finalDeathCleanupCompleted = true;
             CancelCurrentBossActions();
+            dialogueBubbleSystem?.ShowDeathDialogue();
+            FocusCameraForDialogue(HWJ_BossDialogueSequenceType.Death, GetCameraFocusSeconds());
 
             if (fighterDeathSystem == null || !fighterDeathSystem.BeginFinalDeath())
             {
@@ -1149,6 +1169,19 @@ public class HWJ_BossBrainSystem : MonoBehaviour, HWJ_IHealthDepletionHandler
         return TryGetBossData(out HWJ_BossTypeDataSO bossData)
             ? Mathf.Max(0f, bossData.FSM.cameraFocusSeconds)
             : 0f;
+    }
+
+    private void FocusCameraForDialogue(
+        HWJ_BossDialogueSequenceType sequenceType,
+        float minimumDurationSeconds)
+    {
+        float dialogueDuration = dialogueBubbleSystem != null
+            ? dialogueBubbleSystem.GetSequenceDuration(sequenceType)
+            : 0f;
+        cameraFocusSystem?.FocusOnBoss(
+            transform,
+            target,
+            Mathf.Max(minimumDurationSeconds, dialogueDuration));
     }
 
     private void SetBossState(HWJ_BossFSMState nextState)

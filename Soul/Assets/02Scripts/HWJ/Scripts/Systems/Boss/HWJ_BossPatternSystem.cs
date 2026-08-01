@@ -7,6 +7,8 @@ using UnityEngine;
 /// </summary>
 public class HWJ_BossPatternSystem : MonoBehaviour
 {
+    private const int SituationalExplorationInterval = 4;
+
     [SerializeField] private HWJ_RootObjectDataResolver dataResolver;
     [SerializeField] private HWJ_RuntimeStatusSystem runtimeStatus;
     [SerializeField] private HWJ_SkillActionSystem skillActionSystem;
@@ -31,6 +33,7 @@ public class HWJ_BossPatternSystem : MonoBehaviour
     private readonly Queue<string> recentPatternCategories = new Queue<string>();
     private string lastExecutedPatternKey;
     private int selectionCursor;
+    private int explorationCursor;
 
     public string LastPatternResult => lastPatternResult;
     public bool IsSpecialPatternRunning => IsAnySpecialPatternRunning();
@@ -339,7 +342,14 @@ public class HWJ_BossPatternSystem : MonoBehaviour
             }
         }
 
-        selectedPattern = bestCandidates[selectionCursor % bestCandidates.Count];
+        // Most decisions use the strongest situation match. Every fourth decision
+        // deterministically rotates through all valid candidates so lower-weight
+        // phase patterns such as SoulBind and Ultimate cannot be starved forever.
+        bool useExplorationCandidate = candidates.Count > bestCandidates.Count
+            && (selectionCursor + 1) % SituationalExplorationInterval == 0;
+        selectedPattern = useExplorationCandidate
+            ? candidates[explorationCursor++ % candidates.Count]
+            : bestCandidates[selectionCursor % bestCandidates.Count];
         selectionCursor++;
         return true;
     }
@@ -354,6 +364,7 @@ public class HWJ_BossPatternSystem : MonoBehaviour
         recentPatternCategories.Clear();
         lastExecutedPatternKey = null;
         selectionCursor = 0;
+        explorationCursor = 0;
     }
 
     public void CancelActiveSpecialPatterns()

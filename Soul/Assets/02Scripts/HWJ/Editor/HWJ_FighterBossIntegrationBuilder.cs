@@ -37,7 +37,12 @@ public static class HWJ_FighterBossIntegrationBuilder
         "Assets/02Scripts/HWJ/Prefabs/Backups/Bosses/HWJ_MidBoss1_Runtime_Prefab_PreFighterBossFirstPass.prefab";
     private const string PatternRoot =
         "Assets/02Scripts/HWJ/ScriptableObjects/BossPatterns";
-    private const string AutoBuildSessionKey = "HWJ.FighterBossIntegrationBuilder.AutoBuild";
+    private const string AutoBuildSessionKey = "HWJ.FighterBossIntegrationBuilder.AutoBuild.V9";
+    private const string BuildContractMarker = "Attack flow contract: V9";
+    private const string ExternalBuildFlagPath =
+        @"C:\Docs\Generated\HWJ_BuildFighterBossIntegration.flag";
+    private const string BuildReportPath =
+        ReportsRoot + "/FighterBossIntegrationBuild.md";
 
     private sealed class ClipSpec
     {
@@ -47,6 +52,7 @@ public static class HWJ_FighterBossIntegrationBuilder
         public bool Loop;
         public float MinimumDuration;
         public int TakeFrames;
+        public int[] FrameIndices;
         public AnimationEvent[] Events;
     }
 
@@ -63,9 +69,13 @@ public static class HWJ_FighterBossIntegrationBuilder
         public int Weight;
     }
 
+    private static double nextExternalBuildPoll;
+
     static HWJ_FighterBossIntegrationBuilder()
     {
         EditorApplication.delayCall += TryAutoBuildOnce;
+        EditorApplication.update -= PollExternalBuildFlag;
+        EditorApplication.update += PollExternalBuildFlag;
     }
 
     [MenuItem("Tools/HWJ/Boss/Build Integrated Fighter Boss")]
@@ -98,9 +108,22 @@ public static class HWJ_FighterBossIntegrationBuilder
 
         Dictionary<string, AnimationClip> clips = BuildClips();
         AnimatorController controller = BuildController(clips);
+        AssetDatabase.SaveAssets();
+        AssetDatabase.ImportAsset(
+            ControllerPath,
+            ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate);
+        controller = AssetDatabase.LoadAssetAtPath<AnimatorController>(ControllerPath)
+            ?? throw new InvalidOperationException("Integrated Animator Controller failed to reload.");
         HWJ_BossPatternDataSO[] patterns = BuildPatternData();
         ConfigureRootData(controller);
         ConfigureExistingBossPrefab(controller, clips, patterns);
+        AssetDatabase.SaveAssets();
+        AssetDatabase.ImportAsset(
+            BossPrefabPath,
+            ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate);
+        AssetDatabase.ImportAsset(
+            RootDataPath,
+            ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate);
         ValidateIntegratedAssets(controller, clips);
         WriteBuildReport(controller, clips);
         AssetDatabase.SaveAssets();
@@ -119,7 +142,13 @@ public static class HWJ_FighterBossIntegrationBuilder
 
         SessionState.SetBool(AutoBuildSessionKey, true);
 
-        if (AssetDatabase.LoadAssetAtPath<AnimatorController>(ControllerPath) != null)
+        AnimatorController existingController =
+            AssetDatabase.LoadAssetAtPath<AnimatorController>(ControllerPath);
+        TextAsset existingReport = AssetDatabase.LoadAssetAtPath<TextAsset>(BuildReportPath);
+
+        if (existingController != null
+            && existingReport != null
+            && existingReport.text.Contains(BuildContractMarker))
         {
             return;
         }
@@ -135,6 +164,31 @@ public static class HWJ_FighterBossIntegrationBuilder
         }
     }
 
+    /// <summary>
+    /// 이미 열린 Unity 프로젝트에 두 번째 에디터를 띄우지 않고 통합 빌드를 요청하는 경로입니다.
+    /// 컴파일, 임포트, Play Mode가 모두 끝난 안전한 시점에 플래그를 한 번만 소비합니다.
+    /// </summary>
+    private static void PollExternalBuildFlag()
+    {
+        if (EditorApplication.timeSinceStartup < nextExternalBuildPoll)
+        {
+            return;
+        }
+
+        nextExternalBuildPoll = EditorApplication.timeSinceStartup + 1d;
+
+        if (!File.Exists(ExternalBuildFlagPath)
+            || EditorApplication.isCompiling
+            || EditorApplication.isUpdating
+            || EditorApplication.isPlayingOrWillChangePlaymode)
+        {
+            return;
+        }
+
+        File.Delete(ExternalBuildFlagPath);
+        Build();
+    }
+
     private static Dictionary<string, AnimationClip> BuildClips()
     {
         List<ClipSpec> specs = new List<ClipSpec>
@@ -142,6 +196,20 @@ public static class HWJ_FighterBossIntegrationBuilder
             Spec("Boss_P1_Idle", "P1_Idle", 8f, true, 0f),
             Spec("Boss_P1_Move", "P1_Move", 10f, true, 0f),
             Spec("Boss_P1_Hurt", "P1_Attack_Combo", 10f, false, 0.3f, 3),
+            // 공격 프레임 일부를 왕복시켜 별도 이펙트 없이 몸 자체로 준비 동작을 보여줍니다.
+            CastSpec("Boss_P1_Cast_Combo", "P1_Attack_Combo", 0, 1, 0, 1),
+            CastSpec("Boss_P1_Cast_Charge", "P1_Attack_Charge", 1, 2, 3, 2),
+            CastSpec("Boss_P1_Cast_Uppercut", "P1_Attack_Uppercut", 1, 2, 3, 2),
+            CastSpec("Boss_P1_Cast_GroundSlam", "P1_Attack_GroundSlam", 2, 3, 4, 3),
+            CastSpec("Boss_P2_Cast_EnhancedCombo", "P1_Attack_Combo", 0, 1, 2, 1),
+            CastSpec("Boss_P2_Cast_DoubleCharge", "P1_Attack_Charge", 2, 3, 4, 3),
+            CastSpec("Boss_P2_Cast_ThunderUppercut", "P1_Attack_Uppercut", 2, 3, 4, 3),
+            CastSpec("Boss_P2_Cast_DarkGroundSlam", "P1_Attack_GroundSlam", 3, 4, 5, 4),
+            CastSpec("Boss_P2_Cast_ShadowCombo", "P2_ShadowCombo", 2, 3, 4, 3),
+            CastSpec("Boss_P2_Cast_LightningCast", "P2_LightningCast", 2, 3, 4, 3),
+            CastSpec("Boss_P2_Cast_DarkWave", "P2_DarkWave", 2, 3, 4, 3),
+            CastSpec("Boss_P2_Cast_SoulBind", "P2_SoulBind", 1, 2, 3, 2),
+            CastSpec("Boss_P2_Cast_Ultimate", "P2_Ultimate", 1, 2, 3, 2),
             Spec(
                 "Boss_P1_Attack_Combo",
                 "P1_Attack_Combo",
@@ -151,7 +219,6 @@ public static class HWJ_FighterBossIntegrationBuilder
                 0,
                 Events(
                     Event("Anim_AttackStart", 0f),
-                    Event("Anim_TelegraphStart", 0.05f),
                     Event("Anim_EnableHitbox", 0.28f, 1),
                     Event("Anim_DisableHitbox", 0.39f),
                     Event("Anim_EnableHitbox", 0.55f, 2),
@@ -169,12 +236,11 @@ public static class HWJ_FighterBossIntegrationBuilder
                 0,
                 Events(
                     Event("Anim_AttackStart", 0f),
-                    Event("Anim_TelegraphStart", 0.02f),
-                    Event("Anim_ApplyMovement", 0.55f),
-                    Event("Anim_EnableHitbox", 0.55f, 1),
-                    Event("Anim_StopMovement", 1.07f),
-                    Event("Anim_DisableHitbox", 1.07f),
-                    Event("Anim_RecoveryStart", 1.08f),
+                    Event("Anim_EnableHitbox", 0.5f, 1),
+                    Event("Anim_ApplyMovement", 0.58f),
+                    Event("Anim_StopMovement", 1.1f),
+                    Event("Anim_DisableHitbox", 1.1f),
+                    Event("Anim_RecoveryStart", 1.11f),
                     Event("Anim_AttackEnd", 1.9f))),
             Spec(
                 "Boss_P1_Attack_Uppercut",
@@ -185,11 +251,10 @@ public static class HWJ_FighterBossIntegrationBuilder
                 0,
                 Events(
                     Event("Anim_AttackStart", 0f),
-                    Event("Anim_TelegraphStart", 0.03f),
-                    Event("Anim_ApplyMovement", 0.42f),
-                    Event("Anim_EnableHitbox", 0.44f, 1),
-                    Event("Anim_DisableHitbox", 0.72f),
-                    Event("Anim_RecoveryStart", 0.75f),
+                    Event("Anim_EnableHitbox", 0.4f, 1),
+                    Event("Anim_ApplyMovement", 0.46f),
+                    Event("Anim_DisableHitbox", 0.74f),
+                    Event("Anim_RecoveryStart", 0.76f),
                     Event("Anim_AttackEnd", 1.8f))),
             Spec(
                 "Boss_P1_Attack_GroundSlam",
@@ -200,7 +265,6 @@ public static class HWJ_FighterBossIntegrationBuilder
                 0,
                 Events(
                     Event("Anim_AttackStart", 0f),
-                    Event("Anim_TelegraphStart", 0.03f),
                     Event("Anim_SpawnGroundHazard", 0.6f),
                     Event("Anim_EnableHitbox", 0.6f, 1),
                     Event("Anim_CameraShakeHook", 0.62f),
@@ -282,6 +346,26 @@ public static class HWJ_FighterBossIntegrationBuilder
                 sprites = sprites.Take(spec.TakeFrames).ToArray();
             }
 
+            if (spec.FrameIndices != null && spec.FrameIndices.Length > 0)
+            {
+                Sprite[] selectedSprites = new Sprite[spec.FrameIndices.Length];
+
+                for (int frameIndex = 0; frameIndex < spec.FrameIndices.Length; frameIndex++)
+                {
+                    int sourceIndex = spec.FrameIndices[frameIndex];
+
+                    if (sourceIndex < 0 || sourceIndex >= sprites.Length)
+                    {
+                        throw new InvalidOperationException(
+                            $"{spec.ClipName} requests missing frame {sourceIndex} from {spec.SourceSequence}.");
+                    }
+
+                    selectedSprites[frameIndex] = sprites[sourceIndex];
+                }
+
+                sprites = selectedSprites;
+            }
+
             AnimationClip clip = CreateOrUpdateClip(spec, sprites);
             clips[spec.ClipName] = clip;
         }
@@ -334,6 +418,10 @@ public static class HWJ_FighterBossIntegrationBuilder
         anyToHurt.canTransitionToSelf = false;
         anyToHurt.AddCondition(AnimatorConditionMode.If, 0f, "Hurt");
 
+        AddState(phaseOneMachine, "P1_Cast_Combo", clips["Boss_P1_Cast_Combo"]);
+        AddState(phaseOneMachine, "P1_Cast_Charge", clips["Boss_P1_Cast_Charge"]);
+        AddState(phaseOneMachine, "P1_Cast_Uppercut", clips["Boss_P1_Cast_Uppercut"]);
+        AddState(phaseOneMachine, "P1_Cast_GroundSlam", clips["Boss_P1_Cast_GroundSlam"]);
         AddState(phaseOneMachine, "P1_Attack_Combo", clips["Boss_P1_Attack_Combo"]);
         AddState(phaseOneMachine, "P1_Attack_Charge", clips["Boss_P1_Attack_Charge"]);
         AddState(phaseOneMachine, "P1_Attack_Uppercut", clips["Boss_P1_Attack_Uppercut"]);
@@ -351,6 +439,15 @@ public static class HWJ_FighterBossIntegrationBuilder
             clips["Boss_PhaseBreak_Transform"]);
         AddState(transitionMachine, "Phase2_Start", clips["Boss_Phase2_Start"]);
 
+        AddState(phaseTwoMachine, "P2_Cast_EnhancedCombo", clips["Boss_P2_Cast_EnhancedCombo"]);
+        AddState(phaseTwoMachine, "P2_Cast_DoubleCharge", clips["Boss_P2_Cast_DoubleCharge"]);
+        AddState(phaseTwoMachine, "P2_Cast_ThunderUppercut", clips["Boss_P2_Cast_ThunderUppercut"]);
+        AddState(phaseTwoMachine, "P2_Cast_DarkGroundSlam", clips["Boss_P2_Cast_DarkGroundSlam"]);
+        AddState(phaseTwoMachine, "P2_Cast_ShadowCombo", clips["Boss_P2_Cast_ShadowCombo"]);
+        AddState(phaseTwoMachine, "P2_Cast_LightningCast", clips["Boss_P2_Cast_LightningCast"]);
+        AddState(phaseTwoMachine, "P2_Cast_DarkWave", clips["Boss_P2_Cast_DarkWave"]);
+        AddState(phaseTwoMachine, "P2_Cast_SoulBind", clips["Boss_P2_Cast_SoulBind"]);
+        AddState(phaseTwoMachine, "P2_Cast_Ultimate", clips["Boss_P2_Cast_Ultimate"]);
         AddState(phaseTwoMachine, "P2_EnhancedCombo", clips["Boss_P1_Attack_Combo"]);
         AddState(phaseTwoMachine, "P2_DoubleCharge", clips["Boss_P1_Attack_Charge"]);
         AddState(phaseTwoMachine, "P2_ThunderUppercut", clips["Boss_P1_Attack_Uppercut"]);
@@ -362,11 +459,9 @@ public static class HWJ_FighterBossIntegrationBuilder
         AddState(phaseTwoMachine, "P2_Ultimate", clips["Boss_P2_Ultimate"]);
         AddState(deathMachine, "P2_Death", clips["Boss_P2_Death"]);
 
-        AnimatorState entry = root.AddState("Entry", new Vector3(20f, 20f));
-        entry.motion = clips["Boss_P1_Idle"];
-        root.defaultState = entry;
-        AnimatorStateTransition entryToIdle = entry.AddTransition(idle);
-        ConfigureTransition(entryToIdle, false, 0f);
+        // Route the controller's Entry node directly to the nested idle state.
+        // A zero-condition transition from a synthetic state is ignored by Unity.
+        root.AddEntryTransition(idle);
 
         EditorUtility.SetDirty(controller);
         AssetDatabase.SaveAssets();
@@ -454,6 +549,8 @@ public static class HWJ_FighterBossIntegrationBuilder
             SpriteRenderer renderer = Require<SpriteRenderer>(root);
             Animator animator = Require<Animator>(root);
             HWJ_BossBrainSystem brain = Require<HWJ_BossBrainSystem>(root);
+            // FirstPass를 다시 생성하지 않고 통합 빌드만 실행해도 중복 방지 장치를 보장합니다.
+            GetOrAdd<HWJ_BossDuplicateGuardSystem>(root);
             HWJ_RuntimeStatusSystem status = Require<HWJ_RuntimeStatusSystem>(root);
             HWJ_CombatSystem combat = Require<HWJ_CombatSystem>(root);
             HWJ_BossPatternSystem patternSystem = Require<HWJ_BossPatternSystem>(root);
@@ -471,6 +568,20 @@ public static class HWJ_FighterBossIntegrationBuilder
                 GetOrAdd<HWJ_FighterBossAnimatorSystem>(root);
             HWJ_BossDialogueBubbleSystem dialogue =
                 GetOrAdd<HWJ_BossDialogueBubbleSystem>(root);
+            HWJ_BossCameraFocusSystem cameraFocus =
+                GetOrAdd<HWJ_BossCameraFocusSystem>(root);
+            HWJ_FighterBossHealthBarSystem healthBar =
+                root.GetComponentInChildren<HWJ_FighterBossHealthBarSystem>(true);
+
+            if (healthBar == null)
+            {
+                throw new InvalidOperationException("Fighter boss health bar is missing.");
+            }
+
+            dialogue.ConfigureFighterBossDefaults(healthBar.transform);
+            cameraFocus.ConfigureFighterBossDialogueDefaults();
+            EditorUtility.SetDirty(dialogue);
+            EditorUtility.SetDirty(cameraFocus);
 
             Sprite[] idleSprites = LoadValidatedSpriteSequence("P1_Idle");
             renderer.sprite = idleSprites[0];
@@ -512,12 +623,14 @@ public static class HWJ_FighterBossIntegrationBuilder
                 ("animator", animator),
                 ("animatorSystem", animatorSystem),
                 ("phaseTwoPatternSystem", phaseTwo),
+                ("dialogueBubbleSystem", dialogue),
                 ("body", body),
                 ("bodyCollider", bodyCollider));
             SetReferences(
                 brain,
                 ("patternSystem", patternSystem),
                 ("motionSystem", motion),
+                ("cameraFocusSystem", cameraFocus),
                 ("dialogueBubbleSystem", dialogue),
                 ("fighterComboSystem", combo),
                 ("fighterChargeSystem", charge),
@@ -530,7 +643,14 @@ public static class HWJ_FighterBossIntegrationBuilder
                 ("body", body));
             SetBool(brain, "useTwoBarPhaseHealth", true);
             SetBool(brain, "aiEnabled", true);
-            SetString(dialogue, "phaseTwoDialogue", "주인이여! 내 육체와 영혼을 바치겠다!");
+            SetFloat(combo, "castWaitSeconds", 0.65f);
+            SetFloat(combo, "watchdogSeconds", 3.2f);
+            SetFloat(charge, "castWaitSeconds", 0.75f);
+            SetFloat(charge, "watchdogSeconds", 3.4f);
+            SetFloat(uppercut, "castWaitSeconds", 0.65f);
+            SetFloat(uppercut, "watchdogSeconds", 3f);
+            SetFloat(slam, "castWaitSeconds", 0.85f);
+            SetFloat(slam, "watchdogSeconds", 3.2f);
             SetFloat(death, "watchdogSeconds", 1.9f);
             ConfigurePatternSystem(patternSystem, patterns, combo, charge, uppercut, slam, phaseTwo);
             ConfigurePhaseTwoProfiles(phaseTwo);
@@ -595,6 +715,8 @@ public static class HWJ_FighterBossIntegrationBuilder
             "P2_SoulBind",
             "P2_Ultimate"
         };
+        float[] castWaitSeconds = { 0.55f, 0.7f, 0.65f, 0.85f, 0.55f, 0.9f, 0.75f, 0.8f, 1.2f };
+        float[] watchdogSeconds = { 4f, 4.5f, 5f, 4f, 5f, 7.5f, 4f, 4.5f, 8.5f };
         SerializedObject serialized = new SerializedObject(system);
         SerializedProperty profiles = RequireProperty(serialized, "profiles");
 
@@ -610,7 +732,8 @@ public static class HWJ_FighterBossIntegrationBuilder
             RequireRelative(profile, "patternId").stringValue = ids[i];
             RequireRelative(profile, "animatorState").stringValue = ids[i];
             RequireRelative(profile, "patternKind").enumValueIndex = i;
-            RequireRelative(profile, "watchdogSeconds").floatValue = i == 8 ? 6f : 4.8f;
+            RequireRelative(profile, "castWaitSeconds").floatValue = castWaitSeconds[i];
+            RequireRelative(profile, "watchdogSeconds").floatValue = watchdogSeconds[i];
 
             HWJ_FighterBossHitboxSystem hitbox =
                 RequireRelative(profile, "hitbox").objectReferenceValue
@@ -681,7 +804,17 @@ public static class HWJ_FighterBossIntegrationBuilder
             throw new InvalidOperationException("Boss uses a Sprite outside the validated frame folder.");
         }
 
-        if (animator == null || animator.runtimeAnimatorController != controller)
+        string appliedControllerPath = animator != null
+            ? AssetDatabase.GetAssetPath(animator.runtimeAnimatorController)
+            : string.Empty;
+
+        // Asset identity can be represented by a stale in-memory instance immediately
+        // after DeleteAsset/CreateAsset at the same path. The saved path/GUID is canonical.
+        if (animator == null
+            || !string.Equals(
+                appliedControllerPath,
+                AssetDatabase.GetAssetPath(controller),
+                StringComparison.Ordinal))
         {
             throw new InvalidOperationException("Boss Animator is not using the integrated controller.");
         }
@@ -689,6 +822,11 @@ public static class HWJ_FighterBossIntegrationBuilder
         if (prefab.transform.localScale != Vector3.one)
         {
             throw new InvalidOperationException("Boss prefab root scale must be (1,1,1).");
+        }
+
+        if (prefab.GetComponent<HWJ_BossDuplicateGuardSystem>() == null)
+        {
+            throw new InvalidOperationException("Boss prefab duplicate guard is missing.");
         }
 
         if (GameObjectUtility.GetMonoBehavioursWithMissingScriptCount(prefab) > 0)
@@ -743,7 +881,9 @@ public static class HWJ_FighterBossIntegrationBuilder
                 }
             }
 
-            bool shouldLoop = clip.name == "Boss_P1_Idle" || clip.name == "Boss_P1_Move";
+            bool shouldLoop = clip.name == "Boss_P1_Idle"
+                || clip.name == "Boss_P1_Move"
+                || clip.name.Contains("_Cast_", StringComparison.Ordinal);
             bool loops = AnimationUtility.GetAnimationClipSettings(clip).loopTime;
 
             if (shouldLoop != loops)
@@ -755,9 +895,13 @@ public static class HWJ_FighterBossIntegrationBuilder
         string[] requiredStates =
         {
             "P1_Idle", "P1_Move", "Hurt",
+            "P1_Cast_Combo", "P1_Cast_Charge", "P1_Cast_Uppercut", "P1_Cast_GroundSlam",
             "P1_Attack_Combo", "P1_Attack_Charge", "P1_Attack_Uppercut",
             "P1_Attack_GroundSlam", "PhaseBreak_Down", "PhaseBreak_Prayer",
             "PhaseBreak_LightningHit", "PhaseBreak_Transform", "Phase2_Start",
+            "P2_Cast_EnhancedCombo", "P2_Cast_DoubleCharge", "P2_Cast_ThunderUppercut",
+            "P2_Cast_DarkGroundSlam", "P2_Cast_ShadowCombo", "P2_Cast_LightningCast",
+            "P2_Cast_DarkWave", "P2_Cast_SoulBind", "P2_Cast_Ultimate",
             "P2_EnhancedCombo", "P2_DoubleCharge", "P2_ThunderUppercut",
             "P2_DarkGroundSlam", "P2_ShadowCombo", "P2_LightningCast",
             "P2_DarkWave", "P2_SoulBind", "P2_Ultimate", "P2_Death"
@@ -918,6 +1062,7 @@ public static class HWJ_FighterBossIntegrationBuilder
             $"- Prefab: `{BossPrefabPath}`",
             $"- Scene reference: `{BossScenePath}`",
             $"- Controller: `{AssetDatabase.GetAssetPath(controller)}`",
+            $"- {BuildContractMarker}",
             $"- Validated clips: {clips.Count}",
             "- Source controller overwritten: No",
             "- Source PNG modified: No",
@@ -934,7 +1079,7 @@ public static class HWJ_FighterBossIntegrationBuilder
             "FighterBossIntegrationBuild.md");
         File.WriteAllLines(absolutePath, lines);
         AssetDatabase.ImportAsset(
-            ReportsRoot + "/FighterBossIntegrationBuild.md",
+            BuildReportPath,
             ImportAssetOptions.ForceUpdate);
     }
 
@@ -1012,6 +1157,20 @@ public static class HWJ_FighterBossIntegrationBuilder
             MinimumDuration = minimumDuration,
             TakeFrames = takeFrames,
             Events = events
+        };
+    }
+
+    private static ClipSpec CastSpec(string name, string sequence, params int[] frameIndices)
+    {
+        return new ClipSpec
+        {
+            ClipName = name,
+            SourceSequence = sequence,
+            FrameRate = 6f,
+            Loop = true,
+            MinimumDuration = 0f,
+            FrameIndices = frameIndices,
+            Events = Array.Empty<AnimationEvent>()
         };
     }
 
