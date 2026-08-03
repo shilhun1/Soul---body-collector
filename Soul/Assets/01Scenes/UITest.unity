@@ -443,7 +443,9 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Button
+  m_text: 'Resume
+
+'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -798,7 +800,7 @@ GameObject:
   - component: {fileID: 577069382}
   - component: {fileID: 577069381}
   m_Layer: 5
-  m_Name: QuietButton
+  m_Name: QuitButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -917,6 +919,8 @@ GameObject:
   - component: {fileID: 587959697}
   - component: {fileID: 587959696}
   - component: {fileID: 587959695}
+  - component: {fileID: 587959699}
+  - component: {fileID: 587959698}
   m_Layer: 5
   m_Name: SettingPanel
   m_TagString: Untagged
@@ -981,6 +985,48 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &587959698
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 587959694}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c53cd04261a8c94180b8b0bd98925df, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HSH.UI.HSH_KeyRebindUI
+  rebindElements:
+  - keyAction: 0
+    rebindButton: {fileID: 0}
+    keyTextTMP: {fileID: 0}
+    keyTextLegacy: {fileID: 0}
+  waitingOverlayPanel: {fileID: 0}
+  waitingMessageTMP: {fileID: 0}
+  waitingMessageLegacy: {fileID: 0}
+  resetDefaultsButton: {fileID: 0}
+--- !u!114 &587959699
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 587959694}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6278ef459d468584ba90da46c993b843, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HSH.UI.HSH_AudioSettingsUI
+  masterSlider: {fileID: 0}
+  masterValueTextTMP: {fileID: 0}
+  masterValueTextLegacy: {fileID: 0}
+  bgmSlider: {fileID: 0}
+  bgmValueTextTMP: {fileID: 0}
+  bgmValueTextLegacy: {fileID: 0}
+  sfxSlider: {fileID: 0}
+  sfxValueTextTMP: {fileID: 0}
+  sfxValueTextLegacy: {fileID: 0}
 --- !u!223 &621682739 stripped
 Canvas:
   m_CorrespondingSourceObject: {fileID: 936018683834023139, guid: 40c0cf6efcde26c4cb91e2d6ea4fca24, type: 3}
@@ -1913,7 +1959,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Button
+  m_text: setting
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -3625,7 +3671,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Button
+  m_text: Quit
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
