@@ -35,7 +35,14 @@ namespace HSH.UI
 
         public KeyCode ToggleKey
         {
-            get => toggleKey;
+            get
+            {
+                if (HSH_KeyBindingManager.Instance != null)
+                {
+                    return HSH_KeyBindingManager.Instance.GetKey(HSH_KeyAction.SkillTree);
+                }
+                return toggleKey;
+            }
             set => toggleKey = value;
         }
 
@@ -58,7 +65,8 @@ namespace HSH.UI
 
         private void Update()
         {
-            if (Input.GetKeyDown(toggleKey))
+            KeyCode currentToggleKey = ToggleKey;
+            if (Input.GetKeyDown(currentToggleKey))
             {
                 ToggleSkillTree();
             }

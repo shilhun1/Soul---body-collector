@@ -52,7 +52,14 @@ namespace HSH.UI
 
         public KeyCode PauseKey
         {
-            get => pauseKey;
+            get
+            {
+                if (HSH_KeyBindingManager.Instance != null)
+                {
+                    return HSH_KeyBindingManager.Instance.GetKey(HSH_KeyAction.Pause);
+                }
+                return pauseKey;
+            }
             set => pauseKey = value;
         }
 
@@ -105,19 +112,20 @@ namespace HSH.UI
 
         private void Update()
         {
-            if (Input.GetKeyDown(pauseKey))
+            KeyCode currentPauseKey = PauseKey;
+            if (Input.GetKeyDown(currentPauseKey))
             {
-                // 설정 창이 켜져 있는 상태에서 ESC를 누르면 일시정지 메뉴로 복귀
+                // 설정 창이 켜져 있는 상태에서 일시정지 키를 누르면 일시정지 메뉴로 복귀
                 if (settingsPanel != null && settingsPanel.activeSelf)
                 {
                     BackToPauseMenu();
                 }
-                // 일시정지 창이 켜져 있는 상태에서 ESC를 누르면 게임 재개
+                // 일시정지 창이 켜져 있는 상태에서 일시정지 키를 누르면 게임 재개
                 else if (isPaused)
                 {
                     ResumeGame();
                 }
-                // 게임 진행 중 ESC를 누르면 일시정지
+                // 게임 진행 중 일시정지 키를 누르면 일시정지
                 else
                 {
                     PauseGame();
@@ -209,7 +217,7 @@ namespace HSH.UI
         }
 
         /// <summary>
-        /// 설정 버튼 클릭 시: 일시정지 창을 숨기고 설정 창을 표시합니다.
+        /// 설정 버튼 클릭 시: 일시정지 창을 숨기고 설정 창을 표시하며 오디오 및 키바인딩 UI를 갱신합니다.
         /// </summary>
         public void OpenSettings()
         {
@@ -221,6 +229,12 @@ namespace HSH.UI
             if (settingsPanel != null)
             {
                 settingsPanel.SetActive(true);
+
+                var audioUI = settingsPanel.GetComponentInChildren<HSH_AudioSettingsUI>();
+                if (audioUI != null) audioUI.RefreshUI();
+
+                var keyUI = settingsPanel.GetComponentInChildren<HSH_KeyRebindUI>();
+                if (keyUI != null) keyUI.RefreshAllKeyTexts();
             }
         }
 
