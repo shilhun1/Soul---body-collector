@@ -1083,6 +1083,7 @@ GameObject:
   - component: {fileID: 256458342734844284}
   - component: {fileID: 2354076009849193404}
   - component: {fileID: 3173362033373546625}
+  - component: {fileID: 2415600786085319345}
   m_Layer: 0
   m_Name: HWJ_PlayerVisual
   m_TagString: Untagged
@@ -1225,3 +1226,42 @@ MonoBehaviour:
   flipByMoveDirection: 1
   rightFacingSprite: 1
   suppressAppearAfterBodySoul: 0
+--- !u!114 &2415600786085319345
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4896801820781220240}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a7f30d0e3b8f47f88c1ad42d6f0b1123, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::hys_AnimatorReturnToEntry
+  animator: {fileID: 256458342734844284}
+  layerIndex: 0
+  returnNormalizedTime: 0.98
+  transitionSeconds: 0.03
+  anyStateMotionTag: hys_Pattern
+  fallbackEntryStateName:
+  oneShotStateNames:
+  - hys_Sword_Attack1
+  - hys_Sword_Attack2
+  - hys_Sword_Dash
+  - hys_Sword_Hit
+  - hys_Axe_Attack1
+  - hys_Axe_Attack2
+  - hys_Axe_Dash
+  - hys_Axe_Hit
+  - hys_Bow_Attack1
+  - hys_Bow_Attack2
+  - hys_Bow_Dash
+  - hys_Bow_Hit
+  - hys_Lance_Attack1
+  - hys_Lance_Attack2
+  - hys_Lance_Dash
+  - hys_Lance_Hit
+  - hys_Shield_Attack1
+  - hys_Shield_Attack2
+  - hys_Shield_Dash
+  - hys_Shield_Hit
