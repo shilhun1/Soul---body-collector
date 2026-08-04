@@ -1,0 +1,105 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 98b233f359242494ebb0dbfb98413d16, type: 3}
+  m_Name: HSH_KeyBindingData
+  m_EditorClassIdentifier: Assembly-CSharp::HSH.UI.HSH_KeyBindingDataSO
+  bindingEntries:
+  - keyAction: 0
+    isHWJAction: 0
+    hwjActionId: 0
+    displayName: pause
+    defaultKey: 27
+    defaultMouseButton: 0
+  - keyAction: 1
+    isHWJAction: 0
+    hwjActionId: 0
+    displayName: skilltree
+    defaultKey: 9
+    defaultMouseButton: 0
+  - keyAction: 2
+    isHWJAction: 1
+    hwjActionId: 7
+    displayName: interact
+    defaultKey: 102
+    defaultMouseButton: 0
+  - keyAction: 3
+    isHWJAction: 1
+    hwjActionId: 2
+    displayName: "\uC704\uB85C \uC774\uB3D9 (W)"
+    defaultKey: 119
+    defaultMouseButton: 0
+  - keyAction: 4
+    isHWJAction: 1
+    hwjActionId: 3
+    displayName: "\uC544\uB798\uB85C \uC774\uB3D9 (S)"
+    defaultKey: 115
+    defaultMouseButton: 0
+  - keyAction: 5
+    isHWJAction: 1
+    hwjActionId: 0
+    displayName: "\uC67C\uCABD \uC774\uB3D9 (A)"
+    defaultKey: 97
+    defaultMouseButton: 0
+  - keyAction: 6
+    isHWJAction: 1
+    hwjActionId: 1
+    displayName: "\uC624\uB978\uCABD \uC774\uB3D9 (D)"
+    defaultKey: 100
+    defaultMouseButton: 0
+  - keyAction: 0
+    isHWJAction: 1
+    hwjActionId: 4
+    displayName: "\uC810\uD504 (Space)"
+    defaultKey: 32
+    defaultMouseButton: 0
+  - keyAction: 0
+    isHWJAction: 1
+    hwjActionId: 5
+    displayName: "\uB300\uC2DC (Shift)"
+    defaultKey: 304
+    defaultMouseButton: 0
+  - keyAction: 0
+    isHWJAction: 1
+    hwjActionId: 6
+    displayName: "\uACF5\uACA9 (\uB9C8\uC6B0\uC2A4 \uC88C\uD074\uB9AD)"
+    defaultKey: 0
+    defaultMouseButton: 1
+  - keyAction: 0
+    isHWJAction: 1
+    hwjActionId: 8
+    displayName: "\uBE59\uC758 \uD574\uC81C (Q)"
+    defaultKey: 113
+    defaultMouseButton: 0
+  - keyAction: 0
+    isHWJAction: 1
+    hwjActionId: 9
+    displayName: "\uC2A4\uD0AC \uC2AC\uB86F 1"
+    defaultKey: 49
+    defaultMouseButton: 0
+  - keyAction: 0
+    isHWJAction: 1
+    hwjActionId: 10
+    displayName: "\uC2A4\uD0AC \uC2AC\uB86F 2"
+    defaultKey: 50
+    defaultMouseButton: 0
+  - keyAction: 0
+    isHWJAction: 1
+    hwjActionId: 11
+    displayName: "\uC2A4\uD0AC \uC2AC\uB86F 3"
+    defaultKey: 51
+    defaultMouseButton: 0
+  - keyAction: 0
+    isHWJAction: 1
+    hwjActionId: 12
+    displayName: "\uC2A4\uD0AC \uC2AC\uB86F 4"
+    defaultKey: 52
+    defaultMouseButton: 0

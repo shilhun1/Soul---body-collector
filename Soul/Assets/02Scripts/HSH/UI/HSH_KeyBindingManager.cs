@@ -21,7 +21,7 @@ namespace HSH.UI
 
     /// <summary>
     /// 게임 전반의 단축키 바인딩 및 변경(Rebinding)을 관리하는 싱글톤 매니저 스크립트입니다.
-    /// KeyCode 기반 및 UnityEngine.InputSystem.Key 호환 변환을 지원하며 PlayerPrefs에 자동 저장됩니다.
+    /// HSH_KeyBindingDataSO와 연동되며, HWJ_PlayerInputSystem 정보를 읽어오고/적용시킵니다.
     /// </summary>
     public class HSH_KeyBindingManager : MonoBehaviour
     {
@@ -29,11 +29,17 @@ namespace HSH.UI
 
         private const string PREFS_KEY_PREFIX = "HSH_KeyBinding_";
 
+        [Header("ScriptableObject 키 바인딩 에셋 데이터")]
+        [SerializeField] private HSH_KeyBindingDataSO bindingDataSO;
+
         private Dictionary<HSH_KeyAction, KeyCode> keyBindings = new Dictionary<HSH_KeyAction, KeyCode>();
         private Dictionary<HSH_KeyAction, KeyCode> defaultBindings = new Dictionary<HSH_KeyAction, KeyCode>();
 
         // 키 바인딩이 변경될 때 발생하는 이벤트 (ActionEnum, NewKeyCode)
         public event Action<HSH_KeyAction, KeyCode> OnKeyBindingChanged;
+        public event Action OnAnyBindingChanged;
+
+        public HSH_KeyBindingDataSO BindingDataSO => bindingDataSO;
 
         private void Awake()
         {
@@ -45,19 +51,65 @@ namespace HSH.UI
             Instance = this;
             DontDestroyOnLoad(gameObject);
 
+            EnsureBindingDataSO();
             InitDefaultBindings();
             LoadKeyBindings();
         }
 
+        private void EnsureBindingDataSO()
+        {
+            if (bindingDataSO == null)
+            {
+                bindingDataSO = ScriptableObject.CreateInstance<HSH_KeyBindingDataSO>();
+                bindingDataSO.InitDefaultEntries();
+            }
+        }
+
         private void InitDefaultBindings()
         {
-            defaultBindings[HSH_KeyAction.Pause] = KeyCode.Escape;
-            defaultBindings[HSH_KeyAction.SkillTree] = KeyCode.Tab;
-            defaultBindings[HSH_KeyAction.Interact] = KeyCode.F;
-            defaultBindings[HSH_KeyAction.MoveUp] = KeyCode.W;
-            defaultBindings[HSH_KeyAction.MoveDown] = KeyCode.S;
-            defaultBindings[HSH_KeyAction.MoveLeft] = KeyCode.A;
-            defaultBindings[HSH_KeyAction.MoveRight] = KeyCode.D;
+            defaultBindings.Clear();
+
+            if (bindingDataSO != null && bindingDataSO.BindingEntries != null)
+            {
+                foreach (var entry in bindingDataSO.BindingEntries)
+                {
+                    if (!entry.isHWJAction)
+                    {
+                        defaultBindings[entry.keyAction] = entry.defaultKey;
+                    }
+                    else
+                    {
+                        // HWJ 액션 중 HSH_KeyAction과 매핑되는 항목 설정
+                        switch (entry.hwjActionId)
+                        {
+                            case HWJ_PlayerInputActionId.Interact:
+                                defaultBindings[HSH_KeyAction.Interact] = entry.defaultKey;
+                                break;
+                            case HWJ_PlayerInputActionId.MoveUp:
+                                defaultBindings[HSH_KeyAction.MoveUp] = entry.defaultKey;
+                                break;
+                            case HWJ_PlayerInputActionId.MoveDown:
+                                defaultBindings[HSH_KeyAction.MoveDown] = entry.defaultKey;
+                                break;
+                            case HWJ_PlayerInputActionId.MoveLeft:
+                                defaultBindings[HSH_KeyAction.MoveLeft] = entry.defaultKey;
+                                break;
+                            case HWJ_PlayerInputActionId.MoveRight:
+                                defaultBindings[HSH_KeyAction.MoveRight] = entry.defaultKey;
+                                break;
+                        }
+                    }
+                }
+            }
+
+            // 폴백 기본값 보장
+            if (!defaultBindings.ContainsKey(HSH_KeyAction.Pause)) defaultBindings[HSH_KeyAction.Pause] = KeyCode.Escape;
+            if (!defaultBindings.ContainsKey(HSH_KeyAction.SkillTree)) defaultBindings[HSH_KeyAction.SkillTree] = KeyCode.Tab;
+            if (!defaultBindings.ContainsKey(HSH_KeyAction.Interact)) defaultBindings[HSH_KeyAction.Interact] = KeyCode.F;
+            if (!defaultBindings.ContainsKey(HSH_KeyAction.MoveUp)) defaultBindings[HSH_KeyAction.MoveUp] = KeyCode.W;
+            if (!defaultBindings.ContainsKey(HSH_KeyAction.MoveDown)) defaultBindings[HSH_KeyAction.MoveDown] = KeyCode.S;
+            if (!defaultBindings.ContainsKey(HSH_KeyAction.MoveLeft)) defaultBindings[HSH_KeyAction.MoveLeft] = KeyCode.A;
+            if (!defaultBindings.ContainsKey(HSH_KeyAction.MoveRight)) defaultBindings[HSH_KeyAction.MoveRight] = KeyCode.D;
         }
 
         /// <summary>
@@ -92,10 +144,38 @@ namespace HSH.UI
         }
 
         /// <summary>
-        /// 특정 액션의 현재 KeyCode를 반환합니다.
+        /// 씬 내 HWJ_PlayerInputSystem을 찾습니다.
+        /// </summary>
+        public HWJ_PlayerInputSystem GetHWJPlayerInputSystem()
+        {
+            if (HWJ_GameAccess.HasManager && HWJ_GameAccess.PlayerInput != null)
+            {
+                return HWJ_GameAccess.PlayerInput;
+            }
+            return FindObjectOfType<HWJ_PlayerInputSystem>();
+        }
+
+        /// <summary>
+        /// 특정 액션의 현재 KeyCode를 반환합니다 (HWJ 인풋 시스템 정보 연동).
         /// </summary>
         public KeyCode GetKey(HSH_KeyAction action)
         {
+            // HWJ_PlayerInputSystem 연동 확인
+            HWJ_PlayerInputSystem hwjInput = GetHWJPlayerInputSystem();
+            if (hwjInput != null && bindingDataSO != null)
+            {
+                if (bindingDataSO.TryGetEntry(action, out var entry) && entry.isHWJAction)
+                {
+                    if (hwjInput.TryGetEffectiveBinding(entry.hwjActionId, out var binding))
+                    {
+                        if (binding.HasKeyboard && binding.KeyboardKey != KeyCode.None)
+                        {
+                            return binding.KeyboardKey;
+                        }
+                    }
+                }
+            }
+
             if (keyBindings.TryGetValue(action, out KeyCode key))
             {
                 return key;
@@ -104,7 +184,7 @@ namespace HSH.UI
         }
 
         /// <summary>
-        /// 특정 액션의 KeyCode를 변경하고 PlayerPrefs에 저장합니다.
+        /// 특정 액션의 KeyCode를 변경하고 PlayerPrefs 및 HWJ 인풋 시스템에 적용합니다.
         /// </summary>
         public void SetKey(HSH_KeyAction action, KeyCode newKey)
         {
@@ -113,8 +193,66 @@ namespace HSH.UI
             PlayerPrefs.SetString(prefKey, newKey.ToString());
             PlayerPrefs.Save();
 
+            // HWJ PlayerInputSystem에 적용
+            HWJ_PlayerInputSystem hwjInput = GetHWJPlayerInputSystem();
+            if (hwjInput != null && bindingDataSO != null)
+            {
+                if (bindingDataSO.TryGetEntry(action, out var entry) && entry.isHWJAction)
+                {
+                    hwjInput.TrySetKeyboardBinding(entry.hwjActionId, newKey);
+                }
+            }
+
             Debug.Log($"[HSH_KeyBindingManager] {action} 키가 {newKey}(으)로 변경되었습니다.");
             OnKeyBindingChanged?.Invoke(action, newKey);
+            OnAnyBindingChanged?.Invoke();
+        }
+
+        /// <summary>
+        /// HWJ 전용 인풋 액션 키를 바인딩하고 HWJ 시스템에 적용합니다.
+        /// </summary>
+        public bool SetHWJKeyboardBinding(HWJ_PlayerInputActionId hwjActionId, KeyCode newKey)
+        {
+            HWJ_PlayerInputSystem hwjInput = GetHWJPlayerInputSystem();
+            if (hwjInput != null)
+            {
+                var result = hwjInput.TrySetKeyboardBinding(hwjActionId, newKey);
+                if (result.Succeeded)
+                {
+                    // HSH_KeyAction 매핑 갱신
+                    if (bindingDataSO != null && bindingDataSO.TryGetEntry(hwjActionId, out var entry))
+                    {
+                        if (entry.keyAction != default)
+                        {
+                            keyBindings[entry.keyAction] = newKey;
+                            PlayerPrefs.SetString(PREFS_KEY_PREFIX + entry.keyAction.ToString(), newKey.ToString());
+                            PlayerPrefs.Save();
+                            OnKeyBindingChanged?.Invoke(entry.keyAction, newKey);
+                        }
+                    }
+                    OnAnyBindingChanged?.Invoke();
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// HWJ 전용 마우스 입력 버튼을 바인딩하고 HWJ 시스템에 적용합니다.
+        /// </summary>
+        public bool SetHWJMouseBinding(HWJ_PlayerInputActionId hwjActionId, HWJ_InputMouseButton mouseButton)
+        {
+            HWJ_PlayerInputSystem hwjInput = GetHWJPlayerInputSystem();
+            if (hwjInput != null)
+            {
+                var result = hwjInput.TrySetMouseBinding(hwjActionId, mouseButton);
+                if (result.Succeeded)
+                {
+                    OnAnyBindingChanged?.Invoke();
+                    return true;
+                }
+            }
+            return false;
         }
 
         /// <summary>
@@ -126,6 +264,14 @@ namespace HSH.UI
             {
                 SetKey(kvp.Key, kvp.Value);
             }
+
+            HWJ_PlayerInputSystem hwjInput = GetHWJPlayerInputSystem();
+            if (hwjInput != null)
+            {
+                hwjInput.ResetRuntimeBindings();
+            }
+
+            OnAnyBindingChanged?.Invoke();
         }
 
         /// <summary>
