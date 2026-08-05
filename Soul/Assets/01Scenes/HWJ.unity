@@ -3497,7 +3497,8 @@ PrefabInstance:
       propertyPath: introDialogue
       value: "\uC654\uAD70."
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 840020000000000011, guid: eb5580d3385f43608f7941765218d007, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
