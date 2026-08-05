@@ -508,7 +508,7 @@ MonoBehaviour:
   targetSearchIntervalSeconds: 0.5
   groundLayer:
     serializedVersion: 2
-    m_Bits: 64
+    m_Bits: 0
 --- !u!114 &7717411419272892645
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -569,7 +569,7 @@ MonoBehaviour:
   horizontalMoveOnly: 1
   groundLayer:
     serializedVersion: 2
-    m_Bits: 64
+    m_Bits: 0
   fallbackTrackingRange: 8
   fallbackAttackRange: 1.2
   targetSearchIntervalSeconds: 0.5

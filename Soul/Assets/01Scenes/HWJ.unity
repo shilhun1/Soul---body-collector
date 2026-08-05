@@ -806,6 +806,14 @@ MonoBehaviour:
   inactiveDuration: 2.4
   damageCooldown: 1
   knockbackPower: 18
+  detectPlayer: 0
+  detectionDistance: 4
+  detectDirection: {x: 0, y: 1}
+  animator: {fileID: 0}
+  attackTriggerName: Attack
+  activeBoolName: IsActive
+  steamCollider: {fileID: 0}
+  activeOffset: {x: 0, y: 1.5}
   steamParticles: {fileID: 0}
 --- !u!61 &250148013
 BoxCollider2D:
@@ -1716,8 +1724,12 @@ MonoBehaviour:
   damage: 18
   detectionDistance: 3
   delayTime: 0.7
-  protrudeHeight: 0.9
   activeDuration: 1.2
+  coolTime: 0.5
+  animator: {fileID: 0}
+  attackTriggerName: Attack
+  damageCollider: {fileID: 0}
+  activeOffset: {x: 0, y: 1}
 --- !u!61 &492575965
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -4288,12 +4300,14 @@ MonoBehaviour:
   obstacleId: demo.body_obstacle.sword_body
   requirementMode: 2
   allowedWeaponTypes: 03000000
+  allowedAbilityTags: 
   allowedBodyObjectIds: []
   requiredBodyObjectType: 1
   openWhenRequirementMet: 1
   updateContinuously: 1
   requirePlayerTag: 1
   openByWeaponSkillHit: 0
+  requireWeaponSkillHitToOpen: 0
   stayOpenAfterWeaponSkillHit: 1
   consumeProjectileOnWeaponHit: 1
   requiredHitWeaponType: 0
@@ -4818,12 +4832,14 @@ MonoBehaviour:
   obstacleId: demo.body_obstacle.soul_only
   requirementMode: 0
   allowedWeaponTypes: 
+  allowedAbilityTags: 
   allowedBodyObjectIds: []
   requiredBodyObjectType: 1
   openWhenRequirementMet: 1
   updateContinuously: 1
   requirePlayerTag: 1
   openByWeaponSkillHit: 0
+  requireWeaponSkillHitToOpen: 0
   stayOpenAfterWeaponSkillHit: 1
   consumeProjectileOnWeaponHit: 1
   requiredHitWeaponType: 0
@@ -5039,6 +5055,14 @@ MonoBehaviour:
   inactiveDuration: 2.4
   damageCooldown: 1
   knockbackPower: 18
+  detectPlayer: 0
+  detectionDistance: 4
+  detectDirection: {x: 0, y: 1}
+  animator: {fileID: 0}
+  attackTriggerName: Attack
+  activeBoolName: IsActive
+  steamCollider: {fileID: 0}
+  activeOffset: {x: 0, y: 1.5}
   steamParticles: {fileID: 0}
 --- !u!61 &1508073321
 BoxCollider2D:
@@ -5440,8 +5464,12 @@ MonoBehaviour:
   damage: 20
   detectionDistance: 3
   delayTime: 0.7
-  protrudeHeight: 0.9
   activeDuration: 1.2
+  coolTime: 0.5
+  animator: {fileID: 0}
+  attackTriggerName: Attack
+  damageCollider: {fileID: 0}
+  activeOffset: {x: 0, y: 1}
 --- !u!61 &1544730629
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -5701,6 +5729,8 @@ MonoBehaviour:
   registerToGameManager: 1
   preferPersistentPlayerDuringSceneTransition: 1
   destroySceneFallbackPlayersDuringSceneTransition: 1
+  normalizePlayerVisualOffsetOnPlacement: 1
+  playerVisualObjectName: HWJ_PlayerVisual
   lastPlacementResult: 
 --- !u!4 &1615746692
 Transform:
@@ -6574,6 +6604,8 @@ MonoBehaviour:
   database: {fileID: 0}
   body: {fileID: 0}
   localSkillActions: []
+  actionEffectSpawnOffset: {x: 0.8, y: 0.15}
+  mirrorActionEffectByFacing: 1
   useGameplaySkillRule: 1
   skillUseExecutionCore: {fileID: 0}
   skillUseExecutionCoreId: skill_use_execution
@@ -7073,7 +7105,7 @@ SpriteRenderer:
   m_Size: {x: 0.23, y: 0.21}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 1
+  m_WasSpriteAssigned: 0
   m_SpriteSortPoint: 0
 --- !u!1 &1823436018
 GameObject:
@@ -7119,6 +7151,10 @@ MonoBehaviour:
   playerPossession: {fileID: 2087133894}
   autoFindPlayerResolverInScene: 1
   autoAddMissingPlayerCoreSystems: 1
+  autoPlacePlayerAtSceneStart: 1
+  autoBindSceneCamerasToPlayer: 1
+  sceneBootstrapRetrySeconds: 1
+  lastSceneBootstrapResult: 
   preservePlayerRuntimeAcrossScenes: 1
   hasPlayerRuntimeSnapshot: 0
   savedCurrentHp: 0
@@ -8514,10 +8550,13 @@ MonoBehaviour:
   isGrounded: 0
   groundLayer:
     serializedVersion: 2
-    m_Bits: 64
+    m_Bits: 0
   groundCheckOffset: {x: 0, y: -0.55}
   groundCheckSize: {x: 0.7, y: 0.12}
   phaseThroughCollidersInSoul: 1
+  swapLayerInSoulState: 1
+  soulLayerName: Soul
+  bodyLayerName: Player
   isSoulCollisionMode: 0
   ignoreEnemyBodyCollision: 1
   enemyCollisionRefreshSeconds: 0.25
@@ -9288,6 +9327,8 @@ MonoBehaviour:
   database: {fileID: 0}
   body: {fileID: 0}
   localSkillActions: []
+  actionEffectSpawnOffset: {x: 0.8, y: 0.15}
+  mirrorActionEffectByFacing: 1
   useGameplaySkillRule: 1
   skillUseExecutionCore: {fileID: 0}
   skillUseExecutionCoreId: skill_use_execution
