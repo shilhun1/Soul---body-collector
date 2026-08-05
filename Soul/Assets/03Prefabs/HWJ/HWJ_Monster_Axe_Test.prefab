@@ -81,7 +81,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 21300000, guid: 8c62faf583e29c743b11ddcb2ff91d7f, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 51693388747725f4cbe2a43d862ed73f, type: 3}
   m_Color: {r: 0.7686275, g: 0.7686275, b: 0.7686275, a: 1}
   m_FlipX: 1
   m_FlipY: 0
@@ -232,10 +232,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cc45360a6ce147cca5614a4263769485, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HWJ_RuntimeStatusSystem
+  runtimeContext: {fileID: 0}
   dataResolver: {fileID: 0}
   possessionSystem: {fileID: 0}
   soulSystem: {fileID: 0}
   bodyDecaySystem: {fileID: 0}
+  possessedBodySystem: {fileID: 0}
+  collapseSystem: {fileID: 0}
   motionSystem: {fileID: 0}
   bossBrain: {fileID: 0}
   currentState: 1
@@ -248,6 +251,12 @@ MonoBehaviour:
   hitStunEndTime: 0
   invincibleEndTime: 0
   hitReactionImmuneEndTime: 0
+  hitReactionLimitEndTime: 0
+  hitReactionWindowEndTime: 0
+  hitReactionCountInWindow: 0
+  ignorePlayerMonsterBodyCollision: 1
+  ignoreMonsterBodyCollision: 1
+  bodyCollisionRefreshSeconds: 0.25
 --- !u!114 &2999992658229160508
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -291,16 +300,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ced03549c17815c4e8d8da454730c989, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HWJ_CombatSystem
+  runtimeContext: {fileID: 0}
   dataResolver: {fileID: 0}
   possessionSystem: {fileID: 0}
   runtimeStatus: {fileID: 0}
   bossBrain: {fileID: 0}
   useGameplayDamageRules: 1
+  commonDamageExecutionCore: {fileID: 0}
+  commonDamageExecutionCoreId: common_damage_execution
   commonDamageRule: {fileID: 0}
   commonDamageRuleId: damage_can_apply_common
+  playerDamageToEnemyExecutionCore: {fileID: 0}
+  playerDamageToEnemyExecutionCoreId: player_damage_to_enemy_execution
   playerDamageToEnemyRule: {fileID: 0}
   playerDamageToEnemyRuleId: player_damage_to_enemy
   grantKillRewards: 1
+  lastDamageRuleResult: 
   lastRewardResult: 
 --- !u!114 &6556585155606281372
 MonoBehaviour:
@@ -333,9 +348,18 @@ MonoBehaviour:
   fallbackAttackRange: 1.2
   targetSearchIntervalSeconds: 0.5
   useGameplayTargetRule: 1
+  targetExecutionCore: {fileID: 0}
+  targetExecutionCoreId: monster_target_execution
   targetDetectRule: {fileID: 0}
   targetDetectRuleId: monster_detect_player_body
+  lastTargetRuleResult: 
+  raiseActionResultEvents: 1
+  raiseRepeatedActionResultEvents: 0
   currentState: 0
+  lastTransitionFailureCode: 0
+  lastTransitionMessage: 
+  lastActionFailureCode: 0
+  lastActionMessage: 
 --- !u!114 &8267704180947712405
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -384,6 +408,7 @@ MonoBehaviour:
   monsterAI: {fileID: 0}
   target: {fileID: 0}
   autoFindPlayerTarget: 1
+  autoAttackWhenNoBehaviorDriver: 1
   attackOnlyBodyState: 1
   useSkillCycle: 1
   showSkillWarning: 1
@@ -392,6 +417,9 @@ MonoBehaviour:
   skillWarningLineWidth: 0.06
   fallbackAttackRange: 1.2
   fallbackAttackIntervalSeconds: 1
+  fallbackSkillCycleCount: 3
+  fallbackMonsterSkillCooldownSeconds: 3
+  fallbackSkillCycleDelaySeconds: 5
   targetSearchIntervalSeconds: 0.5
   lastAttackResult: 
   lastDamageApplied: 0
