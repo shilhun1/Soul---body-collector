@@ -22740,7 +22740,7 @@ MonoBehaviour:
   isGrounded: 0
   groundLayer:
     serializedVersion: 2
-    m_Bits: 64
+    m_Bits: 0
   groundCheckOffset: {x: 0, y: -0.55}
   groundCheckSize: {x: 0.7, y: 0.12}
   phaseThroughCollidersInSoul: 1
