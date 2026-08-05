@@ -19,8 +19,12 @@ public class HSH_StealBody : MonoBehaviour
 
     void Update()
     {
+        Key effectiveKey = (HSH.UI.HSH_KeyBindingManager.Instance != null)
+            ? HSH.UI.HSH_KeyBindingManager.Instance.GetInputSystemKey(HSH.UI.HSH_KeyAction.Interact)
+            : interactionKey;
+
         // 플레이어가 범위 안에 있고, 상호작용 키를 눌렀을 때
-        if (isPlayerInRange && Keyboard.current != null && Keyboard.current[interactionKey].wasPressedThisFrame)
+        if (isPlayerInRange && Keyboard.current != null && Keyboard.current[effectiveKey].wasPressedThisFrame)
         {
             PossessBody();
         }
@@ -38,16 +42,17 @@ public class HSH_StealBody : MonoBehaviour
         {
             Canvas canvas = spawnedUi.GetComponentInParent<Canvas>();
             // 오버레이 캔버스 혹은 카메라 캔버스인 경우 월드 좌표를 스크린 좌표로 변환
-            if (canvas != null && (canvas.renderMode == RenderMode.ScreenSpaceOverlay || canvas.renderMode == RenderMode.ScreenSpaceCamera))
+            if (canvas != null && canvas.renderMode != RenderMode.WorldSpace)
             {
-                if (Camera.main != null)
+                Camera targetCamera = canvas.worldCamera != null ? canvas.worldCamera : Camera.main;
+                if (targetCamera != null)
                 {
-                    spawnedUi.transform.position = Camera.main.WorldToScreenPoint(transform.position + uiOffset);
+                    Vector3 screenPos = targetCamera.WorldToScreenPoint(transform.position + uiOffset);
+                    spawnedUi.transform.position = screenPos;
                 }
             }
             else
             {
-                // 월드 스페이스 캔버스일 경우 일반 월드 좌표 사용
                 spawnedUi.transform.position = transform.position + uiOffset;
             }
         }
@@ -70,18 +75,20 @@ public class HSH_StealBody : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        // 플레이어가 접근하면 상호작용 가능 상태로 변경
+        // 플레이어가 다가오면 상호작용 가능 상태로 변경
         if (collision.CompareTag("Player"))
         {
             isPlayerInRange = true;
 
-            // UI가 없다면 씬 내의 Canvas를 찾아 자식으로 생성
+            // UI 팝업 생성 및 활성화
             if (spawnedUi == null && stealBodyUiPrefab != null)
             {
-                Canvas mainCanvas = FindAnyObjectByType<Canvas>();
-                if (mainCanvas != null)
+                // 씬에 Canvas가 있는지 확인
+                Canvas canvas = FindFirstObjectByType<Canvas>();
+                if (canvas != null)
                 {
-                    spawnedUi = Instantiate(stealBodyUiPrefab, transform.position + uiOffset, Quaternion.identity, mainCanvas.transform);
+                    // 캔버스의 자식으로 UI를 생성하여 UI 렌더링 레이어 보장
+                    spawnedUi = Instantiate(stealBodyUiPrefab, canvas.transform);
                 }
                 else
                 {
@@ -92,8 +99,12 @@ public class HSH_StealBody : MonoBehaviour
 
             if (spawnedUi != null)
             {
+                Key effectiveKey = (HSH.UI.HSH_KeyBindingManager.Instance != null)
+                    ? HSH.UI.HSH_KeyBindingManager.Instance.GetInputSystemKey(HSH.UI.HSH_KeyAction.Interact)
+                    : interactionKey;
+
                 UpdateUIPosition();
-                spawnedUi.ShowUI(interactionKey.ToString());
+                spawnedUi.ShowUI(effectiveKey.ToString());
             }
         }
     }

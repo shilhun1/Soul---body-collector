@@ -10,9 +10,9 @@
     *   `HSH_SceneTransfer`: 씬 이동 시 스폰 ID나 추가 데이터를 유지하기 위한 정적 데이터 클래스입니다.
     *   `HSH_SpawnPoint`: 씬이 로드될 때 `TargetSpawnID`와 자신의 ID가 일치하면 플레이어를 자신의 위치로 이동시킵니다.
 *   **HSH_StatProgressCore**
-    *   능력치 코어 오브젝트입니다. 플레이어가 접근하여 특정 키(F)를 누르면 랜덤한 스탯 종류와 수치가 증가했다는 메시지를 출력하고, 코어 오브젝트는 파괴됩니다.
+    *   능력치 코어 오브젝트입니다. 플레이어가 접근하여 상호작용 키(기본값: F, HSH_KeyBindingManager 동기화)를 누르면 랜덤한 스탯 종류와 수치가 증가했다는 메시지를 출력하고, 코어 오브젝트는 파괴됩니다.
 *   **HSH_StealBody**
-    *   적의 시체 등에 빙의(Steal Body)하는 기능입니다. 플레이어가 접근하여 상호작용 키(F) 입력 시 빙의 성공 메시지를 띄우고 시체 오브젝트를 삭제합니다.
+    *   적의 시체 등에 빙의(Steal Body)하는 기능입니다. 플레이어가 접근하여 상호작용 키(기본값: F, HSH_KeyBindingManager 동기화) 입력 시 빙의 성공 메시지를 띄우고 시체 오브젝트를 삭제합니다.
 
 ## 2. 유령 상태 제어 (testmove)
 플레이어가 유령(영혼) 상태가 되었을 때의 이동과 제약을 담당합니다.
@@ -63,10 +63,10 @@
     *   Smiling Eclipse (Skill Tree Maker Importer) 에셋의 저장 데이터를 안전하게 초기화하는 유틸리티 스크립트입니다. PlayerPrefs에 저장된 특정 스킬트리의 진행도(레벨, 해금 상태) 키만 찾아서 지우며, 스킬 포인트(CurrencyData)를 기본값으로 재설정하는 기능도 포함되어 있습니다. UI 초기화 버튼에 연결하여 사용합니다.
     *   *(업데이트)* 향후 메인 게임 시스템(HWJ)에도 스킬 초기화 기능이 구현될 경우를 대비해, 즉시 연동할 수 있도록 주석(TODO) 처리를 해두었습니다.
 *   **HSH_SkillTreeToggleUI** *(추가일: 2026-07-22)*
-    *   단축키(기본값: Tab, 인스펙터에서 임의 지정 가능)를 눌러 스킬 트리 UI 패널을 열고 닫을 수 있게 하는 컨트롤러 스크립트입니다.
+    *   단축키(기본값: Tab, HSH_KeyBindingManager 동기화)를 눌러 스킬 트리 UI 패널을 열고 닫을 수 있게 하는 컨트롤러 스크립트입니다.
     *   스킬 트리가 열리면 이전 게임의 시간 흐름 속도를 기억한 뒤 `Time.timeScale = 0f`로 정지시켜 게임이 일시 정지되도록 하고, 마우스 커서를 해제하여 노드 선택 및 스킬 해금을 자유롭게 수행할 수 있도록 지원합니다. 스킬 트리가 닫히면 게임 시간을 기존 상태로 안전하게 복원합니다.
 *   **HSH_PauseUI** *(신규 제작: 2026-08-03)*
-    *   `ESC` 키 입력 시 게임을 일시 정지(`Time.timeScale = 0f`)시키고 마우스 커서를 해제하며 일시정지 팝업 UI 창을 표시합니다.
+    *   `ESC` 키(HSH_KeyBindingManager 동기화) 입력 시 게임을 일시 정지(`Time.timeScale = 0f`)시키고 마우스 커서를 해제하며 일시정지 팝업 UI 창을 표시합니다.
     *   일시정지 창 내부에는 상단부터 **계속하기 (Resume)**, **설정 (Settings)**, **게임 종료 (Quit)** 3개의 버튼이 배치됩니다.
     *   **설정** 버튼 클릭 시 일시정지 창이 닫히고/숨겨지며 **설정 창(Settings Panel)**이 화면에 띄워집니다. (설정 창에서 `ESC` 또는 뒤로가기 버튼 입력 시 다시 일시정지 창으로 전환됩니다.)
 *   **HSH_AudioManager** *(신규 제작: 2026-08-04)*
@@ -139,6 +139,4 @@
     *   **`HSH_AudioSettingsUI`**: 설정창 내 마스터, BGM, SFX 슬라이더 및 % 텍스트 표시 연동.
     *   **`HSH_KeyBindingManager`**: 커스텀 키 바인딩(일시정지, 스킬트리, 상호작용 등) 관리 및 Legacy KeyCode / InputSystem Key 통합 호환 레이어 작성.
     *   **`HSH_KeyRebindUI`**: 키 변경 버튼 클릭 시 키 입력 대기 모드 및 누른 키로 바인딩 즉시 변경 UI 제어. 기본값 복원 지원.
-    *   **`HSH_PauseUI` & `HSH_SkillTreeToggleUI` & `HSH_StealBody` & `HSH_StatProgressCore`**: `HSH_KeyBindingManager`와 동기화하여 변경된 단축키가 즉각 인게임 조작 및 UI에 적용되도록 연동.
-
-
+    *   **`HSH_PauseUI` & `HSH_SkillTreeToggleUI` & `HSH_StealBody` & `HSH_StatProgressCore`**: `HSH_KeyBindingManager`와 동기화하여 변경된 단축키가 즉각 인기술 조작 및 UI에 적용되도록 연동.

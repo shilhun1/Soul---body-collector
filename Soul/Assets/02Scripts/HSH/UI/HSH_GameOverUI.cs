@@ -17,8 +17,7 @@ public class HSH_GameOverUI : MonoBehaviour
         }
 
         Instance = this;
-        
-        // 씬이 변경되어도 파괴되지 않도록 설정 (루트 오브젝트여야 작동합니다)
+        transform.SetParent(null);
         DontDestroyOnLoad(gameObject);
     }
 
