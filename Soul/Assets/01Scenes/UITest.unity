@@ -4364,9 +4364,9 @@ MonoBehaviour:
   levelUpData: {fileID: 0}
   levelTableId: player_default_level
   loadLevelDataFromDatabase: 1
-  currentLevel: 1
+  currentLevel: 3
   currentExperience: 0
-  skillPoint: 0
+  skillPoint: 41
 --- !u!114 &1547393518
 MonoBehaviour:
   m_ObjectHideFlags: 0
