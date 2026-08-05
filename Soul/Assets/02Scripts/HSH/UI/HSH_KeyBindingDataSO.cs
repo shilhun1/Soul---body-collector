@@ -7,6 +7,9 @@ namespace HSH.UI
     [Serializable]
     public class HSH_KeyBindingConfigEntry
     {
+        [Tooltip("카테고리/그룹 명칭 (예: 'System', 'Movement', 'Combat')")]
+        public string categoryName = "Other";
+
         [Tooltip("HSH 고유 액션 종류 (HSH 전용인 경우 지정)")]
         public HSH_KeyAction keyAction;
 
@@ -47,26 +50,26 @@ namespace HSH.UI
         {
             bindingEntries = new List<HSH_KeyBindingConfigEntry>
             {
-                // HSH 고유 액션
-                new HSH_KeyBindingConfigEntry { keyAction = HSH_KeyAction.Pause, isHWJAction = false, displayName = "일시정지", defaultKey = KeyCode.Escape },
-                new HSH_KeyBindingConfigEntry { keyAction = HSH_KeyAction.SkillTree, isHWJAction = false, displayName = "스킬트리", defaultKey = KeyCode.Tab },
+                // HSH 고유 액션 (System)
+                new HSH_KeyBindingConfigEntry { categoryName = "System", keyAction = HSH_KeyAction.Pause, isHWJAction = false, displayName = "일시정지", defaultKey = KeyCode.Escape },
+                new HSH_KeyBindingConfigEntry { categoryName = "System", keyAction = HSH_KeyAction.SkillTree, isHWJAction = false, displayName = "스킬트리", defaultKey = KeyCode.Tab },
 
-                // HSH & HWJ 공통 및 HWJ 확장 액션
-                new HSH_KeyBindingConfigEntry { keyAction = HSH_KeyAction.Interact, isHWJAction = true, hwjActionId = HWJ_PlayerInputActionId.Interact, displayName = "상호작용", defaultKey = KeyCode.F },
-                new HSH_KeyBindingConfigEntry { keyAction = HSH_KeyAction.MoveUp, isHWJAction = true, hwjActionId = HWJ_PlayerInputActionId.MoveUp, displayName = "위로 이동 (W)", defaultKey = KeyCode.W },
-                new HSH_KeyBindingConfigEntry { keyAction = HSH_KeyAction.MoveDown, isHWJAction = true, hwjActionId = HWJ_PlayerInputActionId.MoveDown, displayName = "아래로 이동 (S)", defaultKey = KeyCode.S },
-                new HSH_KeyBindingConfigEntry { keyAction = HSH_KeyAction.MoveLeft, isHWJAction = true, hwjActionId = HWJ_PlayerInputActionId.MoveLeft, displayName = "왼쪽 이동 (A)", defaultKey = KeyCode.A },
-                new HSH_KeyBindingConfigEntry { keyAction = HSH_KeyAction.MoveRight, isHWJAction = true, hwjActionId = HWJ_PlayerInputActionId.MoveRight, displayName = "오른쪽 이동 (D)", defaultKey = KeyCode.D },
+                // HSH & HWJ 공통 및 이동 조작 액션 (Movement)
+                new HSH_KeyBindingConfigEntry { categoryName = "Movement", keyAction = HSH_KeyAction.Interact, isHWJAction = true, hwjActionId = HWJ_PlayerInputActionId.Interact, displayName = "상호작용", defaultKey = KeyCode.F },
+                new HSH_KeyBindingConfigEntry { categoryName = "Movement", keyAction = HSH_KeyAction.MoveUp, isHWJAction = true, hwjActionId = HWJ_PlayerInputActionId.MoveUp, displayName = "위로 이동 (W)", defaultKey = KeyCode.W },
+                new HSH_KeyBindingConfigEntry { categoryName = "Movement", keyAction = HSH_KeyAction.MoveDown, isHWJAction = true, hwjActionId = HWJ_PlayerInputActionId.MoveDown, displayName = "아래로 이동 (S)", defaultKey = KeyCode.S },
+                new HSH_KeyBindingConfigEntry { categoryName = "Movement", keyAction = HSH_KeyAction.MoveLeft, isHWJAction = true, hwjActionId = HWJ_PlayerInputActionId.MoveLeft, displayName = "왼쪽 이동 (A)", defaultKey = KeyCode.A },
+                new HSH_KeyBindingConfigEntry { categoryName = "Movement", keyAction = HSH_KeyAction.MoveRight, isHWJAction = true, hwjActionId = HWJ_PlayerInputActionId.MoveRight, displayName = "오른쪽 이동 (D)", defaultKey = KeyCode.D },
+                new HSH_KeyBindingConfigEntry { categoryName = "Movement", isHWJAction = true, hwjActionId = HWJ_PlayerInputActionId.Jump, displayName = "점프 (Space)", defaultKey = KeyCode.Space },
+                new HSH_KeyBindingConfigEntry { categoryName = "Movement", isHWJAction = true, hwjActionId = HWJ_PlayerInputActionId.Dash, displayName = "대시 (Shift)", defaultKey = KeyCode.LeftShift },
 
-                // HWJ 추가 플레이어 조작 액션
-                new HSH_KeyBindingConfigEntry { isHWJAction = true, hwjActionId = HWJ_PlayerInputActionId.Jump, displayName = "점프 (Space)", defaultKey = KeyCode.Space },
-                new HSH_KeyBindingConfigEntry { isHWJAction = true, hwjActionId = HWJ_PlayerInputActionId.Dash, displayName = "대시 (Shift)", defaultKey = KeyCode.LeftShift },
-                new HSH_KeyBindingConfigEntry { isHWJAction = true, hwjActionId = HWJ_PlayerInputActionId.Attack, displayName = "공격 (마우스 좌클릭)", defaultKey = KeyCode.None, defaultMouseButton = HWJ_InputMouseButton.Left },
-                new HSH_KeyBindingConfigEntry { isHWJAction = true, hwjActionId = HWJ_PlayerInputActionId.ExitPossession, displayName = "빙의 해제 (Q)", defaultKey = KeyCode.Q },
-                new HSH_KeyBindingConfigEntry { isHWJAction = true, hwjActionId = HWJ_PlayerInputActionId.SkillSlot1, displayName = "스킬 슬롯 1", defaultKey = KeyCode.Alpha1 },
-                new HSH_KeyBindingConfigEntry { isHWJAction = true, hwjActionId = HWJ_PlayerInputActionId.SkillSlot2, displayName = "스킬 슬롯 2", defaultKey = KeyCode.Alpha2 },
-                new HSH_KeyBindingConfigEntry { isHWJAction = true, hwjActionId = HWJ_PlayerInputActionId.SkillSlot3, displayName = "스킬 슬롯 3", defaultKey = KeyCode.Alpha3 },
-                new HSH_KeyBindingConfigEntry { isHWJAction = true, hwjActionId = HWJ_PlayerInputActionId.SkillSlot4, displayName = "스킬 슬롯 4", defaultKey = KeyCode.Alpha4 }
+                // HWJ 전투 및 스킬 액션 (Combat)
+                new HSH_KeyBindingConfigEntry { categoryName = "Combat", isHWJAction = true, hwjActionId = HWJ_PlayerInputActionId.Attack, displayName = "공격 (마우스 좌클릭)", defaultKey = KeyCode.None, defaultMouseButton = HWJ_InputMouseButton.Left },
+                new HSH_KeyBindingConfigEntry { categoryName = "Combat", isHWJAction = true, hwjActionId = HWJ_PlayerInputActionId.ExitPossession, displayName = "빙의 해제 (Q)", defaultKey = KeyCode.Q },
+                new HSH_KeyBindingConfigEntry { categoryName = "Combat", isHWJAction = true, hwjActionId = HWJ_PlayerInputActionId.SkillSlot1, displayName = "스킬 슬롯 1", defaultKey = KeyCode.Alpha1 },
+                new HSH_KeyBindingConfigEntry { categoryName = "Combat", isHWJAction = true, hwjActionId = HWJ_PlayerInputActionId.SkillSlot2, displayName = "스킬 슬롯 2", defaultKey = KeyCode.Alpha2 },
+                new HSH_KeyBindingConfigEntry { categoryName = "Combat", isHWJAction = true, hwjActionId = HWJ_PlayerInputActionId.SkillSlot3, displayName = "스킬 슬롯 3", defaultKey = KeyCode.Alpha3 },
+                new HSH_KeyBindingConfigEntry { categoryName = "Combat", isHWJAction = true, hwjActionId = HWJ_PlayerInputActionId.SkillSlot4, displayName = "스킬 슬롯 4", defaultKey = KeyCode.Alpha4 }
             };
         }
 

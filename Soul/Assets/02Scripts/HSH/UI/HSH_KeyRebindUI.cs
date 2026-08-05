@@ -4,6 +4,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+#if ENABLE_INPUT_SYSTEM
+using UnityEngine.InputSystem;
+#endif
 
 namespace HSH.UI
 {
@@ -27,6 +30,19 @@ namespace HSH.UI
     }
 
     /// <summary>
+    /// 카테고리별 전용 컨테이너 매핑 클래스
+    /// </summary>
+    [Serializable]
+    public class HSH_KeyCategoryGroup
+    {
+        [Tooltip("카테고리/그룹 명칭 (예: 'System', 'Movement', 'Combat')")]
+        public string categoryName;
+
+        [Tooltip("해당 카테고리 항목들이 생성되어 들어갈 UI 컨테이너 Transform")]
+        public Transform container;
+    }
+
+    /// <summary>
     /// HWJ 인풋 바인딩 SO 및 HSH 단축키 데이터와 연동되는 키 변경 UI 컨트롤러입니다.
     /// 컨테이너에 UI 항목 개체들이 동적으로 인스턴스화("개체가 나와 키바꿀수있는 ui")되거나 수동 항목들을 제어합니다.
     /// </summary>
@@ -36,8 +52,25 @@ namespace HSH.UI
         [Tooltip("키 바인딩 항목 UI 프리팹 (HSH_KeyRebindItemUI 스크립트 첨부)")]
         [SerializeField] private HSH_KeyRebindItemUI itemPrefab;
 
-        [Tooltip("UI 항목 개체들이 동적으로 생성되어 들어갈 컨테이너 (Scroll Content 등)")]
+        [Tooltip("단일 UI 컨테이너 (기본값)")]
         [SerializeField] private Transform itemContainer;
+
+        [Header("다중 / 카테고리별 분배 컨테이너 설정 (원하는 지정 방식 선택)")]
+        [Tooltip("카테고리별(System, Movement, Combat 등) 전용 컨테이너를 지정할 경우 사용합니다.")]
+        [SerializeField] private List<HSH_KeyCategoryGroup> categoryGroups = new List<HSH_KeyCategoryGroup>();
+
+        [Tooltip("여러 개의 컨테이너를 등록하면 키 바인딩 항목들이 순차적으로 균등 분배되어 분할 생성됩니다.")]
+        [SerializeField] private List<Transform> itemContainers = new List<Transform>();
+
+        [Header("레이아웃 자동 조정 설정")]
+        [Tooltip("키 세팅 항목들을 2열(Grid 2열)로 나열하여 세로 길이를 줄입니다.")]
+        [SerializeField] private bool useTwoColumnGrid = false;
+
+        [Tooltip("2열 배치 시 각 항목의 셀 크기 (너비, 높이)")]
+        [SerializeField] private Vector2 itemCellSize = new Vector2(340f, 45f);
+
+        [Tooltip("항목 간 간격 (가로 간격, 세로 간격)")]
+        [SerializeField] private Vector2 itemSpacing = new Vector2(10f, 8f);
 
         [Header("수동 지정 바인딩 항목 목록 (선택 사항)")]
         [SerializeField] private List<HSH_KeyRebindElement> rebindElements = new List<HSH_KeyRebindElement>();
@@ -101,15 +134,24 @@ namespace HSH.UI
 
         /// <summary>
         /// ScriptableObject 데이터 기반으로 UI 항목 개체들을 동적으로 자동 생성합니다.
+        /// 지정된 컨테이너(단일, 다중 균등, 또는 카테고리별)로 나뉘어 들어갑니다.
         /// </summary>
         public void BuildDynamicItems()
         {
-            if (itemPrefab == null || itemContainer == null) return;
+            if (itemPrefab == null) return;
 
-            // 기존 생성된 항목 정리
-            foreach (Transform child in itemContainer)
+            List<Transform> allContainers = GetActiveContainers();
+            if (allContainers.Count == 0) return;
+
+            // 기존 생성된 항목 정리 및 레이아웃 설정
+            foreach (var container in allContainers)
             {
-                Destroy(child.gameObject);
+                if (container == null) continue;
+                EnsureLayoutComponents(container);
+                foreach (Transform child in container)
+                {
+                    Destroy(child.gameObject);
+                }
             }
             spawnedItems.Clear();
 
@@ -119,16 +161,141 @@ namespace HSH.UI
 
             if (dataSO == null || dataSO.BindingEntries == null) return;
 
-            foreach (var entry in dataSO.BindingEntries)
+            var entries = dataSO.BindingEntries;
+
+            // 1. 카테고리별 전용 컨테이너 지정 방식 사용 시
+            if (categoryGroups != null && categoryGroups.Count > 0)
             {
-                if (entry == null) continue;
+                foreach (var entry in entries)
+                {
+                    if (entry == null) continue;
+                    Transform targetContainer = FindCategoryContainer(entry.categoryName);
+                    if (targetContainer == null) targetContainer = allContainers[0];
 
-                HSH_KeyRebindItemUI itemInstance = Instantiate(itemPrefab, itemContainer);
-                HSH_KeyBindingConfigEntry currentEntry = entry;
-
-                itemInstance.Setup(currentEntry, (item) => StartRebindingEntry(item, currentEntry));
-                spawnedItems.Add(itemInstance);
+                    CreateItemInstance(entry, targetContainer);
+                }
             }
+            // 2. 다중 컨테이너 균등 분배 방식 사용 시
+            else if (itemContainers != null && itemContainers.Count > 0)
+            {
+                List<Transform> validContainers = new List<Transform>();
+                foreach (var c in itemContainers)
+                {
+                    if (c != null) validContainers.Add(c);
+                }
+
+                if (validContainers.Count > 0)
+                {
+                    int totalEntries = entries.Count;
+                    int itemsPerContainer = Mathf.CeilToInt((float)totalEntries / validContainers.Count);
+
+                    for (int i = 0; i < totalEntries; i++)
+                    {
+                        var entry = entries[i];
+                        if (entry == null) continue;
+
+                        int targetIndex = Mathf.Clamp(i / itemsPerContainer, 0, validContainers.Count - 1);
+                        Transform targetContainer = validContainers[targetIndex];
+
+                        CreateItemInstance(entry, targetContainer);
+                    }
+                }
+            }
+            // 3. 단일 컨테이너 기본 방식 사용 시
+            else if (itemContainer != null)
+            {
+                foreach (var entry in entries)
+                {
+                    if (entry == null) continue;
+                    CreateItemInstance(entry, itemContainer);
+                }
+            }
+        }
+
+        private void CreateItemInstance(HSH_KeyBindingConfigEntry entry, Transform targetContainer)
+        {
+            HSH_KeyRebindItemUI itemInstance = Instantiate(itemPrefab, targetContainer);
+            HSH_KeyBindingConfigEntry currentEntry = entry;
+            itemInstance.Setup(currentEntry, (item) => StartRebindingEntry(item, currentEntry));
+            spawnedItems.Add(itemInstance);
+        }
+
+        private Transform FindCategoryContainer(string categoryName)
+        {
+            if (categoryGroups == null) return null;
+            foreach (var group in categoryGroups)
+            {
+                if (group != null && group.container != null && string.Equals(group.categoryName, categoryName, StringComparison.OrdinalIgnoreCase))
+                {
+                    return group.container;
+                }
+            }
+            return null;
+        }
+
+        private List<Transform> GetActiveContainers()
+        {
+            List<Transform> list = new List<Transform>();
+            if (categoryGroups != null && categoryGroups.Count > 0)
+            {
+                foreach (var g in categoryGroups)
+                {
+                    if (g != null && g.container != null && !list.Contains(g.container))
+                        list.Add(g.container);
+                }
+            }
+            if (itemContainers != null && itemContainers.Count > 0)
+            {
+                foreach (var c in itemContainers)
+                {
+                    if (c != null && !list.Contains(c))
+                        list.Add(c);
+                }
+            }
+            if (itemContainer != null && !list.Contains(itemContainer))
+            {
+                list.Add(itemContainer);
+            }
+            return list;
+        }
+
+        /// <summary>
+        /// 컨테이너에 필요한 LayoutGroup 및 ContentSizeFitter를 자동으로 보장/설정합니다.
+        /// </summary>
+        private void EnsureLayoutComponents(Transform container)
+        {
+            if (container == null) return;
+
+            if (useTwoColumnGrid)
+            {
+                var oldVertical = container.GetComponent<VerticalLayoutGroup>();
+                if (oldVertical != null) Destroy(oldVertical);
+
+                var grid = container.GetComponent<GridLayoutGroup>();
+                if (grid == null) grid = container.gameObject.AddComponent<GridLayoutGroup>();
+                grid.cellSize = itemCellSize;
+                grid.spacing = itemSpacing;
+                grid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+                grid.constraintCount = 2;
+                grid.childAlignment = TextAnchor.UpperCenter;
+            }
+            else
+            {
+                var oldGrid = container.GetComponent<GridLayoutGroup>();
+                if (oldGrid != null) Destroy(oldGrid);
+
+                var vertical = container.GetComponent<VerticalLayoutGroup>();
+                if (vertical == null) vertical = container.gameObject.AddComponent<VerticalLayoutGroup>();
+                vertical.childControlWidth = true;
+                vertical.childControlHeight = false;
+                vertical.childForceExpandWidth = true;
+                vertical.spacing = itemSpacing.y;
+                vertical.childAlignment = TextAnchor.UpperCenter;
+            }
+
+            var fitter = container.GetComponent<ContentSizeFitter>();
+            if (fitter == null) fitter = container.gameObject.AddComponent<ContentSizeFitter>();
+            fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
         }
 
         private void SetupManualElements()
@@ -175,28 +342,19 @@ namespace HSH.UI
         {
             if (entry == null) return "None";
 
-            if (entry.isHWJAction && hwjInput != null)
+            if (entry.isHWJAction)
             {
-                if (hwjInput.TryGetEffectiveBinding(entry.hwjActionId, out var binding))
+                if (HSH_KeyBindingManager.Instance != null)
                 {
-                    if (binding.HasMouse)
-                    {
-                        return $"Mouse {binding.MouseButton}";
-                    }
-                    if (binding.HasKeyboard)
-                    {
-                        return binding.KeyboardKey.ToString();
-                    }
+                    return HSH_KeyBindingManager.Instance.GetHWJBindingDisplayText(entry.hwjActionId);
                 }
+                return entry.defaultKey != KeyCode.None ? entry.defaultKey.ToString() : $"Mouse {entry.defaultMouseButton}";
             }
 
-            if (!entry.isHWJAction)
-            {
-                KeyCode key = HSH_KeyBindingManager.Instance.GetKey(entry.keyAction);
-                return key.ToString();
-            }
-
-            return entry.defaultKey != KeyCode.None ? entry.defaultKey.ToString() : $"Mouse {entry.defaultMouseButton}";
+            KeyCode key = HSH_KeyBindingManager.Instance != null 
+                ? HSH_KeyBindingManager.Instance.GetKey(entry.keyAction) 
+                : entry.defaultKey;
+            return key.ToString();
         }
 
         public void StartRebindingEntry(HSH_KeyRebindItemUI itemUI, HSH_KeyBindingConfigEntry entry)
@@ -208,7 +366,7 @@ namespace HSH.UI
             currentManualElement = null;
             isRebinding = true;
 
-            if (itemUI != null) itemUI.SetKeyText("[ 입력 대기... ]");
+            if (itemUI != null) itemUI.SetKeyText("[ inputing... ]");
             ShowWaitingOverlay(entry.displayName);
 
             StartCoroutine(WaitForKeyInputCoroutine());
@@ -223,7 +381,7 @@ namespace HSH.UI
             currentItemUI = null;
             isRebinding = true;
 
-            UpdateManualElementText(element, "[ 입력 대기... ]");
+            UpdateManualElementText(element, "[ inputing... ]");
             ShowWaitingOverlay(element.keyAction.ToString());
 
             StartCoroutine(WaitForKeyInputCoroutine());
@@ -243,12 +401,65 @@ namespace HSH.UI
 
         private IEnumerator WaitForKeyInputCoroutine()
         {
-            // 클릭 프레임의 입력 오작동 방지
-            yield return null;
+            // 리바인드 버튼을 마우스 클릭할 때의 클릭 이벤트가 바로 감지되어 닫히는 것을 방지
+            yield return new WaitForSecondsRealtime(0.15f);
+
+#if ENABLE_INPUT_SYSTEM
+            if (Mouse.current != null)
+            {
+                while (Mouse.current.leftButton.isPressed || Mouse.current.rightButton.isPressed || Mouse.current.middleButton.isPressed)
+                {
+                    yield return null;
+                }
+            }
+#else
+            while (Input.GetMouseButton(0) || Input.GetMouseButton(1) || Input.GetMouseButton(2))
+            {
+                yield return null;
+            }
+#endif
 
             while (isRebinding)
             {
-                // 마우스 클릭 확인 (HWJ 마우스 액션 수용)
+#if ENABLE_INPUT_SYSTEM
+                if (Keyboard.current != null)
+                {
+                    foreach (Key k in Enum.GetValues(typeof(Key)))
+                    {
+                        if (k == Key.None) continue;
+                        if (Keyboard.current[k].wasPressedThisFrame)
+                        {
+                            KeyCode legacyKey = HSH_KeyBindingManager.InputKeyToKeyCode(k);
+                            if (legacyKey != KeyCode.None)
+                            {
+                                CompleteKeyboardRebinding(legacyKey);
+                                yield break;
+                            }
+                        }
+                    }
+                }
+
+                if (Mouse.current != null)
+                {
+                    if (Mouse.current.leftButton.wasPressedThisFrame)
+                    {
+                        CompleteMouseRebinding(HWJ_InputMouseButton.Left);
+                        yield break;
+                    }
+                    if (Mouse.current.rightButton.wasPressedThisFrame)
+                    {
+                        CompleteMouseRebinding(HWJ_InputMouseButton.Right);
+                        yield break;
+                    }
+                    if (Mouse.current.middleButton.wasPressedThisFrame)
+                    {
+                        CompleteMouseRebinding(HWJ_InputMouseButton.Middle);
+                        yield break;
+                    }
+                }
+#endif
+
+                // Legacy Input Manager (Fallback)
                 for (int m = 0; m < 3; m++)
                 {
                     if (Input.GetMouseButtonDown(m))
@@ -259,12 +470,10 @@ namespace HSH.UI
                     }
                 }
 
-                // 키보드 입력 확인
                 if (Input.anyKeyDown)
                 {
                     foreach (KeyCode keyCode in Enum.GetValues(typeof(KeyCode)))
                     {
-                        // 마우스 버튼 키코드 제외
                         if (keyCode >= KeyCode.Mouse0 && keyCode <= KeyCode.Mouse6)
                         {
                             continue;

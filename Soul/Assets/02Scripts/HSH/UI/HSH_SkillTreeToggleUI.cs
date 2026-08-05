@@ -1,5 +1,8 @@
 using UnityEngine;
 using SmilingEclipse.STMImporter;
+#if ENABLE_INPUT_SYSTEM
+using UnityEngine.InputSystem;
+#endif
 
 namespace HSH.UI
 {
@@ -66,10 +69,25 @@ namespace HSH.UI
         private void Update()
         {
             KeyCode currentToggleKey = ToggleKey;
-            if (Input.GetKeyDown(currentToggleKey))
+            if (WasKeyPressedThisFrame(currentToggleKey))
             {
                 ToggleSkillTree();
             }
+        }
+
+        private bool WasKeyPressedThisFrame(KeyCode keyCode)
+        {
+#if ENABLE_INPUT_SYSTEM
+            if (Keyboard.current != null)
+            {
+                Key inputKey = HSH_KeyBindingManager.KeyCodeToInputKey(keyCode);
+                if (inputKey != Key.None && Keyboard.current[inputKey].wasPressedThisFrame)
+                {
+                    return true;
+                }
+            }
+#endif
+            return Input.GetKeyDown(keyCode);
         }
 
         /// <summary>

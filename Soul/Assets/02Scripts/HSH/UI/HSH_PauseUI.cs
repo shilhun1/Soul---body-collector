@@ -1,5 +1,8 @@
 using UnityEngine;
 using UnityEngine.UI;
+#if ENABLE_INPUT_SYSTEM
+using UnityEngine.InputSystem;
+#endif
 
 namespace HSH.UI
 {
@@ -113,7 +116,7 @@ namespace HSH.UI
         private void Update()
         {
             KeyCode currentPauseKey = PauseKey;
-            if (Input.GetKeyDown(currentPauseKey))
+            if (WasKeyPressedThisFrame(currentPauseKey))
             {
                 // 설정 창이 켜져 있는 상태에서 일시정지 키를 누르면 일시정지 메뉴로 복귀
                 if (settingsPanel != null && settingsPanel.activeSelf)
@@ -131,6 +134,21 @@ namespace HSH.UI
                     PauseGame();
                 }
             }
+        }
+
+        private bool WasKeyPressedThisFrame(KeyCode keyCode)
+        {
+#if ENABLE_INPUT_SYSTEM
+            if (Keyboard.current != null)
+            {
+                Key inputKey = HSH_KeyBindingManager.KeyCodeToInputKey(keyCode);
+                if (inputKey != Key.None && Keyboard.current[inputKey].wasPressedThisFrame)
+                {
+                    return true;
+                }
+            }
+#endif
+            return Input.GetKeyDown(keyCode);
         }
 
         /// <summary>

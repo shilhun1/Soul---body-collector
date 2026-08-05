@@ -34,6 +34,8 @@ namespace HSH.UI
 
         private Dictionary<HSH_KeyAction, KeyCode> keyBindings = new Dictionary<HSH_KeyAction, KeyCode>();
         private Dictionary<HSH_KeyAction, KeyCode> defaultBindings = new Dictionary<HSH_KeyAction, KeyCode>();
+        private Dictionary<HWJ_PlayerInputActionId, KeyCode> hwjKeyBindings = new Dictionary<HWJ_PlayerInputActionId, KeyCode>();
+        private Dictionary<HWJ_PlayerInputActionId, HWJ_InputMouseButton> hwjMouseBindings = new Dictionary<HWJ_PlayerInputActionId, HWJ_InputMouseButton>();
 
         // 키 바인딩이 변경될 때 발생하는 이벤트 (ActionEnum, NewKeyCode)
         public event Action<HSH_KeyAction, KeyCode> OnKeyBindingChanged;
@@ -49,6 +51,7 @@ namespace HSH.UI
                 return;
             }
             Instance = this;
+            transform.SetParent(null);
             DontDestroyOnLoad(gameObject);
 
             EnsureBindingDataSO();
@@ -118,6 +121,8 @@ namespace HSH.UI
         public void LoadKeyBindings()
         {
             keyBindings.Clear();
+            hwjKeyBindings.Clear();
+            hwjMouseBindings.Clear();
 
             foreach (HSH_KeyAction action in Enum.GetValues(typeof(HSH_KeyAction)))
             {
@@ -139,6 +144,28 @@ namespace HSH.UI
                 else
                 {
                     keyBindings[action] = defaultKey;
+                }
+            }
+
+            foreach (HWJ_PlayerInputActionId hwjAction in Enum.GetValues(typeof(HWJ_PlayerInputActionId)))
+            {
+                string prefKeyKey = PREFS_KEY_PREFIX + "HWJ_Key_" + hwjAction.ToString();
+                string prefMouseKey = PREFS_KEY_PREFIX + "HWJ_Mouse_" + hwjAction.ToString();
+
+                if (PlayerPrefs.HasKey(prefKeyKey))
+                {
+                    if (Enum.TryParse(PlayerPrefs.GetString(prefKeyKey), out KeyCode parsedKey))
+                    {
+                        hwjKeyBindings[hwjAction] = parsedKey;
+                    }
+                }
+
+                if (PlayerPrefs.HasKey(prefMouseKey))
+                {
+                    if (Enum.TryParse(PlayerPrefs.GetString(prefMouseKey), out HWJ_InputMouseButton parsedMouse))
+                    {
+                        hwjMouseBindings[hwjAction] = parsedMouse;
+                    }
                 }
             }
         }
@@ -184,6 +211,37 @@ namespace HSH.UI
         }
 
         /// <summary>
+        /// HWJ 액션의 현재 표시 텍스트를 반환합니다.
+        /// </summary>
+        public string GetHWJBindingDisplayText(HWJ_PlayerInputActionId hwjActionId)
+        {
+            HWJ_PlayerInputSystem hwjInput = GetHWJPlayerInputSystem();
+            if (hwjInput != null && hwjInput.TryGetEffectiveBinding(hwjActionId, out var binding))
+            {
+                if (binding.HasMouse) return $"Mouse {binding.MouseButton}";
+                if (binding.HasKeyboard && binding.KeyboardKey != KeyCode.None) return binding.KeyboardKey.ToString();
+            }
+
+            if (hwjMouseBindings.TryGetValue(hwjActionId, out var mouseBtn) && mouseBtn != HWJ_InputMouseButton.None)
+            {
+                return $"Mouse {mouseBtn}";
+            }
+
+            if (hwjKeyBindings.TryGetValue(hwjActionId, out var key) && key != KeyCode.None)
+            {
+                return key.ToString();
+            }
+
+            if (bindingDataSO != null && bindingDataSO.TryGetEntry(hwjActionId, out var entry))
+            {
+                if (entry.defaultMouseButton != HWJ_InputMouseButton.None) return $"Mouse {entry.defaultMouseButton}";
+                if (entry.defaultKey != KeyCode.None) return entry.defaultKey.ToString();
+            }
+
+            return "None";
+        }
+
+        /// <summary>
         /// 특정 액션의 KeyCode를 변경하고 PlayerPrefs 및 HWJ 인풋 시스템에 적용합니다.
         /// </summary>
         public void SetKey(HSH_KeyAction action, KeyCode newKey)
@@ -209,50 +267,56 @@ namespace HSH.UI
         }
 
         /// <summary>
-        /// HWJ 전용 인풋 액션 키를 바인딩하고 HWJ 시스템에 적용합니다.
+        /// HWJ 전용 인풋 액션 키를 바인딩하고 HWJ 시스템 및 PlayerPrefs에 적용합니다.
         /// </summary>
         public bool SetHWJKeyboardBinding(HWJ_PlayerInputActionId hwjActionId, KeyCode newKey)
         {
+            hwjKeyBindings[hwjActionId] = newKey;
+            string prefKey = PREFS_KEY_PREFIX + "HWJ_Key_" + hwjActionId.ToString();
+            PlayerPrefs.SetString(prefKey, newKey.ToString());
+            PlayerPrefs.Save();
+
+            if (bindingDataSO != null && bindingDataSO.TryGetEntry(hwjActionId, out var entry))
+            {
+                if (entry.keyAction != default)
+                {
+                    keyBindings[entry.keyAction] = newKey;
+                    PlayerPrefs.SetString(PREFS_KEY_PREFIX + entry.keyAction.ToString(), newKey.ToString());
+                    PlayerPrefs.Save();
+                    OnKeyBindingChanged?.Invoke(entry.keyAction, newKey);
+                }
+            }
+
             HWJ_PlayerInputSystem hwjInput = GetHWJPlayerInputSystem();
             if (hwjInput != null)
             {
-                var result = hwjInput.TrySetKeyboardBinding(hwjActionId, newKey);
-                if (result.Succeeded)
-                {
-                    // HSH_KeyAction 매핑 갱신
-                    if (bindingDataSO != null && bindingDataSO.TryGetEntry(hwjActionId, out var entry))
-                    {
-                        if (entry.keyAction != default)
-                        {
-                            keyBindings[entry.keyAction] = newKey;
-                            PlayerPrefs.SetString(PREFS_KEY_PREFIX + entry.keyAction.ToString(), newKey.ToString());
-                            PlayerPrefs.Save();
-                            OnKeyBindingChanged?.Invoke(entry.keyAction, newKey);
-                        }
-                    }
-                    OnAnyBindingChanged?.Invoke();
-                    return true;
-                }
+                hwjInput.TrySetKeyboardBinding(hwjActionId, newKey);
             }
-            return false;
+
+            Debug.Log($"[HSH_KeyBindingManager] HWJ {hwjActionId} 키가 {newKey}(으)로 변경되었습니다.");
+            OnAnyBindingChanged?.Invoke();
+            return true;
         }
 
         /// <summary>
-        /// HWJ 전용 마우스 입력 버튼을 바인딩하고 HWJ 시스템에 적용합니다.
+        /// HWJ 전용 마우스 입력 버튼을 바인딩하고 HWJ 시스템 및 PlayerPrefs에 적용합니다.
         /// </summary>
         public bool SetHWJMouseBinding(HWJ_PlayerInputActionId hwjActionId, HWJ_InputMouseButton mouseButton)
         {
+            hwjMouseBindings[hwjActionId] = mouseButton;
+            string prefKey = PREFS_KEY_PREFIX + "HWJ_Mouse_" + hwjActionId.ToString();
+            PlayerPrefs.SetString(prefKey, mouseButton.ToString());
+            PlayerPrefs.Save();
+
             HWJ_PlayerInputSystem hwjInput = GetHWJPlayerInputSystem();
             if (hwjInput != null)
             {
-                var result = hwjInput.TrySetMouseBinding(hwjActionId, mouseButton);
-                if (result.Succeeded)
-                {
-                    OnAnyBindingChanged?.Invoke();
-                    return true;
-                }
+                hwjInput.TrySetMouseBinding(hwjActionId, mouseButton);
             }
-            return false;
+
+            Debug.Log($"[HSH_KeyBindingManager] HWJ {hwjActionId} 마우스가 {mouseButton}(으)로 변경되었습니다.");
+            OnAnyBindingChanged?.Invoke();
+            return true;
         }
 
         /// <summary>
@@ -340,6 +404,66 @@ namespace HSH.UI
                 case KeyCode.Alpha8: return Key.Digit8;
                 case KeyCode.Alpha9: return Key.Digit9;
                 default: return Key.None;
+            }
+        }
+
+        /// <summary>
+        /// InputSystem Key를 Legacy KeyCode로 변환해주는 헬퍼
+        /// </summary>
+        public static KeyCode InputKeyToKeyCode(Key key)
+        {
+            switch (key)
+            {
+                case Key.A: return KeyCode.A;
+                case Key.B: return KeyCode.B;
+                case Key.C: return KeyCode.C;
+                case Key.D: return KeyCode.D;
+                case Key.E: return KeyCode.E;
+                case Key.F: return KeyCode.F;
+                case Key.G: return KeyCode.G;
+                case Key.H: return KeyCode.H;
+                case Key.I: return KeyCode.I;
+                case Key.J: return KeyCode.J;
+                case Key.K: return KeyCode.K;
+                case Key.L: return KeyCode.L;
+                case Key.M: return KeyCode.M;
+                case Key.N: return KeyCode.N;
+                case Key.O: return KeyCode.O;
+                case Key.P: return KeyCode.P;
+                case Key.Q: return KeyCode.Q;
+                case Key.R: return KeyCode.R;
+                case Key.S: return KeyCode.S;
+                case Key.T: return KeyCode.T;
+                case Key.U: return KeyCode.U;
+                case Key.V: return KeyCode.V;
+                case Key.W: return KeyCode.W;
+                case Key.X: return KeyCode.X;
+                case Key.Y: return KeyCode.Y;
+                case Key.Z: return KeyCode.Z;
+                case Key.Space: return KeyCode.Space;
+                case Key.Tab: return KeyCode.Tab;
+                case Key.Escape: return KeyCode.Escape;
+                case Key.LeftShift: return KeyCode.LeftShift;
+                case Key.RightShift: return KeyCode.RightShift;
+                case Key.LeftCtrl: return KeyCode.LeftControl;
+                case Key.RightCtrl: return KeyCode.RightControl;
+                case Key.LeftAlt: return KeyCode.LeftAlt;
+                case Key.RightAlt: return KeyCode.RightAlt;
+                case Key.UpArrow: return KeyCode.UpArrow;
+                case Key.DownArrow: return KeyCode.DownArrow;
+                case Key.LeftArrow: return KeyCode.LeftArrow;
+                case Key.RightArrow: return KeyCode.RightArrow;
+                case Key.Digit0: return KeyCode.Alpha0;
+                case Key.Digit1: return KeyCode.Alpha1;
+                case Key.Digit2: return KeyCode.Alpha2;
+                case Key.Digit3: return KeyCode.Alpha3;
+                case Key.Digit4: return KeyCode.Alpha4;
+                case Key.Digit5: return KeyCode.Alpha5;
+                case Key.Digit6: return KeyCode.Alpha6;
+                case Key.Digit7: return KeyCode.Alpha7;
+                case Key.Digit8: return KeyCode.Alpha8;
+                case Key.Digit9: return KeyCode.Alpha9;
+                default: return KeyCode.None;
             }
         }
     }

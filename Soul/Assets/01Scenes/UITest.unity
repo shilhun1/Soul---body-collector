@@ -716,6 +716,7 @@ RectTransform:
   m_Children:
   - {fileID: 1402703362}
   - {fileID: 1471813117}
+  - {fileID: 1593878523}
   m_Father: {fileID: 587959697}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -757,7 +758,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HSH.UI.HSH_KeyRebindUI
   itemPrefab: {fileID: 5260014869744564220, guid: f2728ba975b582b4fbce16df12e8304f, type: 3}
-  itemContainer: {fileID: 1471813117}
+  itemContainer: {fileID: 0}
+  categoryGroups:
+  - categoryName: Movement
+    container: {fileID: 1471813117}
+  - categoryName: System
+    container: {fileID: 1471813117}
+  - categoryName: Combat
+    container: {fileID: 1593878523}
+  itemContainers: []
+  useTwoColumnGrid: 0
+  itemCellSize: {x: 340, y: 45}
+  itemSpacing: {x: 10, y: 8}
   rebindElements: []
   waitingOverlayPanel: {fileID: 0}
   waitingMessageTMP: {fileID: 0}
@@ -3698,7 +3710,6 @@ GameObject:
   - component: {fileID: 1471813120}
   - component: {fileID: 1471813119}
   - component: {fileID: 1471813118}
-  - component: {fileID: 1471813121}
   m_Layer: 5
   m_Name: key
   m_TagString: Untagged
@@ -3789,25 +3800,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1471813116}
   m_CullTransparentMesh: 1
---- !u!114 &1471813121
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1471813116}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5c53cd04261a8c94180b8b0bd98925df, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::HSH.UI.HSH_KeyRebindUI
-  itemPrefab: {fileID: 0}
-  itemContainer: {fileID: 0}
-  rebindElements: []
-  waitingOverlayPanel: {fileID: 0}
-  waitingMessageTMP: {fileID: 0}
-  waitingMessageLegacy: {fileID: 0}
-  resetDefaultsButton: {fileID: 0}
 --- !u!1 &1547393498
 GameObject:
   m_ObjectHideFlags: 0
@@ -4629,6 +4621,108 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 7531c35ecff733343b232a25c3be80b7, type: 3}
+--- !u!1 &1593878522
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1593878523}
+  - component: {fileID: 1593878526}
+  - component: {fileID: 1593878525}
+  - component: {fileID: 1593878524}
+  m_Layer: 5
+  m_Name: key (1)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1593878523
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1593878522}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 239510796}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 300, y: 160}
+  m_Pivot: {x: 0, y: 0}
+--- !u!114 &1593878524
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1593878522}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 59f8146938fff824cb5fd77236b75775, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.VerticalLayoutGroup
+  m_Padding:
+    m_Left: 0
+    m_Right: 0
+    m_Top: 0
+    m_Bottom: 0
+  m_ChildAlignment: 4
+  m_Spacing: 0
+  m_ChildForceExpandWidth: 1
+  m_ChildForceExpandHeight: 1
+  m_ChildControlWidth: 0
+  m_ChildControlHeight: 0
+  m_ChildScaleWidth: 0
+  m_ChildScaleHeight: 0
+  m_ReverseArrangement: 0
+--- !u!114 &1593878525
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1593878522}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 0}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!222 &1593878526
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1593878522}
+  m_CullTransparentMesh: 1
 --- !u!1 &1663457892
 GameObject:
   m_ObjectHideFlags: 0
@@ -4673,7 +4767,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ca20fb81d884c8940902fa220ca85534, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HSH.UI.HSH_KeyBindingManager
-  bindingDataSO: {fileID: 11400000, guid: 36d6749935450544e984b6cdbf8d8813, type: 2}
+  bindingDataSO: {fileID: 11400000, guid: c2747689711f21340943eeb4434ca431, type: 2}
 --- !u!224 &1683861871 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 7463661967702352024, guid: 40c0cf6efcde26c4cb91e2d6ea4fca24, type: 3}
@@ -5201,7 +5295,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1918666444
 RectTransform:
   m_ObjectHideFlags: 0

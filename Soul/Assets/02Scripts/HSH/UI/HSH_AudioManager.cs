@@ -56,6 +56,7 @@ namespace HSH.UI
                 return;
             }
             Instance = this;
+            transform.SetParent(null);
             DontDestroyOnLoad(gameObject);
 
             LoadVolumeSettings();
