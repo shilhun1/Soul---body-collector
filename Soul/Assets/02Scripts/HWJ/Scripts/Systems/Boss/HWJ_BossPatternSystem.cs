@@ -7,6 +7,8 @@ using UnityEngine;
 /// </summary>
 public class HWJ_BossPatternSystem : MonoBehaviour
 {
+    private const int SituationalExplorationInterval = 4;
+
     [SerializeField] private HWJ_RootObjectDataResolver dataResolver;
     [SerializeField] private HWJ_RuntimeStatusSystem runtimeStatus;
     [SerializeField] private HWJ_SkillActionSystem skillActionSystem;
@@ -15,6 +17,8 @@ public class HWJ_BossPatternSystem : MonoBehaviour
     [SerializeField] private HWJ_BossPatternDataSO[] patterns;
     [SerializeField] private bool autoUsePatterns;
     [SerializeField] private bool preventSamePatternRepeat = true;
+    [SerializeField] private bool excludeRecentTwoPatterns = true;
+    [SerializeField] private bool preventConsecutivePatternCategories = true;
     [SerializeField] private bool useGameplayPatternRule = true;
     [SerializeField] private HWJ_RuleExecutionCoreSO bossPatternExecutionCore;
     [SerializeField] private string bossPatternExecutionCoreId = "boss_pattern_execution";
@@ -25,10 +29,16 @@ public class HWJ_BossPatternSystem : MonoBehaviour
     private readonly Dictionary<string, float> nextUseTimes = new Dictionary<string, float>();
     private readonly List<HWJ_IBossSpecialPatternExecutor> cachedSpecialPatternExecutors =
         new List<HWJ_IBossSpecialPatternExecutor>();
+    private readonly Queue<string> recentPatternKeys = new Queue<string>();
+    private readonly Queue<string> recentPatternCategories = new Queue<string>();
     private string lastExecutedPatternKey;
+    private int selectionCursor;
+    private int explorationCursor;
 
     public string LastPatternResult => lastPatternResult;
     public bool IsSpecialPatternRunning => IsAnySpecialPatternRunning();
+    public string LastExecutedPatternKey => lastExecutedPatternKey;
+    public string[] RecentPatternKeys => recentPatternKeys.ToArray();
 
     private void Awake()
     {
@@ -137,6 +147,8 @@ public class HWJ_BossPatternSystem : MonoBehaviour
             {
                 nextUseTimes[patternKey] = Time.time + pattern.EffectiveCooldownSeconds;
                 lastExecutedPatternKey = patternKey;
+                EnqueueRecent(recentPatternKeys, patternKey);
+                EnqueueRecent(recentPatternCategories, GetPatternCategory(patternKey));
             }
         }
 
@@ -235,6 +247,7 @@ public class HWJ_BossPatternSystem : MonoBehaviour
         }
 
         float hpRatio = runtimeStatus.CurrentHp / runtimeStatus.MaxHp;
+        List<HWJ_BossPatternDataSO> candidates = new List<HWJ_BossPatternDataSO>();
 
         for (int i = 0; i < availablePatterns.Length; i++)
         {
@@ -282,6 +295,19 @@ public class HWJ_BossPatternSystem : MonoBehaviour
                 continue;
             }
 
+            if (excludeRecentTwoPatterns
+                && !string.IsNullOrEmpty(patternKey)
+                && recentPatternKeys.Contains(patternKey))
+            {
+                continue;
+            }
+
+            if (preventConsecutivePatternCategories
+                && IsCategorySequenceBlocked(patternKey))
+            {
+                continue;
+            }
+
             if (!string.IsNullOrEmpty(patternKey)
                 && nextUseTimes.TryGetValue(patternKey, out float nextUseTime)
                 && Time.time < nextUseTime)
@@ -289,11 +315,56 @@ public class HWJ_BossPatternSystem : MonoBehaviour
                 continue;
             }
 
-            selectedPattern = pattern;
-            return true;
+            candidates.Add(pattern);
         }
 
-        return false;
+        if (candidates.Count == 0)
+        {
+            return false;
+        }
+
+        int highestScore = int.MinValue;
+        List<HWJ_BossPatternDataSO> bestCandidates = new List<HWJ_BossPatternDataSO>();
+
+        for (int i = 0; i < candidates.Count; i++)
+        {
+            int score = GetSituationalScore(candidates[i], target, isCloseRange);
+
+            if (score > highestScore)
+            {
+                highestScore = score;
+                bestCandidates.Clear();
+                bestCandidates.Add(candidates[i]);
+            }
+            else if (score == highestScore)
+            {
+                bestCandidates.Add(candidates[i]);
+            }
+        }
+
+        // Most decisions use the strongest situation match. Every fourth decision
+        // deterministically rotates through all valid candidates so lower-weight
+        // phase patterns such as SoulBind and Ultimate cannot be starved forever.
+        bool useExplorationCandidate = candidates.Count > bestCandidates.Count
+            && (selectionCursor + 1) % SituationalExplorationInterval == 0;
+        selectedPattern = useExplorationCandidate
+            ? candidates[explorationCursor++ % candidates.Count]
+            : bestCandidates[selectionCursor % bestCandidates.Count];
+        selectionCursor++;
+        return true;
+    }
+
+    /// <summary>
+    /// Clears cooldown and anti-repeat history when a pooled boss is reset.
+    /// </summary>
+    public void ResetPatternHistory()
+    {
+        nextUseTimes.Clear();
+        recentPatternKeys.Clear();
+        recentPatternCategories.Clear();
+        lastExecutedPatternKey = null;
+        selectionCursor = 0;
+        explorationCursor = 0;
     }
 
     public void CancelActiveSpecialPatterns()
@@ -414,5 +485,154 @@ public class HWJ_BossPatternSystem : MonoBehaviour
         }
 
         return pattern.PatternNumber > 0 ? $"Pattern_{pattern.PatternNumber}" : null;
+    }
+
+    private int GetSituationalScore(
+        HWJ_BossPatternDataSO pattern,
+        Transform target,
+        bool isCloseRange)
+    {
+        string key = GetPatternKey(pattern) ?? string.Empty;
+        int score = Mathf.Max(1, pattern != null ? pattern.Weight : 1);
+        bool targetAirborne = IsTargetAirborne(target);
+
+        if (targetAirborne && key.IndexOf("Uppercut", System.StringComparison.OrdinalIgnoreCase) >= 0)
+        {
+            score += 100;
+        }
+
+        if (isCloseRange)
+        {
+            if (key.IndexOf("Combo", System.StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                score += 24;
+            }
+            else if (key.IndexOf("Uppercut", System.StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                score += 18;
+            }
+        }
+        else
+        {
+            if (key.IndexOf("Charge", System.StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                score += 24;
+            }
+            else if (key.IndexOf("GroundSlam", System.StringComparison.OrdinalIgnoreCase) >= 0
+                || key.IndexOf("DarkWave", System.StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                score += 16;
+            }
+        }
+
+        return score;
+    }
+
+    private bool IsCategorySequenceBlocked(string patternKey)
+    {
+        string category = GetPatternCategory(patternKey);
+
+        if (string.IsNullOrEmpty(category))
+        {
+            return false;
+        }
+
+        string[] recentCategories = recentPatternCategories.ToArray();
+        string lastCategory = recentCategories.Length > 0
+            ? recentCategories[recentCategories.Length - 1]
+            : string.Empty;
+
+        if ((category == "Teleport" || category == "Area")
+            && category == lastCategory)
+        {
+            return true;
+        }
+
+        if (string.Equals(lastExecutedPatternKey, "P2_Ultimate", System.StringComparison.Ordinal)
+            && string.Equals(patternKey, "P2_LightningCast", System.StringComparison.Ordinal))
+        {
+            return true;
+        }
+
+        return recentCategories.Length >= 2
+            && category == recentCategories[recentCategories.Length - 1]
+            && category == recentCategories[recentCategories.Length - 2];
+    }
+
+    private static string GetPatternCategory(string patternKey)
+    {
+        if (string.IsNullOrEmpty(patternKey))
+        {
+            return string.Empty;
+        }
+
+        if (patternKey.IndexOf("ShadowCombo", System.StringComparison.OrdinalIgnoreCase) >= 0)
+        {
+            return "Teleport";
+        }
+
+        if (patternKey.IndexOf("Lightning", System.StringComparison.OrdinalIgnoreCase) >= 0
+            || patternKey.IndexOf("GroundSlam", System.StringComparison.OrdinalIgnoreCase) >= 0
+            || patternKey.IndexOf("Ultimate", System.StringComparison.OrdinalIgnoreCase) >= 0)
+        {
+            return "Area";
+        }
+
+        if (patternKey.IndexOf("Charge", System.StringComparison.OrdinalIgnoreCase) >= 0
+            || patternKey.IndexOf("DarkWave", System.StringComparison.OrdinalIgnoreCase) >= 0)
+        {
+            return "Line";
+        }
+
+        if (patternKey.IndexOf("Uppercut", System.StringComparison.OrdinalIgnoreCase) >= 0)
+        {
+            return "Uppercut";
+        }
+
+        if (patternKey.IndexOf("Combo", System.StringComparison.OrdinalIgnoreCase) >= 0)
+        {
+            return "Combo";
+        }
+
+        if (patternKey.IndexOf("SoulBind", System.StringComparison.OrdinalIgnoreCase) >= 0)
+        {
+            return "Control";
+        }
+
+        return patternKey;
+    }
+
+    private static bool IsTargetAirborne(Transform target)
+    {
+        if (target == null)
+        {
+            return false;
+        }
+
+        HWJ_PlayerMovementSystem movement =
+            target.GetComponentInParent<HWJ_PlayerMovementSystem>();
+
+        if (movement != null)
+        {
+            return !movement.IsGrounded;
+        }
+
+        Rigidbody2D targetBody = target.GetComponentInParent<Rigidbody2D>();
+        return targetBody != null && Mathf.Abs(targetBody.linearVelocity.y) > 0.1f;
+    }
+
+    private static void EnqueueRecent(Queue<string> queue, string value)
+    {
+        if (string.IsNullOrEmpty(value))
+        {
+            return;
+        }
+
+        queue.Enqueue(value);
+
+        while (queue.Count > 2)
+        {
+            queue.Dequeue();
+        }
     }
 }

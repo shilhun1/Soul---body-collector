@@ -18,6 +18,30 @@ public enum hys_FinalBossPatternId
     RadialBlackLightning
 }
 
+// 복잡한 패턴 코루틴을 Animator의 하나의 Action Blend Tree에 전달할 단계 ID입니다.
+public enum hys_FinalBossAnimationAction
+{
+    None,
+    BlackOrbCast,
+    SpearAim,
+    SpearRelease,
+    ShieldCast,
+    PortalCast,
+    UltimateCharge,
+    UltimateRelease,
+    WeaponSummon,
+    WeaponAim,
+    WeaponThrow,
+    PhaseTwoShieldCast,
+    FlameRise,
+    FlameDash,
+    FlameLand,
+    DoublePortalCast,
+    RadialCharge,
+    RadialRelease,
+    PhaseTransition
+}
+
 /// <summary>
 /// 최종보스 1페이즈의 다섯 패턴과 쿨타임을 한 곳에서 실행합니다.
 /// </summary>
@@ -145,6 +169,8 @@ public class hys_FinalBossPattern : MonoBehaviour
     [SerializeField] private bool isPhaseTransitioning;
     [SerializeField] private int currentPhaseNumber = 1;
     [SerializeField] private string lastPatternAction;
+    [SerializeField] private hys_FinalBossAnimationAction currentAnimationAction;
+    [SerializeField] private int animationActionVersion;
 
     private readonly List<hys_FinalBossPatternId> selectable = new List<hys_FinalBossPatternId>(5);
     private static readonly hys_FinalBossPatternId[] PhaseOneOpeningOrder =
@@ -179,6 +205,8 @@ public class hys_FinalBossPattern : MonoBehaviour
     public hys_FinalBossPatternId ActivePattern => activePattern;
     public string LastPatternAction => lastPatternAction;
     public int CurrentPhaseNumber => currentPhaseNumber;
+    public hys_FinalBossAnimationAction CurrentAnimationAction => currentAnimationAction;
+    public int AnimationActionVersion => animationActionVersion;
 
     private void Awake()
     {
@@ -305,6 +333,7 @@ public class hys_FinalBossPattern : MonoBehaviour
         isPhaseTransitioning = false;
         groggyHitCount = 0;
         groggyHitWindowEndTime = 0f;
+        SetAnimationAction(hys_FinalBossAnimationAction.None);
         StopHorizontalMovement();
     }
 
@@ -356,6 +385,7 @@ public class hys_FinalBossPattern : MonoBehaviour
 
     private IEnumerator PhaseTransitionRoutine()
     {
+        SetAnimationAction(hys_FinalBossAnimationAction.PhaseTransition);
         lastPatternAction = "2페이즈 전환 연출";
         if (runtimeStatus != null && !runtimeStatus.IsDead)
             runtimeStatus.SetState(HWJ_RuntimeState.Attack);
@@ -367,6 +397,7 @@ public class hys_FinalBossPattern : MonoBehaviour
         if (transitionEffect != null) Destroy(transitionEffect);
 
         isPhaseTransitioning = false;
+        SetAnimationAction(hys_FinalBossAnimationAction.None);
         activeRoutine = null;
         if (runtimeStatus != null && !runtimeStatus.IsDead)
             runtimeStatus.SetState(HWJ_RuntimeState.Idle);
@@ -374,6 +405,7 @@ public class hys_FinalBossPattern : MonoBehaviour
 
     private IEnumerator BlackOrbRoutine()
     {
+        SetAnimationAction(hys_FinalBossAnimationAction.BlackOrbCast);
         lastPatternAction = "검은 구체 3개 생성";
         GameObject[] orbs = new GameObject[3];
         for (int i = 0; i < orbs.Length; i++)
@@ -399,6 +431,7 @@ public class hys_FinalBossPattern : MonoBehaviour
 
     private IEnumerator LingeringSpearRoutine()
     {
+        SetAnimationAction(hys_FinalBossAnimationAction.SpearAim);
         Vector3 start = transform.position + Vector3.up * 1.2f;
         Vector2 aim = currentTarget != null ? (Vector2)(currentTarget.position - start) : Vector2.right;
         GameObject spear = hys_FinalBossMagicVisual.SpawnSpear(start, aim, 3.8f, blackMagicColor, 6f);
@@ -407,6 +440,7 @@ public class hys_FinalBossPattern : MonoBehaviour
 
         aim = currentTarget != null ? (Vector2)(currentTarget.position - start) : aim;
         aim = aim.sqrMagnitude > 0.001f ? aim.normalized : Vector2.right;
+        SetAnimationAction(hys_FinalBossAnimationAction.SpearRelease);
         Vector3 end = start + (Vector3)aim * spearTravelDistance;
         if (spear != null) spear.transform.rotation = Quaternion.FromToRotation(Vector3.up, aim);
         yield return LaunchProjectile(spear, aim, spearSpeed, spearHitRadius, spearDamageMultiplier,
@@ -420,6 +454,7 @@ public class hys_FinalBossPattern : MonoBehaviour
 
     private IEnumerator ShieldRoutine()
     {
+        SetAnimationAction(hys_FinalBossAnimationAction.ShieldCast);
         lastPatternAction = "손에 보라색 마력 집중";
         GameObject charge = hys_FinalBossMagicVisual.SpawnOrb(
             transform.position + Vector3.up * 1.1f, 0.45f, purpleMagicColor, shieldCastSeconds);
@@ -431,6 +466,7 @@ public class hys_FinalBossPattern : MonoBehaviour
 
     private IEnumerator PortalRoutine()
     {
+        SetAnimationAction(hys_FinalBossAnimationAction.PortalCast);
         Vector3 portalPosition = transform.position + Vector3.right * 3f;
         GameObject portal = hys_FinalBossMagicVisual.SpawnRing(null, 1.7f, redPortalColor,
             portalOpenSeconds + 1f, "hys_FinalBossRedPortal");
@@ -453,11 +489,13 @@ public class hys_FinalBossPattern : MonoBehaviour
 
     private IEnumerator UltimateRoutine()
     {
+        SetAnimationAction(hys_FinalBossAnimationAction.UltimateCharge);
         lastPatternAction = "보라색 마력 3초 충전";
         GameObject charge = hys_FinalBossMagicVisual.SpawnRing(transform, 2.2f, purpleMagicColor,
             ultimateChargeSeconds, "hys_FinalBossUltimateCharge");
         yield return new WaitForSeconds(ultimateChargeSeconds);
         if (charge != null) Destroy(charge);
+        SetAnimationAction(hys_FinalBossAnimationAction.UltimateRelease);
 
         float width = Mathf.Abs(roomRightX - roomLeftX);
         Vector3 fireCenter = new Vector3((roomLeftX + roomRightX) * 0.5f, groundY + fireHeight * 0.5f, 0f);
@@ -494,6 +532,7 @@ public class hys_FinalBossPattern : MonoBehaviour
 
     private IEnumerator WeaponBarrageRoutine()
     {
+        SetAnimationAction(hys_FinalBossAnimationAction.WeaponSummon);
         lastPatternAction = "검, 창, 도끼 각 3개 생성";
         GameObject charge = hys_FinalBossMagicVisual.SpawnRing(
             transform, 2.4f, purpleMagicColor, weaponBarragePrepareSeconds, "hys_FinalBossWeaponBarrageCharge");
@@ -523,6 +562,7 @@ public class hys_FinalBossPattern : MonoBehaviour
             }
 
             lastPatternAction = $"{weaponOrder[group]} 3개 생성 및 조준";
+            SetAnimationAction(hys_FinalBossAnimationAction.WeaponAim);
             yield return new WaitForSeconds(weaponFormationAimSeconds);
 
             for (int i = 0; i < preparedWeapons.Length; i++)
@@ -534,6 +574,7 @@ public class hys_FinalBossPattern : MonoBehaviour
                     : Vector2.right;
                 weapon.transform.rotation = Quaternion.FromToRotation(Vector3.up, direction);
                 bool isLastAxe = group == 2 && i == 2;
+                SetAnimationAction(hys_FinalBossAnimationAction.WeaponThrow);
                 StartCoroutine(LaunchProjectile(
                     weapon, direction, weaponProjectileSpeed, weaponHitRadius,
                     weaponDamageMultiplier, 3f, isLastAxe));
@@ -550,6 +591,7 @@ public class hys_FinalBossPattern : MonoBehaviour
 
     private IEnumerator PhaseTwoShieldRoutine()
     {
+        SetAnimationAction(hys_FinalBossAnimationAction.PhaseTwoShieldCast);
         lastPatternAction = "강화 보호막과 추적 구체 5개 생성";
         GameObject handEffect = hys_FinalBossMagicVisual.SpawnOrb(
             transform.position + Vector3.up * 1.2f, 0.5f, purpleMagicColor, shieldCastSeconds);
@@ -584,6 +626,7 @@ public class hys_FinalBossPattern : MonoBehaviour
 
     private IEnumerator CorruptionFlameDashRoutine()
     {
+        SetAnimationAction(hys_FinalBossAnimationAction.FlameRise);
         lastPatternAction = "공중 상승 후 검은 불길 돌진";
         Vector3 groundPosition = transform.position;
         Vector3 airPosition = groundPosition + Vector3.up * flameDashRiseHeight;
@@ -595,6 +638,7 @@ public class hys_FinalBossPattern : MonoBehaviour
             yield return null;
         }
         transform.position = airPosition;
+        SetAnimationAction(hys_FinalBossAnimationAction.FlameDash);
 
         GameObject flame = hys_FinalBossMagicVisual.SpawnRing(
             transform, 1.8f, blackMagicColor, 2f, "hys_FinalBossCorruptionFlame");
@@ -632,6 +676,7 @@ public class hys_FinalBossPattern : MonoBehaviour
         if (flame != null) Destroy(flame);
 
         Vector3 landingPosition = new Vector3(transform.position.x, groundPosition.y, transform.position.z);
+        SetAnimationAction(hys_FinalBossAnimationAction.FlameLand);
         float landEnd = Time.time + flameDashRiseSeconds;
         Vector3 landStart = transform.position;
         while (Time.time < landEnd)
@@ -646,6 +691,7 @@ public class hys_FinalBossPattern : MonoBehaviour
 
     private IEnumerator DoublePortalRoutine()
     {
+        SetAnimationAction(hys_FinalBossAnimationAction.DoublePortalCast);
         lastPatternAction = "붉은 포탈 2개 개방";
         Vector3 leftPortal = transform.position + Vector3.left * doublePortalDistance;
         Vector3 rightPortal = transform.position + Vector3.right * doublePortalDistance;
@@ -672,12 +718,14 @@ public class hys_FinalBossPattern : MonoBehaviour
 
     private IEnumerator RadialLightningRoutine()
     {
+        SetAnimationAction(hys_FinalBossAnimationAction.RadialCharge);
         lastPatternAction = "8방향 검은 번개 충전";
         GameObject charge = hys_FinalBossMagicVisual.SpawnRing(
             transform, 2.6f, purpleMagicColor, radialLightningChargeSeconds,
             "hys_FinalBossRadialLightningCharge");
         yield return new WaitForSeconds(radialLightningChargeSeconds);
         if (charge != null) Destroy(charge);
+        SetAnimationAction(hys_FinalBossAnimationAction.RadialRelease);
 
         Vector2 center = transform.position;
         for (int i = 0; i < 8; i++)
@@ -911,6 +959,7 @@ public class hys_FinalBossPattern : MonoBehaviour
         finishedCallback = null;
         isPhaseTransitioning = false;
         isGroggy = true;
+        SetAnimationAction(hys_FinalBossAnimationAction.None);
         StopHorizontalMovement();
         activeRoutine = StartCoroutine(CommonGroggyRoutine());
     }
@@ -1034,6 +1083,7 @@ public class hys_FinalBossPattern : MonoBehaviour
         activeRoutine = null;
         activePattern = hys_FinalBossPatternId.None;
         isGroggy = false;
+        SetAnimationAction(hys_FinalBossAnimationAction.None);
         lastCompleted = completed;
         if (runtimeStatus != null && !runtimeStatus.IsDead) runtimeStatus.SetState(HWJ_RuntimeState.Idle);
         Action<hys_FinalBossPatternId> callback = finishedCallback;
@@ -1044,6 +1094,12 @@ public class hys_FinalBossPattern : MonoBehaviour
     private void StopHorizontalMovement()
     {
         if (body != null) body.linearVelocity = new Vector2(0f, body.linearVelocity.y);
+    }
+
+    private void SetAnimationAction(hys_FinalBossAnimationAction action)
+    {
+        currentAnimationAction = action;
+        animationActionVersion++;
     }
 
     private void CacheReferences()

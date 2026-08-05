@@ -520,7 +520,7 @@ Transform:
   m_GameObject: {fileID: 190039054}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -18, y: -1.65, z: -10}
+  m_LocalPosition: {x: -10.25, y: -1.65, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -3383,7 +3383,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 840020000000000002, guid: eb5580d3385f43608f7941765218d007, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -1.85
+      value: -1.67
       objectReference: {fileID: 0}
     - target: {fileID: 840020000000000002, guid: eb5580d3385f43608f7941765218d007, type: 3}
       propertyPath: m_LocalPosition.z
@@ -3470,6 +3470,14 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 0}
     - target: {fileID: 840020000000000014, guid: eb5580d3385f43608f7941765218d007, type: 3}
+      propertyPath: m_FlipX
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 840020000000000014, guid: eb5580d3385f43608f7941765218d007, type: 3}
+      propertyPath: m_FlipY
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 840020000000000014, guid: eb5580d3385f43608f7941765218d007, type: 3}
       propertyPath: m_Size.x
       value: 2
       objectReference: {fileID: 0}
@@ -3480,12 +3488,17 @@ PrefabInstance:
     - target: {fileID: 840020000000000014, guid: eb5580d3385f43608f7941765218d007, type: 3}
       propertyPath: m_Sprite
       value: 
-      objectReference: {fileID: 21300000, guid: d272ea7ed0206004e9cf9feb3bd19689, type: 3}
+      objectReference: {fileID: 0}
     - target: {fileID: 840020000000000014, guid: eb5580d3385f43608f7941765218d007, type: 3}
       propertyPath: m_WasSpriteAssigned
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    - target: {fileID: 5114194407865569662, guid: eb5580d3385f43608f7941765218d007, type: 3}
+      propertyPath: introDialogue
+      value: "\uC654\uAD70."
+      objectReference: {fileID: 0}
+    m_RemovedComponents:
+    - {fileID: 840020000000000011, guid: eb5580d3385f43608f7941765218d007, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
@@ -5506,7 +5519,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HWJ_SpawnPoint
   pointId: player_start_01
   spawnPointType: 0
-  spawnParent: {fileID: 2087133900}
+  spawnParent: {fileID: 0}
   gizmoRadius: 0.35
 --- !u!4 &1555970093
 Transform:
@@ -5517,7 +5530,7 @@ Transform:
   m_GameObject: {fileID: 1555970091}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -18, y: -1.65, z: 0}
+  m_LocalPosition: {x: 29.01, y: -1.65, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -5688,8 +5701,6 @@ MonoBehaviour:
   registerToGameManager: 1
   preferPersistentPlayerDuringSceneTransition: 1
   destroySceneFallbackPlayersDuringSceneTransition: 1
-  normalizePlayerVisualOffsetOnPlacement: 1
-  playerVisualObjectName: HWJ_PlayerVisual
   lastPlacementResult: 
 --- !u!4 &1615746692
 Transform:
@@ -5795,7 +5806,7 @@ Transform:
   m_GameObject: {fileID: 1618481795}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -18, y: -1.65, z: -10}
+  m_LocalPosition: {x: -10.25, y: -1.65, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -6563,8 +6574,6 @@ MonoBehaviour:
   database: {fileID: 0}
   body: {fileID: 0}
   localSkillActions: []
-  actionEffectSpawnOffset: {x: 0.8, y: 0.15}
-  mirrorActionEffectByFacing: 1
   useGameplaySkillRule: 1
   skillUseExecutionCore: {fileID: 0}
   skillUseExecutionCoreId: skill_use_execution
@@ -7001,7 +7010,7 @@ Transform:
   m_GameObject: {fileID: 1808484022}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.01, y: 4.91, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -7110,10 +7119,6 @@ MonoBehaviour:
   playerPossession: {fileID: 2087133894}
   autoFindPlayerResolverInScene: 1
   autoAddMissingPlayerCoreSystems: 1
-  autoPlacePlayerAtSceneStart: 1
-  autoBindSceneCamerasToPlayer: 1
-  sceneBootstrapRetrySeconds: 1
-  lastSceneBootstrapResult: 
   preservePlayerRuntimeAcrossScenes: 1
   hasPlayerRuntimeSnapshot: 0
   savedCurrentHp: 0
@@ -8769,7 +8774,7 @@ Transform:
   m_GameObject: {fileID: 2087133885}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -18, y: -1.65, z: 0}
+  m_LocalPosition: {x: -10.25, y: -1.65, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -9283,8 +9288,6 @@ MonoBehaviour:
   database: {fileID: 0}
   body: {fileID: 0}
   localSkillActions: []
-  actionEffectSpawnOffset: {x: 0.8, y: 0.15}
-  mirrorActionEffectByFacing: 1
   useGameplaySkillRule: 1
   skillUseExecutionCore: {fileID: 0}
   skillUseExecutionCoreId: skill_use_execution

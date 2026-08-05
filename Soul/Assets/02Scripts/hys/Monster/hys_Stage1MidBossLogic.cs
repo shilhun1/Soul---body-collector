@@ -24,6 +24,7 @@ public class hys_Stage1MidBossLogic : MonoBehaviour
     [SerializeField] private HWJ_RuntimeStatusSystem runtimeStatus;
     [SerializeField] private Rigidbody2D rb;
     [SerializeField] private hys_Stage1MidBossPattern patternSystem;
+    [SerializeField] private hys_MidBoss1AnimatorBridge animatorBridge;
     [SerializeField] private Transform target;
 
     [Header("Encounter")]
@@ -60,6 +61,10 @@ public class hys_Stage1MidBossLogic : MonoBehaviour
     public bool EncounterStarted => encounterStarted;
     public bool IsDefeated => runtimeStatus != null && runtimeStatus.IsDead;
     public string LastBossAction => lastBossAction;
+    // Animator가 내부 AI enum에 직접 의존하지 않도록 필요한 상태만 읽기 전용으로 공개합니다.
+    public bool IsMoving => currentState == hys_MidBossState.Chase;
+    public bool IsPhaseTransition => currentState == hys_MidBossState.PhaseTransition;
+    public bool IsGroggy => currentState == hys_MidBossState.Groggy;
 
     private void Awake()
     {
@@ -330,6 +335,22 @@ public class hys_Stage1MidBossLogic : MonoBehaviour
         if (patternSystem == null)
         {
             patternSystem = GetComponent<hys_Stage1MidBossPattern>();
+        }
+
+        if (animatorBridge == null)
+        {
+            // Animator 오브젝트에 직접 브리지를 붙여 Animation Event가 별도 중계기 없이 도착하게 합니다.
+            Animator targetAnimator = GetComponentInChildren<Animator>(true);
+            if (targetAnimator != null)
+            {
+                animatorBridge = targetAnimator.GetComponent<hys_MidBoss1AnimatorBridge>();
+                if (animatorBridge == null)
+                {
+                    animatorBridge = targetAnimator.gameObject.AddComponent<hys_MidBoss1AnimatorBridge>();
+                }
+
+                animatorBridge.Initialize(this, patternSystem, targetAnimator);
+            }
         }
     }
 

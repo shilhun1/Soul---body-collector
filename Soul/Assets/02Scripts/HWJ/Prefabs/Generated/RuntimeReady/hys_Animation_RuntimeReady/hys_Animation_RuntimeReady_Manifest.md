@@ -1,0 +1,1278 @@
+# hys Animation RuntimeReady
+
+플레이어 5종과 무기 몬스터 5종의 애니메이션을 다른 Unity 프로젝트에서도 원본 GUID/경로로 가져오기 위한 패키지입니다.
+
+## 사용 방법
+
+1. Unity에서 `hys_Animation_RuntimeReady.unitypackage`를 더블 클릭하거나 `Assets > Import Package > Custom Package`로 선택합니다.
+2. 기존 프로젝트에 임포트할 때는 충돌 항목을 확인한 뒤 필요한 파일만 선택합니다.
+3. 소스 프로젝트의 파일을 RuntimeReady 아래에 직접 복제하지 않아 C# 클래스 중복 오류가 발생하지 않습니다.
+
+## 포함 범위
+
+- Sword, Axe, Bow, Lance, Shield 플레이어 애니메이션 클립/컨트롤러
+- Sword, Axe, Bow, Lance, Shield 무기 몬스터 애니메이션 클립/컨트롤러
+- RuntimeReady 플레이어·Possessable/NoCorpse 몬스터·시체 프리팹
+- 플레이어/몬스터 분리 모션 프로필과 플레이어 스킬 애니메이션/이펙트
+- 영혼 애니메이션
+- `hys` 애니메이션 관련 스크립트와 플레이어 스크립트(이동 포함)
+- 클립/컨트롤러가 참조하는 스프라이트 의존성
+- 일반(Normal)·파워(Power) 몬스터는 제외
+
+총 파일: **1244개**, 패키지 크기: **21,630,802 bytes**
+
+## 확장자별 개수
+
+- `.anim`: 172
+- `.asset`: 186
+- `.controller`: 28
+- `.cs`: 91
+- `.png`: 720
+- `.prefab`: 47
+
+## 포함 파일
+
+- `Assets/02Scripts/HWJ/Animations/Generated/HitEffects/HWJ_HitImpact.anim`
+- `Assets/02Scripts/HWJ/Animations/Generated/HitEffects/HWJ_HitImpact.controller`
+- `Assets/02Scripts/HWJ/Animations/Generated/Orbs/Experience/HWJ_Orb_Experience.anim`
+- `Assets/02Scripts/HWJ/Animations/Generated/Orbs/Experience/HWJ_Orb_Experience.controller`
+- `Assets/02Scripts/HWJ/Animations/Generated/Orbs/Stat_AttackPower/HWJ_Orb_Stat_AttackPower.anim`
+- `Assets/02Scripts/HWJ/Animations/Generated/Orbs/Stat_AttackPower/HWJ_Orb_Stat_AttackPower.controller`
+- `Assets/02Scripts/HWJ/Animations/Generated/Orbs/Stat_AttackSpeed/HWJ_Orb_Stat_AttackSpeed.anim`
+- `Assets/02Scripts/HWJ/Animations/Generated/Orbs/Stat_AttackSpeed/HWJ_Orb_Stat_AttackSpeed.controller`
+- `Assets/02Scripts/HWJ/Animations/Generated/Orbs/Stat_Defense/HWJ_Orb_Stat_Defense.anim`
+- `Assets/02Scripts/HWJ/Animations/Generated/Orbs/Stat_Defense/HWJ_Orb_Stat_Defense.controller`
+- `Assets/02Scripts/HWJ/Animations/Generated/Orbs/Stat_MaxHp/HWJ_Orb_Stat_MaxHp.anim`
+- `Assets/02Scripts/HWJ/Animations/Generated/Orbs/Stat_MaxHp/HWJ_Orb_Stat_MaxHp.controller`
+- `Assets/02Scripts/HWJ/Animations/Generated/Orbs/Stat_MoveSpeed/HWJ_Orb_Stat_MoveSpeed.anim`
+- `Assets/02Scripts/HWJ/Animations/Generated/Orbs/Stat_MoveSpeed/HWJ_Orb_Stat_MoveSpeed.controller`
+- `Assets/02Scripts/HWJ/Animations/Generated/PlayerAttackEffects/Axe/HWJ_PlayerAttackEffect_AxeSlash.anim`
+- `Assets/02Scripts/HWJ/Animations/Generated/PlayerAttackEffects/Axe/HWJ_PlayerAttackEffect_AxeSlash.controller`
+- `Assets/02Scripts/HWJ/Animations/Generated/PlayerAttackEffects/Bow/HWJ_PlayerAttackEffect_BowSlash.anim`
+- `Assets/02Scripts/HWJ/Animations/Generated/PlayerAttackEffects/Bow/HWJ_PlayerAttackEffect_BowSlash.controller`
+- `Assets/02Scripts/HWJ/Animations/Generated/PlayerAttackEffects/Lance/HWJ_PlayerAttackEffect_LanceSlash.anim`
+- `Assets/02Scripts/HWJ/Animations/Generated/PlayerAttackEffects/Lance/HWJ_PlayerAttackEffect_LanceSlash.controller`
+- `Assets/02Scripts/HWJ/Animations/Generated/PlayerAttackEffects/Shield/HWJ_PlayerAttackEffect_ShieldSlash.anim`
+- `Assets/02Scripts/HWJ/Animations/Generated/PlayerAttackEffects/Shield/HWJ_PlayerAttackEffect_ShieldSlash.controller`
+- `Assets/02Scripts/HWJ/Animations/Generated/PlayerAttackEffects/Sword/HWJ_PlayerAttackEffect_SwordSlash.anim`
+- `Assets/02Scripts/HWJ/Animations/Generated/PlayerAttackEffects/Sword/HWJ_PlayerAttackEffect_SwordSlash.controller`
+- `Assets/02Scripts/HWJ/Animations/Generated/RedChessPossessable/Axe/HWJ_RedChess_Axe_Animator.controller`
+- `Assets/02Scripts/HWJ/Animations/Generated/RedChessPossessable/Axe/HWJ_RedChess_Axe_Attack.anim`
+- `Assets/02Scripts/HWJ/Animations/Generated/RedChessPossessable/Axe/HWJ_RedChess_Axe_Dead.anim`
+- `Assets/02Scripts/HWJ/Animations/Generated/RedChessPossessable/Axe/HWJ_RedChess_Axe_Idle.anim`
+- `Assets/02Scripts/HWJ/Animations/Generated/RedChessPossessable/Bow/HWJ_RedChess_Bow_Animator.controller`
+- `Assets/02Scripts/HWJ/Animations/Generated/RedChessPossessable/Bow/HWJ_RedChess_Bow_Attack.anim`
+- `Assets/02Scripts/HWJ/Animations/Generated/RedChessPossessable/Bow/HWJ_RedChess_Bow_Dead.anim`
+- `Assets/02Scripts/HWJ/Animations/Generated/RedChessPossessable/Bow/HWJ_RedChess_Bow_Idle.anim`
+- `Assets/02Scripts/HWJ/Animations/Generated/RedChessPossessable/Lance/HWJ_RedChess_Lance_Animator.controller`
+- `Assets/02Scripts/HWJ/Animations/Generated/RedChessPossessable/Lance/HWJ_RedChess_Lance_Attack.anim`
+- `Assets/02Scripts/HWJ/Animations/Generated/RedChessPossessable/Lance/HWJ_RedChess_Lance_Dead.anim`
+- `Assets/02Scripts/HWJ/Animations/Generated/RedChessPossessable/Lance/HWJ_RedChess_Lance_Idle.anim`
+- `Assets/02Scripts/HWJ/Animations/Generated/RedChessPossessable/Shield/HWJ_RedChess_Shield_Animator.controller`
+- `Assets/02Scripts/HWJ/Animations/Generated/RedChessPossessable/Shield/HWJ_RedChess_Shield_Attack.anim`
+- `Assets/02Scripts/HWJ/Animations/Generated/RedChessPossessable/Shield/HWJ_RedChess_Shield_Dead.anim`
+- `Assets/02Scripts/HWJ/Animations/Generated/RedChessPossessable/Shield/HWJ_RedChess_Shield_Idle.anim`
+- `Assets/02Scripts/HWJ/Animations/Generated/RedChessPossessable/Sword/HWJ_RedChess_Sword_Animator.controller`
+- `Assets/02Scripts/HWJ/Animations/Generated/RedChessPossessable/Sword/HWJ_RedChess_Sword_Attack.anim`
+- `Assets/02Scripts/HWJ/Animations/Generated/RedChessPossessable/Sword/HWJ_RedChess_Sword_Dead.anim`
+- `Assets/02Scripts/HWJ/Animations/Generated/RedChessPossessable/Sword/HWJ_RedChess_Sword_Idle.anim`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/HitImpact/HWJ_HitImpact_00.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/HitImpact/HWJ_HitImpact_01.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/HitImpact/HWJ_HitImpact_02.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/HitImpact/HWJ_HitImpact_03.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/HitImpact/HWJ_HitImpact_04.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/HitImpact/HWJ_HitImpact_05.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/HitImpact/HWJ_HitImpact_06.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/HitImpact/HWJ_HitImpact_07.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/HitImpact/HWJ_HitImpact_08.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/HitImpact/HWJ_HitImpact_09.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/HitImpact/HWJ_HitImpact_10.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/HitImpact/HWJ_HitImpact_11.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/HitImpact/HWJ_HitImpact_12.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/HitImpact/HWJ_HitImpact_13.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/HitImpact/HWJ_HitImpact_14.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/HitImpact/HWJ_HitImpact_15.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/HitImpact/HWJ_HitImpact_16.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/HitImpact/HWJ_HitImpact_17.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/HitImpact/HWJ_HitImpact_18.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/HitImpact/HWJ_HitImpact_19.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/HitImpact/HWJ_HitImpact_20.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/HitImpact/HWJ_HitImpact_21.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/HitImpact/HWJ_HitImpact_22.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/HitImpact/HWJ_HitImpact_23.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/HitImpact/HWJ_HitImpact_24.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/HitImpact/HWJ_HitImpact_25.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/HitImpact/HWJ_HitImpact_26.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/HitImpact/HWJ_HitImpact_27.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/HitImpact/HWJ_HitImpact_28.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/HitImpact/HWJ_HitImpact_29.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/HitImpact/HWJ_HitImpact_30.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/HitImpact/HWJ_HitImpact_31.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/HitImpact/HWJ_HitImpact_32.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/HitImpact/HWJ_HitImpact_33.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/HitImpact/HWJ_HitImpact_34.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/HitImpact/HWJ_HitImpact_35.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/HitImpact/HWJ_HitImpact_36.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/HitImpact/HWJ_HitImpact_37.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/HitImpact/HWJ_HitImpact_38.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/HitImpact/HWJ_HitImpact_39.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/HitImpact/HWJ_HitImpact_40.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/HitImpact/HWJ_HitImpact_41.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/HitImpact/HWJ_HitImpact_42.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/HitImpact/HWJ_HitImpact_43.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/HitImpact/HWJ_HitImpact_44.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/HitImpact/HWJ_HitImpact_45.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/HitImpact/HWJ_HitImpact_46.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/HitImpact/HWJ_HitImpact_47.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/HitImpact/HWJ_HitImpact_48.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/HitImpact/HWJ_HitImpact_49.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/HitImpact/HWJ_HitImpact_50.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/HitImpact/HWJ_HitImpact_51.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/HitImpact/HWJ_HitImpact_52.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/HitImpact/HWJ_HitImpact_53.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/HitImpact/HWJ_HitImpact_54.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/HitImpact/HWJ_HitImpact_55.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/HitImpact/HWJ_HitImpact_56.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/HitImpact/HWJ_HitImpact_57.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/HitImpact/HWJ_HitImpact_58.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/HitImpact/HWJ_HitImpact_59.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Axe/HWJ_PlayerAttackEffect_AxeSlash_00.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Axe/HWJ_PlayerAttackEffect_AxeSlash_01.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Axe/HWJ_PlayerAttackEffect_AxeSlash_02.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Axe/HWJ_PlayerAttackEffect_AxeSlash_03.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Axe/HWJ_PlayerAttackEffect_AxeSlash_04.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Axe/HWJ_PlayerAttackEffect_AxeSlash_05.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Axe/HWJ_PlayerAttackEffect_AxeSlash_06.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Axe/HWJ_PlayerAttackEffect_AxeSlash_07.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Axe/HWJ_PlayerAttackEffect_AxeSlash_08.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Axe/HWJ_PlayerAttackEffect_AxeSlash_09.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Axe/HWJ_PlayerAttackEffect_AxeSlash_10.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Axe/HWJ_PlayerAttackEffect_AxeSlash_11.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Axe/HWJ_PlayerAttackEffect_AxeSlash_12.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Axe/HWJ_PlayerAttackEffect_AxeSlash_13.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Axe/HWJ_PlayerAttackEffect_AxeSlash_14.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Axe/HWJ_PlayerAttackEffect_AxeSlash_15.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Bow/HWJ_PlayerAttackEffect_BowSlash_00.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Bow/HWJ_PlayerAttackEffect_BowSlash_01.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Bow/HWJ_PlayerAttackEffect_BowSlash_02.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Bow/HWJ_PlayerAttackEffect_BowSlash_03.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Bow/HWJ_PlayerAttackEffect_BowSlash_04.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Bow/HWJ_PlayerAttackEffect_BowSlash_05.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Bow/HWJ_PlayerAttackEffect_BowSlash_06.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Bow/HWJ_PlayerAttackEffect_BowSlash_07.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Bow/HWJ_PlayerAttackEffect_BowSlash_08.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Bow/HWJ_PlayerAttackEffect_BowSlash_09.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Bow/HWJ_PlayerAttackEffect_BowSlash_10.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Bow/HWJ_PlayerAttackEffect_BowSlash_11.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Bow/HWJ_PlayerAttackEffect_BowSlash_12.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Bow/HWJ_PlayerAttackEffect_BowSlash_13.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Bow/HWJ_PlayerAttackEffect_BowSlash_14.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Bow/HWJ_PlayerAttackEffect_BowSlash_15.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Lance/HWJ_PlayerAttackEffect_LanceSlash_00.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Lance/HWJ_PlayerAttackEffect_LanceSlash_01.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Lance/HWJ_PlayerAttackEffect_LanceSlash_02.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Lance/HWJ_PlayerAttackEffect_LanceSlash_03.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Lance/HWJ_PlayerAttackEffect_LanceSlash_04.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Lance/HWJ_PlayerAttackEffect_LanceSlash_05.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Lance/HWJ_PlayerAttackEffect_LanceSlash_06.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Lance/HWJ_PlayerAttackEffect_LanceSlash_07.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Lance/HWJ_PlayerAttackEffect_LanceSlash_08.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Lance/HWJ_PlayerAttackEffect_LanceSlash_09.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Lance/HWJ_PlayerAttackEffect_LanceSlash_10.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Lance/HWJ_PlayerAttackEffect_LanceSlash_11.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Lance/HWJ_PlayerAttackEffect_LanceSlash_12.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Lance/HWJ_PlayerAttackEffect_LanceSlash_13.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Lance/HWJ_PlayerAttackEffect_LanceSlash_14.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Lance/HWJ_PlayerAttackEffect_LanceSlash_15.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Shield/HWJ_PlayerAttackEffect_ShieldSlash_00.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Shield/HWJ_PlayerAttackEffect_ShieldSlash_01.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Shield/HWJ_PlayerAttackEffect_ShieldSlash_02.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Shield/HWJ_PlayerAttackEffect_ShieldSlash_03.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Shield/HWJ_PlayerAttackEffect_ShieldSlash_04.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Shield/HWJ_PlayerAttackEffect_ShieldSlash_05.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Shield/HWJ_PlayerAttackEffect_ShieldSlash_06.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Shield/HWJ_PlayerAttackEffect_ShieldSlash_07.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Shield/HWJ_PlayerAttackEffect_ShieldSlash_08.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Shield/HWJ_PlayerAttackEffect_ShieldSlash_09.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Shield/HWJ_PlayerAttackEffect_ShieldSlash_10.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Shield/HWJ_PlayerAttackEffect_ShieldSlash_11.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Shield/HWJ_PlayerAttackEffect_ShieldSlash_12.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Shield/HWJ_PlayerAttackEffect_ShieldSlash_13.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Shield/HWJ_PlayerAttackEffect_ShieldSlash_14.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Shield/HWJ_PlayerAttackEffect_ShieldSlash_15.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Sword/HWJ_PlayerAttackEffect_SwordSlash_00.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Sword/HWJ_PlayerAttackEffect_SwordSlash_01.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Sword/HWJ_PlayerAttackEffect_SwordSlash_02.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Sword/HWJ_PlayerAttackEffect_SwordSlash_03.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Sword/HWJ_PlayerAttackEffect_SwordSlash_04.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Sword/HWJ_PlayerAttackEffect_SwordSlash_05.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Sword/HWJ_PlayerAttackEffect_SwordSlash_06.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Sword/HWJ_PlayerAttackEffect_SwordSlash_07.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Sword/HWJ_PlayerAttackEffect_SwordSlash_08.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Sword/HWJ_PlayerAttackEffect_SwordSlash_09.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Sword/HWJ_PlayerAttackEffect_SwordSlash_10.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Sword/HWJ_PlayerAttackEffect_SwordSlash_11.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Sword/HWJ_PlayerAttackEffect_SwordSlash_12.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Sword/HWJ_PlayerAttackEffect_SwordSlash_13.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Sword/HWJ_PlayerAttackEffect_SwordSlash_14.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Effects/PlayerAttackSlashes/Sword/HWJ_PlayerAttackEffect_SwordSlash_15.png`
+- `Assets/02Scripts/HWJ/Art/Generated/FunctionShowcase/HWJ_Showcase_Box.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Models/HWJ_Model_Stage1_Boss_Archer.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Orbs/Experience/HWJ_Orb_Experience_00.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Orbs/Experience/HWJ_Orb_Experience_01.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Orbs/Experience/HWJ_Orb_Experience_02.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Orbs/Experience/HWJ_Orb_Experience_03.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Orbs/Experience/HWJ_Orb_Experience_04.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Orbs/Experience/HWJ_Orb_Experience_05.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Orbs/Experience/HWJ_Orb_Experience_06.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Orbs/Experience/HWJ_Orb_Experience_07.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Orbs/Stat_AttackPower/HWJ_Orb_Stat_AttackPower_00.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Orbs/Stat_AttackPower/HWJ_Orb_Stat_AttackPower_01.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Orbs/Stat_AttackPower/HWJ_Orb_Stat_AttackPower_02.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Orbs/Stat_AttackPower/HWJ_Orb_Stat_AttackPower_03.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Orbs/Stat_AttackPower/HWJ_Orb_Stat_AttackPower_04.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Orbs/Stat_AttackPower/HWJ_Orb_Stat_AttackPower_05.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Orbs/Stat_AttackPower/HWJ_Orb_Stat_AttackPower_06.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Orbs/Stat_AttackPower/HWJ_Orb_Stat_AttackPower_07.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Orbs/Stat_AttackSpeed/HWJ_Orb_Stat_AttackSpeed_00.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Orbs/Stat_AttackSpeed/HWJ_Orb_Stat_AttackSpeed_01.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Orbs/Stat_AttackSpeed/HWJ_Orb_Stat_AttackSpeed_02.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Orbs/Stat_AttackSpeed/HWJ_Orb_Stat_AttackSpeed_03.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Orbs/Stat_AttackSpeed/HWJ_Orb_Stat_AttackSpeed_04.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Orbs/Stat_AttackSpeed/HWJ_Orb_Stat_AttackSpeed_05.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Orbs/Stat_AttackSpeed/HWJ_Orb_Stat_AttackSpeed_06.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Orbs/Stat_AttackSpeed/HWJ_Orb_Stat_AttackSpeed_07.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Orbs/Stat_Defense/HWJ_Orb_Stat_Defense_00.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Orbs/Stat_Defense/HWJ_Orb_Stat_Defense_01.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Orbs/Stat_Defense/HWJ_Orb_Stat_Defense_02.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Orbs/Stat_Defense/HWJ_Orb_Stat_Defense_03.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Orbs/Stat_Defense/HWJ_Orb_Stat_Defense_04.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Orbs/Stat_Defense/HWJ_Orb_Stat_Defense_05.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Orbs/Stat_Defense/HWJ_Orb_Stat_Defense_06.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Orbs/Stat_Defense/HWJ_Orb_Stat_Defense_07.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Orbs/Stat_MaxHp/HWJ_Orb_Stat_MaxHp_00.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Orbs/Stat_MaxHp/HWJ_Orb_Stat_MaxHp_01.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Orbs/Stat_MaxHp/HWJ_Orb_Stat_MaxHp_02.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Orbs/Stat_MaxHp/HWJ_Orb_Stat_MaxHp_03.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Orbs/Stat_MaxHp/HWJ_Orb_Stat_MaxHp_04.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Orbs/Stat_MaxHp/HWJ_Orb_Stat_MaxHp_05.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Orbs/Stat_MaxHp/HWJ_Orb_Stat_MaxHp_06.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Orbs/Stat_MaxHp/HWJ_Orb_Stat_MaxHp_07.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Orbs/Stat_MoveSpeed/HWJ_Orb_Stat_MoveSpeed_00.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Orbs/Stat_MoveSpeed/HWJ_Orb_Stat_MoveSpeed_01.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Orbs/Stat_MoveSpeed/HWJ_Orb_Stat_MoveSpeed_02.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Orbs/Stat_MoveSpeed/HWJ_Orb_Stat_MoveSpeed_03.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Orbs/Stat_MoveSpeed/HWJ_Orb_Stat_MoveSpeed_04.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Orbs/Stat_MoveSpeed/HWJ_Orb_Stat_MoveSpeed_05.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Orbs/Stat_MoveSpeed/HWJ_Orb_Stat_MoveSpeed_06.png`
+- `Assets/02Scripts/HWJ/Art/Generated/Orbs/Stat_MoveSpeed/HWJ_Orb_Stat_MoveSpeed_07.png`
+- `Assets/02Scripts/HWJ/Art/Player/HWJ_GHOSTP.png`
+- `Assets/02Scripts/HWJ/Art/Player/HWJ_GHOSTP_Frame00.png`
+- `Assets/02Scripts/HWJ/Art/UI/gameover.png`
+- `Assets/02Scripts/HWJ/Art/UI/gameover_ui.png`
+- `Assets/02Scripts/HWJ/Art/UI/logo.png`
+- `Assets/02Scripts/HWJ/Art/UI/Main.png`
+- `Assets/02Scripts/HWJ/Art/UI/Main_Tile.png`
+- `Assets/02Scripts/HWJ/Prefabs/Generated/Effects/HWJ_Effect_HitImpact.prefab`
+- `Assets/02Scripts/HWJ/Prefabs/Generated/Effects/HWJ_Effect_PlayerAttack_AxeSlash.prefab`
+- `Assets/02Scripts/HWJ/Prefabs/Generated/Effects/HWJ_Effect_PlayerAttack_BowSlash.prefab`
+- `Assets/02Scripts/HWJ/Prefabs/Generated/Effects/HWJ_Effect_PlayerAttack_LanceSlash.prefab`
+- `Assets/02Scripts/HWJ/Prefabs/Generated/Effects/HWJ_Effect_PlayerAttack_ShieldSlash.prefab`
+- `Assets/02Scripts/HWJ/Prefabs/Generated/Effects/HWJ_Effect_PlayerAttack_SwordSlash.prefab`
+- `Assets/02Scripts/HWJ/Prefabs/Generated/ExperienceOrbs/HWJ_ExperienceOrb_Default_Prefab.prefab`
+- `Assets/02Scripts/HWJ/Prefabs/Generated/Models/HWJ_Model_Enemy_Corpse_Axe.prefab`
+- `Assets/02Scripts/HWJ/Prefabs/Generated/Models/HWJ_Model_Enemy_Corpse_Bow.prefab`
+- `Assets/02Scripts/HWJ/Prefabs/Generated/Models/HWJ_Model_Enemy_Corpse_Lance.prefab`
+- `Assets/02Scripts/HWJ/Prefabs/Generated/Models/HWJ_Model_Enemy_Corpse_Shield.prefab`
+- `Assets/02Scripts/HWJ/Prefabs/Generated/Models/HWJ_Model_Enemy_Corpse_Sword.prefab`
+- `Assets/02Scripts/HWJ/Prefabs/Generated/Models/HWJ_Model_Enemy_NoCorpse_Axe.prefab`
+- `Assets/02Scripts/HWJ/Prefabs/Generated/Models/HWJ_Model_Enemy_NoCorpse_Bow.prefab`
+- `Assets/02Scripts/HWJ/Prefabs/Generated/Models/HWJ_Model_Enemy_NoCorpse_Lance.prefab`
+- `Assets/02Scripts/HWJ/Prefabs/Generated/Models/HWJ_Model_Enemy_NoCorpse_Shield.prefab`
+- `Assets/02Scripts/HWJ/Prefabs/Generated/Models/HWJ_Model_Enemy_NoCorpse_Sword.prefab`
+- `Assets/02Scripts/HWJ/Prefabs/Generated/Models/HWJ_Model_MidBoss1_Placeholder.prefab`
+- `Assets/02Scripts/HWJ/Prefabs/Generated/Models/HWJ_Model_Player_Test.prefab`
+- `Assets/02Scripts/HWJ/Prefabs/Generated/Models/HWJ_Model_Stage1_Boss_Archer.prefab`
+- `Assets/02Scripts/HWJ/Prefabs/Generated/Projectiles/HWJ_Projectile_Bow_AirArrowShot.prefab`
+- `Assets/02Scripts/HWJ/Prefabs/Generated/Projectiles/HWJ_Projectile_Bow_LowChargeShot.prefab`
+- `Assets/02Scripts/HWJ/Prefabs/Generated/Projectiles/HWJ_Projectile_Bow_RapidShot.prefab`
+- `Assets/02Scripts/HWJ/Prefabs/Generated/Projectiles/HWJ_Projectile_Sword_Wave.prefab`
+- `Assets/02Scripts/HWJ/Prefabs/Generated/RuntimeReady/Corpses/HWJ_Runtime_Corpse_Axe.prefab`
+- `Assets/02Scripts/HWJ/Prefabs/Generated/RuntimeReady/Corpses/HWJ_Runtime_Corpse_Bow.prefab`
+- `Assets/02Scripts/HWJ/Prefabs/Generated/RuntimeReady/Corpses/HWJ_Runtime_Corpse_Lance.prefab`
+- `Assets/02Scripts/HWJ/Prefabs/Generated/RuntimeReady/Corpses/HWJ_Runtime_Corpse_Shield.prefab`
+- `Assets/02Scripts/HWJ/Prefabs/Generated/RuntimeReady/Corpses/HWJ_Runtime_Corpse_Sword.prefab`
+- `Assets/02Scripts/HWJ/Prefabs/Generated/RuntimeReady/Enemies/HWJ_Runtime_Enemy_NoCorpse_Axe.prefab`
+- `Assets/02Scripts/HWJ/Prefabs/Generated/RuntimeReady/Enemies/HWJ_Runtime_Enemy_NoCorpse_Bow.prefab`
+- `Assets/02Scripts/HWJ/Prefabs/Generated/RuntimeReady/Enemies/HWJ_Runtime_Enemy_NoCorpse_Lance.prefab`
+- `Assets/02Scripts/HWJ/Prefabs/Generated/RuntimeReady/Enemies/HWJ_Runtime_Enemy_NoCorpse_Shield.prefab`
+- `Assets/02Scripts/HWJ/Prefabs/Generated/RuntimeReady/Enemies/HWJ_Runtime_Enemy_NoCorpse_Sword.prefab`
+- `Assets/02Scripts/HWJ/Prefabs/Generated/RuntimeReady/Enemies/HWJ_Runtime_Enemy_Possessable_Axe.prefab`
+- `Assets/02Scripts/HWJ/Prefabs/Generated/RuntimeReady/Enemies/HWJ_Runtime_Enemy_Possessable_Bow.prefab`
+- `Assets/02Scripts/HWJ/Prefabs/Generated/RuntimeReady/Enemies/HWJ_Runtime_Enemy_Possessable_Lance.prefab`
+- `Assets/02Scripts/HWJ/Prefabs/Generated/RuntimeReady/Enemies/HWJ_Runtime_Enemy_Possessable_Shield.prefab`
+- `Assets/02Scripts/HWJ/Prefabs/Generated/RuntimeReady/Enemies/HWJ_Runtime_Enemy_Possessable_Sword.prefab`
+- `Assets/02Scripts/HWJ/Prefabs/Generated/RuntimeReady/HWJ_Runtime_Player_Soul.prefab`
+- `Assets/02Scripts/HWJ/Prefabs/Generated/RuntimeReady/hys_Animation_RuntimeReady/Profiles/hys_RuntimeReady_Monster_AxeMotionProfile.asset`
+- `Assets/02Scripts/HWJ/Prefabs/Generated/RuntimeReady/hys_Animation_RuntimeReady/Profiles/hys_RuntimeReady_Monster_BowMotionProfile.asset`
+- `Assets/02Scripts/HWJ/Prefabs/Generated/RuntimeReady/hys_Animation_RuntimeReady/Profiles/hys_RuntimeReady_Monster_LanceMotionProfile.asset`
+- `Assets/02Scripts/HWJ/Prefabs/Generated/RuntimeReady/hys_Animation_RuntimeReady/Profiles/hys_RuntimeReady_Monster_ShieldMotionProfile.asset`
+- `Assets/02Scripts/HWJ/Prefabs/Generated/RuntimeReady/hys_Animation_RuntimeReady/Profiles/hys_RuntimeReady_Monster_SwordMotionProfile.asset`
+- `Assets/02Scripts/HWJ/Prefabs/Generated/RuntimeReady/hys_Animation_RuntimeReady/Profiles/hys_RuntimeReady_Player_AxeMotionProfile.asset`
+- `Assets/02Scripts/HWJ/Prefabs/Generated/RuntimeReady/hys_Animation_RuntimeReady/Profiles/hys_RuntimeReady_Player_BowMotionProfile.asset`
+- `Assets/02Scripts/HWJ/Prefabs/Generated/RuntimeReady/hys_Animation_RuntimeReady/Profiles/hys_RuntimeReady_Player_LanceMotionProfile.asset`
+- `Assets/02Scripts/HWJ/Prefabs/Generated/RuntimeReady/hys_Animation_RuntimeReady/Profiles/hys_RuntimeReady_Player_ShieldMotionProfile.asset`
+- `Assets/02Scripts/HWJ/Prefabs/Generated/RuntimeReady/hys_Animation_RuntimeReady/Profiles/hys_RuntimeReady_Player_SwordMotionProfile.asset`
+- `Assets/02Scripts/HWJ/Prefabs/Generated/StatOrbs/HWJ_StatOrb_AttackPowerSmall_Prefab.prefab`
+- `Assets/02Scripts/HWJ/Prefabs/Generated/StatOrbs/HWJ_StatOrb_AttackSpeedSmall_Prefab.prefab`
+- `Assets/02Scripts/HWJ/Prefabs/Generated/StatOrbs/HWJ_StatOrb_DefenseSmall_Prefab.prefab`
+- `Assets/02Scripts/HWJ/Prefabs/Generated/StatOrbs/HWJ_StatOrb_MaxHpSmall_Prefab.prefab`
+- `Assets/02Scripts/HWJ/Prefabs/Generated/StatOrbs/HWJ_StatOrb_MoveSpeedSmall_Prefab.prefab`
+- `Assets/02Scripts/HWJ/Prefabs/Generated/UI/HWJ_UI_GameOverWindow.prefab`
+- `Assets/02Scripts/HWJ/Prefabs/Generated/UI/HWJ_UI_TitleScreen.prefab`
+- `Assets/02Scripts/HWJ/ScriptableObjects/BossPatterns/HWJ_MidBossPhysical_Pattern1.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/BossPatterns/HWJ_MidBossPhysical_Pattern2.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/BossPatterns/HWJ_MidBossPhysical_Pattern3.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/BossPatterns/HWJ_MidBossPhysical_Pattern4.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/BossPatterns/HWJ_MidBossPhysical_Pattern5.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/BossPatterns/HWJ_MidBossPhysical_Pattern6.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/BossPatterns/HWJ_MidBossPhysical_Pattern7.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/BossPatterns/HWJ_Stage1Boss_Pattern1.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/BossPatterns/HWJ_Stage1Boss_Pattern2.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/BossPatterns/HWJ_Stage1Boss_Pattern3.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/BossPatterns/HWJ_Stage1Boss_Pattern4.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/BossPatterns/HWJ_Stage1Boss_Pattern5.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/Database/HWJ_GameplayDatabase.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/Database/HWJ_ObjectPoolData_RuntimeReady.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/Input/HWJ_DefaultPlayerInputBindings.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/LevelTables/HWJ_Player_Default_LevelUpData.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/MotionProfiles/HWJ_AxeMotionProfile.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/MotionProfiles/HWJ_BowMotionProfile.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/MotionProfiles/HWJ_LanceMotionProfile.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/MotionProfiles/HWJ_ShieldMotionProfile.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/MotionProfiles/HWJ_SwordMotionProfile.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/RootObjects/Bosses/HWJ_MidBoss1_RootObjectData.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/RootObjects/Bosses/HWJ_Stage1Boss_RootObjectData.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/RootObjects/Enemies/HWJ_EnemyCorpse_Axe_RootObjectData.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/RootObjects/Enemies/HWJ_EnemyCorpse_Bow_RootObjectData.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/RootObjects/Enemies/HWJ_EnemyCorpse_Lance_RootObjectData.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/RootObjects/Enemies/HWJ_EnemyCorpse_Shield_RootObjectData.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/RootObjects/Enemies/HWJ_EnemyCorpse_Sword_RootObjectData.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/RootObjects/Enemies/HWJ_EnemyNoCorpse_Axe_RootObjectData.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/RootObjects/Enemies/HWJ_EnemyNoCorpse_Bow_RootObjectData.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/RootObjects/Enemies/HWJ_EnemyNoCorpse_Lance_RootObjectData.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/RootObjects/Enemies/HWJ_EnemyNoCorpse_Normal_RootObjectData.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/RootObjects/Enemies/HWJ_EnemyNoCorpse_Power_RootObjectData.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/RootObjects/Enemies/HWJ_EnemyNoCorpse_Shield_RootObjectData.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/RootObjects/Enemies/HWJ_EnemyNoCorpse_Sword_RootObjectData.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/RootObjects/HWJ_Player_Test_RootObjectData.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/Rules/Conditions/HWJ_Condition_AttackHitConfirmedDetailed.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/Rules/Conditions/HWJ_Condition_BossEncounterStarted.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/Rules/Conditions/HWJ_Condition_BossEntryPlayerInsideRoom.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/Rules/Conditions/HWJ_Condition_BossNotGroggy.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/Rules/Conditions/HWJ_Condition_BossTargetInsideRoom.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/Rules/Conditions/HWJ_Condition_DifferentFaction.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/Rules/Conditions/HWJ_Condition_HasSkillAction.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/Rules/Conditions/HWJ_Condition_HitConfirmed.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/Rules/Conditions/HWJ_Condition_MonsterAITargetBodyState.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/Rules/Conditions/HWJ_Condition_MonsterAITargetInAttackRange.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/Rules/Conditions/HWJ_Condition_PlayerLevelAtLeast1.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/Rules/Conditions/HWJ_Condition_SkillCooldownReady.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/Rules/Conditions/HWJ_Condition_SkillWeaponMatchesSource.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/Rules/Conditions/HWJ_Condition_SourceAlive.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/Rules/Conditions/HWJ_Condition_SourceBodyDecayRemaining.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/Rules/Conditions/HWJ_Condition_SourceBodyDecayUnder30Percent.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/Rules/Conditions/HWJ_Condition_SourceCanAttack.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/Rules/Conditions/HWJ_Condition_SourceCanLoadPossessedStats.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/Rules/Conditions/HWJ_Condition_SourceCanPayPossessionSpiritMentalCost.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/Rules/Conditions/HWJ_Condition_SourceCanPossess.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/Rules/Conditions/HWJ_Condition_SourceGrounded.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/Rules/Conditions/HWJ_Condition_SourceHasPossessedBody.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/Rules/Conditions/HWJ_Condition_SourceHpBelow50.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/Rules/Conditions/HWJ_Condition_SourceObject_Player.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/Rules/Conditions/HWJ_Condition_SourceSoulState.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/Rules/Conditions/HWJ_Condition_TargetAlive.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/Rules/Conditions/HWJ_Condition_TargetBodyState.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/Rules/Conditions/HWJ_Condition_TargetCanBePossessed.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/Rules/Conditions/HWJ_Condition_TargetCorpseAvailable.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/Rules/Conditions/HWJ_Condition_TargetDefeatedIfRequired.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/Rules/Conditions/HWJ_Condition_TargetDefenseAtLeast0.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/Rules/Conditions/HWJ_Condition_TargetNotInvincible.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/Rules/Conditions/HWJ_Condition_TargetObject_EnemyOrBoss.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/Rules/Conditions/HWJ_Condition_TargetObject_Player.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/Rules/Conditions/HWJ_Condition_WithinPossessionRange.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/Rules/Core/HWJ_RuleExecutionCore_BossEntry.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/Rules/Core/HWJ_RuleExecutionCore_BossPattern.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/Rules/Core/HWJ_RuleExecutionCore_CommonDamage.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/Rules/Core/HWJ_RuleExecutionCore_MonsterTarget.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/Rules/Core/HWJ_RuleExecutionCore_PlayerDamageToEnemy.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/Rules/Core/HWJ_RuleExecutionCore_PossessedBodyAttack.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/Rules/Core/HWJ_RuleExecutionCore_Possession.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/Rules/Core/HWJ_RuleExecutionCore_SkillUse.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/Rules/Groups/HWJ_Group_BossCanUseCombatPattern.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/Rules/Groups/HWJ_Group_BossEntryExtraGate.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/Rules/Groups/HWJ_Group_BossPhase2Ready.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/Rules/Groups/HWJ_Group_DamageCanApplyCommon.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/Rules/Groups/HWJ_Group_MonsterCanPursueBodyTarget.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/Rules/Groups/HWJ_Group_MonsterDetectPlayerBody.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/Rules/Groups/HWJ_Group_PlayerDamageToEnemy.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/Rules/Groups/HWJ_Group_PossessedBodyCanAttack.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/Rules/Groups/HWJ_Group_PossessionCanStart.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/Rules/Groups/HWJ_Group_SkillCanUse.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/Rules/Rules/HWJ_Rule_BossCanUseCombatPattern.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/Rules/Rules/HWJ_Rule_BossEntryExtraGate.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/Rules/Rules/HWJ_Rule_BossPhase2Ready.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/Rules/Rules/HWJ_Rule_DamageCanApplyCommon.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/Rules/Rules/HWJ_Rule_MonsterCanPursueBodyTarget.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/Rules/Rules/HWJ_Rule_MonsterDetectPlayerBody.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/Rules/Rules/HWJ_Rule_PlayerDamageToEnemy.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/Rules/Rules/HWJ_Rule_PossessedBodyCanAttack.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/Rules/Rules/HWJ_Rule_PossessionCanStart.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/Rules/Rules/HWJ_Rule_SkillCanUse.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/SkillActions/HWJ_PlayerSkill_Axe_EarthBreaker.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/SkillActions/HWJ_PlayerSkill_Axe_FlameSlash.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/SkillActions/HWJ_PlayerSkill_Axe_SlashAxe.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/SkillActions/HWJ_PlayerSkill_Axe_Whirlwind.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/SkillActions/HWJ_PlayerSkill_Bow_ArrowsRain.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/SkillActions/HWJ_PlayerSkill_Bow_EvasionTriple.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/SkillActions/HWJ_PlayerSkill_Bow_GrandPierce.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/SkillActions/HWJ_PlayerSkill_Bow_PentaStrike.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/SkillActions/HWJ_PlayerSkill_Lance_BurstLance.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/SkillActions/HWJ_PlayerSkill_Lance_PiercingDrive.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/SkillActions/HWJ_PlayerSkill_Lance_RapidStinger.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/SkillActions/HWJ_PlayerSkill_Lance_RisingSpear.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/SkillActions/HWJ_PlayerSkill_Shield_DarkBarrier.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/SkillActions/HWJ_PlayerSkill_Shield_GroundQuake.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/SkillActions/HWJ_PlayerSkill_Shield_GroundStrike.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/SkillActions/HWJ_PlayerSkill_Shield_ShieldSlam.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/SkillActions/HWJ_PlayerSkill_Sword_DashSlash.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/SkillActions/HWJ_PlayerSkill_Sword_FinalSlash.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/SkillActions/HWJ_PlayerSkill_Sword_ForceSlash.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/SkillActions/HWJ_PlayerSkill_Sword_ReapSlash.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/SkillActions/HWJ_Skill_Axe_BodyCharge.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/SkillActions/HWJ_Skill_Axe_SpinCharge.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/SkillActions/HWJ_Skill_Axe_Swing.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/SkillActions/HWJ_Skill_Bow_AirArrowShot.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/SkillActions/HWJ_Skill_Bow_LowChargeShot.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/SkillActions/HWJ_Skill_Bow_RapidShot.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/SkillActions/HWJ_Skill_Lance_ChargeThrust.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/SkillActions/HWJ_Skill_Lance_FinisherThrust.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/SkillActions/HWJ_Skill_Lance_ThrustCombo.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/SkillActions/HWJ_Skill_Shield_Charge.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/SkillActions/HWJ_Skill_Shield_DiagonalKnockback.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/SkillActions/HWJ_Skill_Shield_Slam.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/SkillActions/HWJ_Skill_Sword_DiagonalSlash.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/SkillActions/HWJ_Skill_Sword_UpDiagonalSlash.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/SkillActions/HWJ_Skill_Sword_Wave.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/SkillNodes/HWJ_SkillNode_Axe_01_SlashAxe.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/SkillNodes/HWJ_SkillNode_Axe_02_FlameSlash.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/SkillNodes/HWJ_SkillNode_Axe_03_Whirlwind.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/SkillNodes/HWJ_SkillNode_Axe_04_EarthBreaker.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/SkillNodes/HWJ_SkillNode_Bow_01_EvasionTriple.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/SkillNodes/HWJ_SkillNode_Bow_02_PentaStrike.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/SkillNodes/HWJ_SkillNode_Bow_03_GrandPierce.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/SkillNodes/HWJ_SkillNode_Bow_04_ArrowsRain.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/SkillNodes/HWJ_SkillNode_Lance_01_PiercingDrive.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/SkillNodes/HWJ_SkillNode_Lance_02_RapidStinger.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/SkillNodes/HWJ_SkillNode_Lance_03_RisingSpear.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/SkillNodes/HWJ_SkillNode_Lance_04_BurstLance.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/SkillNodes/HWJ_SkillNode_Shield_01_ShieldSlam.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/SkillNodes/HWJ_SkillNode_Shield_02_GroundStrike.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/SkillNodes/HWJ_SkillNode_Shield_03_DarkBarrier.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/SkillNodes/HWJ_SkillNode_Shield_04_GroundQuake.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/SkillNodes/HWJ_SkillNode_Sword_01_ReapSlash.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/SkillNodes/HWJ_SkillNode_Sword_02_DashSlash.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/SkillNodes/HWJ_SkillNode_Sword_03_ForceSlash.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/SkillNodes/HWJ_SkillNode_Sword_04_FinalSlash.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/StatOrbs/HWJ_StatOrb_AttackPowerSmall.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/StatOrbs/HWJ_StatOrb_AttackSpeedSmall.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/StatOrbs/HWJ_StatOrb_DefenseSmall.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/StatOrbs/HWJ_StatOrb_MaxHpSmall.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/StatOrbs/HWJ_StatOrb_MoveSpeedSmall.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/Systems/HWJ_GameOverData_Default.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/Systems/HWJ_TitleScreenData_Default.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/TypeData/Boss/HWJ_BossTypeData.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/TypeData/Boss/HWJ_MidBoss1_TypeData.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/TypeData/Enemy/NoCorpse/HWJ_EnemyNoCorpse_Axe_TypeData.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/TypeData/Enemy/NoCorpse/HWJ_EnemyNoCorpse_Bow_TypeData.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/TypeData/Enemy/NoCorpse/HWJ_EnemyNoCorpse_Lance_TypeData.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/TypeData/Enemy/NoCorpse/HWJ_EnemyNoCorpse_Normal_TypeData.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/TypeData/Enemy/NoCorpse/HWJ_EnemyNoCorpse_Power_TypeData.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/TypeData/Enemy/NoCorpse/HWJ_EnemyNoCorpse_Shield_TypeData.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/TypeData/Enemy/NoCorpse/HWJ_EnemyNoCorpse_Sword_TypeData.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/TypeData/Enemy/Possessable/HWJ_EnemyCorpse_Axe_TypeData.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/TypeData/Enemy/Possessable/HWJ_EnemyCorpse_Bow_TypeData.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/TypeData/Enemy/Possessable/HWJ_EnemyCorpse_Lance_TypeData.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/TypeData/Enemy/Possessable/HWJ_EnemyCorpse_Shield_TypeData.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/TypeData/Enemy/Possessable/HWJ_EnemyCorpse_Sword_TypeData.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/TypeData/Player/HWJ_PlayerTypeData.asset`
+- `Assets/02Scripts/HWJ/Scripts/Data/Database/HWJ_GameplayDatabaseSO.cs`
+- `Assets/02Scripts/HWJ/Scripts/Data/Resolver/HWJ_RootObjectDataResolver.cs`
+- `Assets/02Scripts/HWJ/Scripts/Data/Root/HWJ_RootObjectDataSO.cs`
+- `Assets/02Scripts/HWJ/Scripts/Data/Rules/Conditions/HWJ_AIConditionSO.cs`
+- `Assets/02Scripts/HWJ/Scripts/Data/Rules/Conditions/HWJ_AttackHitConditionSO.cs`
+- `Assets/02Scripts/HWJ/Scripts/Data/Rules/Conditions/HWJ_BodyDecayConditionSO.cs`
+- `Assets/02Scripts/HWJ/Scripts/Data/Rules/Conditions/HWJ_BossConditionSO.cs`
+- `Assets/02Scripts/HWJ/Scripts/Data/Rules/Conditions/HWJ_DifferentFactionConditionSO.cs`
+- `Assets/02Scripts/HWJ/Scripts/Data/Rules/Conditions/HWJ_EnvironmentConditionSO.cs`
+- `Assets/02Scripts/HWJ/Scripts/Data/Rules/Conditions/HWJ_HitConfirmedConditionSO.cs`
+- `Assets/02Scripts/HWJ/Scripts/Data/Rules/Conditions/HWJ_HpRatioConditionSO.cs`
+- `Assets/02Scripts/HWJ/Scripts/Data/Rules/Conditions/HWJ_ObjectTypeConditionSO.cs`
+- `Assets/02Scripts/HWJ/Scripts/Data/Rules/Conditions/HWJ_PossessionConditionSO.cs`
+- `Assets/02Scripts/HWJ/Scripts/Data/Rules/Conditions/HWJ_PossessionStateConditionSO.cs`
+- `Assets/02Scripts/HWJ/Scripts/Data/Rules/Conditions/HWJ_ProgressionConditionSO.cs`
+- `Assets/02Scripts/HWJ/Scripts/Data/Rules/Conditions/HWJ_RuntimeStatConditionSO.cs`
+- `Assets/02Scripts/HWJ/Scripts/Data/Rules/Conditions/HWJ_SkillConditionSO.cs`
+- `Assets/02Scripts/HWJ/Scripts/Data/Rules/Conditions/HWJ_SoulStateConditionSO.cs`
+- `Assets/02Scripts/HWJ/Scripts/Data/Rules/Conditions/HWJ_StatusFlagConditionSO.cs`
+- `Assets/02Scripts/HWJ/Scripts/Data/Rules/HWJ_ConditionGroupSO.cs`
+- `Assets/02Scripts/HWJ/Scripts/Data/Rules/HWJ_GameplayRuleSO.cs`
+- `Assets/02Scripts/HWJ/Scripts/Data/Rules/HWJ_RuleExecutionCoreSO.cs`
+- `Assets/02Scripts/HWJ/Scripts/Data/Systems/HWJ_BossPatternDataSO.cs`
+- `Assets/02Scripts/HWJ/Scripts/Data/Systems/HWJ_GameOverDataSO.cs`
+- `Assets/02Scripts/HWJ/Scripts/Data/Systems/HWJ_LevelUpDataSO.cs`
+- `Assets/02Scripts/HWJ/Scripts/Data/Systems/HWJ_MotionProfileSO.cs`
+- `Assets/02Scripts/HWJ/Scripts/Data/Systems/HWJ_ObjectPoolDataSO.cs`
+- `Assets/02Scripts/HWJ/Scripts/Data/Systems/HWJ_PlayerInputBindingDataSO.cs`
+- `Assets/02Scripts/HWJ/Scripts/Data/Systems/HWJ_SkillActionDataSO.cs`
+- `Assets/02Scripts/HWJ/Scripts/Data/Systems/HWJ_SkillNodeDataSO.cs`
+- `Assets/02Scripts/HWJ/Scripts/Data/Systems/HWJ_StatOrbDataSO.cs`
+- `Assets/02Scripts/HWJ/Scripts/Data/Types/Boss/HWJ_BossTypeDataSO.cs`
+- `Assets/02Scripts/HWJ/Scripts/Data/Types/Enemy/HWJ_EnemyTypeDataSO.cs`
+- `Assets/02Scripts/HWJ/Scripts/Data/Types/Player/HWJ_PlayerTypeDataSO.cs`
+- `Assets/02Scripts/HWJ/Scripts/Systems/Collapse/HWJ_CollapseSystem.cs`
+- `Assets/02Scripts/HWJ/Scripts/Systems/Combat/HWJ_CombatExecutionSystem.cs`
+- `Assets/02Scripts/HWJ/Scripts/Systems/Combat/HWJ_CombatSystem.cs`
+- `Assets/02Scripts/HWJ/Scripts/Systems/Combat/HWJ_KnockbackSystem.cs`
+- `Assets/02Scripts/HWJ/Scripts/Systems/CoreLoop/HWJ_CoreLoopCoordinator.cs`
+- `Assets/02Scripts/HWJ/Scripts/Systems/Enemy/HWJ_EnemyAttackSystem.cs`
+- `Assets/02Scripts/HWJ/Scripts/Systems/Enemy/HWJ_EnemyDeathLifecycleSystem.cs`
+- `Assets/02Scripts/HWJ/Scripts/Systems/Enemy/HWJ_EnemyNavigationSystem.cs`
+- `Assets/02Scripts/HWJ/Scripts/Systems/Input/HWJ_PlayerInputSystem.cs`
+- `Assets/02Scripts/HWJ/Scripts/Systems/Interaction/HWJ_ExperienceOrbPickupSystem.cs`
+- `Assets/02Scripts/HWJ/Scripts/Systems/Interaction/HWJ_InteractionSystem.cs`
+- `Assets/02Scripts/HWJ/Scripts/Systems/Interaction/HWJ_StatOrbPickupSystem.cs`
+- `Assets/02Scripts/HWJ/Scripts/Systems/Level/HWJ_LevelUpSystem.cs`
+- `Assets/02Scripts/HWJ/Scripts/Systems/Level/HWJ_SkillUnlockSystem.cs`
+- `Assets/02Scripts/HWJ/Scripts/Systems/Level/HWJ_StatOrbProgressSystem.cs`
+- `Assets/02Scripts/HWJ/Scripts/Systems/MonsterAI/HWJ_MonsterAISystem.cs`
+- `Assets/02Scripts/HWJ/Scripts/Systems/Motion/HWJ_CharacterMotionSystem.cs`
+- `Assets/02Scripts/HWJ/Scripts/Systems/Player/HWJ_PlayerAttackSystem.cs`
+- `Assets/02Scripts/HWJ/Scripts/Systems/Player/HWJ_PlayerMovementSystem.cs`
+- `Assets/02Scripts/HWJ/Scripts/Systems/Pooling/HWJ_EffectAutoReturnSystem.cs`
+- `Assets/02Scripts/HWJ/Scripts/Systems/Pooling/HWJ_HitEffectSystem.cs`
+- `Assets/02Scripts/HWJ/Scripts/Systems/Pooling/HWJ_PoolableObject.cs`
+- `Assets/02Scripts/HWJ/Scripts/Systems/Possession/HWJ_BodyDiscoverySystem.cs`
+- `Assets/02Scripts/HWJ/Scripts/Systems/Possession/HWJ_PossessedBodySystem.cs`
+- `Assets/02Scripts/HWJ/Scripts/Systems/Possession/HWJ_PossessionBodyState.cs`
+- `Assets/02Scripts/HWJ/Scripts/Systems/Possession/HWJ_PossessionMentalSystem.cs`
+- `Assets/02Scripts/HWJ/Scripts/Systems/Possession/HWJ_PossessionSystem.cs`
+- `Assets/02Scripts/HWJ/Scripts/Systems/Runtime/HWJ_RuntimeObjectContext.cs`
+- `Assets/02Scripts/HWJ/Scripts/Systems/Skill/HWJ_SkillActionSystem.cs`
+- `Assets/02Scripts/HWJ/Scripts/Systems/Soul/HWJ_SoulSystem.cs`
+- `Assets/02Scripts/HWJ/Scripts/Systems/Status/HWJ_RuntimeStatusSystem.cs`
+- `Assets/02Scripts/HWJ/Scripts/Systems/UI/HWJ_HealthBarSystem.cs`
+- `Assets/02Scripts/hys/Animation/Editor/hys_PlayerSkillAnimationGenerator.cs`
+- `Assets/02Scripts/hys/Animation/Editor/hys_RuntimeReadyPrefabAnimationBinder.cs`
+- `Assets/02Scripts/hys/Animation/Editor/hys_SwordMonsterAnimationValidator.cs`
+- `Assets/02Scripts/hys/Animation/Editor/hys_SwordMonsterMissingMotionBuilder.cs`
+- `Assets/02Scripts/hys/Animation/Editor/hys_SwordMonsterSceneConverter.cs`
+- `Assets/02Scripts/hys/Animation/Editor/hys_SwordSceneTransferTool.cs`
+- `Assets/02Scripts/hys/Animation/hys_Ghost_Animator.cs`
+- `Assets/02Scripts/hys/Animation/hys_Player_Animator.cs`
+- `Assets/02Scripts/hys/Animation/hys_PlayerSkillEffectPlayer.cs`
+- `Assets/02Scripts/hys/Animation/hys_PlayerStateKeyboardTester.cs`
+- `Assets/02Scripts/hys/Monster/hys_MonsterAnimatorLifecycle.cs`
+- `Assets/02Scripts/hys/Player/hys_BodyCollisionProfile.cs`
+- `Assets/02Scripts/hys/Player/hys_BodyDecaySlider.cs`
+- `Assets/02Scripts/hys/Player/hys_GhostStateSupport.cs`
+- `Assets/02Scripts/hys/Player/hys_HWJPlayerStateBridge.cs`
+- `Assets/02Scripts/hys/Player/hys_LivingMonsterPossessionTest.cs`
+- `Assets/02Scripts/hys/Player/hys_Player_Attack.cs`
+- `Assets/02Scripts/hys/Player/hys_Player_Health.cs`
+- `Assets/02Scripts/hys/Player/hys_Player_Hit.cs`
+- `Assets/02Scripts/hys/Player/hys_Player_Movement.cs`
+- `Assets/02Scripts/hys/Player/hys_Player_State.cs`
+- `Assets/02Scripts/hys/Player/hys_PossessionFeetAnchor.cs`
+- `Assets/02Scripts/hys/Player/hys_PossessionPhysicsResolver.cs`
+- `Assets/02Scripts/hys/Player/hys_PossessionSceneKeeper.cs`
+- `Assets/02Scripts/hys/Player/hys_Test_SoulStateHotkey.cs`
+- `Assets/04Image/HWJ/Axe_monster.png`
+- `Assets/04Image/HWJ/Bow_monster.png`
+- `Assets/04Image/HWJ/Shield_monster.png`
+- `Assets/04Image/HWJ/Spear_monster.png`
+- `Assets/04Image/HWJ/Sword_monster.png`
+- `Assets/05Anims/hys_Enemy_Anims/Axe/Clips/hys_Enemy_Axe_axe_body_charge.anim`
+- `Assets/05Anims/hys_Enemy_Anims/Axe/Clips/hys_Enemy_Axe_axe_spin_charge.anim`
+- `Assets/05Anims/hys_Enemy_Anims/Axe/Clips/hys_Enemy_Axe_axe_swing.anim`
+- `Assets/05Anims/hys_Enemy_Anims/Axe/Clips/hys_Enemy_Axe_Death.anim`
+- `Assets/05Anims/hys_Enemy_Anims/Axe/Clips/hys_Enemy_Axe_Hit.anim`
+- `Assets/05Anims/hys_Enemy_Anims/Axe/Clips/hys_Enemy_Axe_Idle.anim`
+- `Assets/05Anims/hys_Enemy_Anims/Axe/Clips/hys_Enemy_Axe_Walk.anim`
+- `Assets/05Anims/hys_Enemy_Anims/Axe/hys_Monster_Axe.controller`
+- `Assets/05Anims/hys_Enemy_Anims/Bow/Clips/hys_Enemy_Bow_bow_air_arrow_shot.anim`
+- `Assets/05Anims/hys_Enemy_Anims/Bow/Clips/hys_Enemy_Bow_bow_low_charge_shot.anim`
+- `Assets/05Anims/hys_Enemy_Anims/Bow/Clips/hys_Enemy_Bow_bow_rapid_shot.anim`
+- `Assets/05Anims/hys_Enemy_Anims/Bow/Clips/hys_Enemy_Bow_Death.anim`
+- `Assets/05Anims/hys_Enemy_Anims/Bow/Clips/hys_Enemy_Bow_Hit.anim`
+- `Assets/05Anims/hys_Enemy_Anims/Bow/Clips/hys_Enemy_Bow_Idle.anim`
+- `Assets/05Anims/hys_Enemy_Anims/Bow/Clips/hys_Enemy_Bow_Walk.anim`
+- `Assets/05Anims/hys_Enemy_Anims/Bow/hys_Monster_Bow.controller`
+- `Assets/05Anims/hys_Enemy_Anims/Lance/Clips/hys_Enemy_Lance_Death.anim`
+- `Assets/05Anims/hys_Enemy_Anims/Lance/Clips/hys_Enemy_Lance_Hit.anim`
+- `Assets/05Anims/hys_Enemy_Anims/Lance/Clips/hys_Enemy_Lance_Idle.anim`
+- `Assets/05Anims/hys_Enemy_Anims/Lance/Clips/hys_Enemy_Lance_lance_charge_thrust.anim`
+- `Assets/05Anims/hys_Enemy_Anims/Lance/Clips/hys_Enemy_Lance_lance_finisher_thrust.anim`
+- `Assets/05Anims/hys_Enemy_Anims/Lance/Clips/hys_Enemy_Lance_lance_thrust_combo.anim`
+- `Assets/05Anims/hys_Enemy_Anims/Lance/Clips/hys_Enemy_Lance_Walk.anim`
+- `Assets/05Anims/hys_Enemy_Anims/Lance/hys_Monster_Lance.controller`
+- `Assets/05Anims/hys_Enemy_Anims/Shield/Clips/hys_Enemy_Shield_Death.anim`
+- `Assets/05Anims/hys_Enemy_Anims/Shield/Clips/hys_Enemy_Shield_Hit.anim`
+- `Assets/05Anims/hys_Enemy_Anims/Shield/Clips/hys_Enemy_Shield_Idle.anim`
+- `Assets/05Anims/hys_Enemy_Anims/Shield/Clips/hys_Enemy_Shield_shield_charge.anim`
+- `Assets/05Anims/hys_Enemy_Anims/Shield/Clips/hys_Enemy_Shield_shield_diagonal_knockback.anim`
+- `Assets/05Anims/hys_Enemy_Anims/Shield/Clips/hys_Enemy_Shield_shield_slam.anim`
+- `Assets/05Anims/hys_Enemy_Anims/Shield/Clips/hys_Enemy_Shield_Walk.anim`
+- `Assets/05Anims/hys_Enemy_Anims/Shield/hys_Monster_Shield.controller`
+- `Assets/05Anims/hys_Enemy_Anims/Sword/Clips/hys_Enemy_Sword_Death.anim`
+- `Assets/05Anims/hys_Enemy_Anims/Sword/Clips/hys_Enemy_Sword_Hit.anim`
+- `Assets/05Anims/hys_Enemy_Anims/Sword/Clips/hys_Enemy_Sword_Idle.anim`
+- `Assets/05Anims/hys_Enemy_Anims/Sword/Clips/hys_Enemy_Sword_sword_diagonal_slash.anim`
+- `Assets/05Anims/hys_Enemy_Anims/Sword/Clips/hys_Enemy_Sword_sword_up_diagonal_slash.anim`
+- `Assets/05Anims/hys_Enemy_Anims/Sword/Clips/hys_Enemy_Sword_sword_wave.anim`
+- `Assets/05Anims/hys_Enemy_Anims/Sword/Clips/hys_Enemy_Sword_Walk.anim`
+- `Assets/05Anims/hys_Enemy_Anims/Sword/Clips/MissingMotions/hys_Enemy_Sword_Dash.anim`
+- `Assets/05Anims/hys_Enemy_Anims/Sword/Clips/MissingMotions/hys_Enemy_Sword_Jump_Apex.anim`
+- `Assets/05Anims/hys_Enemy_Anims/Sword/Clips/MissingMotions/hys_Enemy_Sword_Jump_Fall.anim`
+- `Assets/05Anims/hys_Enemy_Anims/Sword/Clips/MissingMotions/hys_Enemy_Sword_Jump_Rise.anim`
+- `Assets/05Anims/hys_Enemy_Anims/Sword/Clips/MissingMotions/hys_Enemy_Sword_Jump_Start.anim`
+- `Assets/05Anims/hys_Enemy_Anims/Sword/Clips/MissingMotions/hys_Enemy_Sword_Landing.anim`
+- `Assets/05Anims/hys_Enemy_Anims/Sword/hys_Monster_Sword.controller`
+- `Assets/05Anims/hys_Enemy_Anims/Sword/Sprites/Dash/hys_SwordMonster_Dash_00.png`
+- `Assets/05Anims/hys_Enemy_Anims/Sword/Sprites/Dash/hys_SwordMonster_Dash_01.png`
+- `Assets/05Anims/hys_Enemy_Anims/Sword/Sprites/Dash/hys_SwordMonster_Dash_02.png`
+- `Assets/05Anims/hys_Enemy_Anims/Sword/Sprites/Dash/hys_SwordMonster_Dash_03.png`
+- `Assets/05Anims/hys_Enemy_Anims/Sword/Sprites/Dash/hys_SwordMonster_Dash_04.png`
+- `Assets/05Anims/hys_Enemy_Anims/Sword/Sprites/Dash/hys_SwordMonster_Dash_05.png`
+- `Assets/05Anims/hys_Enemy_Anims/Sword/Sprites/Jump_Apex/hys_SwordMonster_Jump_Apex_00.png`
+- `Assets/05Anims/hys_Enemy_Anims/Sword/Sprites/Jump_Apex/hys_SwordMonster_Jump_Apex_01.png`
+- `Assets/05Anims/hys_Enemy_Anims/Sword/Sprites/Jump_Apex/hys_SwordMonster_Jump_Apex_02.png`
+- `Assets/05Anims/hys_Enemy_Anims/Sword/Sprites/Jump_Fall/hys_SwordMonster_Jump_Fall_00.png`
+- `Assets/05Anims/hys_Enemy_Anims/Sword/Sprites/Jump_Fall/hys_SwordMonster_Jump_Fall_01.png`
+- `Assets/05Anims/hys_Enemy_Anims/Sword/Sprites/Jump_Fall/hys_SwordMonster_Jump_Fall_02.png`
+- `Assets/05Anims/hys_Enemy_Anims/Sword/Sprites/Jump_Rise/hys_SwordMonster_Jump_Rise_00.png`
+- `Assets/05Anims/hys_Enemy_Anims/Sword/Sprites/Jump_Rise/hys_SwordMonster_Jump_Rise_01.png`
+- `Assets/05Anims/hys_Enemy_Anims/Sword/Sprites/Jump_Rise/hys_SwordMonster_Jump_Rise_02.png`
+- `Assets/05Anims/hys_Enemy_Anims/Sword/Sprites/Jump_Start/hys_SwordMonster_Jump_Start_00.png`
+- `Assets/05Anims/hys_Enemy_Anims/Sword/Sprites/Jump_Start/hys_SwordMonster_Jump_Start_01.png`
+- `Assets/05Anims/hys_Enemy_Anims/Sword/Sprites/Jump_Start/hys_SwordMonster_Jump_Start_02.png`
+- `Assets/05Anims/hys_Enemy_Anims/Sword/Sprites/Landing/hys_SwordMonster_Landing_00.png`
+- `Assets/05Anims/hys_Enemy_Anims/Sword/Sprites/Landing/hys_SwordMonster_Landing_01.png`
+- `Assets/05Anims/hys_Enemy_Anims/Sword/Sprites/Landing/hys_SwordMonster_Landing_02.png`
+- `Assets/05Anims/hys_Enemy_Anims/Sword/Sprites/Landing/hys_SwordMonster_Landing_03.png`
+- `Assets/05Anims/hys_Enemy_Anims/Sword/Sprites/Pattern3_SwordWave/hys_SwordMonster_Pattern3_SwordWave_00.png`
+- `Assets/05Anims/hys_Enemy_Anims/Sword/Sprites/Pattern3_SwordWave/hys_SwordMonster_Pattern3_SwordWave_01.png`
+- `Assets/05Anims/hys_Enemy_Anims/Sword/Sprites/Pattern3_SwordWave/hys_SwordMonster_Pattern3_SwordWave_02.png`
+- `Assets/05Anims/hys_Enemy_Anims/Sword/Sprites/Pattern3_SwordWave/hys_SwordMonster_Pattern3_SwordWave_03.png`
+- `Assets/05Anims/hys_Enemy_Anims/Sword/Sprites/Pattern3_SwordWave/hys_SwordMonster_Pattern3_SwordWave_04.png`
+- `Assets/05Anims/hys_Enemy_Anims/Sword/Sprites/Pattern3_SwordWave/hys_SwordMonster_Pattern3_SwordWave_05.png`
+- `Assets/05Anims/hys_Enemy_Anims/Sword/Sprites/Pattern3_SwordWave/hys_SwordMonster_Pattern3_SwordWave_06.png`
+- `Assets/05Anims/hys_Enemy_Anims/Sword/Sprites/Pattern3_SwordWave/hys_SwordMonster_Pattern3_SwordWave_07.png`
+- `Assets/05Anims/hys_Enemy_Anims/Sword/Sprites/Walk_HandDrawn/hys_SwordMonster_Walk_HandDrawn_00.png`
+- `Assets/05Anims/hys_Enemy_Anims/Sword/Sprites/Walk_HandDrawn/hys_SwordMonster_Walk_HandDrawn_01.png`
+- `Assets/05Anims/hys_Enemy_Anims/Sword/Sprites/Walk_HandDrawn/hys_SwordMonster_Walk_HandDrawn_02.png`
+- `Assets/05Anims/hys_Enemy_Anims/Sword/Sprites/Walk_HandDrawn/hys_SwordMonster_Walk_HandDrawn_03.png`
+- `Assets/05Anims/hys_Enemy_Anims/Sword/Sprites/Walk_HandDrawn/hys_SwordMonster_Walk_HandDrawn_04.png`
+- `Assets/05Anims/hys_Enemy_Anims/Sword/Sprites/Walk_HandDrawn/hys_SwordMonster_Walk_HandDrawn_05.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Clips/hys_Ghost_Possession_Axe.anim`
+- `Assets/05Anims/hys_Player_Anims/Axe/Clips/hys_Player_Axe_Attack1.anim`
+- `Assets/05Anims/hys_Player_Anims/Axe/Clips/hys_Player_Axe_Attack2.anim`
+- `Assets/05Anims/hys_Player_Anims/Axe/Clips/hys_Player_Axe_Dash.anim`
+- `Assets/05Anims/hys_Player_Anims/Axe/Clips/hys_Player_Axe_Die.anim`
+- `Assets/05Anims/hys_Player_Anims/Axe/Clips/hys_Player_Axe_Hit.anim`
+- `Assets/05Anims/hys_Player_Anims/Axe/Clips/hys_Player_Axe_Idle.anim`
+- `Assets/05Anims/hys_Player_Anims/Axe/Clips/hys_Player_Axe_JumpApex.anim`
+- `Assets/05Anims/hys_Player_Anims/Axe/Clips/hys_Player_Axe_JumpFall.anim`
+- `Assets/05Anims/hys_Player_Anims/Axe/Clips/hys_Player_Axe_JumpStart.anim`
+- `Assets/05Anims/hys_Player_Anims/Axe/Clips/hys_Player_Axe_PlungeFall.anim`
+- `Assets/05Anims/hys_Player_Anims/Axe/Clips/hys_Player_Axe_PlungeLand.anim`
+- `Assets/05Anims/hys_Player_Anims/Axe/Clips/hys_Player_Axe_PlungeStart.anim`
+- `Assets/05Anims/hys_Player_Anims/Axe/Clips/hys_Player_Axe_Run.anim`
+- `Assets/05Anims/hys_Player_Anims/Axe/Clips/hys_Player_Axe_Soul.anim`
+- `Assets/05Anims/hys_Player_Anims/Axe/Clips/hys_Player_Axe_SoulReturn.anim`
+- `Assets/05Anims/hys_Player_Anims/Axe/hys_Player_Axe.controller`
+- `Assets/05Anims/hys_Player_Anims/Axe/Skills/hys_Player_Axe_EarthBreaker.anim`
+- `Assets/05Anims/hys_Player_Anims/Axe/Skills/hys_Player_Axe_FlameSlash.anim`
+- `Assets/05Anims/hys_Player_Anims/Axe/Skills/hys_Player_Axe_SlashAxe.anim`
+- `Assets/05Anims/hys_Player_Anims/Axe/Skills/hys_Player_Axe_Whirlwind.anim`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Attack1_00.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Attack1_01.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Attack1_02.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Attack1_03.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Attack1_04.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Attack2_00.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Attack2_01.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Attack2_02.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Attack2_03.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Attack2_04.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Dash_00.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Dash_01.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Dash_02.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Dash_03.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Dash_04.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Die_00.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Die_01.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Die_02.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Die_03.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Die_04.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Die_05.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Die_06.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Die_07.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Die_08.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Die_09.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Die_10.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Hit_00.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Hit_01.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Hit_02.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Hit_03.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Idle_00.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Idle_01.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Idle_02.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Idle_03.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Idle_04.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Idle_05.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_JumpApex_00.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_JumpApex_01.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_JumpApex_02.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_JumpFall_00.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_JumpFall_01.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_JumpFall_02.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_JumpStart_00.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_JumpStart_01.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_JumpStart_02.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_PlungeFall_00.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_PlungeFall_01.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_PlungeFall_02.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_PlungeLand_00.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_PlungeLand_01.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_PlungeLand_02.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_PlungeLand_03.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_PlungeStart_00.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_PlungeStart_01.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_PlungeStart_02.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Possession_00.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Possession_01.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Possession_02.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Possession_03.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Possession_04.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Possession_05.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Possession_06.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Possession_07.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Run_00.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Run_01.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Run_02.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Run_03.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Run_04.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Run_05.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Run_06.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Run_07.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Soul_00.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Soul_01.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Soul_02.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Soul_03.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Soul_04.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Soul_05.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Soul_06.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Soul_07.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_SoulReturn_00.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_SoulReturn_01.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_SoulReturn_02.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_SoulReturn_03.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_SoulReturn_04.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_SoulReturn_05.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_SoulReturn_06.png`
+- `Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_SoulReturn_07.png`
+- `Assets/05Anims/hys_Player_Anims/Bow/Clips/hys_Ghost_Possession_Bow_Bishop.anim`
+- `Assets/05Anims/hys_Player_Anims/Bow/Clips/hys_Player_Bow_Attack1.anim`
+- `Assets/05Anims/hys_Player_Anims/Bow/Clips/hys_Player_Bow_Attack2.anim`
+- `Assets/05Anims/hys_Player_Anims/Bow/Clips/hys_Player_Bow_Bishop_Attack1.anim`
+- `Assets/05Anims/hys_Player_Anims/Bow/Clips/hys_Player_Bow_Bishop_Attack2.anim`
+- `Assets/05Anims/hys_Player_Anims/Bow/Clips/hys_Player_Bow_Bishop_Dash.anim`
+- `Assets/05Anims/hys_Player_Anims/Bow/Clips/hys_Player_Bow_Bishop_Die.anim`
+- `Assets/05Anims/hys_Player_Anims/Bow/Clips/hys_Player_Bow_Bishop_Hit.anim`
+- `Assets/05Anims/hys_Player_Anims/Bow/Clips/hys_Player_Bow_Bishop_Idle.anim`
+- `Assets/05Anims/hys_Player_Anims/Bow/Clips/hys_Player_Bow_Bishop_JumpApex.anim`
+- `Assets/05Anims/hys_Player_Anims/Bow/Clips/hys_Player_Bow_Bishop_JumpFall.anim`
+- `Assets/05Anims/hys_Player_Anims/Bow/Clips/hys_Player_Bow_Bishop_JumpStart.anim`
+- `Assets/05Anims/hys_Player_Anims/Bow/Clips/hys_Player_Bow_Bishop_Run.anim`
+- `Assets/05Anims/hys_Player_Anims/Bow/Clips/hys_Player_Bow_Bishop_Soul.anim`
+- `Assets/05Anims/hys_Player_Anims/Bow/Clips/hys_Player_Bow_Dash.anim`
+- `Assets/05Anims/hys_Player_Anims/Bow/Clips/hys_Player_Bow_Die.anim`
+- `Assets/05Anims/hys_Player_Anims/Bow/Clips/hys_Player_Bow_Hit.anim`
+- `Assets/05Anims/hys_Player_Anims/Bow/Clips/hys_Player_Bow_Idle.anim`
+- `Assets/05Anims/hys_Player_Anims/Bow/Clips/hys_Player_Bow_JumpApex.anim`
+- `Assets/05Anims/hys_Player_Anims/Bow/Clips/hys_Player_Bow_JumpFall.anim`
+- `Assets/05Anims/hys_Player_Anims/Bow/Clips/hys_Player_Bow_JumpStart.anim`
+- `Assets/05Anims/hys_Player_Anims/Bow/Clips/hys_Player_Bow_Run.anim`
+- `Assets/05Anims/hys_Player_Anims/Bow/Clips/hys_Player_Bow_Soul.anim`
+- `Assets/05Anims/hys_Player_Anims/Bow/hys_Player_Bow.controller`
+- `Assets/05Anims/hys_Player_Anims/Bow/Skills/hys_Player_Bow_ArrowsRain.anim`
+- `Assets/05Anims/hys_Player_Anims/Bow/Skills/hys_Player_Bow_EvasionTriple.anim`
+- `Assets/05Anims/hys_Player_Anims/Bow/Skills/hys_Player_Bow_GrandPierce.anim`
+- `Assets/05Anims/hys_Player_Anims/Bow/Skills/hys_Player_Bow_PentaStrike.anim`
+- `Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_Attack1_00.png`
+- `Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_Attack1_01.png`
+- `Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_Attack1_02.png`
+- `Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_Attack1_03.png`
+- `Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_Attack1_04.png`
+- `Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_Attack1_05.png`
+- `Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_Attack2_00.png`
+- `Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_Attack2_01.png`
+- `Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_Attack2_02.png`
+- `Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_Attack2_03.png`
+- `Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_Attack2_04.png`
+- `Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_Attack2_05.png`
+- `Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_Dash_00.png`
+- `Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_Dash_01.png`
+- `Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_Dash_02.png`
+- `Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_Dash_03.png`
+- `Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_Dash_04.png`
+- `Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_Dash_05.png`
+- `Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_Die_00.png`
+- `Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_Die_01.png`
+- `Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_Die_02.png`
+- `Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_Die_03.png`
+- `Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_Die_04.png`
+- `Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_Die_05.png`
+- `Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_Die_06.png`
+- `Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_Die_07.png`
+- `Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_Hit_00.png`
+- `Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_Hit_01.png`
+- `Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_Hit_02.png`
+- `Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_Hit_03.png`
+- `Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_Idle_00.png`
+- `Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_Idle_01.png`
+- `Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_Idle_02.png`
+- `Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_Idle_03.png`
+- `Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_Idle_04.png`
+- `Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_JumpApex_00.png`
+- `Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_JumpApex_01.png`
+- `Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_JumpApex_02.png`
+- `Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_JumpFall_00.png`
+- `Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_JumpFall_01.png`
+- `Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_JumpFall_02.png`
+- `Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_JumpStart_00.png`
+- `Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_JumpStart_01.png`
+- `Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_JumpStart_02.png`
+- `Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_Run_00.png`
+- `Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_Run_01.png`
+- `Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_Run_02.png`
+- `Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_Run_03.png`
+- `Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_Run_04.png`
+- `Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_Run_05.png`
+- `Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_Run_06.png`
+- `Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_Run_07.png`
+- `Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_SoulExit_00.png`
+- `Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_SoulExit_01.png`
+- `Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_SoulExit_02.png`
+- `Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_SoulExit_03.png`
+- `Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_SoulExit_04.png`
+- `Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_SoulExit_05.png`
+- `Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_SoulExit_06.png`
+- `Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_SoulExit_07.png`
+- `Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_SoulReturn_00.png`
+- `Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_SoulReturn_01.png`
+- `Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_SoulReturn_02.png`
+- `Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_SoulReturn_03.png`
+- `Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_SoulReturn_04.png`
+- `Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_SoulReturn_05.png`
+- `Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_SoulReturn_06.png`
+- `Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_SoulReturn_07.png`
+- `Assets/05Anims/hys_Player_Anims/Lance/Clips/hys_Ghost_Possession_Lance.anim`
+- `Assets/05Anims/hys_Player_Anims/Lance/Clips/hys_Player_Lance_Attack1.anim`
+- `Assets/05Anims/hys_Player_Anims/Lance/Clips/hys_Player_Lance_Attack2.anim`
+- `Assets/05Anims/hys_Player_Anims/Lance/Clips/hys_Player_Lance_Dash.anim`
+- `Assets/05Anims/hys_Player_Anims/Lance/Clips/hys_Player_Lance_Die.anim`
+- `Assets/05Anims/hys_Player_Anims/Lance/Clips/hys_Player_Lance_Hit.anim`
+- `Assets/05Anims/hys_Player_Anims/Lance/Clips/hys_Player_Lance_Idle.anim`
+- `Assets/05Anims/hys_Player_Anims/Lance/Clips/hys_Player_Lance_JumpApex.anim`
+- `Assets/05Anims/hys_Player_Anims/Lance/Clips/hys_Player_Lance_JumpFall.anim`
+- `Assets/05Anims/hys_Player_Anims/Lance/Clips/hys_Player_Lance_JumpStart.anim`
+- `Assets/05Anims/hys_Player_Anims/Lance/Clips/hys_Player_Lance_Run.anim`
+- `Assets/05Anims/hys_Player_Anims/Lance/Clips/hys_Player_Lance_Soul.anim`
+- `Assets/05Anims/hys_Player_Anims/Lance/hys_Player_Lance.controller`
+- `Assets/05Anims/hys_Player_Anims/Lance/Skills/hys_Player_Lance_BurstLance.anim`
+- `Assets/05Anims/hys_Player_Anims/Lance/Skills/hys_Player_Lance_PiercingDrive.anim`
+- `Assets/05Anims/hys_Player_Anims/Lance/Skills/hys_Player_Lance_RapidStinger.anim`
+- `Assets/05Anims/hys_Player_Anims/Lance/Skills/hys_Player_Lance_RisingSpear.anim`
+- `Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Attack1_00.png`
+- `Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Attack1_01.png`
+- `Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Attack1_02.png`
+- `Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Attack1_03.png`
+- `Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Attack1_04.png`
+- `Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Attack1_05.png`
+- `Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Attack2_00.png`
+- `Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Attack2_01.png`
+- `Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Attack2_02.png`
+- `Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Attack2_03.png`
+- `Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Attack2_04.png`
+- `Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Attack2_05.png`
+- `Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Dash_00.png`
+- `Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Dash_01.png`
+- `Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Dash_02.png`
+- `Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Dash_03.png`
+- `Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Dash_04.png`
+- `Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Dash_05.png`
+- `Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Die_00.png`
+- `Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Die_01.png`
+- `Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Die_02.png`
+- `Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Die_03.png`
+- `Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Die_04.png`
+- `Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Die_05.png`
+- `Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Die_06.png`
+- `Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Die_07.png`
+- `Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Hit_00.png`
+- `Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Hit_01.png`
+- `Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Hit_02.png`
+- `Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Hit_03.png`
+- `Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Idle_00.png`
+- `Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Idle_01.png`
+- `Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Idle_02.png`
+- `Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Idle_03.png`
+- `Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Idle_04.png`
+- `Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_JumpApex_00.png`
+- `Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_JumpApex_01.png`
+- `Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_JumpApex_02.png`
+- `Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_JumpFall_00.png`
+- `Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_JumpFall_01.png`
+- `Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_JumpFall_02.png`
+- `Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_JumpStart_00.png`
+- `Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_JumpStart_01.png`
+- `Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_JumpStart_02.png`
+- `Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Run_00.png`
+- `Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Run_01.png`
+- `Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Run_02.png`
+- `Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Run_03.png`
+- `Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Run_04.png`
+- `Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Run_05.png`
+- `Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Run_06.png`
+- `Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Run_07.png`
+- `Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_SoulExit_00.png`
+- `Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_SoulExit_01.png`
+- `Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_SoulExit_02.png`
+- `Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_SoulExit_03.png`
+- `Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_SoulExit_04.png`
+- `Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_SoulExit_05.png`
+- `Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_SoulExit_06.png`
+- `Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_SoulExit_07.png`
+- `Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_SoulReturn_00.png`
+- `Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_SoulReturn_01.png`
+- `Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_SoulReturn_02.png`
+- `Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_SoulReturn_03.png`
+- `Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_SoulReturn_04.png`
+- `Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_SoulReturn_05.png`
+- `Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_SoulReturn_06.png`
+- `Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_SoulReturn_07.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Clips/hys_Ghost_Possession_Shield.anim`
+- `Assets/05Anims/hys_Player_Anims/Shield/Clips/hys_Player_Shield_Attack1.anim`
+- `Assets/05Anims/hys_Player_Anims/Shield/Clips/hys_Player_Shield_Attack2.anim`
+- `Assets/05Anims/hys_Player_Anims/Shield/Clips/hys_Player_Shield_Dash.anim`
+- `Assets/05Anims/hys_Player_Anims/Shield/Clips/hys_Player_Shield_Die.anim`
+- `Assets/05Anims/hys_Player_Anims/Shield/Clips/hys_Player_Shield_Hit.anim`
+- `Assets/05Anims/hys_Player_Anims/Shield/Clips/hys_Player_Shield_Idle.anim`
+- `Assets/05Anims/hys_Player_Anims/Shield/Clips/hys_Player_Shield_JumpApex.anim`
+- `Assets/05Anims/hys_Player_Anims/Shield/Clips/hys_Player_Shield_JumpFall.anim`
+- `Assets/05Anims/hys_Player_Anims/Shield/Clips/hys_Player_Shield_JumpStart.anim`
+- `Assets/05Anims/hys_Player_Anims/Shield/Clips/hys_Player_Shield_PlungeFall.anim`
+- `Assets/05Anims/hys_Player_Anims/Shield/Clips/hys_Player_Shield_PlungeLand.anim`
+- `Assets/05Anims/hys_Player_Anims/Shield/Clips/hys_Player_Shield_PlungeStart.anim`
+- `Assets/05Anims/hys_Player_Anims/Shield/Clips/hys_Player_Shield_Run.anim`
+- `Assets/05Anims/hys_Player_Anims/Shield/Clips/hys_Player_Shield_Soul.anim`
+- `Assets/05Anims/hys_Player_Anims/Shield/hys_Player_Shield.controller`
+- `Assets/05Anims/hys_Player_Anims/Shield/Skills/hys_Player_Shield_DarkBarrier.anim`
+- `Assets/05Anims/hys_Player_Anims/Shield/Skills/hys_Player_Shield_GroundQuake.anim`
+- `Assets/05Anims/hys_Player_Anims/Shield/Skills/hys_Player_Shield_GroundStrike.anim`
+- `Assets/05Anims/hys_Player_Anims/Shield/Skills/hys_Player_Shield_ShieldSlam.anim`
+- `Assets/05Anims/hys_Player_Anims/Shield/Source/hys_RedRook_Movement_Source.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Source/hys_RedRook_Movement_Transparent.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Source/hys_RedRook_Plunge_Source.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Source/hys_RedRook_Plunge_Transparent.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Source/hys_RedRook_Soul_Source.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Source/hys_RedRook_Soul_Transparent.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_Attack_00.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_Attack_01.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_Attack_02.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_Attack_03.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_Attack_04.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_Attack_05.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_Dash_00.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_Dash_01.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_Dash_02.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_Dash_03.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_Dash_04.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_Dash_05.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_Die_00.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_Die_01.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_Die_02.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_Die_03.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_Die_04.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_Die_05.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_Hit_00.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_Hit_01.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_Hit_02.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_Idle_00.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_Idle_01.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_Idle_02.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_Idle_03.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_JumpApex_00.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_JumpApex_01.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_JumpFall_00.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_JumpFall_01.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_JumpFall_02.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_JumpStart_00.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_JumpStart_01.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_JumpStart_02.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_Movement_Preview.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_Plunge_Preview.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_PlungeFall_00.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_PlungeFall_01.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_PlungeFall_02.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_PlungeLand_00.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_PlungeLand_01.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_PlungeLand_02.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_PlungeLand_03.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_PlungeStart_00.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_PlungeStart_01.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_PlungeStart_02.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_Run_00.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_Run_01.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_Run_02.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_Run_03.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_Run_04.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_Run_05.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_Soul_Preview.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_SoulExit_00.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_SoulExit_01.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_SoulExit_02.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_SoulExit_03.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_SoulExit_04.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_SoulExit_05.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_SoulExit_06.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_SoulExit_07.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_SoulReturn_00.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_SoulReturn_01.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_SoulReturn_02.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_SoulReturn_03.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_SoulReturn_04.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_SoulReturn_05.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_SoulReturn_06.png`
+- `Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_SoulReturn_07.png`
+- `Assets/05Anims/hys_Player_Anims/Sword/Reference/hys_RedQueen_Attack1_Approved_Source.png`
+- `Assets/05Anims/hys_Player_Anims/Sword/Reference/hys_RedQueen_Attack1_Approved_Transparent.png`
+- `Assets/05Anims/hys_Player_Anims/Sword/Reference/hys_RedQueen_ForwardAttack1_Source.png`
+- `Assets/05Anims/hys_Player_Anims/Sword/Reference/hys_RedQueen_ForwardAttack1_Transparent.png`
+- `Assets/05Anims/hys_Player_Anims/Sword/Reference/hys_RedQueen_ForwardAttack2_Source.png`
+- `Assets/05Anims/hys_Player_Anims/Sword/Reference/hys_RedQueen_ForwardAttack2_Transparent.png`
+- `Assets/05Anims/hys_Player_Anims/Sword/Reference/hys_RedQueen_ForwardAttack_Energy_Source.png`
+- `Assets/05Anims/hys_Player_Anims/Sword/Reference/hys_RedQueen_ForwardAttack_Energy_Transparent.png`
+- `Assets/05Anims/hys_Player_Anims/Sword/Reference/hys_Sword_Player_CurrentSpriteSheet.png`
+- `Assets/05Anims/hys_Player_Anims/Sword/Skills/hys_Player_Sword_DashSlash.anim`
+- `Assets/05Anims/hys_Player_Anims/Sword/Skills/hys_Player_Sword_FinalSlash.anim`
+- `Assets/05Anims/hys_Player_Anims/Sword/Skills/hys_Player_Sword_ForceSlash.anim`
+- `Assets/05Anims/hys_Player_Anims/Sword/Skills/hys_Player_Sword_ReapSlash.anim`
+- `Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_Dash_00.png`
+- `Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_Dash_01.png`
+- `Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_Dash_02.png`
+- `Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_Dash_03.png`
+- `Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_Dash_04.png`
+- `Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_Dash_05.png`
+- `Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_Dash_06.png`
+- `Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_Dash_07.png`
+- `Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_ForwardAttack1_00.png`
+- `Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_ForwardAttack1_01.png`
+- `Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_ForwardAttack1_02.png`
+- `Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_ForwardAttack1_03.png`
+- `Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_ForwardAttack1_04.png`
+- `Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_ForwardAttack1_05.png`
+- `Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_ForwardAttack1_06.png`
+- `Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_ForwardAttack1_07.png`
+- `Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_ForwardAttack2_00.png`
+- `Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_ForwardAttack2_01.png`
+- `Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_ForwardAttack2_02.png`
+- `Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_ForwardAttack2_03.png`
+- `Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_ForwardAttack2_04.png`
+- `Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_ForwardAttack2_05.png`
+- `Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_ForwardAttack2_06.png`
+- `Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_ForwardAttack2_07.png`
+- `Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_JumpApex_00.png`
+- `Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_JumpApex_01.png`
+- `Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_JumpFall_00.png`
+- `Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_JumpFall_01.png`
+- `Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_JumpFall_02.png`
+- `Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_JumpStart_00.png`
+- `Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_JumpStart_01.png`
+- `Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_JumpStart_02.png`
+- `Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_Run_00.png`
+- `Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_Run_01.png`
+- `Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_Run_02.png`
+- `Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_Run_03.png`
+- `Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_Run_04.png`
+- `Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_Run_05.png`
+- `Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_SoulExit_00.png`
+- `Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_SoulExit_01.png`
+- `Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_SoulExit_02.png`
+- `Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_SoulExit_03.png`
+- `Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_SoulExit_04.png`
+- `Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_SoulReturn_00.png`
+- `Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_SoulReturn_01.png`
+- `Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_SoulReturn_02.png`
+- `Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_SoulReturn_03.png`
+- `Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_SoulReturn_04.png`
+- `Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_SoulReturn_05.png`
+- `Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_SoulReturn_06.png`
+- `Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_SoulReturn_07.png`
+- `Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_SoulReturn_08.png`
+- `Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_SoulReturn_09.png`
+- `Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_SoulReturn_10.png`
+- `Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_SoulReturn_11.png`
+- `Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_SoulReturn_12.png`
+- `Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_SoulReturn_13.png`
+- `Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_SoulReturn_14.png`
+- `Assets/05Anims/Player_Anims/hys_Player_Sword.controller`
+- `Assets/05Anims/Player_Anims/hys_Sword_Attack1.anim`
+- `Assets/05Anims/Player_Anims/hys_Sword_Attack2.anim`
+- `Assets/05Anims/Player_Anims/hys_Sword_Dash.anim`
+- `Assets/05Anims/Player_Anims/hys_Sword_Die.anim`
+- `Assets/05Anims/Player_Anims/hys_Sword_Hit.anim`
+- `Assets/05Anims/Player_Anims/hys_Sword_Idle.anim`
+- `Assets/05Anims/Player_Anims/hys_Sword_Jump_Apex.anim`
+- `Assets/05Anims/Player_Anims/hys_Sword_Jump_Fall.anim`
+- `Assets/05Anims/Player_Anims/hys_Sword_Jump_Start.anim`
+- `Assets/05Anims/Player_Anims/hys_Sword_Run.anim`
+- `Assets/05Anims/Player_Anims/hys_Sword_Soul.anim`
+- `Assets/05Anims/Soul_Anims/hys_Ghost_Animation.controller`
+- `Assets/05Anims/Soul_Anims/hys_Ghost_Appear.anim`
+- `Assets/05Anims/Soul_Anims/hys_Ghost_Die.anim`
+- `Assets/05Anims/Soul_Anims/hys_Ghost_possession.anim`
+- `Assets/05Anims/Soul_Anims/hys_Ghost_Standing.anim`
+- `Assets/05Anims/Soul_Anims/hys_Ghost_Walk.anim`
+- `Assets/05Anims/Soul_Anims/hys_Ghost_WalkEnd.anim`
+- `Assets/05Anims/Soul_Anims/hys_Ghost_Walking.anim`
+- `Assets/06Sprites/Bow_monster.png`
+- `Assets/06Sprites/hys_Ghost_Matte/hys_Ghost_Matte_Appear.png`
+- `Assets/06Sprites/hys_Ghost_Matte/hys_Ghost_Matte_Standing.png`
+- `Assets/06Sprites/hys_Ghost_Matte/hys_Ghost_Matte_Walk.png`
+- `Assets/Pixel art Chess Knights pack/01_pawn/Blue_Pawn/B_pawn_idle00.png`
+- `Assets/Pixel art Chess Knights pack/01_pawn/RED_pawn/R_pawn_atk00.png`
+- `Assets/Pixel art Chess Knights pack/01_pawn/RED_pawn/R_pawn_atk01.png`
+- `Assets/Pixel art Chess Knights pack/01_pawn/RED_pawn/R_pawn_atk02.png`
+- `Assets/Pixel art Chess Knights pack/01_pawn/RED_pawn/R_pawn_atk03.png`
+- `Assets/Pixel art Chess Knights pack/01_pawn/RED_pawn/R_pawn_atk04.png`
+- `Assets/Pixel art Chess Knights pack/01_pawn/RED_pawn/R_pawn_die00.png`
+- `Assets/Pixel art Chess Knights pack/01_pawn/RED_pawn/R_pawn_die01.png`
+- `Assets/Pixel art Chess Knights pack/01_pawn/RED_pawn/R_pawn_die02.png`
+- `Assets/Pixel art Chess Knights pack/01_pawn/RED_pawn/R_pawn_die03.png`
+- `Assets/Pixel art Chess Knights pack/01_pawn/RED_pawn/R_pawn_die04.png`
+- `Assets/Pixel art Chess Knights pack/01_pawn/RED_pawn/R_pawn_die05.png`
+- `Assets/Pixel art Chess Knights pack/01_pawn/RED_pawn/R_pawn_die06.png`
+- `Assets/Pixel art Chess Knights pack/01_pawn/RED_pawn/R_pawn_die07.png`
+- `Assets/Pixel art Chess Knights pack/01_pawn/RED_pawn/R_pawn_idle00.png`
+- `Assets/Pixel art Chess Knights pack/01_pawn/RED_pawn/R_pawn_idle01.png`
+- `Assets/Pixel art Chess Knights pack/01_pawn/RED_pawn/R_pawn_idle02.png`
+- `Assets/Pixel art Chess Knights pack/01_pawn/RED_pawn/R_pawn_idle03.png`
+- `Assets/Pixel art Chess Knights pack/01_pawn/RED_pawn/R_pawn_idle04.png`
+- `Assets/Pixel art Chess Knights pack/01_pawn/RED_pawn/R_pawn_idle05.png`
+- `Assets/Pixel art Chess Knights pack/02_rook/Blue_rook/B_rook_idle00.png`
+- `Assets/Pixel art Chess Knights pack/02_rook/Red_rook/R_rook_atk00.png`
+- `Assets/Pixel art Chess Knights pack/02_rook/Red_rook/R_rook_atk01.png`
+- `Assets/Pixel art Chess Knights pack/02_rook/Red_rook/R_rook_atk02.png`
+- `Assets/Pixel art Chess Knights pack/02_rook/Red_rook/R_rook_atk03.png`
+- `Assets/Pixel art Chess Knights pack/02_rook/Red_rook/R_rook_atk04.png`
+- `Assets/Pixel art Chess Knights pack/02_rook/Red_rook/R_rook_atk05.png`
+- `Assets/Pixel art Chess Knights pack/02_rook/Red_rook/R_rook_die00.png`
+- `Assets/Pixel art Chess Knights pack/02_rook/Red_rook/R_rook_die01.png`
+- `Assets/Pixel art Chess Knights pack/02_rook/Red_rook/R_rook_die02.png`
+- `Assets/Pixel art Chess Knights pack/02_rook/Red_rook/R_rook_die03.png`
+- `Assets/Pixel art Chess Knights pack/02_rook/Red_rook/R_rook_die04.png`
+- `Assets/Pixel art Chess Knights pack/02_rook/Red_rook/R_rook_die05.png`
+- `Assets/Pixel art Chess Knights pack/02_rook/Red_rook/R_rook_idle00.png`
+- `Assets/Pixel art Chess Knights pack/02_rook/Red_rook/R_rook_idle01.png`
+- `Assets/Pixel art Chess Knights pack/02_rook/Red_rook/R_rook_idle02.png`
+- `Assets/Pixel art Chess Knights pack/02_rook/Red_rook/R_rook_idle03.png`
+- `Assets/Pixel art Chess Knights pack/03_Knight/Blue_Knight/B_Knight_idle00.png`
+- `Assets/Pixel art Chess Knights pack/03_Knight/Red_Knight/R_Knight_atk00.png`
+- `Assets/Pixel art Chess Knights pack/03_Knight/Red_Knight/R_Knight_atk01.png`
+- `Assets/Pixel art Chess Knights pack/03_Knight/Red_Knight/R_Knight_atk02.png`
+- `Assets/Pixel art Chess Knights pack/03_Knight/Red_Knight/R_Knight_atk03.png`
+- `Assets/Pixel art Chess Knights pack/03_Knight/Red_Knight/R_Knight_atk04.png`
+- `Assets/Pixel art Chess Knights pack/03_Knight/Red_Knight/R_Knight_atk05.png`
+- `Assets/Pixel art Chess Knights pack/03_Knight/Red_Knight/R_Knight_atk06.png`
+- `Assets/Pixel art Chess Knights pack/03_Knight/Red_Knight/R_Knight_atk07.png`
+- `Assets/Pixel art Chess Knights pack/03_Knight/Red_Knight/R_Knight_atk08.png`
+- `Assets/Pixel art Chess Knights pack/03_Knight/Red_Knight/R_Knight_atk09.png`
+- `Assets/Pixel art Chess Knights pack/03_Knight/Red_Knight/R_Knight_atk10.png`
+- `Assets/Pixel art Chess Knights pack/03_Knight/Red_Knight/R_Knight_atk11.png`
+- `Assets/Pixel art Chess Knights pack/03_Knight/Red_Knight/R_Knight_atk12.png`
+- `Assets/Pixel art Chess Knights pack/03_Knight/Red_Knight/R_Knight_die00.png`
+- `Assets/Pixel art Chess Knights pack/03_Knight/Red_Knight/R_Knight_die01.png`
+- `Assets/Pixel art Chess Knights pack/03_Knight/Red_Knight/R_Knight_die02.png`
+- `Assets/Pixel art Chess Knights pack/03_Knight/Red_Knight/R_Knight_die03.png`
+- `Assets/Pixel art Chess Knights pack/03_Knight/Red_Knight/R_Knight_die04.png`
+- `Assets/Pixel art Chess Knights pack/03_Knight/Red_Knight/R_Knight_die05.png`
+- `Assets/Pixel art Chess Knights pack/03_Knight/Red_Knight/R_Knight_die06.png`
+- `Assets/Pixel art Chess Knights pack/03_Knight/Red_Knight/R_Knight_die07.png`
+- `Assets/Pixel art Chess Knights pack/03_Knight/Red_Knight/R_Knight_die08.png`
+- `Assets/Pixel art Chess Knights pack/03_Knight/Red_Knight/R_Knight_die09.png`
+- `Assets/Pixel art Chess Knights pack/03_Knight/Red_Knight/R_Knight_idle00.png`
+- `Assets/Pixel art Chess Knights pack/03_Knight/Red_Knight/R_Knight_idle01.png`
+- `Assets/Pixel art Chess Knights pack/03_Knight/Red_Knight/R_Knight_idle02.png`
+- `Assets/Pixel art Chess Knights pack/03_Knight/Red_Knight/R_Knight_idle03.png`
+- `Assets/Pixel art Chess Knights pack/03_Knight/Red_Knight/R_Knight_idle04.png`
+- `Assets/Pixel art Chess Knights pack/04_Bishop/Blue_Bishop/B_bishop_idle00.png`
+- `Assets/Pixel art Chess Knights pack/04_Bishop/Red_bishop/R_bishop_atk00.png`
+- `Assets/Pixel art Chess Knights pack/04_Bishop/Red_bishop/R_bishop_atk01.png`
+- `Assets/Pixel art Chess Knights pack/04_Bishop/Red_bishop/R_bishop_atk02.png`
+- `Assets/Pixel art Chess Knights pack/04_Bishop/Red_bishop/R_bishop_atk03.png`
+- `Assets/Pixel art Chess Knights pack/04_Bishop/Red_bishop/R_bishop_atk04.png`
+- `Assets/Pixel art Chess Knights pack/04_Bishop/Red_bishop/R_bishop_die00.png`
+- `Assets/Pixel art Chess Knights pack/04_Bishop/Red_bishop/R_bishop_die01.png`
+- `Assets/Pixel art Chess Knights pack/04_Bishop/Red_bishop/R_bishop_die02.png`
+- `Assets/Pixel art Chess Knights pack/04_Bishop/Red_bishop/R_bishop_die03.png`
+- `Assets/Pixel art Chess Knights pack/04_Bishop/Red_bishop/R_bishop_die04.png`
+- `Assets/Pixel art Chess Knights pack/04_Bishop/Red_bishop/R_bishop_die05.png`
+- `Assets/Pixel art Chess Knights pack/04_Bishop/Red_bishop/R_bishop_die06.png`
+- `Assets/Pixel art Chess Knights pack/04_Bishop/Red_bishop/R_bishop_die07.png`
+- `Assets/Pixel art Chess Knights pack/04_Bishop/Red_bishop/R_bishop_idle00.png`
+- `Assets/Pixel art Chess Knights pack/04_Bishop/Red_bishop/R_bishop_idle01.png`
+- `Assets/Pixel art Chess Knights pack/04_Bishop/Red_bishop/R_bishop_idle02.png`
+- `Assets/Pixel art Chess Knights pack/04_Bishop/Red_bishop/R_bishop_idle03.png`
+- `Assets/Pixel art Chess Knights pack/04_Bishop/Red_bishop/R_bishop_idle04.png`
+- `Assets/Pixel art Chess Knights pack/05_Queen/Blue_Queen/B_Queen_idle00.png`
+- `Assets/Pixel art Chess Knights pack/05_Queen/Red_Queen/R_Queen_atk00.png`
+- `Assets/Pixel art Chess Knights pack/05_Queen/Red_Queen/R_Queen_atk01.png`
+- `Assets/Pixel art Chess Knights pack/05_Queen/Red_Queen/R_Queen_atk02.png`
+- `Assets/Pixel art Chess Knights pack/05_Queen/Red_Queen/R_Queen_atk03.png`
+- `Assets/Pixel art Chess Knights pack/05_Queen/Red_Queen/R_Queen_atk04.png`
+- `Assets/Pixel art Chess Knights pack/05_Queen/Red_Queen/R_Queen_atk05.png`
+- `Assets/Pixel art Chess Knights pack/05_Queen/Red_Queen/R_Queen_atk06.png`
+- `Assets/Pixel art Chess Knights pack/05_Queen/Red_Queen/R_Queen_die00.png`
+- `Assets/Pixel art Chess Knights pack/05_Queen/Red_Queen/R_Queen_die01.png`
+- `Assets/Pixel art Chess Knights pack/05_Queen/Red_Queen/R_Queen_die02.png`
+- `Assets/Pixel art Chess Knights pack/05_Queen/Red_Queen/R_Queen_die03.png`
+- `Assets/Pixel art Chess Knights pack/05_Queen/Red_Queen/R_Queen_die04.png`
+- `Assets/Pixel art Chess Knights pack/05_Queen/Red_Queen/R_Queen_die05.png`
+- `Assets/Pixel art Chess Knights pack/05_Queen/Red_Queen/R_Queen_die06.png`
+- `Assets/Pixel art Chess Knights pack/05_Queen/Red_Queen/R_Queen_die07.png`
+- `Assets/Pixel art Chess Knights pack/05_Queen/Red_Queen/R_Queen_die08.png`
+- `Assets/Pixel art Chess Knights pack/05_Queen/Red_Queen/R_Queen_idle00.png`
+- `Assets/Pixel art Chess Knights pack/05_Queen/Red_Queen/R_Queen_idle01.png`
+- `Assets/Pixel art Chess Knights pack/05_Queen/Red_Queen/R_Queen_idle02.png`
+- `Assets/Pixel art Chess Knights pack/05_Queen/Red_Queen/R_Queen_idle03.png`
+- `Assets/Pixel art Chess Knights pack/05_Queen/Red_Queen/R_Queen_idle04.png`
+- `Assets/Pixel art Chess Knights pack/05_Queen/Red_Queen/R_Queen_idle05.png`
+- `Assets/Pixel art Chess Knights pack/06_King/Red_King/R_King_idle00.png`
+- `Assets/Resources/hys/PlayerSkillEffects/hys_SkillEffect_CircularSlash.png`
+- `Assets/Resources/hys/PlayerSkillEffects/hys_SkillEffect_HorizontalWave.png`
+- `Assets/Resources/hys/PlayerSkillEffects/hys_SkillEffect_RotatingSlash.png`
+- `Assets/Resources/hys/PlayerSkillEffects/hys_SkillEffect_VerticalStrike.png`
+- `Assets/Smiling Eclipse/Skill Tree Maker Importer/Icons/axe-hammer-grey.png`

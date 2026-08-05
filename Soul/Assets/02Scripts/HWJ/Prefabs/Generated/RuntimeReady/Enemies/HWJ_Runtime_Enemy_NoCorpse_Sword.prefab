@@ -259,6 +259,7 @@ GameObject:
   - component: {fileID: 2354778904099842172}
   - component: {fileID: 1228764527120663557}
   - component: {fileID: 8148150528797817450}
+  - component: {fileID: 8377703930002503231}
   m_Layer: 0
   m_Name: HWJ_Runtime_Enemy_NoCorpse_Sword
   m_TagString: Untagged
@@ -559,9 +560,9 @@ MonoBehaviour:
   playerMovement: {fileID: 0}
   soulSystem: {fileID: 0}
   possessionSystem: {fileID: 0}
-  fallbackMotionProfile: {fileID: 11400000, guid: 09f3a3126bef4fa6ad328225e14b2ce9, type: 2}
+  fallbackMotionProfile: {fileID: 11400000, guid: 74a619aa6f7446e4a8fccb9cd9d4fb66, type: 2}
   weaponMotionProfiles:
-  - {fileID: 11400000, guid: 09f3a3126bef4fa6ad328225e14b2ce9, type: 2}
+  - {fileID: 11400000, guid: 74a619aa6f7446e4a8fccb9cd9d4fb66, type: 2}
   speedParameter: Speed
   horizontalSpeedParameter: HorizontalSpeed
   verticalSpeedParameter: VerticalSpeed
@@ -728,6 +729,25 @@ MonoBehaviour:
   noCorpseDespawnDelaySeconds: 0.2
   makeCorpseCollidersTriggers: 1
   disableBehaviorOnDeath: 1
+--- !u!114 &8377703930002503231
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6883793245215544130}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9be1035620d845f0bc3b6c10263b2bbc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::hys_MonsterAnimatorLifecycle
+  animator: {fileID: 4450964846766972435}
+  runtimeStatus: {fileID: 2487664506448737029}
+  body: {fileID: 4969428351405030238}
+  baseLayerIndex: 0
+  patternReturnNormalizedTime: 0.98
+  patternReturnTransitionSeconds: 0.05
+  deathFreezeNormalizedTime: 0.995
 --- !u!1001 &1118864897413960884
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -812,7 +832,7 @@ Animator:
   m_GameObject: {fileID: 4893984868016840197}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 16cdbf7919094bcc9ad6bfb362ed03fd, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0

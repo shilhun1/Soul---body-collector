@@ -40,11 +40,26 @@ public class hys_Player_Animator : MonoBehaviour
     [SerializeField] private string secondAttackStateName = "hys_Sword_Attack2";
     [SerializeField] private float attackTransitionSeconds = 0.03f;
 
+    [Header("Sword Attack")]
+    // 원본 Queen 공격을 두 번 온전히 휘두르도록 첫 공격 후반부에서 다음 타격을 연결합니다.
+    // 기본 Red Queen 공격 클립 길이에 맞추고, 두 번째 입력은 즉시 다음 콤보로 연결합니다.
+    [SerializeField, Min(0.05f)] private float swordFirstAttackAnimationTime = 0.6f;
+    [SerializeField, Min(0.05f)] private float swordSecondAttackAnimationTime = 0.6f;
+    [SerializeField, Min(0f)] private float swordComboLinkTime = 0.52f;
+    [SerializeField] private string swordFirstAttackStateName = "hys_Sword_Attack1";
+    [SerializeField] private string swordSecondAttackStateName = "hys_Sword_Attack2";
+
     [Header("Axe Heavy Attack")]
-    // Axe는 각 공격 프레임을 더 오래 유지해 둔탁하고 무거운 타격감을 냅니다.
-    [SerializeField, Min(0.05f)] private float axeFirstAttackAnimationTime = 0.42f;
-    [SerializeField, Min(0.05f)] private float axeSecondAttackAnimationTime = 0.5f;
-    [SerializeField, Min(0f)] private float axeComboLinkTime = 0.2f;
+    // King의 5프레임 도끼 공격을 끝까지 보여 준 뒤 다음 타격으로 연결해 무거운 타격감을 유지합니다.
+    [SerializeField, Min(0.05f)] private float axeFirstAttackAnimationTime = 1.1f;
+    [SerializeField, Min(0.05f)] private float axeSecondAttackAnimationTime = 1.1f;
+    [SerializeField, Min(0f)] private float axeComboLinkTime = 1.05f;
+
+    [Header("Shield Attack")]
+    // Red Rook 공격 프레임이 중간에 끊기지 않도록 Shield 전용 재생 시간과 연계 시점을 사용합니다.
+    [SerializeField, Min(0.05f)] private float shieldFirstAttackAnimationTime = 0.75f;
+    [SerializeField, Min(0.05f)] private float shieldSecondAttackAnimationTime = 0.6f;
+    [SerializeField, Min(0f)] private float shieldComboLinkTime = 0.68f;
 
     [Header("Axe Dive Attack")]
     // Axe 낙하 공격이 시작되면 일반 공중 공격 콤보 대신 내려찍기 모션을 재생합니다.
@@ -54,6 +69,13 @@ public class hys_Player_Animator : MonoBehaviour
     [SerializeField] private string axePlungeStartStateName = "hys_Axe_Plunge_Start";
     [SerializeField] private string axePlungeFallStateName = "hys_Axe_Plunge_Fall";
     [SerializeField, Min(0f)] private float axePlungeTransitionSeconds = 0.02f;
+
+    [Header("Shield Plunge Attack")]
+    // 방패 낙공은 같은 물리 판정을 사용하되 Red Rook 전용 준비/낙하/착지 상태를 재생합니다.
+    [SerializeField] private string shieldPlungeStartStateName = "hys_Shield_Plunge_Start";
+    [SerializeField] private string shieldPlungeFallStateName = "hys_Shield_Plunge_Fall";
+    [SerializeField] private string shieldPlungeLandStateName = "hys_Shield_Plunge_Land";
+    [SerializeField, Min(0f)] private float shieldPlungeTransitionSeconds = 0.02f;
 
     [Header("Jump Trigger")]
     // 1단 점프와 2단 점프가 새로 발생할 때 Jump_Start로 다시 보내기 위한 설정입니다.
@@ -77,6 +99,7 @@ public class hys_Player_Animator : MonoBehaviour
     // 영혼 상태가 되면 플레이어 컨트롤러에서 유령 컨트롤러로 교체합니다.
     [SerializeField] private bool switchControllerInSoulState = true;
     [SerializeField] private RuntimeAnimatorController bodyAnimatorController;
+    [SerializeField] private RuntimeAnimatorController swordAnimatorController;
     [SerializeField] private RuntimeAnimatorController axeAnimatorController;
     [SerializeField] private RuntimeAnimatorController bowAnimatorController;
     [SerializeField] private RuntimeAnimatorController lanceAnimatorController;
@@ -87,7 +110,13 @@ public class hys_Player_Animator : MonoBehaviour
     [Header("Ghost Handoff")]
     // 빙의와 영혼 사망 모션이 끝날 때까지 유령 컨트롤러를 유지합니다.
     [SerializeField] private string ghostPossessionStateName = "Possession";
+    [SerializeField] private string ghostPossessionClipName = "hys_Ghost_possession";
     [SerializeField] private string ghostDeadStateName = "Die";
+    [SerializeField] private AnimationClip swordGhostPossessionClip;
+    [SerializeField] private AnimationClip axeGhostPossessionClip;
+    [SerializeField] private AnimationClip bowGhostPossessionClip;
+    [SerializeField] private AnimationClip lanceGhostPossessionClip;
+    [SerializeField] private AnimationClip shieldGhostPossessionClip;
     [SerializeField, Range(0.5f, 1f)] private float ghostHandoffNormalizedTime = 0.98f;
     [SerializeField, Min(0.05f)] private float ghostPossessionFallbackSeconds = 0.45f;
 
@@ -125,12 +154,14 @@ public class hys_Player_Animator : MonoBehaviour
     private bool queuedSecondAttackAnimation;
     private bool queuedRestartAttackAnimation;
     private RuntimeAnimatorController cachedBodyAnimatorController;
+    private AnimatorOverrideController activeGhostPossessionController;
     private HWJ_SoulRuntimeState previousSoulRuntimeState = HWJ_SoulRuntimeState.Body;
     private bool isGhostPossessionPlaying;
     private bool isGhostDeadPlaying;
     private float ghostPossessionStartedTime;
     private bool wasAxeDiveStarting;
     private bool wasAxeDiveFalling;
+    private bool wasAxeDiveGrounded;
 
     // 이동 스크립트가 빙의 연출이 끝날 때까지 플레이어 입력을 잠글 때 사용합니다.
     public bool IsPossessionTransitionPlaying => isGhostPossessionPlaying;
@@ -150,6 +181,14 @@ public class hys_Player_Animator : MonoBehaviour
     private void Awake()
     {
         CacheReferences();
+
+        // Animator가 자식 오브젝트에 있는 RuntimeReady 프리팹에서도 이벤트 수신기가 같은 위치에 붙게 합니다.
+        GameObject effectHost = animator != null ? animator.gameObject : gameObject;
+        if (effectHost.GetComponent<hys_PlayerSkillEffectPlayer>() == null)
+        {
+            effectHost.AddComponent<hys_PlayerSkillEffectPlayer>();
+        }
+
         CacheParameterHashes();
         ResetJumpVersion();
         ResetDashVersion();
@@ -195,7 +234,7 @@ public class hys_Player_Animator : MonoBehaviour
         int attackComboStep = isAxeDiveAttacking ? 0 : UpdateAttackAnimationCombo(currentState);
 
         UpdateAnimatorControllerForSoulState(soulRuntimeState);
-        bool isUsingGhostController = animator.runtimeAnimatorController == ghostAnimatorController;
+        bool isUsingGhostController = IsUsingGhostAnimatorController();
         SetAnimatorInt(playerStateHash, (int)currentState);
         SetAnimatorInt(attackComboStepHash, attackComboStep);
         if (!isUsingGhostController)
@@ -242,22 +281,54 @@ public class hys_Player_Animator : MonoBehaviour
         // 실제 Collider 접촉으로 켜지는 전용 조건을 Animator 전환에 전달합니다.
         SetAnimatorBool(axePlungeGroundedHash, isGrounded);
 
+        bool isShieldController = animator.runtimeAnimatorController != null
+            && animator.runtimeAnimatorController.name == "hys_Player_Shield";
+        string plungeStartStateName = isShieldController
+            ? shieldPlungeStartStateName
+            : axePlungeStartStateName;
+        string plungeFallStateName = isShieldController
+            ? shieldPlungeFallStateName
+            : axePlungeFallStateName;
+        float plungeTransitionSeconds = isShieldController
+            ? shieldPlungeTransitionSeconds
+            : axePlungeTransitionSeconds;
+
         if (isStarting && !wasAxeDiveStarting && playAxeDiveAttackDirectly &&
-            !string.IsNullOrEmpty(axePlungeStartStateName))
+            !string.IsNullOrEmpty(plungeStartStateName))
         {
             // 점프/낙하 상태에서 낙공 준비 자세의 첫 프레임으로 진입합니다.
-            CrossFadeAnimatorState(axePlungeStartStateName, axePlungeTransitionSeconds, 0f);
+            CrossFadeAnimatorState(plungeStartStateName, plungeTransitionSeconds, 0f);
         }
 
         if (isFalling && !wasAxeDiveFalling && playAxeDiveAttackDirectly &&
-            !string.IsNullOrEmpty(axePlungeFallStateName))
+            !string.IsNullOrEmpty(plungeFallStateName))
         {
             // 준비가 끝난 순간 정면 내려찍기 낙하 루프로 전환합니다.
-            CrossFadeAnimatorState(axePlungeFallStateName, axePlungeTransitionSeconds, 0f);
+            CrossFadeAnimatorState(plungeFallStateName, plungeTransitionSeconds, 0f);
+        }
+
+        if (isShieldController && isGrounded && !wasAxeDiveGrounded &&
+            !string.IsNullOrEmpty(shieldPlungeLandStateName))
+        {
+            // 실제 지면 접촉 순간 방패 충격 착지 모션을 처음부터 재생합니다.
+            CrossFadeAnimatorState(
+                shieldPlungeLandStateName,
+                shieldPlungeTransitionSeconds,
+                0f);
+        }
+
+        if (isShieldController && !isActive &&
+            (wasAxeDiveStarting || wasAxeDiveFalling || wasAxeDiveGrounded))
+        {
+            // 낙공 후딜이 끝나면 전환선이 없는 전용 상태에서 Shield Idle로 안전하게 복귀합니다.
+            CrossFadeAnimatorState(
+                ResolveWeaponStateName("Idle", bodyIdleStateName),
+                shieldPlungeTransitionSeconds);
         }
 
         wasAxeDiveStarting = isStarting;
         wasAxeDiveFalling = isFalling;
+        wasAxeDiveGrounded = isGrounded;
     }
 
     private void CacheReferences()
@@ -311,7 +382,7 @@ public class hys_Player_Animator : MonoBehaviour
             return;
         }
 
-        if (bodyAnimatorController == null && animator.runtimeAnimatorController != ghostAnimatorController)
+        if (bodyAnimatorController == null && !IsUsingGhostAnimatorController())
         {
             bodyAnimatorController = animator.runtimeAnimatorController;
         }
@@ -348,12 +419,14 @@ public class hys_Player_Animator : MonoBehaviour
             isGhostPossessionPlaying = true;
             isGhostDeadPlaying = false;
             ghostPossessionStartedTime = Time.unscaledTime;
+            activeGhostPossessionController = CreateGhostPossessionOverrideController();
         }
 
         if (startedDead)
         {
             isGhostDeadPlaying = true;
             isGhostPossessionPlaying = false;
+            activeGhostPossessionController = null;
         }
 
         bool shouldUseGhostController = soulState == HWJ_SoulRuntimeState.Soul ||
@@ -361,8 +434,12 @@ public class hys_Player_Animator : MonoBehaviour
             soulState == HWJ_SoulRuntimeState.Dead ||
             isGhostPossessionPlaying ||
             isGhostDeadPlaying;
+        RuntimeAnimatorController possessionGhostController = isGhostPossessionPlaying
+            && activeGhostPossessionController != null
+            ? activeGhostPossessionController
+            : ghostAnimatorController;
         RuntimeAnimatorController targetController = shouldUseGhostController
-            ? ghostAnimatorController
+            ? possessionGhostController
             : ResolveBodyAnimatorController();
 
         if (targetController != null && animator.runtimeAnimatorController != targetController)
@@ -384,7 +461,10 @@ public class hys_Player_Animator : MonoBehaviour
             PlayGhostState(ghostDeadStateName);
         }
 
+        // Possession 상태가 실제로 있으면 클립의 마지막 프레임까지 기다리고, 상태가 없을 때만 안전 타이머를 씁니다.
+        bool hasPossessionState = HasGhostState(ghostPossessionStateName);
         bool possessionFallbackFinished = isGhostPossessionPlaying
+            && !hasPossessionState
             && Time.unscaledTime - ghostPossessionStartedTime >= ghostPossessionFallbackSeconds;
         if (isGhostPossessionPlaying
             && !startedPossession
@@ -404,12 +484,66 @@ public class hys_Player_Animator : MonoBehaviour
                     this);
 
                 // 빙의 직후 육체 컨트롤러의 첫 프레임을 반드시 Idle로 표시합니다.
-                if (!string.IsNullOrEmpty(bodyIdleStateName))
+                // 영혼이 육신으로 들어온 뒤에는 전용 복귀 모션을 먼저 재생하고, 없는 컨트롤러만 Idle로 돌아갑니다.
+                // 무기 전용 Possession이 끝났으므로 육신 컨트롤러에서는 복귀 모션을 중복 재생하지 않습니다.
+                string idleStateName = ResolveWeaponStateName("Idle", bodyIdleStateName);
+                if (!string.IsNullOrEmpty(idleStateName))
                 {
-                    PlayAnimatorState(bodyIdleStateName);
+                    PlayAnimatorState(idleStateName);
                 }
             }
+
+            activeGhostPossessionController = null;
         }
+    }
+
+    private AnimatorOverrideController CreateGhostPossessionOverrideController()
+    {
+        AnimationClip replacementClip = ResolveGhostPossessionClip();
+        if (replacementClip == null || string.IsNullOrEmpty(ghostPossessionClipName))
+        {
+            return null;
+        }
+
+        // 공용 Ghost Controller에서 Possession 클립 하나만 현재 무기 전용 클립으로 교체합니다.
+        AnimatorOverrideController overrideController = new AnimatorOverrideController(ghostAnimatorController);
+        overrideController[ghostPossessionClipName] = replacementClip;
+        return overrideController;
+    }
+
+    private AnimationClip ResolveGhostPossessionClip()
+    {
+        if (possessionSystem == null || !possessionSystem.HasActivePossessedBody)
+        {
+            return null;
+        }
+
+        switch (possessionSystem.CurrentWeaponType)
+        {
+            case HWJ_WeaponType.Axe:
+                return axeGhostPossessionClip;
+            case HWJ_WeaponType.Bow:
+                return bowGhostPossessionClip;
+            case HWJ_WeaponType.Lance:
+                return lanceGhostPossessionClip;
+            case HWJ_WeaponType.Shield:
+                return shieldGhostPossessionClip;
+            default:
+                return swordGhostPossessionClip;
+        }
+    }
+
+    private bool IsUsingGhostAnimatorController()
+    {
+        if (animator == null)
+        {
+            return false;
+        }
+
+        RuntimeAnimatorController currentController = animator.runtimeAnimatorController;
+        return currentController == ghostAnimatorController
+            || (activeGhostPossessionController != null
+                && currentController == activeGhostPossessionController);
     }
 
     private RuntimeAnimatorController ResolveBodyAnimatorController()
@@ -419,6 +553,9 @@ public class hys_Player_Animator : MonoBehaviour
         {
             switch (possessionSystem.CurrentWeaponType)
             {
+                case HWJ_WeaponType.Sword:
+                    // Sword 시체에 빙의했을 때 기본 Axe 컨트롤러로 빠지지 않도록 전용 컨트롤러를 선택합니다.
+                    return swordAnimatorController != null ? swordAnimatorController : GetDefaultBodyAnimatorController();
                 case HWJ_WeaponType.Axe:
                     return axeAnimatorController != null ? axeAnimatorController : GetDefaultBodyAnimatorController();
                 case HWJ_WeaponType.Bow:
@@ -517,6 +654,14 @@ public class hys_Player_Animator : MonoBehaviour
             && stateInfo.normalizedTime >= ghostHandoffNormalizedTime;
     }
 
+    private bool HasGhostState(string stateName)
+    {
+        // 긴 영혼 흡수·기상 연출이 기존 0.45초 폴백에 잘리지 않도록 상태 존재 여부를 먼저 확인합니다.
+        return animator != null
+            && !string.IsNullOrEmpty(stateName)
+            && animator.HasState(baseLayerIndex, Animator.StringToHash(stateName));
+    }
+
     private void SyncBodyLocomotionState(
         hys_PlayerState currentState,
         bool isSoulState,
@@ -537,7 +682,9 @@ public class hys_Player_Animator : MonoBehaviour
 
         // Rigidbody 속도와 hys 상태 중 하나라도 이동을 뜻하면 Run을 선택합니다.
         bool shouldMove = currentState == hys_PlayerState.Move || isMoving;
-        string targetStateName = shouldMove ? bodyMoveStateName : bodyIdleStateName;
+        string targetStateName = shouldMove
+            ? ResolveWeaponStateName("Run", bodyMoveStateName)
+            : ResolveWeaponStateName("Idle", bodyIdleStateName);
 
         if (string.IsNullOrEmpty(targetStateName) || IsCurrentOrNextAnimatorState(targetStateName))
         {
@@ -634,7 +781,10 @@ public class hys_Player_Animator : MonoBehaviour
         }
 
         // Any State 전환과 다른 모션 요청이 겹쳐도 편집한 Dash 클립을 첫 프레임부터 고정 재생합니다.
-        CrossFadeAnimatorState(dashStateName, dashTransitionSeconds, 0f);
+        CrossFadeAnimatorState(
+            ResolveWeaponStateName("Dash", dashStateName),
+            dashTransitionSeconds,
+            0f);
     }
 
     private HWJ_SoulRuntimeState GetSoulRuntimeState()
@@ -665,15 +815,28 @@ public class hys_Player_Animator : MonoBehaviour
         if (crossFadeToJumpStartOnJump && !string.IsNullOrEmpty(jumpStartStateName))
         {
             // Apex/Fall 도중 2단 점프를 하면 즉시 Jump_Start로 다시 되돌립니다.
-            CrossFadeAnimatorState(jumpStartStateName, jumpStartTransitionSeconds);
+            CrossFadeAnimatorState(
+                ResolveWeaponStateName("Jump_Start", jumpStartStateName),
+                jumpStartTransitionSeconds);
         }
     }
 
     private void UpdateSoulTrigger(bool isSoulState, hys_PlayerState currentState)
     {
-        // 사망 애니메이션 중에는 SoulTrigger가 Die 모션을 끊지 않게 막습니다.
+        // Shield는 Die 상태의 Exit Time 뒤에 SoulExit이 연결되어 있으므로 전환 시작 시 트리거를 미리 예약합니다.
         if (currentState == hys_PlayerState.Dead)
         {
+            bool startedBodyToSoul = !wasSoulState
+                && isSoulState
+                && GetSoulRuntimeState() == HWJ_SoulRuntimeState.BodyToSoul;
+            bool isShieldController = animator.runtimeAnimatorController != null
+                && animator.runtimeAnimatorController.name == "hys_Player_Shield";
+
+            if (startedBodyToSoul && isShieldController)
+            {
+                SetAnimatorTrigger(soulTriggerHash);
+            }
+
             return;
         }
 
@@ -698,12 +861,15 @@ public class hys_Player_Animator : MonoBehaviour
         }
 
         bool attackPressed = IsAttackInputPressedForAnimation();
+        bool startedFirstAttackThisFrame = false;
         if (currentState == hys_PlayerState.Attack &&
             animationAttackComboStep == 0 &&
             (previousPlayerState != hys_PlayerState.Attack || attackPressed))
         {
             // Attack 상태가 유지된 채 2타가 끝난 뒤에도 새 입력이 오면 다시 1타부터 시작합니다.
+            // 첫 입력은 1타 시작에만 사용하고 같은 프레임의 2타 예약으로 중복 처리하지 않습니다.
             StartAttackAnimationStep(1);
+            startedFirstAttackThisFrame = true;
         }
 
         if (animationAttackComboStep == 0)
@@ -712,7 +878,7 @@ public class hys_Player_Animator : MonoBehaviour
         }
 
         float elapsedTime = Time.time - animationAttackStartTime;
-        if (animationAttackComboStep == 1 && attackPressed)
+        if (animationAttackComboStep == 1 && attackPressed && !startedFirstAttackThisFrame)
         {
             // 연타 감각을 위해 2타 입력은 시간창을 기다리지 않고 바로 예약합니다.
             queuedSecondAttackAnimation = true;
@@ -723,10 +889,25 @@ public class hys_Player_Animator : MonoBehaviour
             queuedRestartAttackAnimation = true;
         }
 
-        bool isAxeAttack = possessionSystem != null
-            && possessionSystem.CurrentWeaponType == HWJ_WeaponType.Axe;
-        float activeComboLinkTime = isAxeAttack ? axeComboLinkTime : comboLinkTime;
-        if (animationAttackComboStep == 1 && queuedSecondAttackAnimation && elapsedTime >= activeComboLinkTime)
+        // 씬에서 Axe 컨트롤러를 직접 지정한 테스트 상태도 도끼 공격 타이밍으로 판정합니다.
+        bool isAxeAttack = (possessionSystem != null
+            && possessionSystem.CurrentWeaponType == HWJ_WeaponType.Axe)
+            || (animator.runtimeAnimatorController != null
+                && animator.runtimeAnimatorController.name == "hys_Player_Axe");
+        bool isSwordAttack = animator.runtimeAnimatorController != null
+            && animator.runtimeAnimatorController.name == "hys_Player_Sword";
+        bool isShieldAttack = animator.runtimeAnimatorController != null
+            && animator.runtimeAnimatorController.name == "hys_Player_Shield";
+        float activeComboLinkTime = isAxeAttack
+            ? axeComboLinkTime
+            : isShieldAttack
+                ? shieldComboLinkTime
+                : isSwordAttack
+                    ? swordComboLinkTime
+                    : comboLinkTime;
+        // Sword는 두 번째 입력이 들어오면 Attack1 완료를 기다리지 않고 즉시 Attack2를 재생합니다.
+        bool canLinkNextAttack = elapsedTime >= activeComboLinkTime;
+        if (animationAttackComboStep == 1 && queuedSecondAttackAnimation && canLinkNextAttack)
         {
             StartAttackAnimationStep(2);
             return animationAttackComboStep;
@@ -734,8 +915,13 @@ public class hys_Player_Animator : MonoBehaviour
 
         float currentStepTime = isAxeAttack
             ? (animationAttackComboStep == 1 ? axeFirstAttackAnimationTime : axeSecondAttackAnimationTime)
-            : (animationAttackComboStep == 1 ? firstAttackAnimationTime : secondAttackAnimationTime);
-        if (elapsedTime >= currentStepTime)
+            : isShieldAttack
+                ? (animationAttackComboStep == 1 ? shieldFirstAttackAnimationTime : shieldSecondAttackAnimationTime)
+                : isSwordAttack
+                    ? (animationAttackComboStep == 1 ? swordFirstAttackAnimationTime : swordSecondAttackAnimationTime)
+                    : (animationAttackComboStep == 1 ? firstAttackAnimationTime : secondAttackAnimationTime);
+        bool canFinishCurrentAttack = elapsedTime >= currentStepTime;
+        if (canFinishCurrentAttack)
         {
             if (queuedRestartAttackAnimation)
             {
@@ -762,12 +948,23 @@ public class hys_Player_Animator : MonoBehaviour
 
     private void PlayAttackAnimationState(int comboStep)
     {
-        if (!playAttackStateDirectly || animator == null)
+        if (animator == null)
         {
             return;
         }
 
-        string stateName = comboStep == 1 ? firstAttackStateName : secondAttackStateName;
+        // Sword는 중첩된 Attack 상태 머신 전이 순서와 무관하게 정확한 1타/2타 상태를 직접 재생합니다.
+        bool isSwordController = animator.runtimeAnimatorController != null
+            && animator.runtimeAnimatorController.name == "hys_Player_Sword";
+        if (!playAttackStateDirectly && !isSwordController)
+        {
+            return;
+        }
+
+        // 빙의 후 Sword 컨트롤러로 바뀌면 씬에 남은 Shield 상태명 대신 Sword 전용 상태를 사용합니다.
+        string stateName = isSwordController
+            ? (comboStep == 1 ? swordFirstAttackStateName : swordSecondAttackStateName)
+            : (comboStep == 1 ? firstAttackStateName : secondAttackStateName);
         if (string.IsNullOrEmpty(stateName))
         {
             return;
@@ -831,7 +1028,9 @@ public class hys_Player_Animator : MonoBehaviour
         }
 
         ResetActionStateToIdle();
-        CrossFadeAnimatorState(defaultAnimatorStateName, returnTransitionSeconds);
+        CrossFadeAnimatorState(
+            ResolveWeaponStateName("Idle", defaultAnimatorStateName),
+            returnTransitionSeconds);
     }
 
     private void UpdateActionStateTimer(hys_PlayerState currentState)
@@ -874,7 +1073,9 @@ public class hys_Player_Animator : MonoBehaviour
         }
 
         ResetActionStateToIdle();
-        CrossFadeAnimatorState(defaultAnimatorStateName, returnTransitionSeconds);
+        CrossFadeAnimatorState(
+            ResolveWeaponStateName("Idle", defaultAnimatorStateName),
+            returnTransitionSeconds);
     }
 
     private void ResetActionStateToIdle()
@@ -894,6 +1095,15 @@ public class hys_Player_Animator : MonoBehaviour
 
     private bool IsAutoReturnState(AnimatorStateInfo stateInfo)
     {
+        // 현재 무기 컨트롤러의 Dash/Hit 이름을 우선 검사해 무기 교체 뒤에도 자동 복귀가 동작하게 합니다.
+        string currentDashStateName = ResolveWeaponStateName("Dash", dashStateName);
+        string currentHitStateName = ResolveWeaponStateName("Hit", string.Empty);
+        if (stateInfo.shortNameHash == Animator.StringToHash(currentDashStateName)
+            || stateInfo.shortNameHash == Animator.StringToHash(currentHitStateName))
+        {
+            return true;
+        }
+
         if (autoReturnStateNames == null)
         {
             return false;
@@ -910,6 +1120,43 @@ public class hys_Player_Animator : MonoBehaviour
         }
 
         return false;
+    }
+
+    private string ResolveWeaponStateName(string suffix, string fallbackStateName)
+    {
+        if (string.IsNullOrEmpty(suffix))
+        {
+            return fallbackStateName;
+        }
+
+        // 컨트롤러 이름을 기준으로 상태 접두사를 결정해 Sword/Axe/Shield 전환 시 직렬화된 옛 이름에 묶이지 않게 합니다.
+        string controllerName = animator != null && animator.runtimeAnimatorController != null
+            ? animator.runtimeAnimatorController.name
+            : string.Empty;
+        string prefix = string.Empty;
+
+        if (controllerName.Contains("Shield"))
+        {
+            prefix = "hys_Shield";
+        }
+        else if (controllerName.Contains("Axe"))
+        {
+            prefix = "hys_Axe";
+        }
+        else if (controllerName.Contains("Sword"))
+        {
+            prefix = "hys_Sword";
+        }
+        else if (controllerName.Contains("Bow"))
+        {
+            prefix = "hys_Bow";
+        }
+        else if (controllerName.Contains("Lance"))
+        {
+            prefix = "hys_Lance";
+        }
+
+        return string.IsNullOrEmpty(prefix) ? fallbackStateName : $"{prefix}_{suffix}";
     }
 
     private void SetAnimatorBool(int parameterHash, bool value)

@@ -116,6 +116,7 @@ GameObject:
   - component: {fileID: 7717411419272892645}
   - component: {fileID: 3149966159438110030}
   - component: {fileID: 5077226232757011592}
+  - component: {fileID: 7330664085373860261}
   m_Layer: 0
   m_Name: HWJ_Runtime_Enemy_Possessable_Sword
   m_TagString: Untagged
@@ -416,9 +417,9 @@ MonoBehaviour:
   playerMovement: {fileID: 0}
   soulSystem: {fileID: 0}
   possessionSystem: {fileID: 0}
-  fallbackMotionProfile: {fileID: 11400000, guid: 09f3a3126bef4fa6ad328225e14b2ce9, type: 2}
+  fallbackMotionProfile: {fileID: 11400000, guid: 74a619aa6f7446e4a8fccb9cd9d4fb66, type: 2}
   weaponMotionProfiles:
-  - {fileID: 11400000, guid: 09f3a3126bef4fa6ad328225e14b2ce9, type: 2}
+  - {fileID: 11400000, guid: 74a619aa6f7446e4a8fccb9cd9d4fb66, type: 2}
   speedParameter: Speed
   horizontalSpeedParameter: HorizontalSpeed
   verticalSpeedParameter: VerticalSpeed
@@ -602,6 +603,25 @@ MonoBehaviour:
   noCorpseDespawnDelaySeconds: 0.2
   makeCorpseCollidersTriggers: 1
   disableBehaviorOnDeath: 1
+--- !u!114 &7330664085373860261
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3207079160614396575}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9be1035620d845f0bc3b6c10263b2bbc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::hys_MonsterAnimatorLifecycle
+  animator: {fileID: 8472912423987361352}
+  runtimeStatus: {fileID: 6119140794797398993}
+  body: {fileID: 7282004206645631066}
+  baseLayerIndex: 0
+  patternReturnNormalizedTime: 0.98
+  patternReturnTransitionSeconds: 0.05
+  deathFreezeNormalizedTime: 0.995
 --- !u!1 &5106129409625270059
 GameObject:
   m_ObjectHideFlags: 0
@@ -766,6 +786,10 @@ PrefabInstance:
       propertyPath: m_Simulated
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6840473544397969045, guid: 2e97c5d0a24983f44a2e025f47d8d7fe, type: 3}
+      propertyPath: m_Controller
+      value: 
+      objectReference: {fileID: 9100000, guid: 16cdbf7919094bcc9ad6bfb362ed03fd, type: 2}
     - target: {fileID: 6934236446630276599, guid: 2e97c5d0a24983f44a2e025f47d8d7fe, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0

@@ -3,8 +3,12 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 3
+
   tags:
-  - Enemy
+  - Pass
+
+
+
   layers:
   - Default
   - TransparentFX

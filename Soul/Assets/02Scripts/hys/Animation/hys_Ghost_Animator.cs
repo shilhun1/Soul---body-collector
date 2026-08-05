@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 [RequireComponent(typeof(Animator))]
 [DefaultExecutionOrder(200)]
@@ -31,6 +31,10 @@ public class hys_Ghost_Animator : MonoBehaviour
     // 醫뚯슦 諛⑺뼢? ?좊땲硫붿씠???뚮씪誘명꽣媛 ?꾨땲???ㅽ봽?쇱씠??flipX濡?泥섎━?⑸땲??
     [SerializeField] private bool flipByMoveDirection = true;
     [SerializeField] private bool rightFacingSprite = true;
+
+    [Header("Soul Appear")]
+    // 육체 전용 영혼 이탈 모션을 재생한 경우 공용 Appear가 다시 나오는 것을 막습니다.
+    [SerializeField] private bool suppressAppearAfterBodySoul;
 
     private int isMovingHash;
     private int appearTriggerHash;
@@ -196,7 +200,7 @@ public class hys_Ghost_Animator : MonoBehaviour
         bool completedSoulTransition = previousSoulState == HWJ_SoulRuntimeState.BodyToSoul
             && currentSoulState == HWJ_SoulRuntimeState.Soul;
 
-        if (completedSoulTransition)
+        if (completedSoulTransition && !suppressAppearAfterBodySoul)
         {
             SetTriggerIfExists(appearTriggerHash);
         }

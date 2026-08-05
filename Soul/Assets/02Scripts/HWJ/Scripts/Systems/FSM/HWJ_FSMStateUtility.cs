@@ -28,9 +28,12 @@ public static class HWJ_FSMStateUtility
                 return HWJ_RuntimeState.Attack;
             case HWJ_BossFSMState.PhaseTransition:
             case HWJ_BossFSMState.Groggy:
+            case HWJ_BossFSMState.Stagger:
                 return HWJ_RuntimeState.Hit;
             case HWJ_BossFSMState.Dead:
                 return HWJ_RuntimeState.Dead;
+            case HWJ_BossFSMState.Recover:
+                return HWJ_RuntimeState.Idle;
             default:
                 return HWJ_RuntimeState.Idle;
         }

@@ -112,6 +112,7 @@ GameObject:
   - component: {fileID: 2829797622814909139}
   - component: {fileID: 6317527089805384615}
   - component: {fileID: 1308259903835128286}
+  - component: {fileID: 6009269041751063571}
   m_Layer: 0
   m_Name: HWJ_Runtime_Corpse_Shield
   m_TagString: Untagged
@@ -475,6 +476,25 @@ MonoBehaviour:
   isRemovedAfterPossession: 0
   wasAliveWhenPossessed: 0
   restoreObjectOnPossessionExit: 0
+--- !u!114 &6009269041751063571
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5468118665167666239}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9be1035620d845f0bc3b6c10263b2bbc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::hys_MonsterAnimatorLifecycle
+  animator: {fileID: 5106568546107665455}
+  runtimeStatus: {fileID: 7915017144895829454}
+  body: {fileID: 8709132712400413871}
+  baseLayerIndex: 0
+  patternReturnNormalizedTime: 0.98
+  patternReturnTransitionSeconds: 0.05
+  deathFreezeNormalizedTime: 0.995
 --- !u!1 &6739543919771434837
 GameObject:
   m_ObjectHideFlags: 0
@@ -675,6 +695,10 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4783056057620991498, guid: 59a3f51765126db489eabb83d95115b6, type: 3}
+      propertyPath: m_Controller
+      value: 
+      objectReference: {fileID: 9100000, guid: 11e3855233c24332a4e98c50e557fbe9, type: 2}
     - target: {fileID: 7184688075697942231, guid: 59a3f51765126db489eabb83d95115b6, type: 3}
       propertyPath: m_Simulated
       value: 0

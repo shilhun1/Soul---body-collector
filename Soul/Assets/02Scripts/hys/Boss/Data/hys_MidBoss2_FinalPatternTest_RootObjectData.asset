@@ -1,0 +1,68 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5886d2e199e90b44e8180bfd0e5de850, type: 3}
+  m_Name: hys_MidBoss2_FinalPatternTest_RootObjectData
+  m_EditorClassIdentifier: Assembly-CSharp::HWJ_RootObjectDataSO
+  identity:
+    objectId: hys_mid_boss_2_final_pattern_test
+    displayName: Mid Boss 2 - Final Pattern Test
+    objectType: 3
+    faction: 3
+    weaponType: 5
+  status:
+    level: 1
+    maxHp: 30000
+    moveSpeed: 14
+    attackPower: 200
+    defense: 75
+    attackSpeed: 1
+    bodyWeight: 3.5
+  model:
+    modelPrefab: {fileID: 0}
+    animatorController: {fileID: 0}
+    heartEffectSocketName: Heart
+    hitEffectSocketName: Hit
+    possessedEyeSocketName: Eyes
+  damage:
+    damageType: 0
+    baseDamage: 0
+    criticalChance: 0
+    criticalMultiplier: 1.5
+    knockbackPower: 5
+    hitStunSeconds: 0.12
+    hitStopSeconds: 0.04
+    sameTargetHitCooldownSeconds: 0.08
+  receivedDamage:
+    damageMultiplier: 1
+    invincibleSecondsAfterHit: 0.08
+    isInvincible: 0
+    ignoreTrapDamage: 0
+    ignoreEnemyDamage: 0
+    hitStunSeconds: 0.1
+    hitReactionImmuneSeconds: 0.05
+    maxHitReactionsPerWindow: 0
+    hitReactionWindowSeconds: 1
+    hitReactionLimitImmuneSeconds: 0
+    knockbackWeightMultiplier: 3
+    hasSuperArmor: 1
+    ignoreHitStun: 0
+    ignoreKnockback: 0
+  interaction:
+    canInteract: 0
+    canBeTargeted: 1
+    interactionRange: 0
+  reward:
+    experienceReward: 500
+    skillPointReward: 3
+    dropsStatOrb: 0
+    statOrbId:
+  selectedTypeData: {fileID: 11400000, guid: 08cab276e1ae49b4b174663c05c9ee5b, type: 2}

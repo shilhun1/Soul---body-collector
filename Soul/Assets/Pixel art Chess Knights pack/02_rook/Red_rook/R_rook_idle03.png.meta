@@ -1,5 +1,12 @@
 fileFormatVersion: 2
 guid: e9d6f3f738057854db910d95c4785839
+AssetOrigin:
+  serializedVersion: 1
+  productId: 105521
+  packageName: Pixel art Chess Knights pack ver.1
+  packageVersion: 1.0
+  assetPath: Assets/Pixel art Chess Knights pack/02_rook/Red_rook/R_rook_idle03.png
+  uploadId: 929706
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -48,7 +55,7 @@ TextureImporter:
   spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 100
+  spritePixelsToUnits: 20
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -79,7 +86,7 @@ TextureImporter:
     overridden: 0
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
-    forceMaximumCompressionQuality_BC6H_BC7: 1
+    forceMaximumCompressionQuality_BC6H_BC7: 0
   - serializedVersion: 4
     buildTarget: Standalone
     maxTextureSize: 2048
@@ -92,7 +99,7 @@ TextureImporter:
     overridden: 0
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
-    forceMaximumCompressionQuality_BC6H_BC7: 1
+    forceMaximumCompressionQuality_BC6H_BC7: 0
   - serializedVersion: 4
     buildTarget: WebGL
     maxTextureSize: 2048
@@ -128,10 +135,3 @@ TextureImporter:
   userData: 
   assetBundleName: 
   assetBundleVariant: 
-AssetOrigin:
-  serializedVersion: 1
-  productId: 105521
-  packageName: Pixel art Chess Knights pack ver.1
-  packageVersion: 1.0
-  assetPath: Assets/Pixel art Chess Knights pack/02_rook/Red_rook/R_rook_idle03.png
-  uploadId: 929706
