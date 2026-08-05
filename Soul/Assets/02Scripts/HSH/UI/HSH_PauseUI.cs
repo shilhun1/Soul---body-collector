@@ -14,8 +14,6 @@ namespace HSH.UI
     /// </summary>
     public class HSH_PauseUI : MonoBehaviour
     {
-        public static HSH_PauseUI Instance { get; private set; }
-
         [Header("단축키 설정")]
         [Tooltip("일시정지 창을 토글할 단축키 (기본값: ESC)")]
         [SerializeField] private KeyCode pauseKey = KeyCode.Escape;
@@ -70,13 +68,6 @@ namespace HSH.UI
 
         private void Awake()
         {
-            if (Instance != null && Instance != this)
-            {
-                Destroy(gameObject);
-                return;
-            }
-            Instance = this;
-
             // 버튼 클릭 이벤트 바인딩 (인스펙터에 연결된 경우)
             if (resumeButton != null)
             {

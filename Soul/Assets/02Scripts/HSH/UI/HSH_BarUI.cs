@@ -83,6 +83,11 @@ public class HSH_BarUI : MonoBehaviour
                 levelUpSystem = Object.FindAnyObjectByType<HWJ_LevelUpSystem>();
             }
         }
+
+        if (gameOverUI == null)
+        {
+            gameOverUI = FindFirstObjectByType<HSH_GameOverUI>();
+        }
     }
 
 #if UNITY_EDITOR
@@ -279,13 +284,14 @@ public class HSH_BarUI : MonoBehaviour
                 hasTriggeredGameOver = true;
                 Debug.Log("GhostHP가 모두 닳았습니다! 게임 오버!");
 
+                if (gameOverUI == null)
+                {
+                    gameOverUI = FindFirstObjectByType<HSH_GameOverUI>();
+                }
+
                 if (gameOverUI != null)
                 {
                     gameOverUI.ShowGameOver();
-                }
-                else if (HSH_GameOverUI.Instance != null)
-                {
-                    HSH_GameOverUI.Instance.ShowGameOver();
                 }
                 else
                 {
