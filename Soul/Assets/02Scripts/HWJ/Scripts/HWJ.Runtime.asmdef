@@ -2,7 +2,8 @@
     "name": "HWJ.Runtime",
     "rootNamespace": "HWJ",
     "references": [
-        "Unity.InputSystem"
+        "Unity.InputSystem",
+        "Unity.Cinemachine"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

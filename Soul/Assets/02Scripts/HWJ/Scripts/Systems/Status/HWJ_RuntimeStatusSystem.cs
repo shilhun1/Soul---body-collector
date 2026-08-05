@@ -97,6 +97,7 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
     private float attackSpeedBonus;
     private Collider2D[] bodyCollisionColliders;
     private float nextBodyCollisionRefreshTime;
+    private HWJ_IHealthDepletionHandler healthDepletionHandler;
 
     public HWJ_RuntimeState CurrentState => currentState;
     public float CurrentHp => currentHp;
@@ -129,20 +130,12 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
     public bool CanAttack => !IsDead && Time.time >= attackLockEndTime && !IsHitStunned;
     public bool CanDash => !IsDead && Time.time >= dashLockEndTime && !IsHitStunned;
     public float KnockbackScale => 1f / Mathf.Max(0.01f, GetKnockbackWeight());
-    public bool IsDead
-    {
-        get
-        {
-            if (soulSystem != null)
-            {
-                bool soulSystemDead = soulSystem.CurrentState == HWJ_SoulRuntimeState.Dead;
-                bool runtimeDead = currentState == HWJ_RuntimeState.Dead;
-                return (soulSystemDead || runtimeDead) && CurrentSpiritMentalValue <= 0f;
-            }
-
-            return currentState == HWJ_RuntimeState.Dead || UsesHp && currentHp <= 0f;
-        }
-    }
+    public bool IsDead => currentState == HWJ_RuntimeState.Dead
+        || (soulSystem != null && soulSystem.CurrentState == HWJ_SoulRuntimeState.Dead)
+        || (soulSystem == null
+            && UsesHp
+            && currentHp <= 0f
+            && !IsHealthDepletionDeferred());
 
     private void Awake()
     {
@@ -206,6 +199,8 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
         {
             bossBrain = GetComponent<HWJ_BossBrainSystem>();
         }
+
+        ResolveHealthDepletionHandler();
     }
 
     /// <summary>
@@ -319,7 +314,10 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
 
         if (currentHp <= 0f)
         {
-            HandleEmptyHp();
+            if (!TryHandleHealthDepleted())
+            {
+                HandleEmptyHp();
+            }
         }
         else
         {
@@ -347,6 +345,41 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
 
         currentHp = Mathf.Min(MaxHp, currentHp + amount);
         CacheCurrentHpForActiveState();
+    }
+
+    /// <summary>
+    /// Debug and automated-test entry point for setting HP without applying damage side effects.
+    /// Gameplay damage must continue to use ApplyDamage.
+    /// </summary>
+    public void SetCurrentHpForDebug(float value)
+    {
+        ResolveReferences();
+        currentHp = Mathf.Clamp(value, 0f, Mathf.Max(0f, MaxHp));
+
+        if (currentHp > 0f && currentState == HWJ_RuntimeState.Dead)
+        {
+            SetState(HWJ_RuntimeState.Idle);
+        }
+
+        CacheCurrentHpForActiveState();
+    }
+
+    /// <summary>
+    /// Restores timers, damage-source cooldowns, state, and HP for a reusable encounter prefab.
+    /// </summary>
+    public void ResetForEncounter(bool refillToMax = true)
+    {
+        ResolveReferences();
+        moveLockEndTime = 0f;
+        attackLockEndTime = 0f;
+        dashLockEndTime = 0f;
+        hitStunEndTime = 0f;
+        invincibleEndTime = 0f;
+        hitReactionImmuneEndTime = 0f;
+        ClearHitReactionLimit();
+        nextDamageTimesBySource.Clear();
+        SetState(HWJ_RuntimeState.Idle);
+        RefreshCurrentHpFromData(refillToMax);
     }
 
     /// <summary>
@@ -969,6 +1002,40 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
         if (HWJ_GameAccess.HasManager && HWJ_GameAccess.Manager.PlayerStatus == this)
         {
             HWJ_GameAccess.Manager.SavePlayerRuntimeSnapshot();
+        }
+    }
+
+    private bool TryHandleHealthDepleted()
+    {
+        ResolveHealthDepletionHandler();
+        return healthDepletionHandler != null
+            && healthDepletionHandler.TryHandleHealthDepleted(this);
+    }
+
+    private bool IsHealthDepletionDeferred()
+    {
+        ResolveHealthDepletionHandler();
+        return healthDepletionHandler != null
+            && healthDepletionHandler.IsHealthDepletionHandled;
+    }
+
+    private void ResolveHealthDepletionHandler()
+    {
+        if (healthDepletionHandler is Object handlerObject && handlerObject != null)
+        {
+            return;
+        }
+
+        healthDepletionHandler = null;
+        MonoBehaviour[] localBehaviours = GetComponents<MonoBehaviour>();
+
+        for (int i = 0; i < localBehaviours.Length; i++)
+        {
+            if (localBehaviours[i] is HWJ_IHealthDepletionHandler candidate)
+            {
+                healthDepletionHandler = candidate;
+                return;
+            }
         }
     }
 

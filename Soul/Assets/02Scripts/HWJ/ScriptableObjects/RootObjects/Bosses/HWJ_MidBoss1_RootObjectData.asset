@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: HWJ.Runtime::HWJ_RootObjectDataSO
   identity:
     objectId: boss.mid.01.captain
-    displayName: 1스테이지 중간보스 1
+    displayName: "1\uC2A4\uD14C\uC774\uC9C0 \uC911\uAC04\uBCF4\uC2A4 1"
     objectType: 3
     faction: 3
     weaponType: 3
@@ -28,7 +28,7 @@ MonoBehaviour:
     bodyWeight: 6
   model:
     modelPrefab: {fileID: 776630100000000001, guid: 9d7b7e93f5734f82b07bb02a77526cda, type: 3}
-    animatorController: {fileID: 0}
+    animatorController: {fileID: 9100000, guid: c609a3415d784c74c851b4962fa081cc, type: 2}
     heartEffectSocketName: Heart
     hitEffectSocketName: Hit
     possessedEyeSocketName: Eyes
@@ -69,7 +69,7 @@ MonoBehaviour:
     dropsStatOrb: 0
     statOrbDropChance: 0
     statOrbSpawnRadius: 0.75
-    statOrbId:
+    statOrbId: 
     statOrbCandidates: []
     useAllRegisteredStatOrbsWhenEmpty: 0
   selectedTypeData: {fileID: 11400000, guid: a9067aeb08e14156931f57b025b8a2fd, type: 2}

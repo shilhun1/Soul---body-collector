@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 [DisallowMultipleComponent]
@@ -34,6 +35,7 @@ public class HWJ_BossFlowSystem : MonoBehaviour
     [SerializeField] private string lastCombatDeathBridgeMessage;
 
     private HWJ_BossFlowResult lastFlowResult;
+    private Coroutine pendingFighterDeathRoutine;
 
     public bool BossEntryTriggerActive => bossEntryTriggerActive;
     public bool AutoCompleteBossFlowOnCombatDeath => autoCompleteBossFlowOnCombatDeath;
@@ -56,6 +58,12 @@ public class HWJ_BossFlowSystem : MonoBehaviour
     private void OnDisable()
     {
         HWJ_GameplayEvents.ActorDied -= OnActorDied;
+
+        if (pendingFighterDeathRoutine != null)
+        {
+            StopCoroutine(pendingFighterDeathRoutine);
+            pendingFighterDeathRoutine = null;
+        }
     }
 
     private void Reset()
@@ -217,6 +225,22 @@ public class HWJ_BossFlowSystem : MonoBehaviour
             return;
         }
 
+        HWJ_FighterBossDeathSystem fighterDeath =
+            defeatedBossResolver.GetComponent<HWJ_FighterBossDeathSystem>();
+
+        if (fighterDeath != null && !fighterDeath.IsDeathComplete)
+        {
+            if (pendingFighterDeathRoutine == null)
+            {
+                pendingFighterDeathRoutine = StartCoroutine(
+                    WaitForFighterDeathThenComplete(damageEvent, fighterDeath));
+            }
+
+            lastCombatDeathBridgeMessage =
+                "Boss death bridge is waiting for the fighter death animation.";
+            return;
+        }
+
         if (stageProgressionSystem == null)
         {
             lastCombatDeathBridgeMessage = "Boss death bridge failed: missing stage progression system.";
@@ -246,6 +270,23 @@ public class HWJ_BossFlowSystem : MonoBehaviour
             combatDeathUnlockRegionId,
             useStageDefinitionDefaultsOnCombatDeath);
         lastCombatDeathBridgeMessage = defeatResult.Message;
+    }
+
+    private IEnumerator WaitForFighterDeathThenComplete(
+        HWJ_DamageEvent damageEvent,
+        HWJ_FighterBossDeathSystem fighterDeath)
+    {
+        while (fighterDeath != null && !fighterDeath.IsDeathComplete)
+        {
+            yield return null;
+        }
+
+        pendingFighterDeathRoutine = null;
+
+        if (fighterDeath != null)
+        {
+            OnActorDied(damageEvent);
+        }
     }
 
     private static bool TryResolveBossDeathTarget(
