@@ -18,7 +18,7 @@ MonoBehaviour:
     spawnPointId: Enemy_Sword
     spawnPointType: 1
     rootObjectData: {fileID: 11400000, guid: cc000000000000000000000000000001, type: 2}
-    prefabOverride: {fileID: 4794448013920627777, guid: 2e97c5d0a24983f44a2e025f47d8d7fe, type: 3}
+    prefabOverride: {fileID: 2687331519739871537, guid: 8d18c9698cc0c8b48b1f18164366cafe, type: 3}
     spawnCount: 1
     spawnDelaySeconds: 0
     useSequentialSpawnWhenMultiple: 1
@@ -32,7 +32,7 @@ MonoBehaviour:
     spawnPointId: Enemy_Axe
     spawnPointType: 1
     rootObjectData: {fileID: 11400000, guid: cc000000000000000000000000000003, type: 2}
-    prefabOverride: {fileID: 4816403081166471119, guid: 4a094748baf292848abc8123e5d89341, type: 3}
+    prefabOverride: {fileID: 8944674153436637418, guid: 29f75bab50acbfa45868f235b5d9cd9e, type: 3}
     spawnCount: 1
     spawnDelaySeconds: 0
     useSequentialSpawnWhenMultiple: 1
@@ -46,7 +46,7 @@ MonoBehaviour:
     spawnPointId: Enemy_Bow
     spawnPointType: 1
     rootObjectData: {fileID: 11400000, guid: cc000000000000000000000000000005, type: 2}
-    prefabOverride: {fileID: 5106822153513368202, guid: fbd2161cc86a8c340b3f48a981041866, type: 3}
+    prefabOverride: {fileID: 6245554184141707589, guid: fbd2161cc86a8c340b3f48a981041866, type: 3}
     spawnCount: 1
     spawnDelaySeconds: 0
     useSequentialSpawnWhenMultiple: 1
@@ -60,7 +60,7 @@ MonoBehaviour:
     spawnPointId: Enemy_Shield
     spawnPointType: 1
     rootObjectData: {fileID: 11400000, guid: cc000000000000000000000000000004, type: 2}
-    prefabOverride: {fileID: 4121182434353913572, guid: 834f6bca05b8e9e45bc16a4f59a90769, type: 3}
+    prefabOverride: {fileID: 7698015754555945441, guid: 834f6bca05b8e9e45bc16a4f59a90769, type: 3}
     spawnCount: 1
     spawnDelaySeconds: 0
     useSequentialSpawnWhenMultiple: 1
@@ -74,7 +74,7 @@ MonoBehaviour:
     spawnPointId: Enemy_Lance
     spawnPointType: 1
     rootObjectData: {fileID: 11400000, guid: cc000000000000000000000000000002, type: 2}
-    prefabOverride: {fileID: 2266856075406173384, guid: 11ee875ef6a95a741b7557f8bb64002c, type: 3}
+    prefabOverride: {fileID: 3880702661718353314, guid: 11ee875ef6a95a741b7557f8bb64002c, type: 3}
     spawnCount: 1
     spawnDelaySeconds: 0
     useSequentialSpawnWhenMultiple: 1

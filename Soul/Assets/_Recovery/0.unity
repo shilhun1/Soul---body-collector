@@ -2090,6 +2090,26 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 336500826}
   m_CullTransparentMesh: 1
+--- !u!1 &337779780 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5769681016942675519, guid: 8d18c9698cc0c8b48b1f18164366cafe, type: 3}
+  m_PrefabInstance: {fileID: 1026865291}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &337779782
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 337779780}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e19944b14ed0b574db7a7e93e2c4116a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HSH_EnemyHPUI
+  hpUIPrefab: {fileID: 337779780}
+  uiOffset: {x: 0, y: -1, z: 0}
+  hideWhenFull: 1
 --- !u!1 &354907214
 GameObject:
   m_ObjectHideFlags: 0
@@ -4191,7 +4211,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 5769681016942675519, guid: 8d18c9698cc0c8b48b1f18164366cafe, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 337779782}
   m_SourcePrefab: {fileID: 100100000, guid: 8d18c9698cc0c8b48b1f18164366cafe, type: 3}
 --- !u!1 &1151011158
 GameObject:
