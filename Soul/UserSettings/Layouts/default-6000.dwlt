@@ -19,7 +19,7 @@ MonoBehaviour:
     width: 1536
     height: 772.8
   m_ShowMode: 4
-  m_Title: Console
+  m_Title: Inspector
   m_RootView: {fileID: 2}
   m_MinSize: {x: 875, y: 338}
   m_MaxSize: {x: 10000, y: 10000}
@@ -118,7 +118,7 @@ MonoBehaviour:
   m_MinSize: {x: 300, y: 112}
   m_MaxSize: {x: 24288, y: 16192}
   vertical: 1
-  controlID: 50
+  controlID: 114
   draggingID: 0
 --- !u!114 &6
 MonoBehaviour:
@@ -145,7 +145,7 @@ MonoBehaviour:
   m_MinSize: {x: 300, y: 112}
   m_MaxSize: {x: 24288, y: 16192}
   vertical: 0
-  controlID: 51
+  controlID: 115
   draggingID: 0
 --- !u!114 &7
 MonoBehaviour:
@@ -288,7 +288,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 12006, guid: 0000000000000000e000000000000000, type: 0}
-  m_Name: ConsoleWindow
+  m_Name: ProjectBrowser
   m_EditorClassIdentifier: UnityEditor.dll::UnityEditor.DockArea
   m_Children: []
   m_Position:
@@ -297,14 +297,14 @@ MonoBehaviour:
     y: 334.4
     width: 375.2
     height: 382.4
-  m_MinSize: {x: 52, y: 76}
-  m_MaxSize: {x: 4002, y: 4026}
-  m_ActualView: {fileID: 20}
+  m_MinSize: {x: 232, y: 276}
+  m_MaxSize: {x: 10002, y: 10026}
+  m_ActualView: {fileID: 19}
   m_Panes:
   - {fileID: 19}
   - {fileID: 20}
-  m_Selected: 1
-  m_LastSelected: 0
+  m_Selected: 0
+  m_LastSelected: 1
 --- !u!114 &13
 MonoBehaviour:
   m_ObjectHideFlags: 52
@@ -1337,9 +1337,9 @@ MonoBehaviour:
   m_AudioPlay: 0
   m_DebugDrawModesUseInteractiveLightBakingData: 0
   m_Position:
-    m_Target: {x: 26.596405, y: -6.020878, z: -0.060802873}
+    m_Target: {x: 45.542797, y: -5.1139846, z: -0.034398627}
     speed: 2
-    m_Value: {x: 26.596405, y: -6.020878, z: -0.060802873}
+    m_Value: {x: 45.542797, y: -5.1139846, z: -0.034398627}
   m_RenderMode: 0
   m_CameraMode:
     drawMode: 0
@@ -1389,9 +1389,9 @@ MonoBehaviour:
     speed: 2
     m_Value: {x: 0, y: 0, z: 0, w: 1}
   m_Size:
-    m_Target: 6.7944193
+    m_Target: 4.15398
     speed: 2
-    m_Value: 6.7944193
+    m_Value: 4.15398
   m_Ortho:
     m_Target: 1
     speed: 2
@@ -1467,6 +1467,7 @@ MonoBehaviour:
     m_KeySerializationHelper:
     - {fileID: 1000, guid: 794ac5cb4ae14c1984787446d3c10d93, type: 2}
     - {fileID: 110700000, guid: c6f2487dc9f49504eb0a822be80f2686, type: 2}
+    - {fileID: 1000, guid: 16cdbf7919094bcc9ad6bfb362ed03fd, type: 2}
     m_ValueSerializationHelper:
     - e00: 0.69131315
       e01: 0
@@ -1500,10 +1501,26 @@ MonoBehaviour:
       e31: 0
       e32: 0
       e33: 1
+    - e00: 1
+      e01: 0
+      e02: 0
+      e03: 0
+      e10: 0
+      e11: 1
+      e12: 0
+      e13: 0
+      e20: 0
+      e21: 0
+      e22: 1
+      e23: 0
+      e30: 0
+      e31: 0
+      e32: 0
+      e33: 1
   m_PreviewAnimator: {fileID: 0}
-  m_AnimatorController: {fileID: 9100000, guid: c6f2487dc9f49504eb0a822be80f2686, type: 2}
+  m_AnimatorController: {fileID: 9100000, guid: 16cdbf7919094bcc9ad6bfb362ed03fd, type: 2}
   m_BreadCrumbs:
-  - m_Target: {fileID: 110700000, guid: c6f2487dc9f49504eb0a822be80f2686, type: 2}
+  - m_Target: {fileID: 1000, guid: 16cdbf7919094bcc9ad6bfb362ed03fd, type: 2}
     m_ScrollPosition: {x: 0, y: 0}
   stateMachineGraph: {fileID: 0}
   stateMachineGraphGUI: {fileID: 0}
@@ -1556,22 +1573,17 @@ MonoBehaviour:
     m_DynamicPanelBehavior: 0
   m_SceneHierarchy:
     m_TreeViewState:
-      scrollPos: {x: 0, y: 48.600006}
+      scrollPos: {x: 0, y: 0}
       m_SelectedIDs:
-      - m_Data: -1750
+      - m_Data: 59810
       m_LastClickedID:
-        m_Data: -1750
+        m_Data: 59810
       m_ExpandedIDs:
-      - m_Data: -1746
-      - m_Data: -1744
-      - m_Data: -1738
-      - m_Data: -1698
       - m_Data: -1344
-      - m_Data: 59516
       m_RenameOverlay:
         m_UserAcceptedRename: 0
-        m_Name: HWJ_Runtime_Enemy_Possessable_Sword
-        m_OriginalName: HWJ_Runtime_Enemy_Possessable_Sword
+        m_Name: 
+        m_OriginalName: 
         m_EditFieldRect:
           serializedVersion: 2
           x: 0
@@ -1579,10 +1591,10 @@ MonoBehaviour:
           width: 0
           height: 0
         m_UserData:
-          m_Data: 67790
+          m_Data: 0
         m_IsWaitingForDelay: 0
         m_IsRenaming: 0
-        m_OriginalEventType: 0
+        m_OriginalEventType: 11
         m_IsRenamingFilename: 0
         m_TrimLeadingAndTrailingWhitespace: 0
         m_ClientGUIView: {fileID: 11}
@@ -1642,7 +1654,7 @@ MonoBehaviour:
     m_SkipHidden: 0
     m_SearchArea: 0
     m_Folders:
-    - Assets/02Scripts/HWJ/Prefabs/Generated/RuntimeReady/Enemies
+    - Assets/01Scenes/Soul_Build
     m_Globs: []
     m_ProductIds: 
     m_AnyWithAssetOrigin: 0
@@ -1775,9 +1787,9 @@ MonoBehaviour:
       m_Icon: {fileID: 0}
       m_ResourceFile: 
   m_AssetTreeState:
-    scrollPos: {x: 0, y: 1156}
+    scrollPos: {x: 0, y: 0}
     m_SelectedIDs:
-    - m_Data: -1750
+    - m_Data: 59810
     m_LastClickedID:
       m_Data: 0
     m_ExpandedIDs:
@@ -1894,8 +1906,8 @@ MonoBehaviour:
       m_ResourceFile: 
   m_ListAreaState:
     m_SelectedInstanceIDs:
-    - m_Data: -1750
-    m_LastClickedInstanceID: -1750
+    - m_Data: 59810
+    m_LastClickedInstanceID: 59810
     m_HadKeyboardFocusLastEvent: 0
     m_ExpandedInstanceIDs: []
     m_RenameOverlay:
