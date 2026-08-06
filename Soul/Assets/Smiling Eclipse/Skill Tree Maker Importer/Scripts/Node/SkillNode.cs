@@ -80,16 +80,26 @@ namespace SmilingEclipse.STMImporter
             visual.Button.onClick.AddListener(HandleClick);
 
             level = Load(nodeData.startLevel, "level");
-            bool initiallyUnlocked = Load(level > 0, "isUnlocked");
+            bool initiallyUnlocked = level > 0 || Load(false, "isUnlocked");
             
             // HWJ Integration: Initialize state based on HWJ data
             if (nodeData.hwjSkillData != null)
             {
                 var unlockSystem = UnityEngine.Object.FindAnyObjectByType<HWJ_SkillUnlockSystem>();
-                if (unlockSystem != null && unlockSystem.IsSkillNodeUnlocked(nodeData.hwjSkillData.NodeId))
+                if (unlockSystem != null)
                 {
-                    this.level = nodeData.maxLevel;
-                    initiallyUnlocked = true;
+                    if (unlockSystem.IsSkillNodeUnlocked(nodeData.hwjSkillData.NodeId))
+                    {
+                        this.level = nodeData.maxLevel;
+                        initiallyUnlocked = true;
+                    }
+                    else
+                    {
+                        this.level = 0;
+                        initiallyUnlocked = false;
+                        Save(0, "level");
+                        Save(false, "isUnlocked");
+                    }
                 }
             }
 
@@ -242,6 +252,12 @@ namespace SmilingEclipse.STMImporter
 
             level++;
             Save(level, "level");
+
+            var saveManager = HSH_SkillSaveManager.Instance ?? UnityEngine.Object.FindFirstObjectByType<HSH_SkillSaveManager>();
+            if (saveManager != null)
+            {
+                saveManager.SaveSkillData();
+            }
 
             controller.OnNodeBuyed?.Invoke();
             OnBuyed?.Invoke();
