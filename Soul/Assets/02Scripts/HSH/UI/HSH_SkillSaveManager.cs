@@ -164,13 +164,13 @@ public class HSH_NodeLevelEntry
                     currencyData.Points = saveData.skillPoint;
                 }
 
-                // 3. UI 트리의 노드 레벨 및 상태 복원
+                // 3. UI 트리의 노드 레벨 및 상태 복원 (활성화 상태일 때만 UI 코루틴 재로드)
                 if (skillTreeController == null)
                 {
                     skillTreeController = FindFirstObjectByType<SkillTreeController>();
                 }
 
-                if (skillTreeController != null)
+                if (skillTreeController != null && skillTreeController.gameObject.activeInHierarchy)
                 {
                     skillTreeController.StartCoroutine(skillTreeController.Load());
                 }
@@ -209,13 +209,13 @@ public class HSH_NodeLevelEntry
                 currencyData.Points = levelUpSystem.SkillPoint;
             }
 
-            // 4. UI 트리 새로고침
+            // 4. UI 트리 새로고침 (활성화 상태일 때만 UI 코루틴 재로드)
             if (skillTreeController == null)
             {
                 skillTreeController = FindFirstObjectByType<SkillTreeController>();
             }
 
-            if (skillTreeController != null)
+            if (skillTreeController != null && skillTreeController.gameObject.activeInHierarchy)
             {
                 skillTreeController.StartCoroutine(skillTreeController.Load());
             }
