@@ -45,37 +45,32 @@ public class HSH_SkillResetter : MonoBehaviour
             Debug.LogWarning("[HSH_SkillResetter] Target Database가 연결되지 않아 스킬 초기화를 건너뜁니다.");
         }
 
-        // HWJ 스킬 진행도 초기화 연동
-        // TODO(HWJ): HWJ_SkillUnlockSystem 에 스킬 초기화 메서드(예: ClearAllUnlocks)를
-        // 추가해 주시면 아래 주석을 풀고 연동할 수 있습니다.
-        /*
-        var hwjUnlockSystem = Object.FindAnyObjectByType<HWJ_SkillUnlockSystem>();
-        if (hwjUnlockSystem != null)
+        // 2. HSH 스킬 저장 매니저 연동 초기화
+        var saveManager = HSH_SkillSaveManager.Instance ?? Object.FindFirstObjectByType<HSH_SkillSaveManager>();
+        if (saveManager != null)
         {
-            hwjUnlockSystem.ClearAllUnlocks();
-            Debug.Log("[HSH_SkillResetter] HWJ 게임 시스템의 런타임 스킬 해금 상태가 초기화되었습니다.");
-        }
-        */
-
-        // 2. 스킬 포인트 초기화
-        if (skillPoints != null)
-        {
-            // 에셋의 내장 ResetPoints()는 UI 갱신 이벤트를 발생시키지 않는 구조적 문제가 있어서,
-            // 프로퍼티(Points)에 직접 값을 넣어 강제로 UI 갱신 이벤트를 트리거시킵니다.
-            skillPoints.Points = skillPoints.basePoints;
-            Debug.Log("[HSH_SkillResetter] 스킬 포인트가 기본값으로 초기화되었습니다.");
+            saveManager.ResetSkillSaveData();
+            Debug.Log("[HSH_SkillResetter] HSH 스킬 저장 데이터 및 해금 상태가 완전히 초기화되었습니다.");
         }
         else
         {
-            Debug.LogWarning("[HSH_SkillResetter] Skill Points 에셋이 연결되지 않아 포인트 초기화를 건너뜁니다.");
-        }
+            // Fallback: 런타임 수동 초기화
+            var hwjUnlockSystem = Object.FindFirstObjectByType<HWJ_SkillUnlockSystem>();
+            if (hwjUnlockSystem != null)
+            {
+                hwjUnlockSystem.ClearAllUnlocks(refundSkillPoints: true);
+            }
 
-        // 3. UI 즉시 새로고침 (화면 반영)
-        if (skillTreeController != null)
-        {
-            // 컨트롤러가 노드를 파괴하고 다시 스폰하도록 Load 코루틴을 강제로 실행합니다.
-            skillTreeController.StartCoroutine(skillTreeController.Load());
-            Debug.Log("[HSH_SkillResetter] 스킬트리 UI가 새로고침 되었습니다.");
+            var levelUpSystem = Object.FindFirstObjectByType<HWJ_LevelUpSystem>();
+            if (skillPoints != null && levelUpSystem != null)
+            {
+                skillPoints.Points = levelUpSystem.SkillPoint;
+            }
+
+            if (skillTreeController != null)
+            {
+                skillTreeController.StartCoroutine(skillTreeController.Load());
+            }
         }
     }
 
