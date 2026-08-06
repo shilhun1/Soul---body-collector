@@ -66,7 +66,7 @@ MonoBehaviour:
     skillPointReward: 0
     dropsExperienceOrb: 1
     experienceOrbPrefab: {fileID: 840010000000000001, guid: 22e7a47c526c4d51871f4bd3bdf889db, type: 3}
-    experienceOrbSpawnRadius: 0.35
+    experienceOrbSpawnRadius: 0.73
     dropsStatOrb: 1
     statOrbDropChance: 1
     statOrbSpawnRadius: 0.75

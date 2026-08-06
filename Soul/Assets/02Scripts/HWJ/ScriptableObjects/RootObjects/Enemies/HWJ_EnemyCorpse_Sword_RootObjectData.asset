@@ -22,7 +22,7 @@ MonoBehaviour:
   status:
     level: 1
     maxHp: 100
-    moveSpeed: 3
+    moveSpeed: 7
     attackPower: 1000
     defense: 0
     attackSpeed: 1

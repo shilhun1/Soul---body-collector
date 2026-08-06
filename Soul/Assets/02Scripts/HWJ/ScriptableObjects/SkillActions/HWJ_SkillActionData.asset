@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: HWJ_SkillActionData
   m_EditorClassIdentifier: Assembly-CSharp::HWJ_SkillActionDataSO
   skillActionId: Player_Basic_Attack
-  sourceSkillId: 
+  sourceSkillId: Player_Basic_Attack
   displayName: 
   skillDescription: 
   effectId: 
