@@ -232,6 +232,7 @@ GameObject:
   - component: {fileID: 4458900803003506312}
   - component: {fileID: 9110971740191891384}
   - component: {fileID: 2342702545281857291}
+  - component: {fileID: -7883481469213382859}
   m_Layer: 0
   m_Name: HWJ_Runtime_Enemy_Possessable_Shield
   m_TagString: Enemy
@@ -737,6 +738,24 @@ MonoBehaviour:
   patternReturnNormalizedTime: 0.98
   patternReturnTransitionSeconds: 0.05
   deathFreezeNormalizedTime: 0.995
+--- !u!114 &-7883481469213382859
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7698015754555945441}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0694cb8ad15df514ca570b43eb4f31f7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: HWJ.Runtime::HWJ_LivePossessionMentalState
+  maxMentalValue: 100
+  currentMentalValue: 100
+  initializeToMaxOnAwake: 1
+  permanentlyBlocked: 0
+  becameCorpseAfterLivePossession: 0
+  corpsePossessionConsumed: 0
 --- !u!1 &7834113077307228743
 GameObject:
   m_ObjectHideFlags: 0

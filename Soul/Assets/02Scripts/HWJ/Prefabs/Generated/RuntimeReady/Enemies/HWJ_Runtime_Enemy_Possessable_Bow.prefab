@@ -349,6 +349,7 @@ GameObject:
   - component: {fileID: 9206403865980191981}
   - component: {fileID: 6858533473203857953}
   - component: {fileID: 8389265584933250517}
+  - component: {fileID: -7262489035146029927}
   m_Layer: 0
   m_Name: HWJ_Runtime_Enemy_Possessable_Bow
   m_TagString: Enemy
@@ -854,6 +855,24 @@ MonoBehaviour:
   patternReturnNormalizedTime: 0.98
   patternReturnTransitionSeconds: 0.05
   deathFreezeNormalizedTime: 0.995
+--- !u!114 &-7262489035146029927
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6245554184141707589}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0694cb8ad15df514ca570b43eb4f31f7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: HWJ.Runtime::HWJ_LivePossessionMentalState
+  maxMentalValue: 100
+  currentMentalValue: 100
+  initializeToMaxOnAwake: 1
+  permanentlyBlocked: 0
+  becameCorpseAfterLivePossession: 0
+  corpsePossessionConsumed: 0
 --- !u!1 &7780252291605159637
 GameObject:
   m_ObjectHideFlags: 0

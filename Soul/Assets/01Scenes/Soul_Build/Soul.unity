@@ -4518,6 +4518,7 @@ GameObject:
   - component: {fileID: 1213663166}
   - component: {fileID: 1213663165}
   - component: {fileID: 1213663169}
+  - component: {fileID: 1213663170}
   m_Layer: 0
   m_Name: HWJ_Player
   m_TagString: Player
@@ -4926,6 +4927,7 @@ MonoBehaviour:
   consumePossessedCorpse: 1
   deactivateConsumedCorpse: 1
   allowManualSoulExit: 1
+  livePossessionMentalCost: 10
   useGameplayPossessionRule: 1
   possessionExecutionCore: {fileID: 0}
   possessionExecutionCoreId: possession_execution
@@ -5059,7 +5061,7 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0, y: 0}
+  m_Offset: {x: -0.07553005, y: 0.027465582}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0, y: 0}
@@ -5069,7 +5071,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 1, y: 1}
+  m_Size: {x: 1.7553024, y: 3.5817618}
   m_EdgeRadius: 0
 --- !u!50 &1213663161
 Rigidbody2D:
@@ -5339,6 +5341,21 @@ MonoBehaviour:
   pauseTimeWhenOpen: 1
   unlockCursorWhenOpen: 1
   skillTreeController: {fileID: 1227394104}
+--- !u!114 &1213663170
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1213663141}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 01e2553870fbbdd41b18e7c2562adeed, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: HWJ.Runtime::HWJ_LivePossessionMentalDrainSystem
+  possessionSystem: {fileID: 1213663155}
+  drainInterval: 1
+  drainAmount: 1
 --- !u!1 &1220734443
 GameObject:
   m_ObjectHideFlags: 0

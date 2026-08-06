@@ -493,6 +493,7 @@ GameObject:
   - component: {fileID: 1567874289381373760}
   - component: {fileID: 5781337788464920117}
   - component: {fileID: 8291968574555104553}
+  - component: {fileID: -6877648866788169658}
   m_Layer: 0
   m_Name: HWJ_Runtime_Enemy_Possessable_Axe
   m_TagString: Enemy
@@ -998,3 +999,21 @@ MonoBehaviour:
   patternReturnNormalizedTime: 0.98
   patternReturnTransitionSeconds: 0.05
   deathFreezeNormalizedTime: 0.995
+--- !u!114 &-6877648866788169658
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8944674153436637418}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0694cb8ad15df514ca570b43eb4f31f7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: HWJ.Runtime::HWJ_LivePossessionMentalState
+  maxMentalValue: 100
+  currentMentalValue: 100
+  initializeToMaxOnAwake: 1
+  permanentlyBlocked: 0
+  becameCorpseAfterLivePossession: 0
+  corpsePossessionConsumed: 0
