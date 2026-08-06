@@ -43,55 +43,66 @@ namespace SmilingEclipse.STMImporter
         {
             if (node == null) { Hide(); return; }
             SkillNodeData data = node.NodeData;
+            if (data == null) return;
 
-
-            titleTMP.text = node.NodeData.skillName;
-            descriptionTMP.text = data.description;
-            costTMP.text = $"{node.RealCost} {controller.skillPoints.currencyName}";
-            costTMP.color = node.CanBuy ? Color.white : Color.red;
-            levelTMP.text = $"{node.level}/{data.maxLevel}";
-
-
-            bool isUnlocked = node.UnlockedInfo.isUnlocked;
-            requiredContainer.gameObject.SetActive(!isUnlocked);
-            priceContainer.gameObject.SetActive(isUnlocked && !node.isMaxed);
-            if (isUnlocked == false)
+            if (titleTMP != null) titleTMP.text = data.skillName;
+            if (descriptionTMP != null) descriptionTMP.text = data.description;
+            if (costTMP != null)
             {
-
-                StringBuilder requiredNodesSB = new();
-                foreach (SkillNode pNode in node.parentNodes)
-                {
-                    if (requiredNodesSB.Length > 0) { requiredNodesSB.Append(", "); }
-                    requiredNodesSB.Append(pNode.NodeData.skillName);
-                }
-                requiredTMP.text = "Requires: " + requiredNodesSB.ToString();
+                string currencyStr = (controller != null && controller.skillPoints != null) ? controller.skillPoints.currencyName : "Points";
+                costTMP.text = $"{node.RealCost} {currencyStr}";
+                costTMP.color = node.CanBuy ? Color.white : Color.red;
             }
+            if (levelTMP != null) levelTMP.text = $"{node.level}/{data.maxLevel}";
 
-
-
-
-
-
+            if (node.UnlockedInfo != null)
+            {
+                bool isUnlocked = node.UnlockedInfo.isUnlocked;
+                if (requiredContainer != null) requiredContainer.gameObject.SetActive(!isUnlocked);
+                if (priceContainer != null) priceContainer.gameObject.SetActive(isUnlocked && !node.isMaxed);
+                if (isUnlocked == false && requiredTMP != null)
+                {
+                    StringBuilder requiredNodesSB = new();
+                    foreach (SkillNode pNode in node.parentNodes)
+                    {
+                        if (pNode == null || pNode.NodeData == null) continue;
+                        if (requiredNodesSB.Length > 0) { requiredNodesSB.Append(", "); }
+                        requiredNodesSB.Append(pNode.NodeData.skillName);
+                    }
+                    requiredTMP.text = "Requires: " + requiredNodesSB.ToString();
+                }
+            }
         }
+
         private void Update()
         {
-            if ((node == null)) { return; }
+            if (node == null || window == null) { return; }
 
-            Vector3 mousePos = Mouse.current.position.ReadValue();
-            Vector3 mousePosZFix = new Vector3(mousePos.x, mousePos.y, -Camera.main.transform.position.z);
+            Camera mainCam = Camera.main;
+            if (mainCam == null) mainCam = Camera.current;
+
+            var mouse = Mouse.current;
+            if (mouse != null && mainCam != null)
+            {
+                Vector3 mousePos = mouse.position.ReadValue();
+                Vector3 mousePosZFix = new Vector3(mousePos.x, mousePos.y, -mainCam.transform.position.z);
+            }
+
             window.transform.position = node.transform.position;
-            //Camera.main.ScreenToWorldPoint(mousePosZFix);
-
 
             ResolveCorner();
         }
 
         void ResolveCorner()
         {
+            if (rect == null) return;
+
             float screenWidth = Screen.width;
             float sizeX = rect.rect.width;
             float halfSizeX = sizeX / 2f;
-            float mouseX = Mouse.current.position.ReadValue().x;
+
+            var mouse = Mouse.current;
+            float mouseX = mouse != null ? mouse.position.ReadValue().x : Input.mousePosition.x;
 
             float cornerL = halfSizeX;
             float cornerR = screenWidth - halfSizeX;
