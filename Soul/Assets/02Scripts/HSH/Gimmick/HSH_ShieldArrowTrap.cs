@@ -145,6 +145,16 @@ namespace HSH.Gimmick
                 return;
             }
 
+            // 스위치 기믹 충돌 처리
+            var projSwitch = collision.GetComponentInParent<HSH_ProjectileSwitch>();
+            if (projSwitch != null)
+            {
+                Debug.Log($"[HSH_ShieldArrowTrap] 화살 투사체가 스위치 '{projSwitch.name}'에 명중했습니다!");
+                projSwitch.ActivateSwitch();
+                Destroy(gameObject);
+                return;
+            }
+
             // 장애물이나 벽에 부딪혔을 때 화살 소멸
             if (!collision.isTrigger && !collision.CompareTag("Enemy"))
             {

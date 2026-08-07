@@ -83,6 +83,12 @@ namespace HSH.Gimmick
                         if (!string.IsNullOrEmpty(openBoolParam)) doorAnimator.SetBool(openBoolParam, true);
                         if (!string.IsNullOrEmpty(openTriggerParam)) doorAnimator.SetTrigger(openTriggerParam);
                     }
+                    else
+                    {
+                        Debug.LogWarning($"[HSH_GimmickDoor] 문 '{gameObject.name}'의 openMode가 AnimatorOnly로 설정되어 있으나 Animator가 없습니다! 시각적 구분을 위해 Renderer를 비활성화합니다.");
+                        var sr = GetComponent<SpriteRenderer>();
+                        if (sr != null) sr.enabled = false;
+                    }
                     break;
 
                 case DoorOpenMode.DisableObject:
@@ -103,9 +109,17 @@ namespace HSH.Gimmick
 
             SetCollidersEnabled(true);
 
-            if (openMode == DoorOpenMode.AnimatorOnly && doorAnimator != null)
+            if (openMode == DoorOpenMode.AnimatorOnly)
             {
-                if (!string.IsNullOrEmpty(openBoolParam)) doorAnimator.SetBool(openBoolParam, false);
+                if (doorAnimator != null)
+                {
+                    if (!string.IsNullOrEmpty(openBoolParam)) doorAnimator.SetBool(openBoolParam, false);
+                }
+                else
+                {
+                    var sr = GetComponent<SpriteRenderer>();
+                    if (sr != null) sr.enabled = true;
+                }
             }
 
             if (openMode == DoorOpenMode.TransformMove)

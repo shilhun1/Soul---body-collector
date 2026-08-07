@@ -17,6 +17,9 @@ namespace HSH.Gimmick
         [Tooltip("충돌된 화살/탄환 투사체를 즉시 소멸시킬지 여부")]
         [SerializeField] private bool destroyProjectileOnHit = true;
 
+        [Tooltip("플레이어 상호작용 키(E)로도 직접 작동 허용 여부")]
+        [SerializeField] private bool allowPlayerInteract = true;
+
         [Tooltip("감지할 투사체 태그 목록")]
         [SerializeField] private string[] projectileTags = new string[] { "Projectile", "Arrow", "Bullet", "PlayerAttack" };
 
@@ -35,6 +38,7 @@ namespace HSH.Gimmick
         [SerializeField] private string isActivatedBoolName = "IsActivated";
 
         private bool isActivated = false;
+        private bool playerInside = false;
 
         public bool IsActivated => isActivated;
 
@@ -42,15 +46,44 @@ namespace HSH.Gimmick
         {
             if (switchRenderer == null) switchRenderer = GetComponent<SpriteRenderer>();
             if (switchAnimator == null) switchAnimator = GetComponent<Animator>();
+
+            // Unity 2D 물리 엔진에서 OnTriggerEnter2D가 반드시 호출되도록 Kinematic Rigidbody2D 보장
+            Rigidbody2D rb = GetComponent<Rigidbody2D>();
+            if (rb == null)
+            {
+                rb = gameObject.AddComponent<Rigidbody2D>();
+                rb.bodyType = RigidbodyType2D.Kinematic;
+                rb.simulated = true;
+            }
+        }
+
+        private void Update()
+        {
+            if (playerInside && allowPlayerInteract && (!oneShot || !isActivated))
+            {
+                HWJ_PlayerInputSystem input = HWJ_GameAccess.PlayerInput;
+                if (input != null && input.InteractPressedThisFrame)
+                {
+                    Debug.Log($"[HSH_ProjectileSwitch] 플레이어 상호작용 입력(Interact)으로 스위치 '{gameObject.name}' 작동!");
+                    ActivateSwitch();
+                }
+            }
         }
 
         private void OnTriggerEnter2D(Collider2D other)
         {
             if (other == null || (oneShot && isActivated)) return;
 
+            Debug.Log($"[HSH_ProjectileSwitch] [Trigger 진입] 오브젝트: '{other.name}', Tag: '{other.tag}'");
+
+            if (other.CompareTag("Player") || other.GetComponentInParent<HWJ_SoulSystem>() != null)
+            {
+                playerInside = true;
+            }
+
             if (IsProjectileHit(other.gameObject))
             {
-                Debug.Log($"[HSH_ProjectileSwitch] 스위치 '{gameObject.name}' 충돌 감지! 타겟: '{other.name}' (Tag: '{other.tag}')");
+                Debug.Log($"[HSH_ProjectileSwitch] ★★★ 스위치 '{gameObject.name}' 투사체 감지 성공! (타겟: '{other.name}', Tag: '{other.tag}')");
                 ActivateSwitch();
 
                 if (destroyProjectileOnHit)
@@ -60,13 +93,23 @@ namespace HSH.Gimmick
             }
         }
 
+        private void OnTriggerExit2D(Collider2D other)
+        {
+            if (other != null && (other.CompareTag("Player") || other.GetComponentInParent<HWJ_SoulSystem>() != null))
+            {
+                playerInside = false;
+            }
+        }
+
         private void OnCollisionEnter2D(Collision2D collision)
         {
             if (collision == null || (oneShot && isActivated)) return;
 
+            Debug.Log($"[HSH_ProjectileSwitch] [Collision 진입] 오브젝트: '{collision.gameObject.name}', Tag: '{collision.gameObject.tag}'");
+
             if (IsProjectileHit(collision.gameObject))
             {
-                Debug.Log($"[HSH_ProjectileSwitch] 스위치 '{gameObject.name}' 물리 충돌 감지! 타겟: '{collision.gameObject.name}' (Tag: '{collision.gameObject.tag}')");
+                Debug.Log($"[HSH_ProjectileSwitch] ★★★ 스위치 '{gameObject.name}' 물리 투사체 감지 성공! (타겟: '{collision.gameObject.name}', Tag: '{collision.gameObject.tag}')");
                 ActivateSwitch();
 
                 if (destroyProjectileOnHit)
@@ -77,14 +120,14 @@ namespace HSH.Gimmick
         }
 
         /// <summary>
-        /// 스위치를 외부 코드나 HWJ 시스템에서 수동으로 작동시킬 수 있는 메서드입니다.
+        /// 스위치를 수동으로 작동시킬 수 있는 메서드입니다.
         /// </summary>
         public void ActivateSwitch()
         {
             if (oneShot && isActivated) return;
 
             isActivated = true;
-            Debug.Log($"[HSH_ProjectileSwitch] ★ 스위치 '{gameObject.name}' 작동 성공!");
+            Debug.Log($"[HSH_ProjectileSwitch] ★★★ 스위치 '{gameObject.name}' 작동 성공!");
 
             // 1. 연결된 문 열기
             if (targetDoor != null)
@@ -112,12 +155,31 @@ namespace HSH.Gimmick
         {
             if (obj == null) return false;
 
+            // 1. 태그 목록 검사
             for (int i = 0; i < projectileTags.Length; i++)
             {
                 if (!string.IsNullOrEmpty(projectileTags[i]) && string.Equals(obj.tag, projectileTags[i], System.StringComparison.Ordinal))
                 {
                     return true;
                 }
+            }
+
+            // 2. HSH 화살 함정 등 투사체 컴포넌트 검사
+            if (obj.GetComponent<HSH_ShieldArrowTrap>() != null ||
+                obj.GetComponentInParent<HSH_ShieldArrowTrap>() != null)
+            {
+                return true;
+            }
+
+            // 3. 오브젝트 이름 패턴 검사 (arrow, bullet, projectile, shot, attack 등)
+            string lowerName = obj.name.ToLower();
+            if (lowerName.Contains("arrow") ||
+                lowerName.Contains("bullet") ||
+                lowerName.Contains("projectile") ||
+                lowerName.Contains("shot") ||
+                lowerName.Contains("attack"))
+            {
+                return true;
             }
 
             return false;
