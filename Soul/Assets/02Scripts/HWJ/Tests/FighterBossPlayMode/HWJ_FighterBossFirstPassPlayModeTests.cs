@@ -115,9 +115,14 @@ public class HWJ_FighterBossFirstPassPlayModeTests
         Assert.NotNull(healthBar);
         Assert.GreaterOrEqual(
             dialogue.GetSequenceDuration(HWJ_BossDialogueSequenceType.Intro),
-            22f,
+            31.5f,
             "Intro dialogue must remain on screen long enough to read.");
+        Assert.Greater(
+            dialogue.GetReadableLineDuration("이 문장은 충분히 길어서 짧은 대사보다 더 오래 표시되어야 합니다."),
+            dialogue.GetReadableLineDuration("아니."));
         SetPrivateField(dialogue, "sequenceLineDurationSeconds", 0.01f);
+        SetPrivateField(dialogue, "secondsPerCharacter", 0f);
+        SetPrivateField(dialogue, "maximumLineDurationSeconds", 0.01f);
         SetPrivateField(dialogue, "sequenceGapSeconds", 0f);
 
         Assert.AreSame(healthBar.transform, dialogue.BubbleAnchor);
@@ -152,8 +157,16 @@ public class HWJ_FighterBossFirstPassPlayModeTests
             dialogue.BubbleWorldPosition.y,
             healthBar.transform.position.y + 0.7f,
             "Dialogue must be positioned above the health bar.");
-        Assert.GreaterOrEqual(dialogue.CurrentBubbleSize.x, 3.4f);
-        Assert.GreaterOrEqual(dialogue.CurrentBubbleSize.y, 1.05f);
+        Assert.GreaterOrEqual(dialogue.CurrentBubbleSize.x, 5.2f);
+        Assert.GreaterOrEqual(dialogue.CurrentBubbleSize.y, 1.4f);
+        Assert.Greater(
+            dialogue.CurrentBubbleSize.x,
+            dialogue.CurrentRenderedTextSize.x,
+            "The white bubble must be wider than the rendered dialogue text.");
+        Assert.Greater(
+            dialogue.CurrentBubbleSize.y,
+            dialogue.CurrentRenderedTextSize.y,
+            "The white bubble must be taller than the rendered dialogue text.");
 
         dialogue.CancelDialogueSequence(true);
         Object.Destroy(boss);
@@ -1185,6 +1198,8 @@ public class HWJ_FighterBossFirstPassPlayModeTests
         }
 
         SetPrivateField(dialogue, "sequenceLineDurationSeconds", 0.01f);
+        SetPrivateField(dialogue, "secondsPerCharacter", 0f);
+        SetPrivateField(dialogue, "maximumLineDurationSeconds", 0.01f);
         SetPrivateField(dialogue, "sequenceGapSeconds", 0f);
     }
 }

@@ -14,11 +14,11 @@ public class HWJ_BossCameraFocusSystem : MonoBehaviour
     [SerializeField] private Camera targetCamera;
 
     [Header("대사 줌")]
-    [SerializeField, Min(1f)] private float dialogueFocusFieldOfView = 32f;
-    [SerializeField, Min(0.1f)] private float dialogueFocusOrthographicSize = 4.8f;
+    [SerializeField, Min(1f)] private float dialogueFocusFieldOfView = 28f;
+    [SerializeField, Min(0.1f)] private float dialogueFocusOrthographicSize = 3.2f;
     [SerializeField, Min(0.01f)] private float zoomLerpSpeed = 4f;
     [SerializeField, Min(0f)] private float returnBlendSeconds = 0.45f;
-    [SerializeField] private Vector2 focusOffset = new Vector2(0f, 1.5f);
+    [SerializeField] private Vector2 focusOffset = new Vector2(0f, 0.8f);
 
     [Header("일반 카메라 대체 동작")]
     [SerializeField] private bool disablePlayerFollowWhileFocusing = true;
@@ -28,6 +28,7 @@ public class HWJ_BossCameraFocusSystem : MonoBehaviour
     private CinemachineCamera activeCinemachineCamera;
     private Transform previousTrackingTarget;
     private LensSettings previousLens;
+    private LensSettings focusedLens;
     private Transform focusAnchor;
     private HWJ_PlayerCameraFollowSystem disabledFollowSystem;
     private bool hasStoredCinemachineState;
@@ -46,11 +47,11 @@ public class HWJ_BossCameraFocusSystem : MonoBehaviour
     /// </summary>
     public void ConfigureFighterBossDialogueDefaults()
     {
-        dialogueFocusFieldOfView = 32f;
-        dialogueFocusOrthographicSize = 4.8f;
+        dialogueFocusFieldOfView = 28f;
+        dialogueFocusOrthographicSize = 3.2f;
         zoomLerpSpeed = 4f;
         returnBlendSeconds = 0.45f;
-        focusOffset = new Vector2(0f, 1.5f);
+        focusOffset = new Vector2(0f, 0.8f);
         disablePlayerFollowWhileFocusing = true;
         fallbackPositionLerpSpeed = 6f;
     }
@@ -99,6 +100,12 @@ public class HWJ_BossCameraFocusSystem : MonoBehaviour
         activeCinemachineCamera = cinemachineCamera;
         previousTrackingTarget = cinemachineCamera.Target.TrackingTarget;
         previousLens = cinemachineCamera.Lens;
+        focusedLens = previousLens;
+        // 씬의 기존 카메라보다 멀어지는 값은 사용하지 않아 대사 중에는 항상 줌인만 합니다.
+        focusedLens.FieldOfView = Mathf.Min(previousLens.FieldOfView, dialogueFocusFieldOfView);
+        focusedLens.OrthographicSize = Mathf.Min(
+            previousLens.OrthographicSize,
+            dialogueFocusOrthographicSize);
         hasStoredCinemachineState = true;
 
         Transform dialogueTarget = GetOrCreateFocusAnchor(boss);
@@ -155,6 +162,10 @@ public class HWJ_BossCameraFocusSystem : MonoBehaviour
         activeFallbackCamera = camera;
         previousFallbackFieldOfView = camera.fieldOfView;
         previousFallbackOrthographicSize = camera.orthographicSize;
+        float focusedFieldOfView = Mathf.Min(previousFallbackFieldOfView, dialogueFocusFieldOfView);
+        float focusedOrthographicSize = Mathf.Min(
+            previousFallbackOrthographicSize,
+            dialogueFocusOrthographicSize);
         hasStoredFallbackState = true;
 
         if (disablePlayerFollowWhileFocusing)
@@ -179,11 +190,11 @@ public class HWJ_BossCameraFocusSystem : MonoBehaviour
                 Time.deltaTime * fallbackPositionLerpSpeed);
             camera.fieldOfView = Mathf.Lerp(
                 camera.fieldOfView,
-                dialogueFocusFieldOfView,
+                focusedFieldOfView,
                 Time.deltaTime * zoomLerpSpeed);
             camera.orthographicSize = Mathf.Lerp(
                 camera.orthographicSize,
-                dialogueFocusOrthographicSize,
+                focusedOrthographicSize,
                 Time.deltaTime * zoomLerpSpeed);
             yield return null;
         }
@@ -282,11 +293,11 @@ public class HWJ_BossCameraFocusSystem : MonoBehaviour
         LensSettings lens = cinemachineCamera.Lens;
         lens.FieldOfView = Mathf.Lerp(
             lens.FieldOfView,
-            dialogueFocusFieldOfView,
+            focusedLens.FieldOfView,
             Mathf.Clamp01(t));
         lens.OrthographicSize = Mathf.Lerp(
             lens.OrthographicSize,
-            dialogueFocusOrthographicSize,
+            focusedLens.OrthographicSize,
             Mathf.Clamp01(t));
         cinemachineCamera.Lens = lens;
     }

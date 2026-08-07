@@ -259,8 +259,8 @@ GameObject:
   - component: {fileID: 2683516614822213411}
   - component: {fileID: 836379424045790169}
   - component: {fileID: 7522734791160484463}
-  - component: {fileID: 4110541887938308067}
-  m_Layer: 0
+  - component: {fileID: 7044213305416885505}
+  m_Layer: 3
   m_Name: HWJ_Runtime_Enemy_NoCorpse_Axe
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -634,7 +634,7 @@ MonoBehaviour:
   targetSearchIntervalSeconds: 0.5
   groundLayer:
     serializedVersion: 2
-    m_Bits: 64
+    m_Bits: 0
 --- !u!114 &2683516614822213411
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -695,7 +695,7 @@ MonoBehaviour:
   horizontalMoveOnly: 1
   groundLayer:
     serializedVersion: 2
-    m_Bits: 64
+    m_Bits: 0
   fallbackTrackingRange: 8
   fallbackAttackRange: 1.2
   targetSearchIntervalSeconds: 0.5
@@ -729,7 +729,7 @@ MonoBehaviour:
   noCorpseDespawnDelaySeconds: 0.2
   makeCorpseCollidersTriggers: 1
   disableBehaviorOnDeath: 1
---- !u!114 &4110541887938308067
+--- !u!114 &7044213305416885505
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

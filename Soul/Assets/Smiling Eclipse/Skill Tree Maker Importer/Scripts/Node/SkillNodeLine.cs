@@ -26,14 +26,24 @@ namespace SmilingEclipse.STMImporter
 
         public void UpdateLine()
         {
-            if (nodeA == null || nodeB == null) return;
+            if (nodeA == null || nodeB == null || line == null) return;
+
+            if (canvas == null)
+            {
+                canvas = GetComponentInParent<Canvas>();
+            }
+            if (canvas == null) return;
 
             switch (canvas.renderMode)
             {
                 case RenderMode.ScreenSpaceOverlay:
-                    float zDistance = Mathf.Abs(Camera.main.transform.position.z);
-                    Vector3 worldA = Camera.main.ScreenToWorldPoint(new Vector3(nodeA.transform.position.x, nodeA.transform.position.y, zDistance));
-                    Vector3 worldB = Camera.main.ScreenToWorldPoint(new Vector3(nodeB.transform.position.x, nodeB.transform.position.y, zDistance));
+                    Camera mainCam = Camera.main;
+                    if (mainCam == null) mainCam = Camera.current;
+                    if (mainCam == null) return;
+
+                    float zDistance = Mathf.Abs(mainCam.transform.position.z);
+                    Vector3 worldA = mainCam.ScreenToWorldPoint(new Vector3(nodeA.transform.position.x, nodeA.transform.position.y, zDistance));
+                    Vector3 worldB = mainCam.ScreenToWorldPoint(new Vector3(nodeB.transform.position.x, nodeB.transform.position.y, zDistance));
                     line.SetPosition(0, worldA); //space overlay
                     line.SetPosition(1, worldB); //space overlay
                     break;
@@ -46,12 +56,6 @@ namespace SmilingEclipse.STMImporter
                 default:
                     break;
             }
-
-
-
-
-
-
         }
         public void SetColor(Color color)
         {

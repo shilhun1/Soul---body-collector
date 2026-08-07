@@ -259,8 +259,8 @@ GameObject:
   - component: {fileID: 670746324410007114}
   - component: {fileID: 4117516876345308037}
   - component: {fileID: 7876029323282435133}
-  - component: {fileID: 7879239082880967624}
-  m_Layer: 0
+  - component: {fileID: 820616599888552533}
+  m_Layer: 3
   m_Name: HWJ_Runtime_Enemy_NoCorpse_Shield
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -634,7 +634,7 @@ MonoBehaviour:
   targetSearchIntervalSeconds: 0.5
   groundLayer:
     serializedVersion: 2
-    m_Bits: 64
+    m_Bits: 0
 --- !u!114 &670746324410007114
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -695,7 +695,7 @@ MonoBehaviour:
   horizontalMoveOnly: 1
   groundLayer:
     serializedVersion: 2
-    m_Bits: 64
+    m_Bits: 0
   fallbackTrackingRange: 8
   fallbackAttackRange: 1.2
   targetSearchIntervalSeconds: 0.5
@@ -729,7 +729,7 @@ MonoBehaviour:
   noCorpseDespawnDelaySeconds: 0.2
   makeCorpseCollidersTriggers: 1
   disableBehaviorOnDeath: 1
---- !u!114 &7879239082880967624
+--- !u!114 &820616599888552533
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

@@ -256,8 +256,8 @@ GameObject:
   - component: {fileID: 5767130532141409381}
   - component: {fileID: 5911065801531112099}
   - component: {fileID: 6310301411518450984}
-  - component: {fileID: 2409860466110527927}
-  m_Layer: 0
+  - component: {fileID: 6388467187564766321}
+  m_Layer: 3
   m_Name: HWJ_Runtime_Corpse_Bow
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -620,7 +620,7 @@ MonoBehaviour:
   isRemovedAfterPossession: 0
   wasAliveWhenPossessed: 0
   restoreObjectOnPossessionExit: 0
---- !u!114 &2409860466110527927
+--- !u!114 &6388467187564766321
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
