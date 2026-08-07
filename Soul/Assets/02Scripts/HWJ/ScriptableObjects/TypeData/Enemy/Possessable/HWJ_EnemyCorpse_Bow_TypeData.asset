@@ -114,6 +114,10 @@ MonoBehaviour:
     heartSocketName: 
     possessionRange: 0
     spiritMentalCostOnPossession: 0
+    livePossessionMaxMental: 100
+    livePossessionMentalCostOnSuccess: 10
+    livePossessionMentalDrainInterval: 1
+    livePossessionMentalDrainAmount: 1
     livePossessionSuccessChance: 1
     livePossessionFailureSpiritMentalCost: 10
     livePossessionFailureControlLockSeconds: 0.5
@@ -121,7 +125,7 @@ MonoBehaviour:
     livePossessionFailureKnockbackSeconds: 0.2
     livePossessionFailureMessage: "\uB300\uC0C1\uC758 \uC815\uC2E0\uB825\uC5D0 \uBC00\uB824
       \uBE59\uC758\uC5D0 \uC2E4\uD328\uD588\uB2E4."
-    requiresDefeatedState: 1
+    requiresDefeatedState: 0
     transfersControlToBody: 1
     loadsBodyStatsToPlayer: 1
     overrideBodyDecayOnPossession: 0

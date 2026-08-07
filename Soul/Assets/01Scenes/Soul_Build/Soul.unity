@@ -4518,7 +4518,16 @@ GameObject:
   - component: {fileID: 1213663166}
   - component: {fileID: 1213663165}
   - component: {fileID: 1213663169}
-  - component: {fileID: 1213663170}
+  - component: {fileID: 1213663180}
+  - component: {fileID: 1213663179}
+  - component: {fileID: 1213663178}
+  - component: {fileID: 1213663177}
+  - component: {fileID: 1213663176}
+  - component: {fileID: 1213663175}
+  - component: {fileID: 1213663174}
+  - component: {fileID: 1213663173}
+  - component: {fileID: 1213663172}
+  - component: {fileID: 1213663171}
   m_Layer: 0
   m_Name: HWJ_Player
   m_TagString: Player
@@ -4835,6 +4844,7 @@ MonoBehaviour:
     m_Bits: 0
   groundCheckOffset: {x: 0, y: -0.55}
   groundCheckSize: {x: 0.7, y: 0.12}
+  deriveGroundProbeFromCollider: 1
   phaseThroughCollidersInSoul: 1
   swapLayerInSoulState: 1
   soulLayerName: Soul
@@ -4842,6 +4852,7 @@ MonoBehaviour:
   isSoulCollisionMode: 0
   ignoreEnemyBodyCollision: 1
   enemyCollisionRefreshSeconds: 0.25
+  logJumpDiagnostics: 1
 --- !u!114 &1213663153
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4921,22 +4932,19 @@ MonoBehaviour:
   possessedBodySystem: {fileID: 0}
   skillUnlockSystem: {fileID: 0}
   possessedBodyResolver: {fileID: 0}
-  runtimePossessedBodyResolver: {fileID: 0}
-  moveOwnerToPossessedBody: 1
-  copyPossessedBodyVisual: 1
-  consumePossessedCorpse: 1
-  deactivateConsumedCorpse: 1
-  allowManualSoulExit: 1
-  livePossessionMentalCost: 10
-  useGameplayPossessionRule: 1
-  possessionExecutionCore: {fileID: 0}
-  possessionExecutionCoreId: possession_execution
-  possessionRule: {fileID: 0}
-  possessionRuleId: possession_can_start
+  targetValidator: {fileID: 0}
+  livePossessionSystem: {fileID: 0}
+  corpsePossessionSystem: {fileID: 0}
+  exitSystem: {fileID: 0}
+  snapshotSystem: {fileID: 0}
+  bodyController: {fileID: 0}
+  visualController: {fileID: 0}
+  skillProvider: {fileID: 0}
   lastPossessionFailureCode: 0
   lastPossessionResult: 
   lastLivePossessionRoll: 0
   lastLivePossessionSuccessChance: 0
+  currentPossessionKind: 0
 --- !u!114 &1213663156
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4949,14 +4957,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4042ff89076aed149bd57f1ccb253bb9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HWJ_BodyDecaySystem
-  dataResolver: {fileID: 1213663159}
-  soulSystem: {fileID: 1213663157}
-  possessionSystem: {fileID: 0}
-  possessedBodySystem: {fileID: 0}
-  currentDecayValue: 0
-  resetDecayWhenEnterBody: 1
-  isDecaying: 0
-  runtimeStateMessage: 
 --- !u!114 &1213663157
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5341,7 +5341,7 @@ MonoBehaviour:
   pauseTimeWhenOpen: 1
   unlockCursorWhenOpen: 1
   skillTreeController: {fileID: 1227394104}
---- !u!114 &1213663170
+--- !u!114 &1213663171
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -5350,12 +5350,183 @@ MonoBehaviour:
   m_GameObject: {fileID: 1213663141}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 01e2553870fbbdd41b18e7c2562adeed, type: 3}
+  m_Script: {fileID: 11500000, guid: 911e7b5d2b0a13f4f8fa68eebb5e8d87, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: HWJ.Runtime::HWJ_LivePossessionMentalDrainSystem
+  m_EditorClassIdentifier: HWJ.Runtime::HWJ_PossessionInteractionController
   possessionSystem: {fileID: 1213663155}
-  drainInterval: 1
-  drainAmount: 1
+  targetValidator: {fileID: 1213663180}
+  minigameController: {fileID: 1213663172}
+  detectionOrigin: {fileID: 1213663162}
+  detectionRadius: 2
+  targetLayerMask:
+    serializedVersion: 2
+    m_Bits: 8
+  readKeyboardDirectly: 1
+  lastLiveTarget: {fileID: 0}
+  lastCorpseTarget: {fileID: 0}
+  runtimeMessage: 
+  drawDetectionRange: 1
+--- !u!114 &1213663172
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1213663141}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6b82ae08070e4d42acf819d2cc55801, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: HWJ.Runtime::HWJ_LivePossessionMinigameController
+  possessionSystem: {fileID: 1213663155}
+  minigameRoot: {fileID: 0}
+  mentalGaugeSlider: {fileID: 0}
+  timerText: {fileID: 0}
+  instructionText: {fileID: 0}
+  resultText: {fileID: 0}
+  createFallbackUiWhenMissing: 1
+  baseStartGauge: 0.5
+  limitSeconds: 5
+  passiveGaugeLossPerSecond: 0.12
+  gaugeGainPerPress: 0.08
+  proficiencyLevel: 0
+  startGaugeBonusPerLevel: 0.05
+  increaseProficiencyOnSuccess: 1
+  pauseEntireWorldDuringMinigame: 1
+  isRunning: 0
+  currentGauge: 0
+  elapsedSeconds: 0
+  activeTarget: {fileID: 0}
+  runtimeMessage: 
+  logLifecycle: 1
+  progressLogIntervalSeconds: 1
+--- !u!114 &1213663173
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1213663141}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8e04ad1466f379748b9e70c02b6a050b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: HWJ.Runtime::HWJ_PossessedSkillProvider
+  possessionSystem: {fileID: 1213663155}
+  skillUnlockSystem: {fileID: 1213663144}
+--- !u!114 &1213663174
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1213663141}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 50272cac7cde5f8409e304b5fbc01b22, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: HWJ.Runtime::HWJ_PossessionVisualController
+  copyPossessedBodyVisual: 1
+--- !u!114 &1213663175
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1213663141}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0f13dfc050590674ba4f724044942887, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: HWJ.Runtime::HWJ_PossessionBodyController
+  possessionSystem: {fileID: 1213663155}
+  moveOwnerToPossessedBody: 1
+  consumePossessedBody: 1
+  deactivateConsumedBody: 1
+--- !u!114 &1213663176
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1213663141}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8117e6d3683a67b4eb63fbbff76d632b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: HWJ.Runtime::HWJ_PossessionSnapshotSystem
+  possessionSystem: {fileID: 1213663155}
+  targetValidator: {fileID: 1213663180}
+  visualController: {fileID: 0}
+  runtimePossessedBodyResolver: {fileID: 0}
+--- !u!114 &1213663177
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1213663141}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 226c7576ed6d7a74dabf0a51a02c9fb0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: HWJ.Runtime::HWJ_PossessionExitSystem
+  possessionSystem: {fileID: 1213663155}
+  bodyController: {fileID: 0}
+  visualController: {fileID: 0}
+  allowManualSoulExit: 1
+--- !u!114 &1213663178
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1213663141}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 232454330dc2b46428bcad8cadd9758a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: HWJ.Runtime::HWJ_CorpsePossessionSystem
+  possessionSystem: {fileID: 1213663155}
+  targetValidator: {fileID: 1213663180}
+--- !u!114 &1213663179
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1213663141}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 28218f44b1a3f354c82545ebf5c86141, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: HWJ.Runtime::HWJ_LivePossessionSystem
+  possessionSystem: {fileID: 1213663155}
+  targetValidator: {fileID: 1213663180}
+  mentalCostOnSuccess: 10
+  mentalDrainInterval: 1
+  mentalDrainAmount: 1
+  drainTimer: 0
+  runtimeMessage: 
+--- !u!114 &1213663180
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1213663141}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 963f4820d82a50440b55a17f83b3936b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: HWJ.Runtime::HWJ_PossessionTargetValidator
+  possessionSystem: {fileID: 1213663155}
+  livePossessionSystem: {fileID: 0}
+  useGameplayPossessionRule: 1
+  possessionExecutionCore: {fileID: 0}
+  possessionExecutionCoreId: possession_execution
+  possessionRule: {fileID: 0}
+  possessionRuleId: possession_can_start
 --- !u!1 &1220734443
 GameObject:
   m_ObjectHideFlags: 0

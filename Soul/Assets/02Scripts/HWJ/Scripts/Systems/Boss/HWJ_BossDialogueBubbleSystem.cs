@@ -28,16 +28,18 @@ public class HWJ_BossDialogueBubbleSystem : MonoBehaviour
     [SerializeField] private string soulLostDialogue = "도망칠 생각인가.";
 
     [Header("재생 시간")]
-    [SerializeField, Min(0.1f)] private float sequenceLineDurationSeconds = 3.2f;
+    [SerializeField, Min(0.1f)] private float sequenceLineDurationSeconds = 4.5f;
+    [SerializeField, Min(0f)] private float secondsPerCharacter = 0.16f;
+    [SerializeField, Min(0.1f)] private float maximumLineDurationSeconds = 7f;
     [SerializeField, Min(0f)] private float sequenceGapSeconds = 0.12f;
-    [SerializeField, Min(0.1f)] private float defaultDurationSeconds = 3.2f;
+    [SerializeField, Min(0.1f)] private float defaultDurationSeconds = 4.5f;
 
     [Header("대사창 표시")]
-    [SerializeField, Range(12, 64)] private int dialogueFontSize = 34;
-    [SerializeField, Range(0.03f, 0.15f)] private float dialogueCharacterSize = 0.06f;
-    [SerializeField, Range(12, 32)] private int maxCharactersPerLine = 18;
-    [SerializeField, Min(0f)] private float horizontalBubblePadding = 1.4f;
-    [SerializeField, Min(0f)] private float verticalBubblePadding = 0.7f;
+    [SerializeField, Range(12, 64)] private int dialogueFontSize = 30;
+    [SerializeField, Range(0.03f, 0.15f)] private float dialogueCharacterSize = 0.052f;
+    [SerializeField, Range(12, 32)] private int maxCharactersPerLine = 16;
+    [SerializeField, Min(0f)] private float horizontalBubblePadding = 1.6f;
+    [SerializeField, Min(0f)] private float verticalBubblePadding = 0.85f;
     [SerializeField] private Color textColor = Color.black;
     [SerializeField] private Color bubbleColor = new Color(1f, 1f, 1f, 0.84f);
     [SerializeField] private int sortingOrder = 240;
@@ -65,6 +67,7 @@ public class HWJ_BossDialogueBubbleSystem : MonoBehaviour
         ? bubbleObject.transform.position
         : GetBubblePosition();
     public float DialogueCharacterSize => dialogueCharacterSize;
+    public Vector2 CurrentRenderedTextSize { get; private set; }
     public Vector2 CurrentBubbleSize => bubbleRenderer != null
         ? bubbleRenderer.transform.localScale
         : Vector2.zero;
@@ -80,18 +83,20 @@ public class HWJ_BossDialogueBubbleSystem : MonoBehaviour
     public void ConfigureFighterBossDefaults(Transform healthBarAnchor)
     {
         bubbleAnchor = healthBarAnchor;
-        bubbleOffset = new Vector3(0f, 1.15f, 0f);
+        bubbleOffset = new Vector3(0f, 1.35f, 0f);
         introDialogueSequence = CreateIntroSequence();
         phaseTwoDialogueSequence = CreatePhaseTwoSequence();
         deathDialogueSequence = CreateDeathSequence();
-        sequenceLineDurationSeconds = 3.2f;
+        sequenceLineDurationSeconds = 4.5f;
+        secondsPerCharacter = 0.16f;
+        maximumLineDurationSeconds = 7f;
         sequenceGapSeconds = 0.12f;
-        defaultDurationSeconds = 3.2f;
-        dialogueFontSize = 34;
-        dialogueCharacterSize = 0.06f;
-        maxCharactersPerLine = 18;
-        horizontalBubblePadding = 1.4f;
-        verticalBubblePadding = 0.7f;
+        defaultDurationSeconds = 4.5f;
+        dialogueFontSize = 30;
+        dialogueCharacterSize = 0.052f;
+        maxCharactersPerLine = 16;
+        horizontalBubblePadding = 1.6f;
+        verticalBubblePadding = 0.85f;
         bubbleColor = new Color(1f, 1f, 1f, 0.84f);
         sortingOrder = 240;
     }
@@ -126,6 +131,36 @@ public class HWJ_BossDialogueBubbleSystem : MonoBehaviour
     }
 
     /// <summary>
+    /// 짧은 문장은 최소 표시 시간을 보장하고, 긴 문장은 글자 수에 맞춰 더 오래 보여줍니다.
+    /// 카메라 포커스도 같은 값을 사용하므로 대사보다 먼저 줌이 풀리지 않습니다.
+    /// </summary>
+    public float GetReadableLineDuration(string line)
+    {
+        int visibleCharacterCount = 0;
+
+        if (!string.IsNullOrEmpty(line))
+        {
+            for (int i = 0; i < line.Length; i++)
+            {
+                if (!char.IsWhiteSpace(line[i]))
+                {
+                    visibleCharacterCount++;
+                }
+            }
+        }
+
+        float minimumDuration = Mathf.Max(0.01f, sequenceLineDurationSeconds);
+        float maximumDuration = Mathf.Max(minimumDuration, maximumLineDurationSeconds);
+        float readingDuration = visibleCharacterCount * Mathf.Max(0f, secondsPerCharacter);
+        return Mathf.Clamp(readingDuration, minimumDuration, maximumDuration);
+    }
+
+    public float GetSoulLostDialogueDuration()
+    {
+        return Mathf.Max(defaultDurationSeconds, GetReadableLineDuration(soulLostDialogue));
+    }
+
+    /// <summary>
     /// 단발성 대사를 표시합니다. 진행 중인 단계 대사가 있으면 단발성 대사로 교체합니다.
     /// </summary>
     public void ShowLine(string line, float durationSeconds)
@@ -137,7 +172,8 @@ public class HWJ_BossDialogueBubbleSystem : MonoBehaviour
 
         CancelDialogueSequence(false);
         DisplayLine(line);
-        hideRoutine = StartCoroutine(HideAfterSeconds(durationSeconds));
+        hideRoutine = StartCoroutine(HideAfterSeconds(
+            Mathf.Max(durationSeconds, GetReadableLineDuration(line))));
     }
 
     public void CancelDialogueSequence(bool hideBubble)
@@ -200,7 +236,17 @@ public class HWJ_BossDialogueBubbleSystem : MonoBehaviour
             }
         }
 
-        return visibleLineCount * Mathf.Max(0.01f, sequenceLineDurationSeconds)
+        float duration = 0f;
+
+        for (int i = 0; i < sequence.Length; i++)
+        {
+            if (!string.IsNullOrWhiteSpace(sequence[i]))
+            {
+                duration += GetReadableLineDuration(sequence[i]);
+            }
+        }
+
+        return duration
             + Mathf.Max(0, visibleLineCount - 1) * Mathf.Max(0f, sequenceGapSeconds);
     }
 
@@ -238,7 +284,7 @@ public class HWJ_BossDialogueBubbleSystem : MonoBehaviour
             CurrentLineIndex = i;
             CurrentLineText = sequence[i];
             DisplayLine(sequence[i]);
-            yield return new WaitForSeconds(Mathf.Max(0.01f, sequenceLineDurationSeconds));
+            yield return new WaitForSeconds(GetReadableLineDuration(sequence[i]));
 
             if (sequenceGapSeconds > 0f && i < sequence.Length - 1)
             {
@@ -274,15 +320,17 @@ public class HWJ_BossDialogueBubbleSystem : MonoBehaviour
         textMesh.characterSize = dialogueCharacterSize;
         textMesh.lineSpacing = 0.9f;
 
-        // 글자 폭보다 넉넉한 여백을 더해 한글 획과 마지막 글자가 배경 밖으로 잘리지 않게 합니다.
-        float width = Mathf.Clamp(
-            longestLineLength * 0.12f + horizontalBubblePadding,
-            3.4f,
-            5.8f);
-        float height = Mathf.Clamp(
-            lineCount * 0.36f + verticalBubblePadding,
-            1.05f,
-            2.2f);
+        // 실제 TextMesh 경계를 기준으로 배경을 잡아 한글 글자가 흰 영역 밖으로 잘리지 않게 합니다.
+        Renderer renderedText = textMesh.GetComponent<Renderer>();
+        Vector3 renderedSize = renderedText != null
+            ? renderedText.bounds.size
+            : Vector3.zero;
+        CurrentRenderedTextSize = new Vector2(renderedSize.x, renderedSize.y);
+
+        float estimatedWidth = longestLineLength * 0.14f + horizontalBubblePadding;
+        float estimatedHeight = lineCount * 0.4f + verticalBubblePadding;
+        float width = Mathf.Max(5.2f, estimatedWidth, renderedSize.x + horizontalBubblePadding);
+        float height = Mathf.Max(1.4f, estimatedHeight, renderedSize.y + verticalBubblePadding);
         bubbleRenderer.transform.localScale = new Vector3(width, height, 1f);
     }
 

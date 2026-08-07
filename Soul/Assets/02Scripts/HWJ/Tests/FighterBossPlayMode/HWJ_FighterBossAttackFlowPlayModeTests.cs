@@ -608,6 +608,8 @@ public sealed class HWJ_FighterBossAttackFlowPlayModeTests
 
         // Runtime timing remains unchanged; automated combat tests shorten only their own copy.
         SetPrivateField(dialogue, "sequenceLineDurationSeconds", 0.01f);
+        SetPrivateField(dialogue, "secondsPerCharacter", 0f);
+        SetPrivateField(dialogue, "maximumLineDurationSeconds", 0.01f);
         SetPrivateField(dialogue, "sequenceGapSeconds", 0f);
     }
 

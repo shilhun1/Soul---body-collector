@@ -57,8 +57,8 @@ HWJ 모듈은 게임의 **핵심 메커니즘**(플레이어 이동/전투, 영�
 - **위치**: `Assets/02Scripts/HWJ/Scripts/Systems/Status/HWJ_RuntimeStatusSystem.cs`
 - **역할**: 체력(HP), 정신력(Mental), 스턴(Stun) 수치 관리 및 피격 데미지 처리를 담당합니다.
 - **주요 기능**:
-  - `TakeDamage(HWJ_DamageInfo damageInfo)`: 피격 데미지 감소 계산, 무적 시간 처리 및 체력 0 도달 시 사망/영혼 분리 이벤트 발동.
-  - `HealHp(float amount)` / `RestoreMental(float amount)`: 체력 및 정신력 회복.
+  - `ApplyDamage(float damage, Component source, HWJ_DamageData sourceDamage)`: 피격 데미지 감소 계산, 무적 시간 처리 및 체력 0 도달 시 사망/영혼 분리 이벤트 발동.
+  - `Heal(float amount)` / `TryApplySpiritMentalCost(float mentalCost)`: 체력 회복 및 정신력 소비 처리.
 
 ### 4.2 `HWJ_SoulSystem`
 - **위치**: `Assets/02Scripts/HWJ/Scripts/Systems/Soul/HWJ_SoulSystem.cs`

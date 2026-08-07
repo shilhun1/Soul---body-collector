@@ -1345,7 +1345,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: HWJ.Runtime::HWJ_BossDialogueBubbleSystem
   bubbleAnchor: {fileID: 6542930118222392105}
-  bubbleOffset: {x: 0, y: 1.15, z: 0}
+  bubbleOffset: {x: 0, y: 1.35, z: 0}
   introDialogueSequence:
   - "\uC5EC\uAE30\uAE4C\uC9C0 \uC0B4\uC544\uC11C \uC654\uB2E4\uB294 \uAC74 \uC778\uC815\uD558\uC9C0."
   - "\uD558\uC9C0\uB9CC \uC6B4 \uC88B\uAC8C \uC0B4\uC544\uB0A8\uC740 \uAC83\uACFC
@@ -1389,14 +1389,16 @@ MonoBehaviour:
   - "\uC624\uB298\uC758 \uC2B9\uB9AC\uB3C4 \uC804\uBD80 \uAC70\uC9D3\uC774 \uB420
     \uD14C\uB2C8......"
   soulLostDialogue: "\uB3C4\uB9DD\uCE60 \uC0DD\uAC01\uC778\uAC00."
-  sequenceLineDurationSeconds: 3.2
+  sequenceLineDurationSeconds: 4.5
+  secondsPerCharacter: 0.16
+  maximumLineDurationSeconds: 7
   sequenceGapSeconds: 0.12
-  defaultDurationSeconds: 3.2
-  dialogueFontSize: 34
-  dialogueCharacterSize: 0.06
-  maxCharactersPerLine: 18
-  horizontalBubblePadding: 1.4
-  verticalBubblePadding: 0.7
+  defaultDurationSeconds: 4.5
+  dialogueFontSize: 30
+  dialogueCharacterSize: 0.052
+  maxCharactersPerLine: 16
+  horizontalBubblePadding: 1.6
+  verticalBubblePadding: 0.85
   textColor: {r: 0, g: 0, b: 0, a: 1}
   bubbleColor: {r: 1, g: 1, b: 1, a: 0.84}
   sortingOrder: 240
@@ -1428,11 +1430,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: HWJ.Runtime::HWJ_BossCameraFocusSystem
   targetCinemachineCamera: {fileID: 0}
   targetCamera: {fileID: 0}
-  dialogueFocusFieldOfView: 32
-  dialogueFocusOrthographicSize: 4.8
+  dialogueFocusFieldOfView: 28
+  dialogueFocusOrthographicSize: 3.2
   zoomLerpSpeed: 4
   returnBlendSeconds: 0.45
-  focusOffset: {x: 0, y: 1.5}
+  focusOffset: {x: 0, y: 0.8}
   disablePlayerFollowWhileFocusing: 1
   fallbackPositionLerpSpeed: 6
 --- !u!1 &958775484097472386

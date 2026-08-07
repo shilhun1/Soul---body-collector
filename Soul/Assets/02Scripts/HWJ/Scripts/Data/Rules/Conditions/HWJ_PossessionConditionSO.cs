@@ -86,7 +86,25 @@ public class HWJ_PossessionConditionSO : HWJ_GameplayConditionSO
         }
 
         HWJ_PossessionBodyState bodyState = target.GetComponent<HWJ_PossessionBodyState>();
-        return bodyState == null || !bodyState.IsConsumed;
+
+        if (bodyState == null || !bodyState.IsConsumed)
+        {
+            return true;
+        }
+
+        // 시체는 한 번 소비하면 다시 사용할 수 없지만, 살아 있는 대상은 정신력이 남아 있는 동안
+        // 수동 해제 후 다시 도전할 수 있습니다. 영구 차단 여부는 생체 정신력 시스템이 별도로 검사합니다.
+        if (target.TryGetTypeData(out HWJ_EnemyTypeDataSO enemyData)
+            && enemyData.PossessionBody != null
+            && !enemyData.PossessionBody.requiresDefeatedState)
+        {
+            HWJ_RuntimeStatusSystem targetStatus = target.GetComponent<HWJ_RuntimeStatusSystem>();
+            return targetStatus != null
+                && targetStatus.CurrentState != HWJ_RuntimeState.Dead
+                && (!targetStatus.UsesHp || targetStatus.CurrentHp > 0f);
+        }
+
+        return false;
     }
 
     private bool CanSourcePayPossessionSpiritMentalCost(HWJ_GameplayContext context)

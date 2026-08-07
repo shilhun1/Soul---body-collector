@@ -18,6 +18,7 @@ public static class HWJ_PlayModeTestRunnerBridge
     private const string ResultXmlPath = @"C:\Docs\Generated\HWJ_PlayModeTestResults.xml";
     private const string ResultSummaryPath = @"C:\Docs\Generated\HWJ_PlayModeTestSummary.md";
     private const string TestAssemblyName = "HWJ.PlayModeTests";
+    private const string TestClassName = "HWJ_PossessionModesPlayModeTests";
     private const double RunTimeoutSeconds = 180d;
 
     private static readonly HWJ_PlayModeTestCallbacks TestCallbacks = new HWJ_PlayModeTestCallbacks();
@@ -98,7 +99,9 @@ public static class HWJ_PlayModeTestRunnerBridge
         Filter filter = new Filter
         {
             testMode = UnityEditor.TestTools.TestRunner.Api.TestMode.PlayMode,
-            assemblyNames = new[] { TestAssemblyName }
+            assemblyNames = new[] { TestAssemblyName },
+            // 현재 목표의 5개 빙의 규칙만 실행해 기존 92개 회귀 테스트와 결과를 분리합니다.
+            groupNames = new[] { TestClassName }
         };
 
         ExecutionSettings settings = new ExecutionSettings(filter);
