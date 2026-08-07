@@ -24488,7 +24488,7 @@ GameObject:
   - component: {fileID: 1847461298}
   - component: {fileID: 1847461297}
   - component: {fileID: 1847461296}
-  - component: {fileID: 1847461295}
+  - component: {fileID: 1847461299}
   m_Layer: 0
   m_Name: Square (2)
   m_TagString: Untagged
@@ -24496,30 +24496,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1847461295
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1847461294}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 18764e360f4812244adf23010cb4249e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::HSH.Gimmick.HSH_ShieldPassableGimmick
-  allowShieldPass: 1
-  damageWhenNotShield: 0
-  damageAmount: 10
-  destroyIncomingProjectiles: 1
-  projectileTags:
-  - Projectile
-  - Arrow
-  - Bullet
-  - EnemyAttack
-  wallRenderer: {fileID: 0}
-  activeAlpha: 0.4
-  fadeSpeed: 5
 --- !u!61 &1847461296
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -24634,12 +24610,36 @@ Transform:
   m_GameObject: {fileID: 1847461294}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 29.3079, y: -1.93617, z: 0}
+  m_LocalPosition: {x: 38.71, y: -10.4, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1847461299
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1847461294}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5b86070c0fd987445b547727ad5609e0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HSH.Gimmick.HSH_ShieldArrowTrap
+  speed: 10
+  damage: 15
+  knockbackPower: 8
+  lifeTime: 5
+  direction: {x: 1, y: 0}
+  isSpawner: 1
+  arrowPrefab: {fileID: 982722452740614736, guid: a96aded89458a4d4f8fd26d522391619, type: 3}
+  fireInterval: 2
+  detectPlayer: 1
+  detectDistance: 12
+  animator: {fileID: 0}
+  fireTriggerName: Fire
 --- !u!1001 &1872481470
 PrefabInstance:
   m_ObjectHideFlags: 0
