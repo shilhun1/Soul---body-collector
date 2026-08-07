@@ -117,6 +117,7 @@ GameObject:
   - component: {fileID: 7384913812455962847}
   - component: {fileID: 9206403865980191981}
   - component: {fileID: 6858533473203857953}
+  - component: {fileID: 6351806613406656773}
   m_Layer: 3
   m_Name: HWJ_Runtime_Enemy_Possessable_Bow
   m_TagString: Untagged
@@ -417,9 +418,9 @@ MonoBehaviour:
   playerMovement: {fileID: 0}
   soulSystem: {fileID: 0}
   possessionSystem: {fileID: 0}
-  fallbackMotionProfile: {fileID: 11400000, guid: 932cf5a28ccc4f24b463802b50675036, type: 2}
+  fallbackMotionProfile: {fileID: 11400000, guid: 25b8da1fb8230f3409eeb9f3dde05e50, type: 2}
   weaponMotionProfiles:
-  - {fileID: 11400000, guid: 932cf5a28ccc4f24b463802b50675036, type: 2}
+  - {fileID: 11400000, guid: 25b8da1fb8230f3409eeb9f3dde05e50, type: 2}
   speedParameter: Speed
   horizontalSpeedParameter: HorizontalSpeed
   verticalSpeedParameter: VerticalSpeed
@@ -502,6 +503,7 @@ MonoBehaviour:
   permanentlyBlocked: 0
   becameCorpseAfterLivePossession: 0
   corpsePossessionConsumed: 0
+  logMentalChanges: 1
 --- !u!114 &664230910664270478
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -625,6 +627,25 @@ MonoBehaviour:
   noCorpseDespawnDelaySeconds: 0.2
   makeCorpseCollidersTriggers: 1
   disableBehaviorOnDeath: 1
+--- !u!114 &6351806613406656773
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6245554184141707589}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9be1035620d845f0bc3b6c10263b2bbc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::hys_MonsterAnimatorLifecycle
+  animator: {fileID: 7901883671774448456}
+  runtimeStatus: {fileID: 2120210374080659181}
+  body: {fileID: 1760700172602573699}
+  baseLayerIndex: 0
+  patternReturnNormalizedTime: 0.98
+  patternReturnTransitionSeconds: 0.05
+  deathFreezeNormalizedTime: 0.995
 --- !u!1 &7780252291605159637
 GameObject:
   m_ObjectHideFlags: 0
@@ -781,6 +802,10 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2774030352107053115, guid: dcfac49b6c06bcd4bacf677932e1174e, type: 3}
+      propertyPath: m_Controller
+      value: 
+      objectReference: {fileID: 9100000, guid: fd94fc676dda4a85ac0d3b45ed941bd4, type: 2}
     - target: {fileID: 3641732250860638636, guid: dcfac49b6c06bcd4bacf677932e1174e, type: 3}
       propertyPath: m_Name
       value: HWJ_Visual

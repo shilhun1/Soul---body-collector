@@ -123,6 +123,7 @@ GameObject:
   - component: {fileID: 7159161157904223350}
   - component: {fileID: 4391511920580110465}
   - component: {fileID: 2729667721006483170}
+  - component: {fileID: 5780469902892132154}
   m_Layer: 0
   m_Name: HWJ_Runtime_Player_Soul
   m_TagString: Player
@@ -426,11 +427,11 @@ MonoBehaviour:
   possessionSystem: {fileID: 0}
   fallbackMotionProfile: {fileID: 0}
   weaponMotionProfiles:
-  - {fileID: 11400000, guid: 09f3a3126bef4fa6ad328225e14b2ce9, type: 2}
-  - {fileID: 11400000, guid: 547147d969024a598455fe7cde9c535c, type: 2}
-  - {fileID: 11400000, guid: 932cf5a28ccc4f24b463802b50675036, type: 2}
-  - {fileID: 11400000, guid: ee181a92f84848688ac8237d9d467105, type: 2}
-  - {fileID: 11400000, guid: d1f09895bf3c4fe4afe9ed3f37a9648f, type: 2}
+  - {fileID: 11400000, guid: d6e231e633f397e44878cc1723d5ca1b, type: 2}
+  - {fileID: 11400000, guid: d268dedc448dc2240977146941add27b, type: 2}
+  - {fileID: 11400000, guid: 5b23ead1baebe8947bdc281a9ec0d230, type: 2}
+  - {fileID: 11400000, guid: 48fd707abd8da0d40a82452c993ca506, type: 2}
+  - {fileID: 11400000, guid: 3620c918c973063498a2c9bd1e0cbf40, type: 2}
   speedParameter: Speed
   horizontalSpeedParameter: HorizontalSpeed
   verticalSpeedParameter: VerticalSpeed
@@ -499,6 +500,7 @@ MonoBehaviour:
     m_Bits: 0
   groundCheckOffset: {x: 0, y: -0.55}
   groundCheckSize: {x: 0.7, y: 0.12}
+  deriveGroundProbeFromCollider: 1
   phaseThroughCollidersInSoul: 1
   swapLayerInSoulState: 1
   soulLayerName: Soul
@@ -506,6 +508,7 @@ MonoBehaviour:
   isSoulCollisionMode: 0
   ignoreEnemyBodyCollision: 1
   enemyCollisionRefreshSeconds: 0.25
+  logJumpDiagnostics: 1
 --- !u!114 &5072010185645043985
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -829,6 +832,7 @@ MonoBehaviour:
   timerText: {fileID: 2272317602077833164}
   instructionText: {fileID: 5298447886868759102}
   resultText: {fileID: 3519016774902473762}
+  createFallbackUiWhenMissing: 1
   baseStartGauge: 0.5
   limitSeconds: 5
   passiveGaugeLossPerSecond: 0.12
@@ -842,6 +846,8 @@ MonoBehaviour:
   elapsedSeconds: 0
   activeTarget: {fileID: 0}
   runtimeMessage: 
+  logLifecycle: 1
+  progressLogIntervalSeconds: 1
 --- !u!114 &4583663997951165513
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1001,6 +1007,110 @@ MonoBehaviour:
   ignoreZeroDamage: 1
   minSpawnIntervalSeconds: 0.03
   fallbackDestroyDelaySeconds: 1.25
+--- !u!114 &5780469902892132154
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1722579808186215127}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ae9b8a04a37e1284fb5c9cc888bf02e6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::hys_Player_Animator
+  animator: {fileID: 256458342734844284}
+  spriteRenderer: {fileID: 8280138536543409149}
+  rb: {fileID: 3504854638230986728}
+  playerState: {fileID: 0}
+  playerMovement: {fileID: 0}
+  playerAttack: {fileID: 0}
+  soulSystem: {fileID: 6808530972050499493}
+  possessionSystem: {fileID: 1245751208064203804}
+  playerStateParameter: PlayerState
+  isMovingParameter: IsMoving
+  isGroundedParameter: IsGrounded
+  isSoulParameter: IsSoul
+  attackComboStepParameter: AttackComboStep
+  horizontalSpeedParameter: HorizontalSpeed
+  verticalSpeedParameter: VerticalSpeed
+  useAnimationOnlyAttackCombo: 0
+  firstAttackAnimationTime: 0.28
+  secondAttackAnimationTime: 0.28
+  comboInputOpenTime: 0
+  comboInputCloseTime: 0.28
+  comboInputGraceTime: 0.1
+  comboLinkTime: 0.12
+  playAttackStateDirectly: 0
+  firstAttackStateName: hys_Sword_Attack1
+  secondAttackStateName: hys_Sword_Attack2
+  attackTransitionSeconds: 0.03
+  swordFirstAttackAnimationTime: 0.6
+  swordSecondAttackAnimationTime: 0.6
+  swordComboLinkTime: 0.52
+  swordFirstAttackStateName: hys_Sword_Attack1
+  swordSecondAttackStateName: hys_Sword_Attack2
+  axeFirstAttackAnimationTime: 1.1
+  axeSecondAttackAnimationTime: 1.1
+  axeComboLinkTime: 1.05
+  shieldFirstAttackAnimationTime: 0.75
+  shieldSecondAttackAnimationTime: 0.6
+  shieldComboLinkTime: 0.68
+  playAxeDiveAttackDirectly: 1
+  axeDiveAttackParameter: IsAxeDiveAttacking
+  axePlungeGroundedParameter: IsAxePlungeGrounded
+  axePlungeStartStateName: hys_Axe_Plunge_Start
+  axePlungeFallStateName: hys_Axe_Plunge_Fall
+  axePlungeTransitionSeconds: 0.02
+  shieldPlungeStartStateName: hys_Shield_Plunge_Start
+  shieldPlungeFallStateName: hys_Shield_Plunge_Fall
+  shieldPlungeLandStateName: hys_Shield_Plunge_Land
+  shieldPlungeTransitionSeconds: 0.02
+  jumpTriggerParameter: JumpTrigger
+  sendJumpTriggerParameter: 0
+  crossFadeToJumpStartOnJump: 0
+  jumpStartStateName: hys_Sword_Jump_Start
+  jumpStartTransitionSeconds: 0.03
+  crossFadeToDashOnStart: 1
+  dashStateName: hys_Sword_Dash
+  dashTransitionSeconds: 0
+  soulTriggerParameter: SoulTrigger
+  switchControllerInSoulState: 1
+  bodyAnimatorController: {fileID: 9100000, guid: 7bf1f3b7ee0d44e3a8ad40716fdf3e12, type: 2}
+  swordAnimatorController: {fileID: 9100000, guid: 7bf1f3b7ee0d44e3a8ad40716fdf3e12, type: 2}
+  axeAnimatorController: {fileID: 9100000, guid: 1ca0d71c50c0dc746b9b1c487e8b6ccf, type: 2}
+  bowAnimatorController: {fileID: 9100000, guid: d4eae6f8cb6f70b42bf556768b799113, type: 2}
+  lanceAnimatorController: {fileID: 9100000, guid: 6666e53a3312adb4ab9ba3080393ec78, type: 2}
+  shieldAnimatorController: {fileID: 9100000, guid: c5d0d32da5328a64eb514f96141b96bb, type: 2}
+  ghostAnimatorController: {fileID: 9100000, guid: c6f2487dc9f49504eb0a822be80f2686, type: 2}
+  switchGhostControllerOnBodyToSoul: 1
+  ghostPossessionStateName: Possession
+  ghostPossessionClipName: hys_Ghost_possession
+  ghostDeadStateName: Die
+  swordGhostPossessionClip: {fileID: 7400000, guid: 5f916a6db38560d46b26710417c2ab9d, type: 2}
+  axeGhostPossessionClip: {fileID: 7400000, guid: f04c1c7e29b3994e46540dcb4dbb6a0b, type: 2}
+  bowGhostPossessionClip: {fileID: 7400000, guid: b0b0c000000000000000000000000012, type: 2}
+  lanceGhostPossessionClip: {fileID: 7400000, guid: a16cefffffffffffffffffffffffffff, type: 2}
+  shieldGhostPossessionClip: {fileID: 7400000, guid: d7280000000000000000000000000001, type: 2}
+  ghostHandoffNormalizedTime: 0.98
+  ghostPossessionFallbackSeconds: 0.45
+  forceBodyLocomotionStateSync: 0
+  bodyIdleStateName: hys_Sword_Idle
+  bodyMoveStateName: hys_Sword_Run
+  locomotionTransitionSeconds: 0.05
+  flipSpriteByMoveDirection: 1
+  moveThreshold: 0.05
+  autoReturnFinishedActionStates: 0
+  autoReturnByStateTime: 0
+  baseLayerIndex: 0
+  defaultAnimatorStateName: hys_Sword_Idle
+  autoReturnStateNames:
+  - hys_Sword_Dash
+  - hys_Sword_Hit
+  returnNormalizedTime: 0.98
+  returnTransitionSeconds: 0.05
+  dashReturnSeconds: 0.25
+  hitReturnSeconds: 0.35
 --- !u!1 &2687384049975177192
 GameObject:
   m_ObjectHideFlags: 0
@@ -1395,6 +1505,8 @@ GameObject:
   - component: {fileID: 8015739083135577385}
   - component: {fileID: 8280138536543409149}
   - component: {fileID: 256458342734844284}
+  - component: {fileID: 6408781747886284954}
+  - component: {fileID: 8626742634278481986}
   m_Layer: 0
   m_Name: HWJ_PlayerVisual
   m_TagString: Untagged
@@ -1486,7 +1598,7 @@ Animator:
   m_GameObject: {fileID: 4896801820781220240}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: c6f2487dc9f49504eb0a822be80f2686, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
@@ -1498,6 +1610,45 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &6408781747886284954
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4896801820781220240}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c011b2c0e48dfb4b93cde0703cb91a6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::hys_PlayerSkillEffectPlayer
+--- !u!114 &8626742634278481986
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4896801820781220240}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 522b7516266f2534bad371be61491d96, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::hys_Ghost_Animator
+  soulSystem: {fileID: 6808530972050499493}
+  possessionSystem: {fileID: 1245751208064203804}
+  playerInput: {fileID: 4987786105596655614}
+  rb: {fileID: 3504854638230986728}
+  spriteRenderer: {fileID: 8280138536543409149}
+  animator: {fileID: 256458342734844284}
+  ghostStateSupport: {fileID: 0}
+  isMovingParameter: IsMoving
+  appearTriggerParameter: Appear
+  possessTriggerParameter: Possess
+  deadTriggerParameter: Dead
+  moveThreshold: 0.05
+  flipByMoveDirection: 1
+  rightFacingSprite: 1
+  suppressAppearAfterBodySoul: 0
 --- !u!1 &5016374744603215404
 GameObject:
   m_ObjectHideFlags: 0

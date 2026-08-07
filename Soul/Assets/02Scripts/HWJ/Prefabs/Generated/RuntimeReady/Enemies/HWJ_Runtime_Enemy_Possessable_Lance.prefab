@@ -117,6 +117,7 @@ GameObject:
   - component: {fileID: 1958909693004504664}
   - component: {fileID: 60703504372399661}
   - component: {fileID: 2232888863886943630}
+  - component: {fileID: 1720334832439872509}
   m_Layer: 3
   m_Name: HWJ_Runtime_Enemy_Possessable_Lance
   m_TagString: Untagged
@@ -417,9 +418,9 @@ MonoBehaviour:
   playerMovement: {fileID: 0}
   soulSystem: {fileID: 0}
   possessionSystem: {fileID: 0}
-  fallbackMotionProfile: {fileID: 11400000, guid: ee181a92f84848688ac8237d9d467105, type: 2}
+  fallbackMotionProfile: {fileID: 11400000, guid: 6289859236b141640bc9fe38387af962, type: 2}
   weaponMotionProfiles:
-  - {fileID: 11400000, guid: ee181a92f84848688ac8237d9d467105, type: 2}
+  - {fileID: 11400000, guid: 6289859236b141640bc9fe38387af962, type: 2}
   speedParameter: Speed
   horizontalSpeedParameter: HorizontalSpeed
   verticalSpeedParameter: VerticalSpeed
@@ -502,6 +503,7 @@ MonoBehaviour:
   permanentlyBlocked: 0
   becameCorpseAfterLivePossession: 0
   corpsePossessionConsumed: 0
+  logMentalChanges: 1
 --- !u!114 &8406893435860447862
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -625,6 +627,25 @@ MonoBehaviour:
   noCorpseDespawnDelaySeconds: 0.2
   makeCorpseCollidersTriggers: 1
   disableBehaviorOnDeath: 1
+--- !u!114 &1720334832439872509
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3880702661718353314}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9be1035620d845f0bc3b6c10263b2bbc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::hys_MonsterAnimatorLifecycle
+  animator: {fileID: 8685788870773497328}
+  runtimeStatus: {fileID: 4259455423999066608}
+  body: {fileID: 1854108534580389059}
+  baseLayerIndex: 0
+  patternReturnNormalizedTime: 0.98
+  patternReturnTransitionSeconds: 0.05
+  deathFreezeNormalizedTime: 0.995
 --- !u!1 &4640877549546444362
 GameObject:
   m_ObjectHideFlags: 0
@@ -829,6 +850,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7640449710497052329, guid: 3d378a8fa18ee9f40bdb6bcc533fe53e, type: 3}
+      propertyPath: m_Controller
+      value: 
+      objectReference: {fileID: 9100000, guid: 8f080680b3f54cf78bea21fc623a092a, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

@@ -170,6 +170,7 @@ GameObject:
   - component: {fileID: 6925897765721003012}
   - component: {fileID: 4458900803003506312}
   - component: {fileID: 9110971740191891384}
+  - component: {fileID: 6476719264816133395}
   m_Layer: 3
   m_Name: HWJ_Runtime_Enemy_Possessable_Shield
   m_TagString: Untagged
@@ -470,9 +471,9 @@ MonoBehaviour:
   playerMovement: {fileID: 0}
   soulSystem: {fileID: 0}
   possessionSystem: {fileID: 0}
-  fallbackMotionProfile: {fileID: 11400000, guid: d1f09895bf3c4fe4afe9ed3f37a9648f, type: 2}
+  fallbackMotionProfile: {fileID: 11400000, guid: 0079b0e8ca898b54f9854fe7e579adc9, type: 2}
   weaponMotionProfiles:
-  - {fileID: 11400000, guid: d1f09895bf3c4fe4afe9ed3f37a9648f, type: 2}
+  - {fileID: 11400000, guid: 0079b0e8ca898b54f9854fe7e579adc9, type: 2}
   speedParameter: Speed
   horizontalSpeedParameter: HorizontalSpeed
   verticalSpeedParameter: VerticalSpeed
@@ -555,6 +556,7 @@ MonoBehaviour:
   permanentlyBlocked: 0
   becameCorpseAfterLivePossession: 0
   corpsePossessionConsumed: 0
+  logMentalChanges: 1
 --- !u!114 &2528282835708974701
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -678,6 +680,25 @@ MonoBehaviour:
   noCorpseDespawnDelaySeconds: 0.2
   makeCorpseCollidersTriggers: 1
   disableBehaviorOnDeath: 1
+--- !u!114 &6476719264816133395
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7698015754555945441}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9be1035620d845f0bc3b6c10263b2bbc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::hys_MonsterAnimatorLifecycle
+  animator: {fileID: 3529767807657136355}
+  runtimeStatus: {fileID: 1570322842062463871}
+  body: {fileID: 7592046762078216061}
+  baseLayerIndex: 0
+  patternReturnNormalizedTime: 0.98
+  patternReturnTransitionSeconds: 0.05
+  deathFreezeNormalizedTime: 0.995
 --- !u!1 &7834113077307228743
 GameObject:
   m_ObjectHideFlags: 0
@@ -825,6 +846,10 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4783056057620991498, guid: 59a3f51765126db489eabb83d95115b6, type: 3}
+      propertyPath: m_Controller
+      value: 
+      objectReference: {fileID: 9100000, guid: 11e3855233c24332a4e98c50e557fbe9, type: 2}
     - target: {fileID: 7184688075697942231, guid: 59a3f51765126db489eabb83d95115b6, type: 3}
       propertyPath: m_Simulated
       value: 0

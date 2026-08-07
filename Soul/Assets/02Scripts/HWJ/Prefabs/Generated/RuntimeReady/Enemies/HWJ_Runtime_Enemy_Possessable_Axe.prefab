@@ -261,6 +261,7 @@ GameObject:
   - component: {fileID: 1560011533739933386}
   - component: {fileID: 1567874289381373760}
   - component: {fileID: 5781337788464920117}
+  - component: {fileID: 7010933038036811410}
   m_Layer: 3
   m_Name: HWJ_Runtime_Enemy_Possessable_Axe
   m_TagString: Untagged
@@ -561,9 +562,9 @@ MonoBehaviour:
   playerMovement: {fileID: 0}
   soulSystem: {fileID: 0}
   possessionSystem: {fileID: 0}
-  fallbackMotionProfile: {fileID: 11400000, guid: 547147d969024a598455fe7cde9c535c, type: 2}
+  fallbackMotionProfile: {fileID: 11400000, guid: 00e4ac0a816a178459880bbd0b182c17, type: 2}
   weaponMotionProfiles:
-  - {fileID: 11400000, guid: 547147d969024a598455fe7cde9c535c, type: 2}
+  - {fileID: 11400000, guid: 00e4ac0a816a178459880bbd0b182c17, type: 2}
   speedParameter: Speed
   horizontalSpeedParameter: HorizontalSpeed
   verticalSpeedParameter: VerticalSpeed
@@ -646,6 +647,7 @@ MonoBehaviour:
   permanentlyBlocked: 0
   becameCorpseAfterLivePossession: 0
   corpsePossessionConsumed: 0
+  logMentalChanges: 1
 --- !u!114 &4563574180979751768
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -769,6 +771,25 @@ MonoBehaviour:
   noCorpseDespawnDelaySeconds: 0.2
   makeCorpseCollidersTriggers: 1
   disableBehaviorOnDeath: 1
+--- !u!114 &7010933038036811410
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8944674153436637418}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9be1035620d845f0bc3b6c10263b2bbc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::hys_MonsterAnimatorLifecycle
+  animator: {fileID: 1521247142086250438}
+  runtimeStatus: {fileID: 7389126366998218925}
+  body: {fileID: 3794954994270613298}
+  baseLayerIndex: 0
+  patternReturnNormalizedTime: 0.98
+  patternReturnTransitionSeconds: 0.05
+  deathFreezeNormalizedTime: 0.995
 --- !u!1001 &3240183686959695445
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -785,6 +806,10 @@ PrefabInstance:
       propertyPath: m_Simulated
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4173710758634228115, guid: 4a094748baf292848abc8123e5d89341, type: 3}
+      propertyPath: m_Controller
+      value: 
+      objectReference: {fileID: 9100000, guid: 794ac5cb4ae14c1984787446d3c10d93, type: 2}
     - target: {fileID: 4791092712753511554, guid: 4a094748baf292848abc8123e5d89341, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
