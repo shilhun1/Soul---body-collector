@@ -1,14 +1,18 @@
 using UnityEngine;
+using UnityEngine.Tilemaps;
 
 namespace HSH.Gimmick
 {
     /// <summary>
     /// 플레이어가 영혼(Soul/Spirit) 상태일 때만 통과할 수 있고,
     /// 육체(Body/Possessed) 상태일 때는 막히는 물리 벽 기믹 컴포넌트입니다.
-    /// 2D Collider2D가 부착된 벽 오브젝트에 넣어서 사용합니다.
+    /// 
+    /// [사용법]
+    /// 1. 일반 단일 벽: SpriteRenderer + Collider2D 부착된 오브젝트에 추가
+    /// 2. 타일맵(Tilemap): Tilemap + TilemapCollider2D (또는 CompositeCollider2D) 부착된 타일맵 오브젝트에 추가
     /// </summary>
     [RequireComponent(typeof(Collider2D))]
-    public class HSH_SoulPassableWall : MonoBehaviour
+    public class HSH_Soulpass : MonoBehaviour
     {
         [Header("벽 설정")]
         [Tooltip("영혼 상태일 때 충돌을 해제하여 통과를 허용할지 여부")]
@@ -21,8 +25,10 @@ namespace HSH.Gimmick
         [Tooltip("상태 변화 시 시각적 연출 전환 속도")]
         [SerializeField] private float fadeSpeed = 5f;
 
-        [Header("시각 연출 참조 (선택)")]
-        [SerializeField] private SpriteRenderer wallRenderer;
+        [Header("시각 연출 참조 (선택 / 미지정 시 자동 탐지)")]
+        [SerializeField] private Tilemap wallTilemap;
+        [SerializeField] private SpriteRenderer wallSpriteRenderer;
+        [SerializeField] private Renderer wallRenderer;
 
         private Collider2D wallCollider;
         private Color defaultColor = Color.white;
@@ -31,14 +37,28 @@ namespace HSH.Gimmick
         private void Awake()
         {
             wallCollider = GetComponent<Collider2D>();
-            if (wallRenderer == null)
+
+            // 1. Tilemap 탐지
+            if (wallTilemap == null) wallTilemap = GetComponent<Tilemap>();
+            if (wallTilemap != null)
             {
-                wallRenderer = GetComponent<SpriteRenderer>();
+                defaultColor = wallTilemap.color;
+                return;
             }
 
+            // 2. SpriteRenderer 탐지
+            if (wallSpriteRenderer == null) wallSpriteRenderer = GetComponent<SpriteRenderer>();
+            if (wallSpriteRenderer != null)
+            {
+                defaultColor = wallSpriteRenderer.color;
+                return;
+            }
+
+            // 3. 일반 Renderer 탐지
+            if (wallRenderer == null) wallRenderer = GetComponent<Renderer>();
             if (wallRenderer != null)
             {
-                defaultColor = wallRenderer.color;
+                defaultColor = wallRenderer.material.HasProperty("_Color") ? wallRenderer.material.color : Color.white;
             }
         }
 
@@ -70,15 +90,24 @@ namespace HSH.Gimmick
                 }
             }
 
-            // 시각적 피드백: 영혼 상태일 때 벽의 투명도 조절
-            if (wallRenderer != null)
+            // 시각적 피드백: 영혼 상태일 때 투명도 조절
+            Color targetColor = defaultColor;
+            if (shouldIgnore)
             {
-                Color targetColor = defaultColor;
-                if (shouldIgnore)
-                {
-                    targetColor.a = defaultColor.a * soulPassableAlpha;
-                }
-                wallRenderer.color = Color.Lerp(wallRenderer.color, targetColor, Time.deltaTime * fadeSpeed);
+                targetColor.a = defaultColor.a * soulPassableAlpha;
+            }
+
+            if (wallTilemap != null)
+            {
+                wallTilemap.color = Color.Lerp(wallTilemap.color, targetColor, Time.deltaTime * fadeSpeed);
+            }
+            else if (wallSpriteRenderer != null)
+            {
+                wallSpriteRenderer.color = Color.Lerp(wallSpriteRenderer.color, targetColor, Time.deltaTime * fadeSpeed);
+            }
+            else if (wallRenderer != null && wallRenderer.material.HasProperty("_Color"))
+            {
+                wallRenderer.material.color = Color.Lerp(wallRenderer.material.color, targetColor, Time.deltaTime * fadeSpeed);
             }
         }
 
