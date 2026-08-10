@@ -10,22 +10,18 @@ using UnityEngine;
 public sealed class hys_HWJPossessionAnimationBridge : MonoBehaviour
 {
     [SerializeField] private Animator animator;
-    [SerializeField] private SpriteRenderer spriteRenderer;
     [SerializeField] private HWJ_CharacterMotionSystem motionSystem;
     [SerializeField] private HWJ_PossessionSystem possessionSystem;
     [SerializeField] private HWJ_CollapseSystem collapseSystem;
     [SerializeField] private hys_PossessionAnimationLibrary possessionAnimationLibrary;
     [SerializeField, Range(0.5f, 1f)] private float handoffNormalizedTime = 0.98f;
     [SerializeField, Min(0.1f)] private float fallbackHandoffSeconds = 1f;
-    [SerializeField] private bool preserveCorpseVisualAfterDeath = true;
-    [SerializeField, Min(0f)] private float corpseVisualLifetimeSeconds;
 
     private RuntimeAnimatorController ghostController;
     private AnimatorOverrideController activePossessionController;
     private bool possessionAnimationPlaying;
     private bool soulExitAnimationPlaying;
     private bool deathAnimationPlaying;
-    private bool ghostAppearAnimationPlaying;
     private bool continueSoulExitAfterDeath;
     private bool bodyCollapsePending;
     private bool restoreMotionSystemEnabled;
@@ -37,8 +33,7 @@ public sealed class hys_HWJPossessionAnimationBridge : MonoBehaviour
     // 다른 hys 애니메이션 브리지가 빙의 모션을 덮어쓰지 않도록 현재 재생 여부를 공유합니다.
     public bool IsPossessionAnimationPlaying => possessionAnimationPlaying
         || soulExitAnimationPlaying
-        || deathAnimationPlaying
-        || ghostAppearAnimationPlaying;
+        || deathAnimationPlaying;
 
     private void Awake()
     {
@@ -193,7 +188,6 @@ public sealed class hys_HWJPossessionAnimationBridge : MonoBehaviour
         possessionAnimationPlaying = true;
         soulExitAnimationPlaying = false;
         deathAnimationPlaying = false;
-        ghostAppearAnimationPlaying = false;
         continueSoulExitAfterDeath = false;
         activeStateShortNameHash = Animator.StringToHash("Possession");
         possessionStartedAt = Time.unscaledTime;
@@ -217,14 +211,6 @@ public sealed class hys_HWJPossessionAnimationBridge : MonoBehaviour
         AnimationClip soulExitClip = possessionAnimationLibrary != null
             ? possessionAnimationLibrary.GetSoulExitClip(weaponType)
             : null;
-        if (soulExitClip == null || soulExitClip.empty)
-        {
-            // Sword처럼 비어 있는 Soul 클립은 기다리지 않고 실제 Ghost 출현 모션으로 연결합니다.
-            Debug.LogWarning($"[hys Animator] {weaponType} Soul Exit 클립이 비어 있어 Ghost Appear로 대체합니다.", this);
-            PlayGhostAppearAnimation();
-            return;
-        }
-
         activePossessionController = CreatePossessionOverrideController(soulExitClip);
         if (activePossessionController == null)
         {
@@ -264,7 +250,6 @@ public sealed class hys_HWJPossessionAnimationBridge : MonoBehaviour
         possessionAnimationPlaying = false;
         soulExitAnimationPlaying = true;
         deathAnimationPlaying = false;
-        ghostAppearAnimationPlaying = false;
         activeStateShortNameHash = Animator.StringToHash("Possession");
         possessionStartedAt = Time.unscaledTime;
         Debug.Log($"[hys Animator] Soul exit clip -> {soulExitClip.name}, Weapon={weaponType}", this);
@@ -326,88 +311,10 @@ public sealed class hys_HWJPossessionAnimationBridge : MonoBehaviour
         possessionAnimationPlaying = false;
         soulExitAnimationPlaying = false;
         deathAnimationPlaying = true;
-        ghostAppearAnimationPlaying = false;
         continueSoulExitAfterDeath = continueToSoulExit;
         activeStateShortNameHash = Animator.StringToHash(stateName);
         possessionStartedAt = Time.unscaledTime;
         Debug.Log($"[hys Animator] Possession exit Die -> {stateName}, Weapon={weaponType}, ContinueSoul={continueToSoulExit}", this);
-    }
-
-    private void PlayGhostAppearAnimation()
-    {
-        CacheReferences();
-        CacheGhostController();
-        if (animator == null || ghostController == null)
-        {
-            RestoreMotionSystem();
-            return;
-        }
-
-        animator.runtimeAnimatorController = ghostController;
-        animator.Rebind();
-        animator.Update(0f);
-
-        int fullPathHash = Animator.StringToHash("Base Layer.Appear");
-        if (!animator.HasState(0, fullPathHash))
-        {
-            RestoreGhostStanding();
-            RestoreMotionSystem();
-            return;
-        }
-
-        animator.Play(fullPathHash, 0, 0f);
-        animator.Update(0f);
-        AnimatorStateInfo appearState = animator.GetCurrentAnimatorStateInfo(0);
-        activeFallbackHandoffSeconds = Mathf.Max(
-            fallbackHandoffSeconds,
-            appearState.length * handoffNormalizedTime + 0.05f);
-
-        possessionAnimationPlaying = false;
-        soulExitAnimationPlaying = false;
-        deathAnimationPlaying = false;
-        ghostAppearAnimationPlaying = true;
-        continueSoulExitAfterDeath = false;
-        activeStateShortNameHash = Animator.StringToHash("Appear");
-        possessionStartedAt = Time.unscaledTime;
-        Debug.Log("[hys Animator] Soul emerged from corpse -> Ghost Appear", this);
-    }
-
-    private void CreateCorpseVisualSnapshot()
-    {
-        CacheReferences();
-        if (!preserveCorpseVisualAfterDeath || spriteRenderer == null || spriteRenderer.sprite == null)
-        {
-            return;
-        }
-
-        // Die의 마지막 프레임을 별도 렌더러로 남겨 영혼이 나온 뒤에도 시체가 사라지지 않게 합니다.
-        GameObject corpseObject = new GameObject($"hys_Runtime_CorpseVisual_{ResolveWeaponName(lastPossessedWeaponType)}");
-        corpseObject.transform.SetPositionAndRotation(
-            spriteRenderer.transform.position,
-            spriteRenderer.transform.rotation);
-        corpseObject.transform.localScale = spriteRenderer.transform.lossyScale;
-
-        SpriteRenderer corpseRenderer = corpseObject.AddComponent<SpriteRenderer>();
-        corpseRenderer.sprite = spriteRenderer.sprite;
-        corpseRenderer.color = spriteRenderer.color;
-        corpseRenderer.flipX = spriteRenderer.flipX;
-        corpseRenderer.flipY = spriteRenderer.flipY;
-        corpseRenderer.sharedMaterial = spriteRenderer.sharedMaterial;
-        corpseRenderer.sortingLayerID = spriteRenderer.sortingLayerID;
-        // 영혼 렌더러가 시체 앞에서 확실히 보이도록 시체를 한 단계 뒤에 둡니다.
-        corpseRenderer.sortingOrder = spriteRenderer.sortingOrder - 1;
-        corpseRenderer.maskInteraction = spriteRenderer.maskInteraction;
-        corpseRenderer.spriteSortPoint = spriteRenderer.spriteSortPoint;
-
-        if (gameObject.scene.IsValid() && gameObject.scene.isLoaded)
-        {
-            UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(corpseObject, gameObject.scene);
-        }
-
-        if (corpseVisualLifetimeSeconds > 0f)
-        {
-            Destroy(corpseObject, corpseVisualLifetimeSeconds);
-        }
     }
 
     private AnimatorOverrideController CreatePossessionOverrideController(AnimationClip replacementClip)
@@ -447,33 +354,23 @@ public sealed class hys_HWJPossessionAnimationBridge : MonoBehaviour
 
         bool finishedSoulExit = soulExitAnimationPlaying;
         bool finishedDeath = deathAnimationPlaying;
-        bool finishedGhostAppear = ghostAppearAnimationPlaying;
         bool shouldContinueToSoulExit = finishedDeath && continueSoulExitAfterDeath;
 
         if (shouldContinueToSoulExit)
         {
             // 사망 시에는 Die가 끝난 다음 같은 무기의 Soul Exit를 재생합니다.
-            CreateCorpseVisualSnapshot();
             PlaySoulExitAnimation(lastPossessedWeaponType);
-            return;
-        }
-
-        if (finishedSoulExit)
-        {
-            // 몸의 Soul Exit가 끝난 위치에서 실제 영혼이 나타나는 모션을 이어 재생합니다.
-            PlayGhostAppearAnimation();
             return;
         }
 
         possessionAnimationPlaying = false;
         soulExitAnimationPlaying = false;
         deathAnimationPlaying = false;
-        ghostAppearAnimationPlaying = false;
         continueSoulExitAfterDeath = false;
         activeStateShortNameHash = 0;
         activePossessionController = null;
 
-        if (finishedDeath || finishedGhostAppear)
+        if (finishedSoulExit || finishedDeath)
         {
             RestoreGhostStanding();
         }
@@ -558,19 +455,6 @@ public sealed class hys_HWJPossessionAnimationBridge : MonoBehaviour
         if (animator == null)
         {
             animator = GetComponentInChildren<Animator>(true);
-        }
-
-        if (spriteRenderer == null)
-        {
-            if (animator != null)
-            {
-                spriteRenderer = animator.GetComponent<SpriteRenderer>();
-            }
-
-            if (spriteRenderer == null)
-            {
-                spriteRenderer = GetComponentInChildren<SpriteRenderer>(true);
-            }
         }
 
         if (motionSystem == null)
