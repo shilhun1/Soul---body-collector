@@ -533,6 +533,12 @@ public class HWJ_PlayerMovementSystem : MonoBehaviour
 
     private void MoveSoul(HWJ_PlayerTypeDataSO playerData)
     {
+        if (runtimeStatus != null && !runtimeStatus.CanMove)
+        {
+            StopMovement(true);
+            return;
+        }
+
         if (!playerData.SoulState.canFreeFly)
         {
             StopMovement(true);

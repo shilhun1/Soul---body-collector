@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 /// <summary>
@@ -6,6 +7,13 @@ using UnityEngine;
 [DisallowMultipleComponent]
 public class HWJ_PossessionTargetValidator : MonoBehaviour
 {
+    private static readonly string[] DefaultDeathAnimationClipKeywords =
+    {
+        "death",
+        "die",
+        "dead"
+    };
+
     [SerializeField] private HWJ_PossessionSystem possessionSystem;
     [SerializeField] private HWJ_LivePossessionSystem livePossessionSystem;
 
@@ -16,6 +24,13 @@ public class HWJ_PossessionTargetValidator : MonoBehaviour
     [SerializeField] private string possessionExecutionCoreId = "possession_execution";
     [SerializeField] private HWJ_GameplayRuleSO possessionRule;
     [SerializeField] private string possessionRuleId = "possession_can_start";
+
+    [Space(8f)]
+    [Header("Corpse Readiness")]
+    [Tooltip("If enabled, corpse possession waits until the target death/falling animation is finished.")]
+    [SerializeField] private bool blockCorpsePossessionDuringDeathAnimation = true;
+    [Tooltip("Animation clip name keywords that count as a death/falling corpse animation.")]
+    [SerializeField] private string[] deathAnimationClipKeywords = { "death", "die", "dead" };
 
     private void Reset()
     {
@@ -129,6 +144,15 @@ public class HWJ_PossessionTargetValidator : MonoBehaviour
 
         bool isLiveTarget = IsLiveTarget(targetDataResolver, possessionBody);
         bool canUseConsumedCorpse = CanUseConsumedCorpse(targetDataResolver, isLiveTarget);
+
+        if (!isLiveTarget
+            && IsCorpseReadinessBlocked(targetDataResolver, out string corpseReadinessMessage))
+        {
+            return HWJ_PossessionResult.Fail(
+                HWJ_PossessionFailureCode.TargetUnavailable,
+                corpseReadinessMessage,
+                targetDataResolver);
+        }
 
         // 생체 대상은 수동 해제 후 재빙의할 수 있으므로 Consumed 플래그만으로 차단하지 않습니다.
         if (IsConsumedPossessionBody(targetDataResolver)
@@ -276,6 +300,134 @@ public class HWJ_PossessionTargetValidator : MonoBehaviour
 
         return targetDataResolver.TryGetComponent(out HWJ_LivePossessionMentalState mentalState)
             && mentalState.CanPossessAsCorpse();
+    }
+
+    private bool IsCorpseReadinessBlocked(
+        HWJ_RootObjectDataResolver targetDataResolver,
+        out string message)
+    {
+        message = null;
+
+        if (targetDataResolver == null)
+        {
+            return false;
+        }
+
+        if (targetDataResolver.TryGetComponent(out HWJ_EnemyDeathLifecycleSystem deathLifecycle)
+            && !deathLifecycle.IsCorpsePossessionReady)
+        {
+            message = "Possession failed: target corpse is still playing its death animation.";
+            return true;
+        }
+
+        if (IsDeathAnimationStillPlaying(targetDataResolver))
+        {
+            message = "Possession failed: target corpse death animation is not finished.";
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool IsDeathAnimationStillPlaying(HWJ_RootObjectDataResolver targetDataResolver)
+    {
+        if (!blockCorpsePossessionDuringDeathAnimation || targetDataResolver == null)
+        {
+            return false;
+        }
+
+        Animator animator = targetDataResolver.GetComponentInChildren<Animator>(true);
+
+        if (animator == null
+            || !animator.isActiveAndEnabled
+            || animator.runtimeAnimatorController == null)
+        {
+            return false;
+        }
+
+        int layerCount = animator.layerCount;
+
+        if (layerCount <= 0)
+        {
+            return false;
+        }
+
+        for (int layerIndex = 0; layerIndex < layerCount; layerIndex++)
+        {
+            if (IsLayerPlayingBlockingDeathClip(animator, layerIndex, false))
+            {
+                return true;
+            }
+
+            if (animator.IsInTransition(layerIndex)
+                && IsLayerPlayingBlockingDeathClip(animator, layerIndex, true))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private bool IsLayerPlayingBlockingDeathClip(
+        Animator animator,
+        int layerIndex,
+        bool useNextClip)
+    {
+        AnimatorClipInfo[] clips = useNextClip
+            ? animator.GetNextAnimatorClipInfo(layerIndex)
+            : animator.GetCurrentAnimatorClipInfo(layerIndex);
+
+        if (clips == null || clips.Length == 0)
+        {
+            return false;
+        }
+
+        AnimatorStateInfo stateInfo = useNextClip
+            ? animator.GetNextAnimatorStateInfo(layerIndex)
+            : animator.GetCurrentAnimatorStateInfo(layerIndex);
+
+        if (!useNextClip && stateInfo.normalizedTime >= 1f)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < clips.Length; i++)
+        {
+            AnimationClip clip = clips[i].clip;
+
+            if (clip != null && IsBlockingDeathClipName(clip.name))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private bool IsBlockingDeathClipName(string clipName)
+    {
+        if (string.IsNullOrEmpty(clipName))
+        {
+            return false;
+        }
+
+        string[] keywords = deathAnimationClipKeywords != null && deathAnimationClipKeywords.Length > 0
+            ? deathAnimationClipKeywords
+            : DefaultDeathAnimationClipKeywords;
+
+        for (int i = 0; i < keywords.Length; i++)
+        {
+            string keyword = keywords[i];
+
+            if (!string.IsNullOrEmpty(keyword)
+                && clipName.IndexOf(keyword, StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private bool IsGameplayRuleSatisfied(

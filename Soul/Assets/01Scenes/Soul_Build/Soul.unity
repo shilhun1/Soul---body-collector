@@ -4940,6 +4940,7 @@ MonoBehaviour:
   bodyController: {fileID: 0}
   visualController: {fileID: 0}
   skillProvider: {fileID: 0}
+  possessionControlLockSeconds: 1.3
   lastPossessionFailureCode: 0
   lastPossessionResult: 
   lastLivePossessionRoll: 0
@@ -5527,6 +5528,11 @@ MonoBehaviour:
   possessionExecutionCoreId: possession_execution
   possessionRule: {fileID: 0}
   possessionRuleId: possession_can_start
+  blockCorpsePossessionDuringDeathAnimation: 1
+  deathAnimationClipKeywords:
+  - death
+  - die
+  - dead
 --- !u!1 &1220734443
 GameObject:
   m_ObjectHideFlags: 0

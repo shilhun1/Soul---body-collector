@@ -20,10 +20,15 @@ public class HWJ_EnemyDeathLifecycleSystem : MonoBehaviour
     [SerializeField] private bool makeCorpseCollidersTriggers = true;
     [Tooltip("사망 즉시 추적, 공격, AI, 스킬 행동을 멈춥니다.")]
     [SerializeField] private bool disableBehaviorOnDeath = true;
+    [Tooltip("Dead 상태가 된 뒤 시체 빙의를 허용하기 전까지 기다리는 시간입니다. 쓰러지는 애니메이션이 끝나기 전에 빙의되는 것을 막습니다.")]
+    [SerializeField] private float possessableCorpseReadyDelaySeconds = 1f;
 
     private bool deathPrepared;
     private bool despawnRequested;
     private float despawnTime;
+    private float corpsePossessionReadyTime;
+
+    public bool IsCorpsePossessionReady => deathPrepared && Time.time >= corpsePossessionReadyTime;
 
     private void Awake()
     {
@@ -35,6 +40,7 @@ public class HWJ_EnemyDeathLifecycleSystem : MonoBehaviour
         deathPrepared = false;
         despawnRequested = false;
         despawnTime = 0f;
+        corpsePossessionReadyTime = 0f;
     }
 
     private void Update()
@@ -83,6 +89,8 @@ public class HWJ_EnemyDeathLifecycleSystem : MonoBehaviour
 
         if (leavesPossessableCorpse)
         {
+            corpsePossessionReadyTime = Time.time + Mathf.Max(0f, possessableCorpseReadyDelaySeconds);
+
             if (makeCorpseCollidersTriggers)
             {
                 SetCollidersToTrigger();

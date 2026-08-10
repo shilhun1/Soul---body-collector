@@ -54,6 +54,11 @@ public class HWJ_PossessionSystem : MonoBehaviour
     [SerializeField] private HWJ_PossessedSkillProvider skillProvider;
 
     [Space(8f)]
+    [Header("빙의 전환")]
+    [Tooltip("빙의 성공 직후 빙의 애니메이션이 끝날 때까지 이동, 공격, 대쉬를 잠그는 시간입니다.")]
+    [SerializeField] private float possessionControlLockSeconds = 0.75f;
+
+    [Space(8f)]
     [Header("디버그")]
     [SerializeField] private HWJ_PossessionFailureCode lastPossessionFailureCode;
     [SerializeField] private string lastPossessionResult;
@@ -259,6 +264,7 @@ public class HWJ_PossessionSystem : MonoBehaviour
         }
 
         soulSystem?.EnterBodyState();
+        LockOwnerControlForPossessionTransition();
 
         if (possessionBody.loadsBodyStatsToPlayer && runtimeStatus != null)
         {
@@ -274,6 +280,16 @@ public class HWJ_PossessionSystem : MonoBehaviour
             new HWJ_PossessionEvent(this, targetDataResolver, true, lastPossessionResult));
         SavePlayerRuntimeSnapshotIfOwner();
         return true;
+    }
+
+    private void LockOwnerControlForPossessionTransition()
+    {
+        if (runtimeStatus == null || possessionControlLockSeconds <= 0f)
+        {
+            return;
+        }
+
+        runtimeStatus.LockControl(possessionControlLockSeconds);
     }
 
     public bool RestorePossessedBody(
