@@ -10,12 +10,18 @@ public class hys_MonsterAnimatorLifecycle : MonoBehaviour
     private static readonly int VerticalSpeedHash = Animator.StringToHash("VerticalSpeed");
     private static readonly int IsGroundedHash = Animator.StringToHash("IsGrounded");
     private static readonly int DashHash = Animator.StringToHash("Dash");
+    private static readonly int IsRevivingHash = Animator.StringToHash("IsReviving");
+    private static readonly int MentalNormalizedHash = Animator.StringToHash("MentalNormalized");
+    private static readonly int MentalDepletedHash = Animator.StringToHash("MentalDepleted");
+    private static readonly int PossessionReleasedHash = Animator.StringToHash("PossessionReleased");
     private static readonly int PatternTagHash = Animator.StringToHash("hys_Pattern");
 
     [Header("참조")]
     [SerializeField] private Animator animator;
     [SerializeField] private HWJ_RuntimeStatusSystem runtimeStatus;
     [SerializeField] private Rigidbody2D body;
+    [SerializeField] private HWJ_PossessionBodyState possessionBodyState;
+    [SerializeField] private HWJ_LivePossessionMentalState liveMentalState;
 
     [Header("패턴 종료 후 기본 상태 복귀")]
     // Entry는 재생 상태가 아니므로 Entry가 가리키는 Idle 상태로 직접 복귀합니다.
@@ -27,15 +33,25 @@ public class hys_MonsterAnimatorLifecycle : MonoBehaviour
     // Death 클립 마지막 프레임에 도달하면 Animator와 물리를 고정하여 시체를 남깁니다.
     [SerializeField, Range(0.9f, 1f)] private float deathFreezeNormalizedTime = 0.995f;
 
+    [Header("빙의 해제 후 시체 및 부활")]
+    [SerializeField, Min(0f)] private float releasedCorpseHoldSeconds = 0.2f;
+
     private string configuredControllerName;
     private int idleStateHash;
     private int deathStateHash;
+    private int deathStateShortHash;
+    private int reviveStateHash;
+    private int reviveStateShortHash;
     private bool hasMoveSpeedParameter;
     private bool hasHitParameter;
     private bool hasIsDeadParameter;
     private bool hasVerticalSpeedParameter;
     private bool hasIsGroundedParameter;
     private bool hasDashParameter;
+    private bool hasIsRevivingParameter;
+    private bool hasMentalNormalizedParameter;
+    private bool hasMentalDepletedParameter;
+    private bool hasPossessionReleasedParameter;
     private bool hasRuntimeStateSnapshot;
     private HWJ_RuntimeState previousRuntimeState;
     private bool corpseFrozen;
@@ -44,6 +60,13 @@ public class hys_MonsterAnimatorLifecycle : MonoBehaviour
     private Vector2 previousWorldPosition;
     private Vector2 sampledWorldVelocity;
     private bool hasPositionSnapshot;
+    private bool wasReleasedAfterPossession;
+    private bool releaseDeathPlaying;
+    private bool releasedCorpseHolding;
+    private bool revivePlaying;
+    private float releasedCorpseHoldStartedAt;
+    private Behaviour[] revivePausedBehaviours;
+    private bool[] revivePausedEnabledStates;
 
     private void Awake()
     {
@@ -81,6 +104,7 @@ public class hys_MonsterAnimatorLifecycle : MonoBehaviour
 
         if (isDead)
         {
+            FinishReleaseSequence(false);
             EnterAndFreezeDeathState();
             return;
         }
@@ -88,6 +112,11 @@ public class hys_MonsterAnimatorLifecycle : MonoBehaviour
         if (hasIsDeadParameter)
         {
             animator.SetBool(IsDeadHash, false);
+        }
+
+        if (UpdateReturnedMonsterRevive())
+        {
+            return;
         }
 
         UpdateLivingAnimatorParameters();
@@ -275,6 +304,289 @@ public class hys_MonsterAnimatorLifecycle : MonoBehaviour
         }
     }
 
+    private bool UpdateReturnedMonsterRevive()
+    {
+        bool released = possessionBodyState != null && possessionBodyState.IsReleasedAfterPossession;
+        bool enteredRelease = released && !wasReleasedAfterPossession;
+        wasReleasedAfterPossession = released;
+
+        if (!enteredRelease)
+        {
+            return false;
+        }
+
+        // 살아 있는 몬스터의 Q 해제는 죽음/부활 연출 없이 즉시 원래 적으로 복귀합니다.
+        // 플레이어 영혼 분리는 hys_HWJPossessionAnimationBridge가 별도로 처리합니다.
+        FinishReleaseSequence(false);
+        RestoreLivingSettings();
+        RestoreMonsterBehavioursAfterRevive();
+
+        if (hasIsDeadParameter)
+        {
+            animator.SetBool(IsDeadHash, false);
+        }
+        if (hasIsRevivingParameter)
+        {
+            animator.SetBool(IsRevivingHash, false);
+        }
+        if (hasMentalDepletedParameter)
+        {
+            animator.ResetTrigger(MentalDepletedHash);
+        }
+        if (hasPossessionReleasedParameter)
+        {
+            animator.ResetTrigger(PossessionReleasedHash);
+        }
+
+        if (animator.HasState(baseLayerIndex, idleStateHash))
+        {
+            animator.CrossFade(idleStateHash, patternReturnTransitionSeconds, baseLayerIndex, 0f);
+        }
+
+        return false;
+    }
+
+    private void BeginReleasedBodyDeath()
+    {
+        if (animator == null || runtimeStatus != null && runtimeStatus.IsDead)
+        {
+            return;
+        }
+
+        // 복원된 실제 몬스터만 멈춰 세우고 죽음 모션을 재생해 플레이어 영혼과 완전히 분리합니다.
+        PauseMonsterBehavioursForRevive();
+        FreezeBodyForReleaseSequence();
+        if (hasIsDeadParameter)
+        {
+            animator.SetBool(IsDeadHash, false);
+        }
+        if (hasIsRevivingParameter)
+        {
+            animator.SetBool(IsRevivingHash, false);
+        }
+
+        bool canPlayDeathDirectly = animator.HasState(baseLayerIndex, deathStateHash);
+        if (!canPlayDeathDirectly && !hasIsDeadParameter)
+        {
+            Debug.LogWarning($"[hys Monster Animator] 해제용 Death 상태가 없어 Revive로 바로 넘어갑니다: {configuredControllerName}", this);
+            BeginRevive();
+            return;
+        }
+
+        animator.speed = normalAnimatorSpeed > 0f ? normalAnimatorSpeed : 1f;
+        if (canPlayDeathDirectly)
+        {
+            animator.Play(deathStateHash, baseLayerIndex, 0f);
+        }
+        else
+        {
+            // Controller 교체 직후 HasState가 갱신되지 않은 프레임에는 기존 IsDead 전이로 Death에 진입합니다.
+            animator.SetBool(IsDeadHash, true);
+        }
+        animator.Update(0f);
+        if (hasIsDeadParameter)
+        {
+            animator.SetBool(IsDeadHash, false);
+        }
+        releaseDeathPlaying = true;
+        releasedCorpseHolding = false;
+        revivePlaying = false;
+    }
+
+    private void UpdateReleasedBodyDeath()
+    {
+        if (animator.IsInTransition(baseLayerIndex))
+        {
+            return;
+        }
+
+        AnimatorStateInfo state = animator.GetCurrentAnimatorStateInfo(baseLayerIndex);
+        bool isDeathState = state.fullPathHash == deathStateHash
+            || state.shortNameHash == deathStateShortHash;
+        if (!isDeathState || state.normalizedTime < deathFreezeNormalizedTime)
+        {
+            return;
+        }
+
+        // 마지막 사망 프레임을 고정해 시체가 사라지지 않은 상태를 눈에 보이게 유지합니다.
+        animator.Play(deathStateHash, baseLayerIndex, 1f);
+        animator.Update(0f);
+        animator.speed = 0f;
+        releaseDeathPlaying = false;
+        releasedCorpseHolding = true;
+        releasedCorpseHoldStartedAt = Time.unscaledTime;
+    }
+
+    private void FreezeBodyForReleaseSequence()
+    {
+        if (body == null)
+        {
+            return;
+        }
+
+        body.linearVelocity = Vector2.zero;
+        body.angularVelocity = 0f;
+        body.constraints = RigidbodyConstraints2D.FreezeAll;
+    }
+
+    private void BeginRevive()
+    {
+        if (animator == null)
+        {
+            FinishReleaseSequence(true);
+            return;
+        }
+
+        bool canPlayReviveDirectly = animator.HasState(baseLayerIndex, reviveStateHash);
+        bool canEnterReviveByTrigger = hasPossessionReleasedParameter || hasMentalDepletedParameter;
+        if (!canPlayReviveDirectly && !canEnterReviveByTrigger)
+        {
+            Debug.LogWarning($"[hys Monster Animator] 전용 Revive 상태가 없어 즉시 Idle로 복귀합니다: {configuredControllerName}", this);
+            FinishReleaseSequence(true);
+            return;
+        }
+
+        // 죽음 모션부터 이어서 사용한 잠금 상태를 Revive가 끝날 때까지 유지합니다.
+        PauseMonsterBehavioursForRevive();
+        FreezeBodyForReleaseSequence();
+
+        if (hasIsRevivingParameter)
+        {
+            animator.SetBool(IsRevivingHash, true);
+        }
+        if (hasMentalNormalizedParameter)
+        {
+            animator.SetFloat(MentalNormalizedHash, liveMentalState != null ? liveMentalState.CurrentMentalRatio : 1f);
+        }
+        bool mentalDepleted = liveMentalState != null && liveMentalState.IsMentalDepleted;
+        if (mentalDepleted && hasMentalDepletedParameter)
+        {
+            animator.ResetTrigger(MentalDepletedHash);
+            animator.SetTrigger(MentalDepletedHash);
+        }
+        else if (hasPossessionReleasedParameter)
+        {
+            animator.ResetTrigger(PossessionReleasedHash);
+            animator.SetTrigger(PossessionReleasedHash);
+        }
+
+        animator.speed = normalAnimatorSpeed > 0f ? normalAnimatorSpeed : 1f;
+        if (canPlayReviveDirectly)
+        {
+            animator.Play(reviveStateHash, baseLayerIndex, 0f);
+        }
+        // Controller 교체 직후에는 위에서 설정한 hys 전용 Trigger가 Revive 진입을 대신합니다.
+        animator.Update(0f);
+        releaseDeathPlaying = false;
+        releasedCorpseHolding = false;
+        revivePlaying = true;
+    }
+
+    private void FinishRevive(bool returnToIdle)
+    {
+        if (!revivePlaying)
+        {
+            return;
+        }
+
+        revivePlaying = false;
+        if (hasIsRevivingParameter)
+        {
+            animator.SetBool(IsRevivingHash, false);
+        }
+        if (body != null)
+        {
+            body.constraints = normalBodyConstraints;
+        }
+        RestoreMonsterBehavioursAfterRevive();
+
+        if (returnToIdle && animator != null && animator.HasState(baseLayerIndex, idleStateHash))
+        {
+            animator.CrossFade(idleStateHash, patternReturnTransitionSeconds, baseLayerIndex, 0f);
+        }
+    }
+
+    private void FinishReleaseSequence(bool returnToIdle)
+    {
+        bool hadSequence = releaseDeathPlaying || releasedCorpseHolding || revivePlaying;
+        releaseDeathPlaying = false;
+        releasedCorpseHolding = false;
+
+        if (revivePlaying)
+        {
+            FinishRevive(returnToIdle);
+            return;
+        }
+
+        if (!hadSequence)
+        {
+            return;
+        }
+
+        if (animator != null)
+        {
+            animator.speed = normalAnimatorSpeed > 0f ? normalAnimatorSpeed : 1f;
+        }
+        if (body != null)
+        {
+            body.constraints = normalBodyConstraints;
+        }
+        RestoreMonsterBehavioursAfterRevive();
+        if (returnToIdle && animator != null && animator.HasState(baseLayerIndex, idleStateHash))
+        {
+            animator.CrossFade(idleStateHash, patternReturnTransitionSeconds, baseLayerIndex, 0f);
+        }
+    }
+
+    private void OnDisable()
+    {
+        // 해제 연출 도중 다시 비활성화되어도 AI와 물리 잠금이 다음 활성화까지 남지 않게 정리합니다.
+        FinishReleaseSequence(false);
+    }
+
+    private void PauseMonsterBehavioursForRevive()
+    {
+        if (revivePausedBehaviours != null && revivePausedEnabledStates != null)
+        {
+            return;
+        }
+
+        var behaviours = new System.Collections.Generic.List<Behaviour>();
+        behaviours.AddRange(GetComponentsInChildren<HWJ_MonsterAISystem>(true));
+        behaviours.AddRange(GetComponentsInChildren<HWJ_EnemyAttackSystem>(true));
+        behaviours.AddRange(GetComponentsInChildren<HWJ_EnemyNavigationSystem>(true));
+        revivePausedBehaviours = behaviours.ToArray();
+        revivePausedEnabledStates = new bool[revivePausedBehaviours.Length];
+        for (int i = 0; i < revivePausedBehaviours.Length; i++)
+        {
+            Behaviour behaviour = revivePausedBehaviours[i];
+            revivePausedEnabledStates[i] = behaviour != null && behaviour.enabled;
+            if (behaviour != null)
+            {
+                behaviour.enabled = false;
+            }
+        }
+    }
+
+    private void RestoreMonsterBehavioursAfterRevive()
+    {
+        if (revivePausedBehaviours == null || revivePausedEnabledStates == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < revivePausedBehaviours.Length && i < revivePausedEnabledStates.Length; i++)
+        {
+            if (revivePausedBehaviours[i] != null)
+            {
+                revivePausedBehaviours[i].enabled = revivePausedEnabledStates[i];
+            }
+        }
+
+        revivePausedBehaviours = null;
+        revivePausedEnabledStates = null;
+    }
+
     private void ConfigureStateHashes(bool force = false)
     {
         if (animator == null || animator.runtimeAnimatorController == null)
@@ -300,12 +612,17 @@ public class hys_MonsterAnimatorLifecycle : MonoBehaviour
 
         idleStateHash = Animator.StringToHash($"{statePrefix}_Idle");
         deathStateHash = Animator.StringToHash($"{statePrefix}_Death");
+        reviveStateHash = Animator.StringToHash($"{statePrefix}_Revive");
         hasMoveSpeedParameter = HasParameter(MoveSpeedHash, AnimatorControllerParameterType.Float);
         hasHitParameter = HasParameter(HitHash, AnimatorControllerParameterType.Trigger);
         hasIsDeadParameter = HasParameter(IsDeadHash, AnimatorControllerParameterType.Bool);
         hasVerticalSpeedParameter = HasParameter(VerticalSpeedHash, AnimatorControllerParameterType.Float);
         hasIsGroundedParameter = HasParameter(IsGroundedHash, AnimatorControllerParameterType.Bool);
         hasDashParameter = HasParameter(DashHash, AnimatorControllerParameterType.Trigger);
+        hasIsRevivingParameter = HasParameter(IsRevivingHash, AnimatorControllerParameterType.Bool);
+        hasMentalNormalizedParameter = HasParameter(MentalNormalizedHash, AnimatorControllerParameterType.Float);
+        hasMentalDepletedParameter = HasParameter(MentalDepletedHash, AnimatorControllerParameterType.Trigger);
+        hasPossessionReleasedParameter = HasParameter(PossessionReleasedHash, AnimatorControllerParameterType.Trigger);
         hasRuntimeStateSnapshot = false;
     }
 
@@ -343,6 +660,16 @@ public class hys_MonsterAnimatorLifecycle : MonoBehaviour
         if (body == null)
         {
             body = GetComponent<Rigidbody2D>();
+        }
+
+        if (possessionBodyState == null)
+        {
+            possessionBodyState = GetComponent<HWJ_PossessionBodyState>();
+        }
+
+        if (liveMentalState == null)
+        {
+            liveMentalState = GetComponent<HWJ_LivePossessionMentalState>();
         }
     }
 

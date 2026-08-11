@@ -63,7 +63,11 @@ public static class hys_HWJPlayerAnimatorControllerSetup
         Parameter("DropJumpTrigger", AnimatorControllerParameterType.Trigger),
         Parameter("DashTrigger", AnimatorControllerParameterType.Trigger),
         Parameter("HitTrigger", AnimatorControllerParameterType.Trigger),
-        Parameter("DeadTrigger", AnimatorControllerParameterType.Trigger)
+        Parameter("DeadTrigger", AnimatorControllerParameterType.Trigger),
+        Parameter("MentalNormalized", AnimatorControllerParameterType.Float),
+        Parameter("MentalDepleted", AnimatorControllerParameterType.Trigger),
+        Parameter("PossessionReleased", AnimatorControllerParameterType.Trigger),
+        Parameter("IsReviving", AnimatorControllerParameterType.Bool)
     };
 
     static hys_HWJPlayerAnimatorControllerSetup()
