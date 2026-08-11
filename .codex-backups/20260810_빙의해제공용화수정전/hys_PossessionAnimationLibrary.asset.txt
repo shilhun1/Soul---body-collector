@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 95a2f4a91f21495db9121d01d4f7c061, type: 3}
+  m_Name: hys_PossessionAnimationLibrary
+  m_EditorClassIdentifier: Assembly-CSharp::hys_PossessionAnimationLibrary
+  swordPossessionClip: {fileID: 7400000, guid: 5f916a6db38560d46b26710417c2ab9d, type: 2}
+  axePossessionClip: {fileID: 7400000, guid: f04c1c7e29b3994e46540dcb4dbb6a0b, type: 2}
+  bowPossessionClip: {fileID: 7400000, guid: b0b0c000000000000000000000000012, type: 2}
+  lancePossessionClip: {fileID: 7400000, guid: a16cefffffffffffffffffffffffffff, type: 2}
+  shieldPossessionClip: {fileID: 7400000, guid: d7280000000000000000000000000001, type: 2}

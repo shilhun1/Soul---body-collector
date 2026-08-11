@@ -28,7 +28,7 @@
 
 ### 1.3 프로젝트 폴더 구조 이중화 (Core Folder Redundancy)
 - **관련 파일**:
-  - `Assets/02Scripts/HWJ/Core/` (`HWJ_DamageInfo.cs`, `HWJ_StatData.cs`, `HWJ_LegacyDamageType.cs`)
+  - `Assets/02Scripts/HWJ/Core/` (`HWJ_StatData.cs`)
   - `Assets/02Scripts/HWJ/Scripts/Core/` (`HWJ_GameManager.cs`, `HWJ_GameAccess.cs`)
 - **문제점**:
   - `HWJ` 루트 아래에 `Core` 폴더와 `Scripts/Core` 폴더가 따로 분리되어 있어 데이터 구조체와 매니저 클래스의 위치 파악이 어렵고 가독성이 떨어집니다.

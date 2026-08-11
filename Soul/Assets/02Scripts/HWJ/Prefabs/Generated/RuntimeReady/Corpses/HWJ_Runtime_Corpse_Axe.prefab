@@ -256,8 +256,8 @@ GameObject:
   - component: {fileID: 5663585071338279087}
   - component: {fileID: 8802638509018823113}
   - component: {fileID: 7955056391585753960}
-  - component: {fileID: 565948581349275362}
-  m_Layer: 0
+  - component: {fileID: 8517693038125311087}
+  m_Layer: 3
   m_Name: HWJ_Runtime_Corpse_Axe
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -620,7 +620,7 @@ MonoBehaviour:
   isRemovedAfterPossession: 0
   wasAliveWhenPossessed: 0
   restoreObjectOnPossessionExit: 0
---- !u!114 &565948581349275362
+--- !u!114 &8517693038125311087
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

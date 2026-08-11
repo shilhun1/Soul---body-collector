@@ -5,7 +5,7 @@ using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(hys_Player_State))]
 [DefaultExecutionOrder(50)]
-public class hys_Player_Attack : MonoBehaviour
+public class hys_Player_Attack : MonoBehaviour, IPlayerAttackHandler
 {
     [Header("Attack")]
     // 공격이 맞았을 때 상대에게 전달할 데미지입니다.
@@ -121,17 +121,6 @@ public class hys_Player_Attack : MonoBehaviour
     private void Update()
     {
         TickAxeDiveAttack();
-
-        if (IsAxeDiveAttacking)
-        {
-            return;
-        }
-
-        // X 키를 공격 입력으로 사용합니다.
-        if (IsAttackInputPressed())
-        {
-            TryAttack();
-        }
     }
 
     private void FixedUpdate()
@@ -536,23 +525,6 @@ public class hys_Player_Attack : MonoBehaviour
         return hys_PlayerState.Idle;
     }
 
-    // 공격 입력 체크입니다.
-    private bool IsAttackInputPressed()
-    {
-        if (Keyboard.current == null)
-        {
-            return false;
-        }
-
-        // 점프와 공격을 같은 프레임에 누르면 점프가 우선되게 해서 연타 공격이 점프를 먹지 않게 합니다.
-        if (Keyboard.current.spaceKey.wasPressedThisFrame)
-        {
-            return false;
-        }
-
-        return Keyboard.current.xKey.wasPressedThisFrame;
-    }
-
     // attackPoint가 있으면 그 위치를, 없으면 플레이어 위치를 공격 기준점으로 사용합니다.
     private Vector2 GetCurrentAttackOrigin()
     {
@@ -611,6 +583,39 @@ public class hys_Player_Attack : MonoBehaviour
             Gizmos.DrawCube(GetHitBoxCenter(), GetActiveHitBoxSize());
             Gizmos.color = attackRangeColor;
             Gizmos.DrawWireCube(GetHitBoxCenter(), GetActiveHitBoxSize());
+        }
+    }
+
+    public bool OnAttackPressed()
+    {
+        if(IsAxeDiveAttacking)
+        {
+            return false;
+        }
+
+        return TryAttack();
+    }
+
+    public void OnAttackReleased()
+    {
+        //
+    }
+
+    public void CancelAttack()
+    {
+        attackSequence++;
+
+        if(attackRoutine != null)
+        {
+            StopCoroutine(attackRoutine);
+            attackRoutine = null;
+        }
+
+        CancelAxeDiveAttack(true);
+
+        if(playerState != null && playerState.CurrentState == hys_PlayerState.Attack)
+        {
+            playerState.SetState(GetReturnState());
         }
     }
 }

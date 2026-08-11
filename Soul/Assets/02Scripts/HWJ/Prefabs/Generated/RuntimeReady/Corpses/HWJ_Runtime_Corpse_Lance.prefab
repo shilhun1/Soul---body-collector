@@ -74,8 +74,8 @@ GameObject:
   - component: {fileID: 2711063188671770220}
   - component: {fileID: 5340788038568828886}
   - component: {fileID: 8919134167647811615}
-  - component: {fileID: 8922392100332234660}
-  m_Layer: 0
+  - component: {fileID: 3851497048077924755}
+  m_Layer: 3
   m_Name: HWJ_Runtime_Corpse_Lance
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -438,7 +438,7 @@ MonoBehaviour:
   isRemovedAfterPossession: 0
   wasAliveWhenPossessed: 0
   restoreObjectOnPossessionExit: 0
---- !u!114 &8922392100332234660
+--- !u!114 &3851497048077924755
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

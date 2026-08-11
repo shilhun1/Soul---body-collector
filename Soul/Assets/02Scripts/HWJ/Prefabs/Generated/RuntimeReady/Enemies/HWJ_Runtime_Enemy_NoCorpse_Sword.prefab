@@ -259,8 +259,8 @@ GameObject:
   - component: {fileID: 2354778904099842172}
   - component: {fileID: 1228764527120663557}
   - component: {fileID: 8148150528797817450}
-  - component: {fileID: 8377703930002503231}
-  m_Layer: 0
+  - component: {fileID: 594376022563184845}
+  m_Layer: 3
   m_Name: HWJ_Runtime_Enemy_NoCorpse_Sword
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -729,7 +729,7 @@ MonoBehaviour:
   noCorpseDespawnDelaySeconds: 0.2
   makeCorpseCollidersTriggers: 1
   disableBehaviorOnDeath: 1
---- !u!114 &8377703930002503231
+--- !u!114 &594376022563184845
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

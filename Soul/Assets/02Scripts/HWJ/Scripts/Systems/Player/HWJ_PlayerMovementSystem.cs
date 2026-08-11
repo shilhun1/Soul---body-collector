@@ -1,6 +1,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+#if ENABLE_INPUT_SYSTEM
+using UnityEngine.InputSystem;
+#endif
+
 /// <summary>
 /// PlayerTypeDataSO.Control과 RootObjectDataSO.Status를 사용해 플레이어 이동을 처리하는 기본 시스템입니다.
 /// 실제 입력 시스템을 바꿔도 이 컴포넌트는 데이터만 읽도록 유지하고, 입력 값만 외부에서 주입하는 방식으로 확장할 수 있습니다.
@@ -25,6 +29,8 @@ public class HWJ_PlayerMovementSystem : MonoBehaviour
     [SerializeField] private LayerMask groundLayer;
     [SerializeField] private Vector2 groundCheckOffset = new Vector2(0f, -0.55f);
     [SerializeField] private Vector2 groundCheckSize = new Vector2(0.7f, 0.12f);
+    [Tooltip("Places the ground probe below the actual body collider so different possessed visuals can share this movement component.")]
+    [SerializeField] private bool deriveGroundProbeFromCollider = true;
 
     [Space(8f)]
     [Header("Soul Collision")]
@@ -39,6 +45,11 @@ public class HWJ_PlayerMovementSystem : MonoBehaviour
     [SerializeField] private bool ignoreEnemyBodyCollision = true;
     [SerializeField] private float enemyCollisionRefreshSeconds = 0.25f;
 
+    [Space(8f)]
+    [Header("Jump Diagnostics")]
+    [Tooltip("Logs one result for each jump input so blocked possession jumps can be diagnosed in the Console.")]
+    [SerializeField] private bool logJumpDiagnostics = true;
+
     private int usedDoubleJumpCount;
     private int usedDashCount;
     private float dashEndTime;
@@ -51,6 +62,10 @@ public class HWJ_PlayerMovementSystem : MonoBehaviour
     private bool hasOriginalGravityScale;
     private bool isGravitySuppressed;
     private bool jumpCutApplied;
+    private bool waitForJumpReleaseAfterBodyEntry;
+    private bool hasPendingJumpDiagnostic;
+    private bool hasObservedSoulState;
+    private HWJ_SoulRuntimeState observedSoulState;
     private Collider2D[] ownedColliders;
     private bool[] originalColliderTriggerStates;
     private int originalRootLayer;
@@ -71,6 +86,7 @@ public class HWJ_PlayerMovementSystem : MonoBehaviour
         CacheOriginalRootLayer();
         lastJumpPressedTime = -999f;
         lastGroundedTime = -999f;
+        InitializeSoulStateObservation();
     }
 
     private void Reset()
@@ -129,6 +145,8 @@ public class HWJ_PlayerMovementSystem : MonoBehaviour
     private void Update()
     {
         ResolvePlayerInput();
+        ObserveSoulStateTransition();
+        UpdateJumpReleaseGate();
         moveInput = playerInput != null ? playerInput.MoveInput : Vector2.zero;
         UpdateSoulCollisionMode();
         UpdateEnemyCollisionIgnores();
@@ -146,7 +164,9 @@ public class HWJ_PlayerMovementSystem : MonoBehaviour
             ResetDashCountWhenReady();
         }
 
-        if (canUseBodyActions && playerInput != null && playerInput.JumpPressedThisFrame)
+        if (canUseBodyActions
+            && !waitForJumpReleaseAfterBodyEntry
+            && WasJumpPressedThisFrame())
         {
             if (IsDropInputHeld())
             {
@@ -156,6 +176,7 @@ public class HWJ_PlayerMovementSystem : MonoBehaviour
             }
 
             lastJumpPressedTime = Time.time;
+            hasPendingJumpDiagnostic = true;
         }
 
         if (canUseBodyActions)
@@ -183,6 +204,110 @@ public class HWJ_PlayerMovementSystem : MonoBehaviour
         {
             playerInput = HWJ_GameAccess.PlayerInput;
         }
+    }
+
+    private void InitializeSoulStateObservation()
+    {
+        if (soulSystem == null)
+        {
+            return;
+        }
+
+        observedSoulState = soulSystem.CurrentState;
+        hasObservedSoulState = true;
+    }
+
+    private void ObserveSoulStateTransition()
+    {
+        if (soulSystem == null)
+        {
+            return;
+        }
+
+        HWJ_SoulRuntimeState currentSoulState = soulSystem.CurrentState;
+
+        if (!hasObservedSoulState)
+        {
+            observedSoulState = currentSoulState;
+            hasObservedSoulState = true;
+            return;
+        }
+
+        if (currentSoulState == observedSoulState)
+        {
+            return;
+        }
+
+        HWJ_SoulRuntimeState previousSoulState = observedSoulState;
+        observedSoulState = currentSoulState;
+
+        if (currentSoulState == HWJ_SoulRuntimeState.Body
+            && previousSoulState != HWJ_SoulRuntimeState.Body)
+        {
+            SynchronizeAfterPossession();
+            return;
+        }
+
+        // A buffered body jump must never survive an exit to spirit state.
+        lastJumpPressedTime = -999f;
+        waitForJumpReleaseAfterBodyEntry = false;
+    }
+
+    /// <summary>
+    /// Restores body physics immediately after a soul enters a possessed body.
+    /// The minigame and jump both use Space, so the success press is ignored until Space is released.
+    /// </summary>
+    public void SynchronizeAfterPossession()
+    {
+        AutoWireReferences();
+        CacheOriginalGravityScale();
+        RestoreBodyCollisionState();
+        RestoreBodyGravityState();
+
+        lastJumpPressedTime = -999f;
+        lastGroundedTime = -999f;
+        usedDoubleJumpCount = 0;
+        usedDashCount = 0;
+        dashEndTime = 0f;
+        nextDashTime = 0f;
+        jumpCutApplied = false;
+        // The possession minigame always uses Space. Only that physical key must be
+        // released; a stale/rebound Jump action must not keep body jumping locked.
+        waitForJumpReleaseAfterBodyEntry = IsPossessionMashButtonHeld();
+        hasPendingJumpDiagnostic = false;
+        UpdateGrounded();
+    }
+
+    private void UpdateJumpReleaseGate()
+    {
+        if (waitForJumpReleaseAfterBodyEntry && !IsPossessionMashButtonHeld())
+        {
+            waitForJumpReleaseAfterBodyEntry = false;
+        }
+    }
+
+    private bool WasJumpPressedThisFrame()
+    {
+        return playerInput != null && playerInput.JumpPressedThisFrame;
+    }
+
+    private bool IsJumpHeld()
+    {
+        return playerInput != null && playerInput.JumpHeld;
+    }
+
+    /// <summary>
+    /// The live-possession minigame has a fixed Space binding, independent of the
+    /// rebindable gameplay Jump action. This check prevents its final mash input
+    /// from becoming a jump without allowing another binding to hold the gate.
+    /// </summary>
+    private static bool IsPossessionMashButtonHeld()
+    {
+#if ENABLE_INPUT_SYSTEM
+        return Keyboard.current != null && Keyboard.current.spaceKey.isPressed;
+#else
+        return Input.GetKey(KeyCode.Space);
+#endif
     }
 
     private void FixedUpdate()
@@ -270,7 +395,7 @@ public class HWJ_PlayerMovementSystem : MonoBehaviour
 
     private bool CheckGrounded()
     {
-        Vector2 checkCenter = (Vector2)transform.position + groundCheckOffset;
+        GetGroundProbeGeometry(out Vector2 checkCenter, out Vector2 checkSize);
         ContactFilter2D filter = new ContactFilter2D
         {
             useLayerMask = groundLayer.value != 0,
@@ -278,7 +403,7 @@ public class HWJ_PlayerMovementSystem : MonoBehaviour
             useTriggers = false
         };
 
-        groundHitCount = Physics2D.OverlapBox(checkCenter, groundCheckSize, 0f, filter, groundHits);
+        groundHitCount = Physics2D.OverlapBox(checkCenter, checkSize, 0f, filter, groundHits);
 
         for (int i = 0; i < groundHitCount; i++)
         {
@@ -293,6 +418,65 @@ public class HWJ_PlayerMovementSystem : MonoBehaviour
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// Possession changes the visible body and may use a taller collider than the
+    /// original spirit. The probe therefore follows the lowest owned solid collider
+    /// instead of assuming every body is centered around a fixed local Y offset.
+    /// </summary>
+    private void GetGroundProbeGeometry(out Vector2 checkCenter, out Vector2 checkSize)
+    {
+        checkSize = new Vector2(
+            Mathf.Max(0.05f, groundCheckSize.x),
+            Mathf.Max(0.02f, groundCheckSize.y));
+        checkCenter = (Vector2)transform.position + groundCheckOffset;
+
+        if (!deriveGroundProbeFromCollider)
+        {
+            return;
+        }
+
+        if (ownedColliders == null || ownedColliders.Length == 0)
+        {
+            CacheOwnedColliders();
+        }
+
+        bool foundSolidCollider = false;
+        Bounds bodyBounds = default;
+
+        for (int i = 0; i < ownedColliders.Length; i++)
+        {
+            Collider2D ownedCollider = ownedColliders[i];
+
+            if (ownedCollider == null
+                || !ownedCollider.enabled
+                || ownedCollider.isTrigger
+                || ownedCollider.attachedRigidbody != body)
+            {
+                continue;
+            }
+
+            if (!foundSolidCollider)
+            {
+                bodyBounds = ownedCollider.bounds;
+                foundSolidCollider = true;
+            }
+            else
+            {
+                bodyBounds.Encapsulate(ownedCollider.bounds);
+            }
+        }
+
+        if (!foundSolidCollider)
+        {
+            return;
+        }
+
+        float safeProbeWidth = Mathf.Max(0.05f, bodyBounds.size.x * 0.8f);
+        checkSize.x = Mathf.Min(checkSize.x, safeProbeWidth);
+        checkCenter.x = bodyBounds.center.x + groundCheckOffset.x;
+        checkCenter.y = bodyBounds.min.y - Mathf.Max(0.02f, checkSize.y * 0.25f);
     }
 
     private bool IsOwnCollider(Collider2D hit)
@@ -349,6 +533,12 @@ public class HWJ_PlayerMovementSystem : MonoBehaviour
 
     private void MoveSoul(HWJ_PlayerTypeDataSO playerData)
     {
+        if (runtimeStatus != null && !runtimeStatus.CanMove)
+        {
+            StopMovement(true);
+            return;
+        }
+
         if (!playerData.SoulState.canFreeFly)
         {
             StopMovement(true);
@@ -367,6 +557,7 @@ public class HWJ_PlayerMovementSystem : MonoBehaviour
     {
         if (dataResolver == null || !dataResolver.TryGetTypeData(out HWJ_PlayerTypeDataSO playerData))
         {
+            LogBlockedJump("PLAYER_DATA_MISSING");
             return;
         }
 
@@ -376,40 +567,110 @@ public class HWJ_PlayerMovementSystem : MonoBehaviour
 
         if (Time.time > lastJumpPressedTime + bufferTime)
         {
+            LogBlockedJump("BUFFER_EXPIRED");
             return;
         }
 
-        if (TryJump())
+        if (TryJump(out string result))
         {
             lastJumpPressedTime = -999f;
+            LogSuccessfulJump(result);
         }
     }
 
     private bool TryJump()
     {
+        return TryJump(out _);
+    }
+
+    private bool TryJump(out string result)
+    {
         if (body == null || dataResolver == null || !dataResolver.TryGetTypeData(out HWJ_PlayerTypeDataSO playerData))
         {
+            result = "BODY_OR_PLAYER_DATA_MISSING";
             return false;
         }
 
-        if (!CanUseBodyActions() || runtimeStatus != null && !runtimeStatus.CanMove)
+        if (!CanUseBodyActions())
         {
+            result = soulSystem != null
+                ? $"SOUL_STATE_{soulSystem.CurrentState}"
+                : "BODY_ACTIONS_DISABLED";
+            return false;
+        }
+
+        if (runtimeStatus != null && !runtimeStatus.CanMove)
+        {
+            result = $"MOVEMENT_LOCKED_STATE_{runtimeStatus.CurrentState}";
             return false;
         }
 
         if (isGrounded || Time.time <= lastGroundedTime + Mathf.Max(0f, playerData.Control.coyoteTimeSeconds))
         {
+            if (playerData.Control.normalJump == null)
+            {
+                result = "NORMAL_JUMP_DATA_MISSING";
+                return false;
+            }
+
             ExecuteNormalJump(playerData.Control.normalJump);
+            result = "NORMAL";
             return true;
         }
 
         if (!CanDoubleJump(playerData.Control.doubleJump))
         {
+            result = "NOT_GROUNDED_AND_DOUBLE_JUMP_UNAVAILABLE";
             return false;
         }
 
         ExecuteDoubleJump(playerData.Control.doubleJump);
+        result = "DOUBLE";
         return true;
+    }
+
+    private void LogSuccessfulJump(string jumpKind)
+    {
+        if (!hasPendingJumpDiagnostic)
+        {
+            return;
+        }
+
+        hasPendingJumpDiagnostic = false;
+
+        if (!logJumpDiagnostics)
+        {
+            return;
+        }
+
+        Debug.Log(
+            $"[HWJ][PlayerJump][SUCCESS] kind={jumpKind}, " +
+            $"velocityY={(body != null ? body.linearVelocity.y : 0f):0.00}, " +
+            $"grounded={isGrounded}, state={(soulSystem != null ? soulSystem.CurrentState.ToString() : "NoSoulSystem")}",
+            this);
+    }
+
+    private void LogBlockedJump(string reason)
+    {
+        if (!hasPendingJumpDiagnostic)
+        {
+            return;
+        }
+
+        hasPendingJumpDiagnostic = false;
+
+        if (!logJumpDiagnostics)
+        {
+            return;
+        }
+
+        Debug.LogWarning(
+            $"[HWJ][PlayerJump][BLOCKED] reason={reason}, " +
+            $"state={(soulSystem != null ? soulSystem.CurrentState.ToString() : "NoSoulSystem")}, " +
+            $"canMove={(runtimeStatus == null || runtimeStatus.CanMove)}, " +
+            $"grounded={isGrounded}, simulated={(body != null && body.simulated)}, " +
+            $"constraints={(body != null ? body.constraints.ToString() : "NoBody")}",
+            this);
     }
 
     private void ExecuteNormalJump(HWJ_NormalJumpData jumpData)
@@ -515,7 +776,7 @@ public class HWJ_PlayerMovementSystem : MonoBehaviour
 
     private void ApplyVariableJumpCut()
     {
-        if (body == null || playerInput == null || playerInput.JumpHeld || jumpCutApplied)
+        if (body == null || IsJumpHeld() || jumpCutApplied)
         {
             return;
         }
@@ -759,6 +1020,18 @@ public class HWJ_PlayerMovementSystem : MonoBehaviour
         hasOriginalGravityScale = true;
     }
 
+    private void RestoreBodyGravityState()
+    {
+        if (body == null)
+        {
+            return;
+        }
+
+        CacheOriginalGravityScale();
+        body.gravityScale = originalGravityScale;
+        isGravitySuppressed = false;
+    }
+
     private void SetGravitySuppressed(bool suppress)
     {
         if (body == null)
@@ -882,6 +1155,27 @@ public class HWJ_PlayerMovementSystem : MonoBehaviour
         SetSoulCollisionMode(shouldPhase);
     }
 
+    private void RestoreBodyCollisionState()
+    {
+        if (ownedColliders == null || originalColliderTriggerStates == null)
+        {
+            CacheOwnedColliders();
+        }
+
+        int colliderCount = Mathf.Min(ownedColliders.Length, originalColliderTriggerStates.Length);
+
+        for (int i = 0; i < colliderCount; i++)
+        {
+            if (ownedColliders[i] != null)
+            {
+                ownedColliders[i].isTrigger = originalColliderTriggerStates[i];
+            }
+        }
+
+        ApplySoulLayer(false);
+        isSoulCollisionMode = false;
+    }
+
     private void SetSoulCollisionMode(bool enabled)
     {
         if (isSoulCollisionMode == enabled)
@@ -955,8 +1249,8 @@ public class HWJ_PlayerMovementSystem : MonoBehaviour
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = isGrounded ? Color.green : Color.red;
-        Vector3 checkCenter = transform.position + (Vector3)groundCheckOffset;
-        Gizmos.DrawWireCube(checkCenter, groundCheckSize);
+        GetGroundProbeGeometry(out Vector2 checkCenter, out Vector2 checkSize);
+        Gizmos.DrawWireCube(checkCenter, checkSize);
     }
 
     private readonly struct HWJ_TemporaryIgnoredCollider

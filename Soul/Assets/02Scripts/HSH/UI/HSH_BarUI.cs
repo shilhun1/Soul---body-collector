@@ -220,8 +220,8 @@ public class HSH_BarUI : MonoBehaviour
             // [GhostHP 바] 영혼 상태일 때의 시간 카운트다운
             else if (currentType == BarType.GhostHP && soulSystem != null)
             {
-                Debug.Log("실행");
-                Debug.Log("실행2");
+                //Debug.Log("실행");
+                //Debug.Log("실행2");
                 // 유저님의 요청대로 가장 심플하게 값만 대입합니다. (리플렉션 및 조건문 제거)
                 maxValue = 10f;
                 currentValue = soulSystem.SoulDeadlineTimer;

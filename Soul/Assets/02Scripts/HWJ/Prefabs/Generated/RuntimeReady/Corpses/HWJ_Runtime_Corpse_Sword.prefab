@@ -256,8 +256,8 @@ GameObject:
   - component: {fileID: 9166328553227861793}
   - component: {fileID: 3576877881046008665}
   - component: {fileID: 426101816406713715}
-  - component: {fileID: 2510894008351820771}
-  m_Layer: 0
+  - component: {fileID: 3659971532223773318}
+  m_Layer: 3
   m_Name: HWJ_Runtime_Corpse_Sword
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -620,7 +620,7 @@ MonoBehaviour:
   isRemovedAfterPossession: 0
   wasAliveWhenPossessed: 0
   restoreObjectOnPossessionExit: 0
---- !u!114 &2510894008351820771
+--- !u!114 &3659971532223773318
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

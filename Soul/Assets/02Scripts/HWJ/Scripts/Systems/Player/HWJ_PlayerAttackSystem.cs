@@ -5,7 +5,7 @@ using UnityEngine;
 /// 플레이어 기본 공격 입력과 공격 쿨타임을 관리하는 기본 시스템입니다.
 /// 실제 판정 생성은 SkillActionSystem에 넘기고, 이 시스템은 PlayerTypeDataSO.Attack의 입력/간격 데이터만 담당합니다.
 /// </summary>
-public class HWJ_PlayerAttackSystem : MonoBehaviour
+public class HWJ_PlayerAttackSystem : MonoBehaviour, IPlayerAttackHandler
 {
     [Header("Core References")]
     [SerializeField] private HWJ_RootObjectDataResolver dataResolver;
@@ -133,18 +133,6 @@ public class HWJ_PlayerAttackSystem : MonoBehaviour
         {
             CancelBasicAttackCharge();
             return;
-        }
-
-        if (playerInput != null)
-        {
-            if (useChargeReleaseInput)
-            {
-                HandleBasicAttackChargeInput();
-            }
-            else if (playerInput.AttackPressedThisFrame)
-            {
-                TryBasicAttack();
-            }
         }
 
         TryPossessedSkillSlotInputs();
@@ -551,12 +539,25 @@ public class HWJ_PlayerAttackSystem : MonoBehaviour
 
     private string GetBasicAttackSkillActionId(HWJ_PlayerTypeDataSO playerData)
     {
-        if (possessionSystem != null && possessionSystem.TryGetPrimaryPossessedSkillId(out string possessedSkillId))
+        if (playerData == null || playerData.Attack == null)
         {
-            return possessedSkillId;
+            Debug.LogError(
+                "[기본 공격 실패] Player Attack 데이터가 없습니다.",
+                this
+            );
+
+            return null;
         }
 
-        return playerData.Attack != null ? playerData.Attack.basicAttackSkillActionId : null;
+        string attackId =
+            playerData.Attack.basicAttackSkillActionId;
+
+        Debug.Log(
+            $"[기본 공격 ID 선택] {attackId}",
+            this
+        );
+
+        return attackId;
     }
 
     private int ResolveNextBasicAttackComboStep(HWJ_PlayerAttackData attackData)
@@ -753,5 +754,32 @@ public class HWJ_PlayerAttackSystem : MonoBehaviour
 
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, range);
+    }
+
+    public bool OnAttackPressed()
+    {
+        if(useChargeReleaseInput)
+        {
+            return BeginBasicAttackCharge();
+        }
+        return TryBasicAttack();
+    }
+
+    public void OnAttackReleased()
+    {
+        if(!useChargeReleaseInput)
+        {
+            return;
+        }
+
+        if(IsChargingBasicAttack)
+        {
+            ReleaseBasicAttackCharge();
+        }
+    }
+
+    public void CancelAttack()
+    {
+        CancelCurrentAttack();
     }
 }
