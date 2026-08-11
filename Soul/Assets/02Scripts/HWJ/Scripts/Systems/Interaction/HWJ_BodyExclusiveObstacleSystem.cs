@@ -686,6 +686,29 @@ public static class HWJ_WeaponGimmickActivatorUtility
             return true;
         }
 
+        // 약한 결합 (Reflection): HSH 네임스페이스 직접 참조 없이 TryActivateFromSkillHit 메서드를 지닌 기믹 컴포넌트 탐색 및 실행
+        MonoBehaviour[] components = hitCollider.GetComponentsInParent<MonoBehaviour>();
+        if (components != null)
+        {
+            foreach (var comp in components)
+            {
+                if (comp == null || comp == obstacleSystem) continue;
+
+                var method = comp.GetType().GetMethod("TryActivateFromSkillHit", new System.Type[] { typeof(Transform), typeof(HWJ_SkillActionDataSO), typeof(bool).MakeByRefType() });
+                if (method != null)
+                {
+                    object[] args = new object[] { sourceTransform, skillAction, false };
+                    bool activated = (bool)method.Invoke(comp, args);
+                    if (activated)
+                    {
+                        consumeHit = (bool)args[2];
+                        resultMessage = $"{comp.GetType().Name} activated by skill {skillAction?.SkillActionId}.";
+                        return true;
+                    }
+                }
+            }
+        }
+
         return false;
     }
 

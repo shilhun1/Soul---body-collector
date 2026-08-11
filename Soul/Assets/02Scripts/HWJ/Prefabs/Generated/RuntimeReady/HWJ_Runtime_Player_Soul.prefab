@@ -674,6 +674,11 @@ MonoBehaviour:
   possessionExecutionCoreId: possession_execution
   possessionRule: {fileID: 0}
   possessionRuleId: possession_can_start
+  blockCorpsePossessionDuringDeathAnimation: 1
+  deathAnimationClipKeywords:
+  - death
+  - die
+  - dead
 --- !u!114 &2141700109381838326
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -809,6 +814,7 @@ MonoBehaviour:
   bodyController: {fileID: 9035676998823656637}
   visualController: {fileID: 3168022539913792669}
   skillProvider: {fileID: 7372383409021415747}
+  possessionControlLockSeconds: 0.75
   lastPossessionFailureCode: 0
   lastPossessionResult: 
   lastLivePossessionRoll: 0
