@@ -18,7 +18,7 @@ MonoBehaviour:
   motions:
   - motionKey: Axe_Swing
     animatorTriggerName: 
-    animatorStateName: Base Layer.hys_Axe_Attack1
+    animatorStateName: hys_Axe_Attack1
     layerIndex: 0
     transitionSeconds: 0.03
     useTrigger: 0
@@ -26,7 +26,7 @@ MonoBehaviour:
     resetTriggerBeforeSet: 1
   - motionKey: Axe_BodyCharge
     animatorTriggerName: 
-    animatorStateName: Base Layer.hys_Axe_Attack2
+    animatorStateName: hys_Axe_Attack2
     layerIndex: 0
     transitionSeconds: 0.03
     useTrigger: 0
@@ -34,7 +34,7 @@ MonoBehaviour:
     resetTriggerBeforeSet: 1
   - motionKey: Axe_SpinCharge
     animatorTriggerName: 
-    animatorStateName: Base Layer.hys_Axe_Attack2
+    animatorStateName: hys_Axe_Attack2
     layerIndex: 0
     transitionSeconds: 0.03
     useTrigger: 0
@@ -74,7 +74,7 @@ MonoBehaviour:
     resetTriggerBeforeSet: 1
   - motionKey: Jump
     animatorTriggerName: 
-    animatorStateName: Base Layer.hys_Axe_Jump_Start
+    animatorStateName: hys_Axe_Jump_Start
     layerIndex: 0
     transitionSeconds: 0.03
     useTrigger: 0
@@ -82,7 +82,7 @@ MonoBehaviour:
     resetTriggerBeforeSet: 1
   - motionKey: DoubleJump
     animatorTriggerName: 
-    animatorStateName: Base Layer.hys_Axe_Jump_Start
+    animatorStateName: hys_Axe_Jump_Start
     layerIndex: 0
     transitionSeconds: 0.03
     useTrigger: 0
@@ -90,7 +90,7 @@ MonoBehaviour:
     resetTriggerBeforeSet: 1
   - motionKey: DropJump
     animatorTriggerName: 
-    animatorStateName: Base Layer.hys_Axe_Jump_Fall
+    animatorStateName: hys_Axe_Jump_Fall
     layerIndex: 0
     transitionSeconds: 0.03
     useTrigger: 0
@@ -98,7 +98,7 @@ MonoBehaviour:
     resetTriggerBeforeSet: 1
   - motionKey: Dash
     animatorTriggerName: 
-    animatorStateName: Base Layer.hys_Axe_Dash
+    animatorStateName: hys_Axe_Dash
     layerIndex: 0
     transitionSeconds: 0.03
     useTrigger: 0
@@ -106,7 +106,7 @@ MonoBehaviour:
     resetTriggerBeforeSet: 1
   - motionKey: Hit
     animatorTriggerName: 
-    animatorStateName: Base Layer.hys_Axe_Hit
+    animatorStateName: hys_Axe_Hit
     layerIndex: 0
     transitionSeconds: 0.03
     useTrigger: 0
@@ -114,7 +114,7 @@ MonoBehaviour:
     resetTriggerBeforeSet: 1
   - motionKey: Dead
     animatorTriggerName: 
-    animatorStateName: Base Layer.hys_Axe_Die
+    animatorStateName: hys_Axe_Die
     layerIndex: 0
     transitionSeconds: 0.03
     useTrigger: 0
