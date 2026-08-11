@@ -224,11 +224,11 @@ public static class hys_HysSceneRuntimeReadySetup
         SetObject(serializedMotion, "playerMovement", player.GetComponent<HWJ_PlayerMovementSystem>());
         SetObject(serializedMotion, "soulSystem", player.GetComponent<HWJ_SoulSystem>());
         SetObject(serializedMotion, "possessionSystem", player.GetComponent<HWJ_PossessionSystem>());
-        SerializedProperty useDirectFlip = serializedMotion.FindProperty("useInitialSpriteFlipAsRightFacing");
-        if (useDirectFlip != null)
+        SerializedProperty useInitialFlip = serializedMotion.FindProperty("useInitialSpriteFlipAsRightFacing");
+        if (useInitialFlip != null)
         {
-            // 오른쪽은 flipX=false, 왼쪽은 flipX=true로 고정해 무기 원본의 서로 다른 초기 반전을 무시합니다.
-            useDirectFlip.boolValue = false;
+            // 다른 HWJ 씬과 동일하게 각 스프라이트의 최초 flipX를 오른쪽 방향 기준으로 사용합니다.
+            useInitialFlip.boolValue = true;
         }
 
         string[] profileNames = { "Sword", "Axe", "Bow", "Lance", "Shield" };

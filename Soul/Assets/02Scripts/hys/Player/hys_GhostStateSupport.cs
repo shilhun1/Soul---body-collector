@@ -12,6 +12,7 @@ public class hys_GhostStateSupport : MonoBehaviour
     [SerializeField] private Rigidbody2D rb;
     [SerializeField] private hys_Player_State playerState;
     [SerializeField] private hys_Player_Attack playerAttack;
+    [SerializeField] private hys_HWJPossessionAnimationBridge possessionAnimationBridge;
 
     [Header("Ghost Movement")]
     // 유령은 방향키로만 상하좌우 자유롭게 이동합니다.
@@ -163,6 +164,11 @@ public class hys_GhostStateSupport : MonoBehaviour
         {
             playerAttack = GetComponent<hys_Player_Attack>();
         }
+
+        if (possessionAnimationBridge == null)
+        {
+            possessionAnimationBridge = GetComponent<hys_HWJPossessionAnimationBridge>();
+        }
     }
 
     private void RefreshGhostModeImmediately()
@@ -213,11 +219,13 @@ public class hys_GhostStateSupport : MonoBehaviour
 
     private bool IsGhostState()
     {
-        // BodyToSoul 동안에는 육신의 Die 애니메이션과 바닥 물리를 유지하고,
-        // 전환이 끝나 Soul이 된 시점부터 유령 물리를 적용합니다.
+        // HP 0 붕괴는 BodyToSoul 동안 육체 물리를 유지하지만 살아 있는 몸의 해제는 즉시 영혼 물리로 분리합니다.
         return soulSystem != null
             && (soulSystem.CurrentState == HWJ_SoulRuntimeState.Soul
-                || soulSystem.CurrentState == HWJ_SoulRuntimeState.Dead);
+                || soulSystem.CurrentState == HWJ_SoulRuntimeState.Dead
+                || soulSystem.CurrentState == HWJ_SoulRuntimeState.BodyToSoul
+                    && possessionAnimationBridge != null
+                    && possessionAnimationBridge.IsLivingBodyReleaseVisualActive);
     }
 
     private bool IsDeadState()

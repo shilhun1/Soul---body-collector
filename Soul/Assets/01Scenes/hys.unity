@@ -3365,7 +3365,7 @@ MonoBehaviour:
   hitTriggerParameter: HitTrigger
   deadTriggerParameter: DeadTrigger
   flipSpriteByMoveDirection: 1
-  useInitialSpriteFlipAsRightFacing: 0
+  useInitialSpriteFlipAsRightFacing: 1
   flipTransformScaleWhenNoSpriteRenderer: 0
   moveThreshold: 0.05
   facingThreshold: 0.01

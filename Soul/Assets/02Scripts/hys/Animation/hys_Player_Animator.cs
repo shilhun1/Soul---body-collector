@@ -14,8 +14,10 @@ public class hys_Player_Animator : MonoBehaviour
     [SerializeField] private hys_Player_State playerState;
     [SerializeField] private hys_Player_Movement playerMovement;
     [SerializeField] private hys_Player_Attack playerAttack;
+    [SerializeField] private HWJ_CharacterMotionSystem hwjMotionSystem;
     [SerializeField] private HWJ_SoulSystem soulSystem;
     [SerializeField] private HWJ_PossessionSystem possessionSystem;
+    [SerializeField] private hys_HWJPossessionAnimationBridge possessionAnimationBridge;
 
     [Header("Animator Parameters")]
     // PlayerState가 핵심 상태 값이고, 나머지는 보조 조건입니다.
@@ -220,6 +222,13 @@ public class hys_Player_Animator : MonoBehaviour
             return;
         }
 
+        // 살아 있는 몬스터와 분리되는 동안에는 브리지가 영혼 Animator를 단독으로 유지합니다.
+        if (possessionAnimationBridge != null
+            && possessionAnimationBridge.IsLivingBodyReleaseVisualActive)
+        {
+            return;
+        }
+
         float horizontalVelocity = rb != null ? rb.linearVelocity.x : 0f;
         float verticalVelocity = rb != null ? rb.linearVelocity.y : 0f;
         bool isMoving = Mathf.Abs(horizontalVelocity) > moveThreshold;
@@ -369,6 +378,11 @@ public class hys_Player_Animator : MonoBehaviour
             playerAttack = GetComponent<hys_Player_Attack>();
         }
 
+        if (hwjMotionSystem == null)
+        {
+            hwjMotionSystem = GetComponent<HWJ_CharacterMotionSystem>();
+        }
+
         if (soulSystem == null)
         {
             soulSystem = GetComponent<HWJ_SoulSystem>();
@@ -377,6 +391,11 @@ public class hys_Player_Animator : MonoBehaviour
         if (possessionSystem == null)
         {
             possessionSystem = GetComponent<HWJ_PossessionSystem>();
+        }
+
+        if (possessionAnimationBridge == null)
+        {
+            possessionAnimationBridge = GetComponent<hys_HWJPossessionAnimationBridge>();
         }
 
     }
@@ -1146,6 +1165,12 @@ public class hys_Player_Animator : MonoBehaviour
 
     private void UpdateFacing(float horizontalVelocity)
     {
+        // HWJ 플레이어에서는 HWJ_CharacterMotionSystem만 방향을 결정해 두 컴포넌트가 flipX를 서로 덮어쓰지 않게 합니다.
+        if (hwjMotionSystem != null && hwjMotionSystem.enabled)
+        {
+            return;
+        }
+
         if (!flipSpriteByMoveDirection || spriteRenderer == null)
         {
             return;

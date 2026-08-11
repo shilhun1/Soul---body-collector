@@ -11,7 +11,9 @@ public sealed class hys_HWJPossessionAnimationBridge : MonoBehaviour
 {
     [SerializeField] private Animator animator;
     [SerializeField] private SpriteRenderer spriteRenderer;
+    [SerializeField] private Rigidbody2D playerBody;
     [SerializeField] private HWJ_CharacterMotionSystem motionSystem;
+    [SerializeField] private HWJ_SoulSystem soulSystem;
     [SerializeField] private HWJ_PossessionSystem possessionSystem;
     [SerializeField] private HWJ_CollapseSystem collapseSystem;
     [SerializeField] private hys_PossessionAnimationLibrary possessionAnimationLibrary;
@@ -19,6 +21,8 @@ public sealed class hys_HWJPossessionAnimationBridge : MonoBehaviour
     [SerializeField, Min(0.1f)] private float fallbackHandoffSeconds = 1f;
     [SerializeField] private bool preserveCorpseVisualAfterDeath = true;
     [SerializeField, Min(0f)] private float corpseVisualLifetimeSeconds;
+    [Header("살아 있는 몸 해제 분리")]
+    [SerializeField] private Vector2 livingReleaseSoulOffset = new Vector2(0.65f, 0.45f);
 
     private RuntimeAnimatorController ghostController;
     private AnimatorOverrideController activePossessionController;
@@ -26,7 +30,9 @@ public sealed class hys_HWJPossessionAnimationBridge : MonoBehaviour
     private bool soulExitAnimationPlaying;
     private bool deathAnimationPlaying;
     private bool ghostAppearAnimationPlaying;
+    private bool livingBodyReleaseVisualActive;
     private bool continueSoulExitAfterDeath;
+    private float lastMentalNormalized = 1f;
     private bool bodyCollapsePending;
     private bool restoreMotionSystemEnabled;
     private float possessionStartedAt;
@@ -39,6 +45,8 @@ public sealed class hys_HWJPossessionAnimationBridge : MonoBehaviour
         || soulExitAnimationPlaying
         || deathAnimationPlaying
         || ghostAppearAnimationPlaying;
+    // 살아 있는 몸에서 나온 영혼의 외형을 다른 Animator 제어기가 덮어쓰지 않게 공유합니다.
+    public bool IsLivingBodyReleaseVisualActive => livingBodyReleaseVisualActive;
 
     private void Awake()
     {
@@ -61,6 +69,7 @@ public sealed class hys_HWJPossessionAnimationBridge : MonoBehaviour
         HWJ_GameplayEvents.BodyCollapseStarted -= OnBodyCollapseStarted;
         bodyCollapsePending = false;
         continueSoulExitAfterDeath = false;
+        livingBodyReleaseVisualActive = false;
         FinishPossessionAnimation();
     }
 
@@ -68,6 +77,14 @@ public sealed class hys_HWJPossessionAnimationBridge : MonoBehaviour
     {
         CacheReferences();
         CacheGhostController();
+        UpdateMentalAnimatorParameters();
+        if (livingBodyReleaseVisualActive
+            && soulSystem != null
+            && soulSystem.CurrentState == HWJ_SoulRuntimeState.Soul)
+        {
+            livingBodyReleaseVisualActive = false;
+        }
+
         if (!IsPossessionAnimationPlaying || animator == null)
         {
             return;
@@ -98,6 +115,7 @@ public sealed class hys_HWJPossessionAnimationBridge : MonoBehaviour
 
         if (possessionEvent.Possessed)
         {
+            livingBodyReleaseVisualActive = false;
             HWJ_WeaponType weaponType = possessionEvent.BodyResolver != null
                 ? possessionEvent.BodyResolver.WeaponType
                 : possessionSystem.CurrentWeaponType;
@@ -108,11 +126,58 @@ public sealed class hys_HWJPossessionAnimationBridge : MonoBehaviour
             HWJ_WeaponType weaponType = possessionEvent.BodyResolver != null
                 ? possessionEvent.BodyResolver.WeaponType
                 : lastPossessedWeaponType;
-
-            // Q 수동 해제는 플레이어 사망 모션을 재생하고, HP 0 붕괴만 그 뒤에 Soul Exit를 이어 붙입니다.
+            // HP 0 붕괴만 플레이어 쪽 육체 사망 연출을 유지합니다.
+            // 살아 있는 몸은 실제 몬스터가 자기 Animator로 Die→Revive를 담당하고 플레이어는 즉시 영혼으로 분리합니다.
             bool shouldContinueToSoulExit = bodyCollapsePending;
             bodyCollapsePending = false;
-            PlayDeathAnimation(weaponType, shouldContinueToSoulExit);
+            if (shouldContinueToSoulExit)
+            {
+                PlayDeathAnimation(weaponType, true);
+                return;
+            }
+
+            HWJ_PossessionBodyState releasedBodyState = possessionEvent.BodyResolver != null
+                ? possessionEvent.BodyResolver.GetComponent<HWJ_PossessionBodyState>()
+                : null;
+            bool isLivingBodyRelease = releasedBodyState != null
+                && releasedBodyState.WasAliveWhenPossessed
+                && releasedBodyState.IsReleasedAfterPossession;
+            if (!isLivingBodyRelease)
+            {
+                // 기존 시체 빙의 해제는 원본 흐름을 유지하고 살아 있는 몸에만 분리·부활 연출을 적용합니다.
+                PlayDeathAnimation(weaponType, false);
+                return;
+            }
+
+            livingBodyReleaseVisualActive = true;
+            SeparateSoulFromReleasedBody(possessionEvent.BodyResolver);
+            PlayGhostAppearAnimation();
+        }
+    }
+
+    private void SeparateSoulFromReleasedBody(HWJ_RootObjectDataResolver releasedBody)
+    {
+        if (releasedBody == null)
+        {
+            return;
+        }
+
+        // HWJ가 원본 몬스터를 플레이어와 같은 좌표에 복원하므로 영혼만 옮겨 두 외형이 겹치지 않게 합니다.
+        float horizontalDirection = spriteRenderer != null && spriteRenderer.flipX ? 1f : -1f;
+        Vector2 offset = new Vector2(
+            Mathf.Abs(livingReleaseSoulOffset.x) * horizontalDirection,
+            livingReleaseSoulOffset.y);
+        Vector2 separatedPosition = (Vector2)releasedBody.transform.position + offset;
+
+        if (playerBody != null)
+        {
+            playerBody.linearVelocity = Vector2.zero;
+            playerBody.angularVelocity = 0f;
+            playerBody.position = separatedPosition;
+        }
+        else
+        {
+            transform.position = new Vector3(separatedPosition.x, separatedPosition.y, transform.position.z);
         }
     }
 
@@ -458,6 +523,13 @@ public sealed class hys_HWJPossessionAnimationBridge : MonoBehaviour
             return;
         }
 
+        if (finishedDeath)
+        {
+            // 안전망: 붕괴 표식 없이 Die가 끝난 경우에도 플레이어는 몬스터 Revive를 재생하지 않습니다.
+            PlayGhostAppearAnimation();
+            return;
+        }
+
         if (finishedSoulExit)
         {
             // 몸의 Soul Exit가 끝난 위치에서 실제 영혼이 나타나는 모션을 이어 재생합니다.
@@ -573,9 +645,19 @@ public sealed class hys_HWJPossessionAnimationBridge : MonoBehaviour
             }
         }
 
+        if (playerBody == null)
+        {
+            playerBody = GetComponent<Rigidbody2D>();
+        }
+
         if (motionSystem == null)
         {
             motionSystem = GetComponent<HWJ_CharacterMotionSystem>();
+        }
+
+        if (soulSystem == null)
+        {
+            soulSystem = GetComponent<HWJ_SoulSystem>();
         }
 
         if (possessionSystem == null)
@@ -634,5 +716,35 @@ public sealed class hys_HWJPossessionAnimationBridge : MonoBehaviour
                 return;
             }
         }
+    }
+
+    private void SetFloatIfPresent(string parameterName, float value)
+    {
+        if (animator == null)
+        {
+            return;
+        }
+
+        foreach (AnimatorControllerParameter parameter in animator.parameters)
+        {
+            if (parameter.type == AnimatorControllerParameterType.Float && parameter.name == parameterName)
+            {
+                animator.SetFloat(parameter.nameHash, value);
+                return;
+            }
+        }
+    }
+
+    private void UpdateMentalAnimatorParameters()
+    {
+        if (animator == null || possessionSystem == null
+            || !possessionSystem.TryGetActiveLiveMentalState(out HWJ_LivePossessionMentalState mentalState)
+            || mentalState == null)
+        {
+            return;
+        }
+
+        lastMentalNormalized = mentalState.CurrentMentalRatio;
+        SetFloatIfPresent("MentalNormalized", lastMentalNormalized);
     }
 }
