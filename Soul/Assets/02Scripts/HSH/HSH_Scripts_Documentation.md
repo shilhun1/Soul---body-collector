@@ -48,6 +48,9 @@
 *   **HSH_GimmickDoor** (기믹 연동 문) *(신규 제작: 2026-08-07)*
     *   스위치나 기믹 연동 시 작동하는 문(Door/Gate) 컴포넌트입니다.
     *   Animator 파라미터 제어(`AnimatorOnly`), 단순 콜라이더 해제(`DisableCollider`), Y축 부드러운 위치 이동(`TransformMove`), 오브젝트 비활성화(`DisableObject`) 모드를 지원하며 작동 상태를 디버그 로그로 출력합니다.
+*   **HSH_FlameWall** (불꽃벽 기믹) *(신규 제작: 2026-08-11)*
+    *   육체(Body) 상태에서는 물리 벽으로 막히며 닿을 시 데미지 및 넉백을 입습니다.
+    *   영혼(Soul/Spirit) 상태에서는 `HSH_Soulpass` 연동을 통해 통과가 허용되지만, 불꽃벽 내부에 있는 동안 주기적(`damageInterval`) 화염 데미지를 입도록 구현된 기믹 컴포넌트입니다.
 
 ## 4. UI 시스템 (UI)
 게임 화면 내 다양한 정보와 피드백을 표시하는 스크립트들입니다.
