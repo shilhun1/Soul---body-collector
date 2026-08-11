@@ -686,6 +686,15 @@ public static class HWJ_WeaponGimmickActivatorUtility
             return true;
         }
 
+        HSH.Gimmick.HSH_SpearDashBreakable spearBreakable = hitCollider.GetComponentInParent<HSH.Gimmick.HSH_SpearDashBreakable>();
+
+        if (spearBreakable != null
+            && spearBreakable.TryActivateFromSkillHit(sourceTransform, skillAction, out consumeHit))
+        {
+            resultMessage = $"Spear Dash Breakable activated by skill {skillAction?.SkillActionId}.";
+            return true;
+        }
+
         return false;
     }
 

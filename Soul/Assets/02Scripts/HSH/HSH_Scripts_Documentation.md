@@ -51,6 +51,9 @@
 *   **HSH_FlameWall** (불꽃벽 기믹) *(신규 제작: 2026-08-11)*
     *   육체(Body) 상태에서는 물리 벽으로 막히며 닿을 시 데미지 및 넉백을 입습니다.
     *   영혼(Soul/Spirit) 상태에서는 `HSH_Soulpass` 연동을 통해 통과가 허용되지만, 불꽃벽 내부에 있는 동안 주기적(`damageInterval`) 화염 데미지를 입도록 구현된 기믹 컴포넌트입니다.
+*   **HSH_SpearDashBreakable** (창 폼 1번/4번 스킬 돌진 파괴 기믹) *(신규 제작 및 업데이트: 2026-08-11)*
+    *   기본 대쉬기로는 파괴되지 않으며, 플레이어가 창 폼(`HWJ_WeaponType.Lance`) 상태에서 **1번 스킬(`PiercingDrive`)** 또는 **4번 스킬(`BurstLance`)**로 돌진하여 부딪혔을 때만 오브젝트가 파괴/해제되어 통과가 가능해지는 기믹 컴포넌트입니다.
+    *   기본 대쉬기나 타 무기 폼 충돌 시 일반 단단한 물리 벽으로 작동하며, 파괴 모드(`DisableObject`, `DestroyObject`, `DisableCollider`, `AnimatorTrigger`), 파괴 이펙트, 음향 및 자동 복구 기능을 지원합니다.
 
 ## 4. UI 시스템 (UI)
 게임 화면 내 다양한 정보와 피드백을 표시하는 스크립트들입니다.
