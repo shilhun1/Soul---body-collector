@@ -120,6 +120,13 @@ public partial class HWJ_RuntimeStatusSystem : MonoBehaviour
     public bool IsTemporarilyInvincible => Time.time < invincibleEndTime;
     public bool IsHitReactionImmune => Time.time < hitReactionImmuneEndTime;
     public bool IsHitReactionLimited => Time.time < hitReactionLimitEndTime;
+    /// <summary>
+    /// 영혼 상태와 육신에서 영혼으로 전환 중인 플레이어는 전투 피해를 받지 않습니다.
+    /// 정신력 소모는 ApplyDamage가 아니라 TryApplySpiritMentalCost를 통해서만 처리합니다.
+    /// </summary>
+    public bool IsSpiritDamageImmune => soulSystem != null
+        && (soulSystem.CurrentState == HWJ_SoulRuntimeState.Soul
+            || soulSystem.CurrentState == HWJ_SoulRuntimeState.BodyToSoul);
     public bool HasSuperArmor => HasDataSuperArmor() || (bossBrain != null && bossBrain.HasSuperArmor);
     public bool ShouldIgnoreKnockback => IsBossBody()
         || HasSuperArmor
@@ -278,7 +285,10 @@ public partial class HWJ_RuntimeStatusSystem : MonoBehaviour
 
     public bool CanReceiveHitFrom(Component source)
     {
-        if (IsDead || IsTemporarilyInvincible || IsDataInvincible())
+        if (IsDead
+            || IsSpiritDamageImmune
+            || IsTemporarilyInvincible
+            || IsDataInvincible())
         {
             return false;
         }
@@ -291,7 +301,8 @@ public partial class HWJ_RuntimeStatusSystem : MonoBehaviour
 
     /// <summary>
     /// 피해를 적용합니다.
-    /// 플레이어는 빙의 상태 HP가 0이면 영혼 상태가 되고, 영혼 상태 HP가 0이면 게임오버 상태가 됩니다.
+    /// 플레이어는 빙의 상태 HP가 0이면 영혼 상태가 됩니다.
+    /// 영혼 상태에서는 전투 피해를 무시하고, 정신력이 0이 될 때만 게임오버 상태가 됩니다.
     /// </summary>
     public void ApplyDamage(float damage)
     {

@@ -276,6 +276,36 @@ public class HWJ_PossessionModesPlayModeTests
     }
 
     [UnityTest]
+    public IEnumerator SpiritState_IgnoresCombatDamage_AndDiesOnlyWhenMentalReachesZero()
+    {
+        GameObject player = CreatePlayer("SpiritDamageImmunePlayer", 10f, 20f);
+        HWJ_RuntimeStatusSystem status = player.GetComponent<HWJ_RuntimeStatusSystem>();
+        HWJ_SoulSystem soul = player.GetComponent<HWJ_SoulSystem>();
+        float mentalBeforeHit = status.CurrentSpiritMentalValue;
+
+        Assert.AreEqual(HWJ_SoulRuntimeState.Soul, soul.CurrentState);
+
+        status.ApplyDamage(999f);
+        yield return null;
+
+        Assert.AreEqual(mentalBeforeHit, status.CurrentSpiritMentalValue, 0.001f);
+        Assert.AreEqual(mentalBeforeHit, status.CurrentHp, 0.001f);
+        Assert.AreEqual(HWJ_SoulRuntimeState.Soul, soul.CurrentState);
+        Assert.IsFalse(status.IsDead);
+
+        Assert.IsTrue(status.TryApplySpiritMentalCost(mentalBeforeHit - 1f, "test_mental_cost"));
+        Assert.AreEqual(1f, status.CurrentSpiritMentalValue, 0.001f);
+        Assert.AreEqual(HWJ_SoulRuntimeState.Soul, soul.CurrentState);
+
+        Assert.IsTrue(status.TryApplySpiritMentalCost(1f, "test_mental_depleted"));
+        yield return null;
+
+        Assert.AreEqual(0f, status.CurrentSpiritMentalValue, 0.001f);
+        Assert.AreEqual(HWJ_SoulRuntimeState.Dead, soul.CurrentState);
+        Assert.IsTrue(status.IsDead);
+    }
+
+    [UnityTest]
     public IEnumerator PossessionTransition_RestoresBodyPhysics_AndAllowsJump()
     {
         GameObject player = CreatePlayer("PossessionJumpPlayer", 20f, 20f);

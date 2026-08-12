@@ -75,9 +75,18 @@ public partial class HWJ_RuntimeStatusSystem
             return;
         }
 
-        if (soulSystem.CurrentState == HWJ_SoulRuntimeState.Soul)
+        if (soulSystem.CurrentState == HWJ_SoulRuntimeState.Soul
+            || soulSystem.CurrentState == HWJ_SoulRuntimeState.BodyToSoul)
         {
-            soulSystem.EnterDeadState();
+            // 영혼 상태의 currentHp는 정신력 표시값과 호환하기 위한 값입니다.
+            // 전투 HP 소진으로는 죽지 않으며, 정신력 소모 API가 soulHp를 0으로 만들었을 때만 사망합니다.
+            currentHp = Mathf.Max(0f, soulHp);
+
+            if (soulHp <= 0f)
+            {
+                soulSystem.EnterDeadState();
+            }
+
             return;
         }
 

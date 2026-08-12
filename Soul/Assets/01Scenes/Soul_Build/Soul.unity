@@ -7326,7 +7326,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 632452085873807571, guid: 91ff14a40a15ce94886bd916cb6162fa, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_StringArgument
-      value: HSH_Scene
+      value: Soul
       objectReference: {fileID: 0}
     - target: {fileID: 1952966037875329707, guid: 91ff14a40a15ce94886bd916cb6162fa, type: 3}
       propertyPath: m_AnchorMax.x
