@@ -14,8 +14,10 @@ public class hys_Player_Animator : MonoBehaviour
     [SerializeField] private hys_Player_State playerState;
     [SerializeField] private hys_Player_Movement playerMovement;
     [SerializeField] private hys_Player_Attack playerAttack;
+    [SerializeField] private HWJ_CharacterMotionSystem hwjMotionSystem;
     [SerializeField] private HWJ_SoulSystem soulSystem;
     [SerializeField] private HWJ_PossessionSystem possessionSystem;
+    [SerializeField] private hys_HWJPossessionAnimationBridge possessionAnimationBridge;
 
     [Header("Animator Parameters")]
     // PlayerState가 핵심 상태 값이고, 나머지는 보조 조건입니다.
@@ -220,6 +222,18 @@ public class hys_Player_Animator : MonoBehaviour
             return;
         }
 
+        // 빙의 시작·사망·영혼 이탈·출현 연출 중에는 전용 브리지만 Animator를 제어합니다.
+        if (possessionAnimationBridge != null
+            && (possessionAnimationBridge.IsPossessionAnimationPlaying
+                || possessionAnimationBridge.IsLivingBodyReleaseVisualActive))
+        {
+            // 연출 종료 뒤 상태 변화를 다시 감지해 Soul/Appear를 중복 재생하지 않도록 관찰값은 갱신합니다.
+            previousPlayerState = playerState != null ? playerState.CurrentState : hys_PlayerState.Idle;
+            wasSoulState = IsSoulState();
+            previousSoulRuntimeState = GetSoulRuntimeState();
+            return;
+        }
+
         float horizontalVelocity = rb != null ? rb.linearVelocity.x : 0f;
         float verticalVelocity = rb != null ? rb.linearVelocity.y : 0f;
         bool isMoving = Mathf.Abs(horizontalVelocity) > moveThreshold;
@@ -369,6 +383,11 @@ public class hys_Player_Animator : MonoBehaviour
             playerAttack = GetComponent<hys_Player_Attack>();
         }
 
+        if (hwjMotionSystem == null)
+        {
+            hwjMotionSystem = GetComponent<HWJ_CharacterMotionSystem>();
+        }
+
         if (soulSystem == null)
         {
             soulSystem = GetComponent<HWJ_SoulSystem>();
@@ -377,6 +396,11 @@ public class hys_Player_Animator : MonoBehaviour
         if (possessionSystem == null)
         {
             possessionSystem = GetComponent<HWJ_PossessionSystem>();
+        }
+
+        if (possessionAnimationBridge == null)
+        {
+            possessionAnimationBridge = GetComponent<hys_HWJPossessionAnimationBridge>();
         }
 
     }
@@ -1146,6 +1170,12 @@ public class hys_Player_Animator : MonoBehaviour
 
     private void UpdateFacing(float horizontalVelocity)
     {
+        // HWJ 플레이어에서는 HWJ_CharacterMotionSystem만 방향을 결정해 두 컴포넌트가 flipX를 서로 덮어쓰지 않게 합니다.
+        if (hwjMotionSystem != null && hwjMotionSystem.enabled)
+        {
+            return;
+        }
+
         if (!flipSpriteByMoveDirection || spriteRenderer == null)
         {
             return;
