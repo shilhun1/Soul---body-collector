@@ -7,6 +7,11 @@ using UnityEngine;
 /// </summary>
 public partial class HWJ_MidBossPatternSystem
 {
+    public bool HasPossessableCorpseInBossRoomForDebug()
+    {
+        return HasPossessableCorpseInRoom();
+    }
+
     private void RefreshPattern1Charges()
     {
         if (runtimeStatus == null || runtimeStatus.MaxHp <= 0f)

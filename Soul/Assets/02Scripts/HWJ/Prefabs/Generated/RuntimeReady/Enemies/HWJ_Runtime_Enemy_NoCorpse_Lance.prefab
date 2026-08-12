@@ -585,6 +585,7 @@ MonoBehaviour:
   noCorpseDespawnDelaySeconds: 0.2
   makeCorpseCollidersTriggers: 1
   disableBehaviorOnDeath: 1
+  possessableCorpseReadyDelaySeconds: 1
 --- !u!114 &8052054419673282945
 MonoBehaviour:
   m_ObjectHideFlags: 0

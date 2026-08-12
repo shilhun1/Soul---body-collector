@@ -15549,7 +15549,7 @@ BoxCollider2D:
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 2, y: 2}
+    oldSize: {x: 4, y: 4}
     newSize: {x: 2, y: 2}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
@@ -17868,6 +17868,30 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 3849149947141442002, guid: 8e1c6250843dc3a48a3e89138548aec2, type: 3}
       insertIndex: -1
       addedObject: {fileID: 319284744}
+    - targetCorrespondingSourceObject: {fileID: 3849149947141442002, guid: 8e1c6250843dc3a48a3e89138548aec2, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 319284774}
+    - targetCorrespondingSourceObject: {fileID: 3849149947141442002, guid: 8e1c6250843dc3a48a3e89138548aec2, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 319284773}
+    - targetCorrespondingSourceObject: {fileID: 3849149947141442002, guid: 8e1c6250843dc3a48a3e89138548aec2, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 319284772}
+    - targetCorrespondingSourceObject: {fileID: 3849149947141442002, guid: 8e1c6250843dc3a48a3e89138548aec2, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 319284771}
+    - targetCorrespondingSourceObject: {fileID: 3849149947141442002, guid: 8e1c6250843dc3a48a3e89138548aec2, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 319284770}
+    - targetCorrespondingSourceObject: {fileID: 3849149947141442002, guid: 8e1c6250843dc3a48a3e89138548aec2, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 319284769}
+    - targetCorrespondingSourceObject: {fileID: 3849149947141442002, guid: 8e1c6250843dc3a48a3e89138548aec2, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 319284768}
+    - targetCorrespondingSourceObject: {fileID: 3849149947141442002, guid: 8e1c6250843dc3a48a3e89138548aec2, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 319284767}
     - targetCorrespondingSourceObject: {fileID: 2209981608745715970, guid: 8e1c6250843dc3a48a3e89138548aec2, type: 3}
       insertIndex: -1
       addedObject: {fileID: 319284743}
@@ -18065,21 +18089,20 @@ MonoBehaviour:
   possessedBodySystem: {fileID: 0}
   skillUnlockSystem: {fileID: 0}
   possessedBodyResolver: {fileID: 0}
-  runtimePossessedBodyResolver: {fileID: 0}
-  moveOwnerToPossessedBody: 1
-  copyPossessedBodyVisual: 1
-  consumePossessedCorpse: 1
-  deactivateConsumedCorpse: 1
-  allowManualSoulExit: 1
-  useGameplayPossessionRule: 1
-  possessionExecutionCore: {fileID: 0}
-  possessionExecutionCoreId: possession_execution
-  possessionRule: {fileID: 0}
-  possessionRuleId: possession_can_start
+  targetValidator: {fileID: 0}
+  livePossessionSystem: {fileID: 0}
+  corpsePossessionSystem: {fileID: 0}
+  exitSystem: {fileID: 0}
+  snapshotSystem: {fileID: 0}
+  bodyController: {fileID: 0}
+  visualController: {fileID: 0}
+  skillProvider: {fileID: 0}
+  possessionControlLockSeconds: 0.75
   lastPossessionFailureCode: 0
   lastPossessionResult: 
   lastLivePossessionRoll: 0
   lastLivePossessionSuccessChance: 0
+  currentPossessionKind: 0
 --- !u!114 &319284749
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -18252,6 +18275,7 @@ MonoBehaviour:
     m_Bits: 64
   groundCheckOffset: {x: 0, y: -0.55}
   groundCheckSize: {x: 0.7, y: 0.12}
+  deriveGroundProbeFromCollider: 1
   phaseThroughCollidersInSoul: 1
   swapLayerInSoulState: 1
   soulLayerName: Soul
@@ -18259,6 +18283,7 @@ MonoBehaviour:
   isSoulCollisionMode: 0
   ignoreEnemyBodyCollision: 1
   enemyCollisionRefreshSeconds: 0.25
+  logJumpDiagnostics: 1
 --- !u!114 &319284756
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -18555,6 +18580,138 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &319284767
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 319284740}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8e04ad1466f379748b9e70c02b6a050b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: HWJ.Runtime::HWJ_PossessedSkillProvider
+  possessionSystem: {fileID: 319284748}
+  skillUnlockSystem: {fileID: 319284751}
+--- !u!114 &319284768
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 319284740}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 50272cac7cde5f8409e304b5fbc01b22, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: HWJ.Runtime::HWJ_PossessionVisualController
+  copyPossessedBodyVisual: 1
+--- !u!114 &319284769
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 319284740}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0f13dfc050590674ba4f724044942887, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: HWJ.Runtime::HWJ_PossessionBodyController
+  possessionSystem: {fileID: 319284748}
+  moveOwnerToPossessedBody: 1
+  consumePossessedBody: 1
+  deactivateConsumedBody: 1
+--- !u!114 &319284770
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 319284740}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8117e6d3683a67b4eb63fbbff76d632b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: HWJ.Runtime::HWJ_PossessionSnapshotSystem
+  possessionSystem: {fileID: 319284748}
+  targetValidator: {fileID: 319284774}
+  visualController: {fileID: 0}
+  runtimePossessedBodyResolver: {fileID: 0}
+--- !u!114 &319284771
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 319284740}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 226c7576ed6d7a74dabf0a51a02c9fb0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: HWJ.Runtime::HWJ_PossessionExitSystem
+  possessionSystem: {fileID: 319284748}
+  bodyController: {fileID: 0}
+  visualController: {fileID: 0}
+  allowManualSoulExit: 1
+--- !u!114 &319284772
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 319284740}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 232454330dc2b46428bcad8cadd9758a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: HWJ.Runtime::HWJ_CorpsePossessionSystem
+  possessionSystem: {fileID: 319284748}
+  targetValidator: {fileID: 319284774}
+--- !u!114 &319284773
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 319284740}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 28218f44b1a3f354c82545ebf5c86141, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: HWJ.Runtime::HWJ_LivePossessionSystem
+  possessionSystem: {fileID: 319284748}
+  targetValidator: {fileID: 319284774}
+  mentalCostOnSuccess: 10
+  mentalDrainInterval: 1
+  mentalDrainAmount: 1
+  drainTimer: 0
+  runtimeMessage: 
+--- !u!114 &319284774
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 319284740}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 963f4820d82a50440b55a17f83b3936b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: HWJ.Runtime::HWJ_PossessionTargetValidator
+  possessionSystem: {fileID: 319284748}
+  livePossessionSystem: {fileID: 0}
+  useGameplayPossessionRule: 1
+  possessionExecutionCore: {fileID: 0}
+  possessionExecutionCoreId: possession_execution
+  possessionRule: {fileID: 0}
+  possessionRuleId: possession_can_start
+  blockCorpsePossessionDuringDeathAnimation: 1
+  deathAnimationClipKeywords:
+  - death
+  - die
+  - dead
 --- !u!1 &320556726
 GameObject:
   m_ObjectHideFlags: 0
@@ -30163,6 +30320,63 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!1001 &563891857
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 840020000000000001, guid: 4b5c6d7e8f9a4b6c8d0e1f2a3b4c5d6e, type: 3}
+      propertyPath: m_Name
+      value: HWJ_MidBoss2_Runtime_Prefab
+      objectReference: {fileID: 0}
+    - target: {fileID: 840020000000000002, guid: 4b5c6d7e8f9a4b6c8d0e1f2a3b4c5d6e, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -26.7
+      objectReference: {fileID: 0}
+    - target: {fileID: 840020000000000002, guid: 4b5c6d7e8f9a4b6c8d0e1f2a3b4c5d6e, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.8
+      objectReference: {fileID: 0}
+    - target: {fileID: 840020000000000002, guid: 4b5c6d7e8f9a4b6c8d0e1f2a3b4c5d6e, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 840020000000000002, guid: 4b5c6d7e8f9a4b6c8d0e1f2a3b4c5d6e, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 840020000000000002, guid: 4b5c6d7e8f9a4b6c8d0e1f2a3b4c5d6e, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 840020000000000002, guid: 4b5c6d7e8f9a4b6c8d0e1f2a3b4c5d6e, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 840020000000000002, guid: 4b5c6d7e8f9a4b6c8d0e1f2a3b4c5d6e, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 840020000000000002, guid: 4b5c6d7e8f9a4b6c8d0e1f2a3b4c5d6e, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 840020000000000002, guid: 4b5c6d7e8f9a4b6c8d0e1f2a3b4c5d6e, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 840020000000000002, guid: 4b5c6d7e8f9a4b6c8d0e1f2a3b4c5d6e, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 4b5c6d7e8f9a4b6c8d0e1f2a3b4c5d6e, type: 3}
 --- !u!1 &572032647
 GameObject:
   m_ObjectHideFlags: 0
@@ -36091,7 +36305,7 @@ BoxCollider2D:
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 2, y: 2}
+    oldSize: {x: 4, y: 4}
     newSize: {x: 2, y: 2}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
@@ -44541,7 +44755,7 @@ BoxCollider2D:
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 2, y: 2}
+    oldSize: {x: 4, y: 4}
     newSize: {x: 2, y: 2}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
@@ -47754,6 +47968,14 @@ MonoBehaviour:
   inactiveDuration: 2.4
   damageCooldown: 1
   knockbackPower: 18
+  detectPlayer: 0
+  detectionDistance: 4
+  detectDirection: {x: 0, y: 1}
+  animator: {fileID: 0}
+  attackTriggerName: Attack
+  activeBoolName: IsActive
+  steamCollider: {fileID: 0}
+  activeOffset: {x: 0, y: 1.5}
   steamParticles: {fileID: 1144328136}
 --- !u!61 &962084082
 BoxCollider2D:
@@ -65972,7 +66194,7 @@ BoxCollider2D:
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 2, y: 2}
+    oldSize: {x: 4, y: 4}
     newSize: {x: 2, y: 2}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
@@ -69564,7 +69786,7 @@ BoxCollider2D:
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 2, y: 2}
+    oldSize: {x: 4, y: 4}
     newSize: {x: 2, y: 2}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
@@ -83032,7 +83254,7 @@ BoxCollider2D:
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 2, y: 2}
+    oldSize: {x: 4, y: 4}
     newSize: {x: 2, y: 2}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
@@ -99577,8 +99799,12 @@ MonoBehaviour:
   damage: 12
   detectionDistance: 2.6
   delayTime: 0.7
-  protrudeHeight: 0.9
   activeDuration: 1.2
+  coolTime: 0.5
+  animator: {fileID: 0}
+  attackTriggerName: Attack
+  damageCollider: {fileID: 0}
+  activeOffset: {x: 0, y: 1}
 --- !u!61 &1726756605
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -102388,8 +102614,12 @@ MonoBehaviour:
   damage: 14
   detectionDistance: 2.6
   delayTime: 0.7
-  protrudeHeight: 0.9
   activeDuration: 1.2
+  coolTime: 0.5
+  animator: {fileID: 0}
+  attackTriggerName: Attack
+  damageCollider: {fileID: 0}
+  activeOffset: {x: 0, y: 1}
 --- !u!61 &1777959587
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -122846,3 +123076,4 @@ SceneRoots:
   m_Roots:
   - {fileID: 1932518843}
   - {fileID: 496299283}
+  - {fileID: 563891857}

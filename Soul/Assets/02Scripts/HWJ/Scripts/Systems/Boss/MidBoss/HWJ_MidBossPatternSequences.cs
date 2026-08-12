@@ -32,7 +32,7 @@ public partial class HWJ_MidBossPatternSystem
         }
 
         yield return new WaitForSeconds(Mathf.Max(0f, recoverySeconds));
-        activePatternRoutine = null;
+        FinishPatternRoutine();
     }
 
     private IEnumerator Pattern2DashDoubleSlashRoutine(Transform target)
@@ -42,9 +42,10 @@ public partial class HWJ_MidBossPatternSystem
             true);
 
         yield return DashToTargetSide(target, 0.9f);
-        ShowForwardSlashWarning(target, horizontalSlashRange, slashWarningSeconds);
+        float horizontalSlashDirection = GetDirectionToTarget(target);
+        ShowForwardSlashWarning(horizontalSlashDirection, horizontalSlashRange, slashWarningSeconds);
         yield return new WaitForSeconds(Mathf.Max(0.01f, slashWarningSeconds));
-        DamageTargetIfInsideForwardRange(target, horizontalSlashRange, 1f);
+        DamageTargetIfInsideForwardRange(target, horizontalSlashRange, 1f, horizontalSlashDirection);
 
         yield return new WaitForSeconds(0.5f);
         ShowCircleWarning(transform.position, verticalSlashRadius, slashWarningSeconds);
@@ -52,7 +53,7 @@ public partial class HWJ_MidBossPatternSystem
         DamageTargetIfInsideCircle(target, transform.position, verticalSlashRadius, 1f);
 
         yield return new WaitForSeconds(Mathf.Max(0f, recoverySeconds));
-        activePatternRoutine = null;
+        FinishPatternRoutine();
     }
 
     private IEnumerator Pattern3SlashAndFullWaveRoutine(Transform target)
@@ -62,9 +63,10 @@ public partial class HWJ_MidBossPatternSystem
             true);
 
         yield return DashToTargetSide(target, 0.75f);
-        ShowForwardSlashWarning(target, horizontalSlashRange, slashWarningSeconds);
+        float openingSlashDirection = GetDirectionToTarget(target);
+        ShowForwardSlashWarning(openingSlashDirection, horizontalSlashRange, slashWarningSeconds);
         yield return new WaitForSeconds(Mathf.Max(0.01f, slashWarningSeconds));
-        DamageTargetIfInsideForwardRange(target, horizontalSlashRange, 1f);
+        DamageTargetIfInsideForwardRange(target, horizontalSlashRange, 1f, openingSlashDirection);
 
         yield return DashToPosition(ResolveFarEdgePosition(target, pattern1EdgePadding), dashSeconds);
         ShowRoomWideHorizontalWarning(pattern3WaveHeight, pattern3ChargeSeconds);
@@ -72,7 +74,7 @@ public partial class HWJ_MidBossPatternSystem
         DamageTargetIfInsideRoomHorizontalBand(target, pattern3WaveHeight, pattern3DamageMultiplier);
 
         yield return new WaitForSeconds(Mathf.Max(0f, recoverySeconds));
-        activePatternRoutine = null;
+        FinishPatternRoutine();
     }
 
     private IEnumerator Pattern4FixedDamageDashRoutine(Transform target)
@@ -80,33 +82,47 @@ public partial class HWJ_MidBossPatternSystem
         skillActionSystem?.BlockNavigationForSkill(pattern4AimSeconds + dashSeconds + pattern4GroggySeconds, true);
 
         float direction = GetDirectionToTarget(target);
+        Vector3 lockedTargetPosition = target != null ? target.position : transform.position;
+        Vector3 dashDestination = lockedTargetPosition - Vector3.right * direction * 0.35f;
+        dashDestination.y = transform.position.y;
+        dashDestination.z = transform.position.z;
+        float dashDistance = Mathf.Max(1f, Mathf.Abs(dashDestination.x - transform.position.x));
+
         HWJ_SkillWarningIndicator.ShowArrowPath(
             transform.position,
             direction,
-            Mathf.Max(1f, horizontalSlashRange * 1.5f),
+            dashDistance,
             0.8f,
             pattern4AimSeconds,
             warningColor,
             warningLineWidth);
 
         yield return new WaitForSeconds(Mathf.Max(0.01f, pattern4AimSeconds));
-        yield return DashToTargetSide(target, 0.35f);
-        DamageTargetByFixedMaxHpRatio(target, pattern4FixedMaxHpDamageRatio);
+        yield return DashToPosition(dashDestination, dashSeconds);
+        DamageTargetByFixedMaxHpRatioIfInsideForwardRange(
+            target,
+            direction,
+            horizontalSlashRange * 1.5f,
+            pattern4FixedMaxHpDamageRatio);
+        FinishPatternRoutine();
         bossBrain?.ForceGroggy(pattern4GroggySeconds);
-        activePatternRoutine = null;
     }
 
     private IEnumerator Pattern5RedSwordComboRoutine(Transform target)
     {
         skillActionSystem?.BlockNavigationForSkill(
-            pattern5BuffHoldSeconds + pattern5ComboIntervalSeconds * 4f + recoverySeconds,
+            pattern5BuffHoldSeconds
+            + slashWarningSeconds * 4f
+            + pattern5ComboIntervalSeconds * 2f
+            + recoverySeconds,
             true);
 
         yield return new WaitForSeconds(Mathf.Max(0f, pattern5BuffHoldSeconds));
 
-        ShowForwardSlashWarning(target, horizontalSlashRange, slashWarningSeconds);
+        float comboSlashDirection = GetDirectionToTarget(target);
+        ShowForwardSlashWarning(comboSlashDirection, horizontalSlashRange, slashWarningSeconds);
         yield return new WaitForSeconds(Mathf.Max(0.01f, slashWarningSeconds));
-        DamageTargetIfInsideForwardRange(target, horizontalSlashRange, 1f);
+        DamageTargetIfInsideForwardRange(target, horizontalSlashRange, 1f, comboSlashDirection);
         yield return new WaitForSeconds(Mathf.Max(0f, pattern5ComboIntervalSeconds));
 
         ShowCircleWarning(transform.position, verticalSlashRadius, slashWarningSeconds);
@@ -118,18 +134,32 @@ public partial class HWJ_MidBossPatternSystem
         yield return new WaitForSeconds(Mathf.Max(0.01f, slashWarningSeconds));
         DamageTargetIfInsideCircle(target, transform.position, pattern7ImpactRadius, 1f);
 
-        ShowHalfRoomShockwaveWarning(pattern5ShockwaveWidthRatio, shockwaveHeight, slashWarningSeconds);
+        float comboShockwaveDirection = GetDirectionToTarget(target);
+        ShowHalfRoomShockwaveWarning(
+            pattern5ShockwaveWidthRatio,
+            shockwaveHeight,
+            slashWarningSeconds,
+            comboShockwaveDirection);
         yield return new WaitForSeconds(Mathf.Max(0.01f, slashWarningSeconds));
-        DamageTargetIfInsideHalfRoomShockwave(target, pattern5ShockwaveWidthRatio, shockwaveHeight, 1.15f);
+        DamageTargetIfInsideHalfRoomShockwave(
+            target,
+            pattern5ShockwaveWidthRatio,
+            shockwaveHeight,
+            1.15f,
+            comboShockwaveDirection);
 
         yield return new WaitForSeconds(Mathf.Max(0f, recoverySeconds));
-        activePatternRoutine = null;
+        FinishPatternRoutine();
     }
 
     private IEnumerator Pattern6VanishBackstabRoutine(Transform target)
     {
         skillActionSystem?.BlockNavigationForSkill(
-            pattern6VanishDelaySeconds + dashSeconds + slashWarningSeconds + pattern6ReturnDelaySeconds + recoverySeconds,
+            pattern6VanishDelaySeconds
+            + dashSeconds
+            + slashWarningSeconds * 2f
+            + pattern6ReturnDelaySeconds
+            + recoverySeconds,
             true);
 
         Vector3 returnPosition = transform.position;
@@ -138,9 +168,10 @@ public partial class HWJ_MidBossPatternSystem
         SetPosition(ResolveBehindTargetPosition(target));
         SetSpriteVisible(true);
 
-        ShowForwardSlashWarning(target, horizontalSlashRange, slashWarningSeconds);
+        float backstabDirection = GetDirectionToTarget(target);
+        ShowForwardSlashWarning(backstabDirection, horizontalSlashRange, slashWarningSeconds);
         yield return new WaitForSeconds(Mathf.Max(0.01f, slashWarningSeconds));
-        DamageTargetIfInsideForwardRange(target, horizontalSlashRange, 1f);
+        DamageTargetIfInsideForwardRange(target, horizontalSlashRange, 1f, backstabDirection);
 
         yield return new WaitForSeconds(Mathf.Max(0f, pattern6ReturnDelaySeconds));
         yield return DashToPosition(returnPosition, dashSeconds);
@@ -149,12 +180,14 @@ public partial class HWJ_MidBossPatternSystem
         DamageTargetIfInsideRoomHorizontalBand(target, pattern3WaveHeight, 1f);
 
         yield return new WaitForSeconds(Mathf.Max(0f, recoverySeconds));
-        activePatternRoutine = null;
+        FinishPatternRoutine();
     }
 
     private IEnumerator Pattern7JumpSlamRoutine(Transform target)
     {
-        skillActionSystem?.BlockNavigationForSkill(pattern7AirHoldSeconds + slashWarningSeconds + recoverySeconds, true);
+        skillActionSystem?.BlockNavigationForSkill(
+            pattern7AirHoldSeconds + slashWarningSeconds * 2f + recoverySeconds,
+            true);
 
         Vector3 startPosition = transform.position;
         Vector3 airPosition = startPosition + Vector3.up * Mathf.Max(0f, pattern7JumpHeight);
@@ -166,15 +199,25 @@ public partial class HWJ_MidBossPatternSystem
             : startPosition;
         ShowCircleWarning(landingPosition, pattern7ImpactRadius, slashWarningSeconds);
         yield return new WaitForSeconds(Mathf.Max(0.01f, slashWarningSeconds));
+        float landingShockwaveDirection = GetDirectionToTarget(target);
         SetPosition(landingPosition);
         DamageTargetIfInsideCircle(target, landingPosition, pattern7ImpactRadius, 1.2f);
 
-        ShowHalfRoomShockwaveWarning(pattern7ShockwaveWidthRatio, shockwaveHeight, slashWarningSeconds);
+        ShowHalfRoomShockwaveWarning(
+            pattern7ShockwaveWidthRatio,
+            shockwaveHeight,
+            slashWarningSeconds,
+            landingShockwaveDirection);
         yield return new WaitForSeconds(Mathf.Max(0.01f, slashWarningSeconds));
-        DamageTargetIfInsideHalfRoomShockwave(target, pattern7ShockwaveWidthRatio, shockwaveHeight, 1.1f);
+        DamageTargetIfInsideHalfRoomShockwave(
+            target,
+            pattern7ShockwaveWidthRatio,
+            shockwaveHeight,
+            1.1f,
+            landingShockwaveDirection);
 
         yield return new WaitForSeconds(Mathf.Max(0f, recoverySeconds));
-        activePatternRoutine = null;
+        FinishPatternRoutine();
     }
 
 }

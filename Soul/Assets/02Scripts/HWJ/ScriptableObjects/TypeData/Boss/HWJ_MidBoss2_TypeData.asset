@@ -1,0 +1,135 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ae5a12c5890f4b77ab398d3f9fafb4c6, type: 3}
+  m_Name: HWJ_MidBoss2_TypeData
+  m_EditorClassIdentifier: HWJ.Runtime::HWJ_BossTypeDataSO
+  objectType: 3
+  typeId: boss.mid.02.captain
+  displayName: "1\uC2A4\uD14C\uC774\uC9C0 \uC911\uAC04\uBCF4\uC2A4 2"
+  defaultWeaponType: 3
+  description: "1\uC2A4\uD14C\uC774\uC9C0 \uC911\uAC04\uBCF4\uC2A42. \uBB3C\uB9AC
+    \uACF5\uACA9 \uD328\uD134 1~7\uC744 HWJ_MidBossPatternSystem\uC73C\uB85C \uC2E4\uD589\uD55C\uB2E4."
+  bossRank: 0
+  fsm:
+    autoStartWhenPlayerEntersRoom: 1
+    useBossRoomBounds: 1
+    bossRoomOffset: {x: 0, y: 0}
+    bossRoomSize: {x: 35, y: 6.5}
+    attackStartRange: 8
+    optimalAttackDistance: 4.5
+    closeSkillRange: 4
+    chaseMoveSpeedMultiplier: 1
+    phaseTwoHpRatio: 0.5
+    phaseTransitionSeconds: 10
+    cameraFocusSeconds: 2.5
+    soulReturnCenterStoppingDistance: 0.2
+    superArmorDuringAttack: 1
+    superArmorDuringPhaseTransition: 1
+    countGroggyHitsDuringSuperArmor: 1
+    countGroggyHitsWhileHitReactionLimited: 1
+    clearHitReactionLimitOnGroggy: 1
+    cancelActionsOnGroggy: 1
+    groggyHitCountThreshold: 5
+    groggyHitWindowSeconds: 3
+    groggyDurationSeconds: 2.5
+    groggyDamageMultiplier: 1.5
+    knockbackOnGroggyEnd: 1
+    groggyEndKnockbackPower: 8
+  ai:
+    aiProfileId: mid_boss_physical
+    decisionIntervalSeconds: 0
+    behaviorTreeId: 
+    idleSeconds: 0.2
+    detectSeconds: 0.15
+    attackPrepareSeconds: 0.25
+    attackRecoverySeconds: 0.35
+    repathSeconds: 0.15
+    defaultSkillCooldownSeconds: 3
+    basicAttackIntervalSeconds: 1.5
+    skillCycleCount: 3
+    skillCycleResetDelaySeconds: 5
+  navigation:
+    stoppingDistance: 3.5
+    pathRefreshSeconds: 0.2
+    canUsePlatformDrop: 0
+    avoidLedges: 1
+    ledgeCheckForwardDistance: 0.45
+    ledgeCheckDownDistance: 1.2
+    wallCheckDistance: 0.15
+  skillCycle:
+    skills: []
+  phases:
+  - phaseId: phase_1
+    startHpRatio: 1
+    skillSet:
+      skills: []
+    stageEventId: 
+    changesStage: 0
+  - phaseId: phase_2
+    startHpRatio: 0.5
+    skillSet:
+      skills: []
+    stageEventId: 
+    changesStage: 1
+  phaseTransform:
+    canTransform: 1
+    transformHpRatio: 0.5
+    transformedModelId: mid_boss_02_phase_2
+    transformAnimationId: mid_boss_phase_transition
+  entryRequirements:
+    requireObjectiveComplete: 1
+    requireBossUnlocked: 1
+    requireBossNotDefeated: 1
+    requireEntryTriggerActive: 1
+    requirePossessedBody: 1
+    requireBodyNotCollapsing: 1
+    requireBodyObjectType: 0
+    requiredBodyObjectType: 1
+    requiredWeaponType: 0
+    minimumCurrentHp: 1
+    maximumCurrentDecayRatio: 1
+    requiredUnlockedSkillIds: []
+    allowedBodyObjectIds: []
+    blockedBodyObjectIds: []
+    additionalRuleExecutionCore: {fileID: 0}
+    additionalRuleExecutionCoreId: boss_entry_execution
+  possessionBody:
+    canPossess: 0
+    canBePossessed: 0
+    possessableHeartEffectPrefab: {fileID: 0}
+    heartSocketName: 
+    possessionRange: 2
+    requiresDefeatedState: 1
+    transfersControlToBody: 1
+    loadsBodyStatsToPlayer: 1
+    overrideBodyDecayOnPossession: 0
+    possessedBodyDecayOverride:
+      initialDecayValue: 0
+      maxDecayValue: 240
+      decayTickSeconds: 0.5
+      decayAmountPerTick: 1
+      moveDecayPerSecond: 0
+      basicAttackDecayAmount: 0
+      skillDecayAmount: 0
+      actionDecayAmount: 0
+      hitDecayPenalty: 10
+      decayResistance: 0
+      startDecayOnEnterBody: 1
+      enterSoulStateWhenMaxed: 1
+      enterSoulStateWhenEmpty: 1
+      dangerThresholds:
+      - dangerLevel: 1
+        ratio: 0.5
+      - dangerLevel: 2
+        ratio: 0.75
+      - dangerLevel: 3
+        ratio: 0.9

@@ -333,6 +333,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::hys_AnimatorReturnToEntry
   animator: {fileID: 21819688}
+  playerMovement: {fileID: 0}
   layerIndex: 0
   returnNormalizedTime: 0.98
   transitionSeconds: 0.03

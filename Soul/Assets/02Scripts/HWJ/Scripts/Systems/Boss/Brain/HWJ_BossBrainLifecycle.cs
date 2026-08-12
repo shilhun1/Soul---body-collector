@@ -48,7 +48,9 @@ public partial class HWJ_BossBrainSystem
             dialogueBubbleSystem?.ShowDeathDialogue();
             FocusCameraForDialogue(HWJ_BossDialogueSequenceType.Death, GetCameraFocusSeconds());
 
-            if (fighterDeathSystem == null || !fighterDeathSystem.BeginFinalDeath())
+            if (!useTwoBarPhaseHealth
+                || fighterDeathSystem == null
+                || !fighterDeathSystem.BeginFinalDeath())
             {
                 PlayAnimatorState("P2_Death");
             }
@@ -60,7 +62,8 @@ public partial class HWJ_BossBrainSystem
 
     private void PlayAnimatorState(string stateName)
     {
-        if (fighterAnimatorSystem != null
+        if (useTwoBarPhaseHealth
+            && fighterAnimatorSystem != null
             && fighterAnimatorSystem.PlayState(stateName, 0f))
         {
             return;

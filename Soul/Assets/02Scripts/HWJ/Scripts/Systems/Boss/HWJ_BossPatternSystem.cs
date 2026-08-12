@@ -25,6 +25,8 @@ public class HWJ_BossPatternSystem : MonoBehaviour
     [SerializeField] private HWJ_GameplayRuleSO bossPatternRule;
     [SerializeField] private string bossPatternRuleId = "boss_can_use_combat_pattern";
     [SerializeField] private string lastPatternResult;
+    [SerializeField] private string lastPatternSelectionResult;
+    [SerializeField] private string lastPatternExecutionResult;
 
     private readonly Dictionary<string, float> nextUseTimes = new Dictionary<string, float>();
     private readonly List<HWJ_IBossSpecialPatternExecutor> cachedSpecialPatternExecutors =
@@ -36,6 +38,8 @@ public class HWJ_BossPatternSystem : MonoBehaviour
     private int explorationCursor;
 
     public string LastPatternResult => lastPatternResult;
+    public string LastPatternSelectionResult => lastPatternSelectionResult;
+    public string LastPatternExecutionResult => lastPatternExecutionResult;
     public bool IsSpecialPatternRunning => IsAnySpecialPatternRunning();
     public string LastExecutedPatternKey => lastExecutedPatternKey;
     public string[] RecentPatternKeys => recentPatternKeys.ToArray();
@@ -86,6 +90,7 @@ public class HWJ_BossPatternSystem : MonoBehaviour
     {
         if (!TrySelectPattern(out HWJ_BossPatternDataSO pattern))
         {
+            SetPatternExecutionSkippedBySelectionFailure();
             return false;
         }
 
@@ -96,6 +101,7 @@ public class HWJ_BossPatternSystem : MonoBehaviour
     {
         if (!TrySelectPattern(null, target, phaseNumber, true, isCloseRange, true, out HWJ_BossPatternDataSO pattern))
         {
+            SetPatternExecutionSkippedBySelectionFailure();
             return false;
         }
 
@@ -106,6 +112,7 @@ public class HWJ_BossPatternSystem : MonoBehaviour
     {
         if (!TrySelectPattern(HWJ_BossPatternTrigger.PhaseChanged, target, 1, false, false, false, out HWJ_BossPatternDataSO pattern))
         {
+            SetPatternExecutionSkippedBySelectionFailure();
             return false;
         }
 
@@ -116,23 +123,30 @@ public class HWJ_BossPatternSystem : MonoBehaviour
     {
         if (pattern == null)
         {
+            lastPatternExecutionResult = "실행 실패: 패턴 데이터가 없습니다.";
             return false;
         }
 
         if (!IsPatternRuleSatisfied(target))
         {
+            lastPatternExecutionResult = $"실행 실패: 패턴 규칙 불만족. {lastPatternResult}";
             return false;
         }
 
         bool executed = false;
+        bool attemptedSpecialExecutor = false;
+        bool attemptedSkillActions = false;
 
         if (pattern.UseCustomPatternExecutor || pattern.UseStageOneSpecialExecution)
         {
+            attemptedSpecialExecutor = true;
             executed = TryExecuteSpecialPattern(pattern, target);
         }
 
         if (!executed && pattern.SkillActions != null && skillActionSystem != null)
         {
+            attemptedSkillActions = pattern.SkillActions.Length > 0;
+
             for (int i = 0; i < pattern.SkillActions.Length; i++)
             {
                 executed |= skillActionSystem.TryUseSkill(pattern.SkillActions[i], target);
@@ -150,9 +164,33 @@ public class HWJ_BossPatternSystem : MonoBehaviour
                 EnqueueRecent(recentPatternKeys, patternKey);
                 EnqueueRecent(recentPatternCategories, GetPatternCategory(patternKey));
             }
+
+            lastPatternExecutionResult = $"실행 성공: {patternKey}";
+            return true;
         }
 
-        return executed;
+        if (attemptedSpecialExecutor && attemptedSkillActions)
+        {
+            lastPatternExecutionResult = $"실행 실패: 특수 실행기와 스킬 액션이 모두 실행되지 않았습니다. 패턴={GetPatternKey(pattern)}";
+        }
+        else if (attemptedSpecialExecutor)
+        {
+            lastPatternExecutionResult = $"실행 실패: 특수 실행기가 실행을 거부했습니다. 패턴={GetPatternKey(pattern)}";
+        }
+        else if (pattern.SkillActions != null && pattern.SkillActions.Length > 0 && skillActionSystem == null)
+        {
+            lastPatternExecutionResult = $"실행 실패: SkillActionSystem이 없어 스킬 액션을 실행할 수 없습니다. 패턴={GetPatternKey(pattern)}";
+        }
+        else if (pattern.SkillActions == null || pattern.SkillActions.Length == 0)
+        {
+            lastPatternExecutionResult = $"실행 실패: 실행할 특수 실행기나 스킬 액션이 없습니다. 패턴={GetPatternKey(pattern)}";
+        }
+        else
+        {
+            lastPatternExecutionResult = $"실행 실패: 스킬 액션이 실행되지 않았습니다. 패턴={GetPatternKey(pattern)}";
+        }
+
+        return false;
     }
 
     private bool IsPatternRuleSatisfied(Transform target)
@@ -218,6 +256,11 @@ public class HWJ_BossPatternSystem : MonoBehaviour
         return HWJ_GameAccess.TryGetRuleExecutionCore(bossPatternExecutionCoreId, out executionCore);
     }
 
+    private void SetPatternExecutionSkippedBySelectionFailure()
+    {
+        lastPatternExecutionResult = $"실행 안 함: 패턴 선택 실패. {lastPatternSelectionResult}";
+    }
+
     private bool TrySelectPattern(out HWJ_BossPatternDataSO selectedPattern)
     {
         return TrySelectPattern(null, null, 1, false, false, false, out selectedPattern);
@@ -241,36 +284,69 @@ public class HWJ_BossPatternSystem : MonoBehaviour
 
         HWJ_BossPatternDataSO[] availablePatterns = GetAvailablePatterns();
 
-        if (availablePatterns == null || runtimeStatus == null || runtimeStatus.MaxHp <= 0f)
+        if (availablePatterns == null || availablePatterns.Length == 0)
         {
+            lastPatternSelectionResult = "패턴 목록이 비어 있습니다.";
+            return false;
+        }
+
+        if (runtimeStatus == null)
+        {
+            lastPatternSelectionResult = "RuntimeStatusSystem이 없어 HP 조건을 확인할 수 없습니다.";
+            return false;
+        }
+
+        if (runtimeStatus.MaxHp <= 0f)
+        {
+            lastPatternSelectionResult = "MaxHp가 0 이하라 HP 비율을 계산할 수 없습니다.";
             return false;
         }
 
         float hpRatio = runtimeStatus.CurrentHp / runtimeStatus.MaxHp;
         List<HWJ_BossPatternDataSO> candidates = new List<HWJ_BossPatternDataSO>();
+        int nullPatternCount = 0;
+        int hpBlockedCount = 0;
+        int phaseBlockedCount = 0;
+        int rangeBlockedCount = 0;
+        int executorBlockedCount = 0;
+        int triggerBlockedCount = 0;
+        int repeatBlockedCount = 0;
+        int recentBlockedCount = 0;
+        int categoryBlockedCount = 0;
+        int cooldownBlockedCount = 0;
 
         for (int i = 0; i < availablePatterns.Length; i++)
         {
             HWJ_BossPatternDataSO pattern = availablePatterns[i];
 
-            if (pattern == null || !pattern.IsHpConditionMatched(hpRatio))
+            if (pattern == null)
             {
+                nullPatternCount++;
+                continue;
+            }
+
+            if (!pattern.IsHpConditionMatched(hpRatio))
+            {
+                hpBlockedCount++;
                 continue;
             }
 
             if (usePhaseFilter && !pattern.IsPhaseAllowed(phaseNumber))
             {
+                phaseBlockedCount++;
                 continue;
             }
 
             if (useRangeFilter && !pattern.IsRangeMatched(isCloseRange))
             {
+                rangeBlockedCount++;
                 continue;
             }
 
             if ((pattern.UseCustomPatternExecutor || pattern.UseStageOneSpecialExecution)
                 && !CanUseSpecialPattern(pattern, target))
             {
+                executorBlockedCount++;
                 continue;
             }
 
@@ -278,11 +354,13 @@ public class HWJ_BossPatternSystem : MonoBehaviour
             {
                 if (pattern.Trigger != requiredTrigger.Value)
                 {
+                    triggerBlockedCount++;
                     continue;
                 }
             }
             else if (pattern.Trigger == HWJ_BossPatternTrigger.PhaseChanged)
             {
+                triggerBlockedCount++;
                 continue;
             }
 
@@ -292,6 +370,7 @@ public class HWJ_BossPatternSystem : MonoBehaviour
                 && !string.IsNullOrEmpty(patternKey)
                 && patternKey == lastExecutedPatternKey)
             {
+                repeatBlockedCount++;
                 continue;
             }
 
@@ -299,12 +378,14 @@ public class HWJ_BossPatternSystem : MonoBehaviour
                 && !string.IsNullOrEmpty(patternKey)
                 && recentPatternKeys.Contains(patternKey))
             {
+                recentBlockedCount++;
                 continue;
             }
 
             if (preventConsecutivePatternCategories
                 && IsCategorySequenceBlocked(patternKey))
             {
+                categoryBlockedCount++;
                 continue;
             }
 
@@ -312,6 +393,7 @@ public class HWJ_BossPatternSystem : MonoBehaviour
                 && nextUseTimes.TryGetValue(patternKey, out float nextUseTime)
                 && Time.time < nextUseTime)
             {
+                cooldownBlockedCount++;
                 continue;
             }
 
@@ -320,6 +402,11 @@ public class HWJ_BossPatternSystem : MonoBehaviour
 
         if (candidates.Count == 0)
         {
+            lastPatternSelectionResult =
+                $"실행 가능한 패턴 없음. null={nullPatternCount}, HP={hpBlockedCount}, " +
+                $"페이즈={phaseBlockedCount}, 거리={rangeBlockedCount}, 실행기={executorBlockedCount}, " +
+                $"트리거={triggerBlockedCount}, 직전반복={repeatBlockedCount}, 최근기록={recentBlockedCount}, " +
+                $"분류반복={categoryBlockedCount}, 쿨타임={cooldownBlockedCount}";
             return false;
         }
 
@@ -350,6 +437,9 @@ public class HWJ_BossPatternSystem : MonoBehaviour
         selectedPattern = useExplorationCandidate
             ? candidates[explorationCursor++ % candidates.Count]
             : bestCandidates[selectionCursor % bestCandidates.Count];
+        lastPatternSelectionResult =
+            $"선택 성공: {GetPatternKey(selectedPattern)}, 후보={candidates.Count}, " +
+            $"페이즈={phaseNumber}, 근거리={isCloseRange}";
         selectionCursor++;
         return true;
     }
@@ -363,6 +453,8 @@ public class HWJ_BossPatternSystem : MonoBehaviour
         recentPatternKeys.Clear();
         recentPatternCategories.Clear();
         lastExecutedPatternKey = null;
+        lastPatternSelectionResult = "패턴 기록과 쿨타임을 초기화했습니다.";
+        lastPatternExecutionResult = "패턴 실행 기록을 초기화했습니다.";
         selectionCursor = 0;
         explorationCursor = 0;
     }

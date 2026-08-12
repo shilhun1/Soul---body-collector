@@ -65,7 +65,12 @@ public partial class HWJ_MidBossPatternSystem
 
     private void ShowForwardSlashWarning(Transform target, float range, float seconds)
     {
-        float direction = GetDirectionToTarget(target);
+        ShowForwardSlashWarning(GetDirectionToTarget(target), range, seconds);
+    }
+
+    private void ShowForwardSlashWarning(float lockedDirection, float range, float seconds)
+    {
+        float direction = Mathf.Sign(Mathf.Approximately(lockedDirection, 0f) ? 1f : lockedDirection);
         HWJ_SkillWarningIndicator.ShowForwardArc(
             transform.position,
             direction,
@@ -99,7 +104,16 @@ public partial class HWJ_MidBossPatternSystem
 
     private void ShowHalfRoomShockwaveWarning(float widthRatio, float height, float seconds)
     {
-        Rect rect = ResolveHalfRoomShockwaveRect(widthRatio, height);
+        ShowHalfRoomShockwaveWarning(
+            widthRatio,
+            height,
+            seconds,
+            GetDirectionToTarget(bossBrain != null ? bossBrain.Target : null));
+    }
+
+    private void ShowHalfRoomShockwaveWarning(float widthRatio, float height, float seconds, float lockedDirection)
+    {
+        Rect rect = ResolveHalfRoomShockwaveRect(widthRatio, height, lockedDirection);
         HWJ_SkillWarningIndicator.ShowRectangle(
             rect.center,
             rect.size,

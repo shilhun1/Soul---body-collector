@@ -8,7 +8,7 @@ public partial class HWJ_BossBrainSystem
 {
     private void RunCombatLoop(HWJ_BossTypeDataSO bossData)
     {
-        // 이번 1차 구현은 P1 Combo만 활성화합니다. Phase2 공격은 다음 검증 단계 전까지 시작하지 않습니다.
+        // 두 줄 체력형 보스는 전환/사망 상태에서 공통 패턴 루프를 돌리지 않습니다.
         if (useTwoBarPhaseHealth
             && fighterPhase != HWJ_FighterBossPhase.Phase1
             && fighterPhase != HWJ_FighterBossPhase.Phase2)
