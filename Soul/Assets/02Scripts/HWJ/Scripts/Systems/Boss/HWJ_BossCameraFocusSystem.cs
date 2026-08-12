@@ -27,6 +27,7 @@ public class HWJ_BossCameraFocusSystem : MonoBehaviour
     private Coroutine focusRoutine;
     private CinemachineCamera activeCinemachineCamera;
     private Transform previousTrackingTarget;
+    private Transform playerReturnTarget;
     private LensSettings previousLens;
     private LensSettings focusedLens;
     private Transform focusAnchor;
@@ -56,6 +57,22 @@ public class HWJ_BossCameraFocusSystem : MonoBehaviour
         fallbackPositionLerpSpeed = 6f;
     }
 
+    /// <summary>
+    /// Applies the wider dialogue framing used by Mid Boss 2. The regular gameplay
+    /// cameras use an orthographic size of 8-10, so 5.5 keeps the boss readable
+    /// without hiding the surrounding combat space.
+    /// </summary>
+    public void ConfigureMidBoss2DialogueDefaults()
+    {
+        dialogueFocusFieldOfView = 36f;
+        dialogueFocusOrthographicSize = 5.5f;
+        zoomLerpSpeed = 4f;
+        returnBlendSeconds = 0.6f;
+        focusOffset = new Vector2(0f, 0.8f);
+        disablePlayerFollowWhileFocusing = true;
+        fallbackPositionLerpSpeed = 6f;
+    }
+
     public void FocusOnBoss(Transform boss, Transform player, float durationSeconds)
     {
         if (boss == null || durationSeconds <= 0f)
@@ -64,6 +81,7 @@ public class HWJ_BossCameraFocusSystem : MonoBehaviour
         }
 
         StopFocus();
+        playerReturnTarget = ResolvePlayerReturnTarget(player);
         CinemachineCamera cinemachineCamera = ResolveCinemachineCamera();
 
         focusRoutine = cinemachineCamera != null
@@ -125,9 +143,9 @@ public class HWJ_BossCameraFocusSystem : MonoBehaviour
             yield break;
         }
 
-        cinemachineCamera.Target.TrackingTarget = previousTrackingTarget != null
-            ? previousTrackingTarget
-            : player;
+        cinemachineCamera.Target.TrackingTarget = playerReturnTarget != null
+            ? playerReturnTarget
+            : previousTrackingTarget;
 
         float returnEndTime = Time.time + Mathf.Max(0f, returnBlendSeconds);
 
@@ -204,6 +222,7 @@ public class HWJ_BossCameraFocusSystem : MonoBehaviour
 
         while (Time.time < returnEndTime && camera != null)
         {
+            MoveFallbackCameraTowardPlayer(camera, playerReturnTarget);
             camera.fieldOfView = Mathf.Lerp(
                 camera.fieldOfView,
                 previousFallbackFieldOfView,
@@ -320,7 +339,9 @@ public class HWJ_BossCameraFocusSystem : MonoBehaviour
     {
         if (hasStoredCinemachineState && activeCinemachineCamera != null)
         {
-            activeCinemachineCamera.Target.TrackingTarget = previousTrackingTarget;
+            activeCinemachineCamera.Target.TrackingTarget = playerReturnTarget != null
+                ? playerReturnTarget
+                : previousTrackingTarget;
             activeCinemachineCamera.Lens = previousLens;
         }
 
@@ -332,12 +353,26 @@ public class HWJ_BossCameraFocusSystem : MonoBehaviour
         activeCinemachineCamera = null;
         previousTrackingTarget = null;
         hasStoredCinemachineState = false;
+
+        if (!hasStoredFallbackState)
+        {
+            playerReturnTarget = null;
+        }
     }
 
     private void RestoreFallbackFollow()
     {
         if (disabledFollowSystem != null)
         {
+            HWJ_RootObjectDataResolver playerResolver = playerReturnTarget != null
+                ? playerReturnTarget.GetComponentInParent<HWJ_RootObjectDataResolver>()
+                : null;
+
+            if (playerResolver != null && playerResolver.ObjectType == HWJ_ObjectType.Player)
+            {
+                disabledFollowSystem.SetTarget(playerResolver);
+            }
+
             disabledFollowSystem.enabled = true;
             disabledFollowSystem = null;
         }
@@ -359,5 +394,52 @@ public class HWJ_BossCameraFocusSystem : MonoBehaviour
     {
         activeFallbackCamera = null;
         hasStoredFallbackState = false;
+
+        if (!hasStoredCinemachineState)
+        {
+            playerReturnTarget = null;
+        }
+    }
+
+    private Transform ResolvePlayerReturnTarget(Transform requestedPlayer)
+    {
+        if (requestedPlayer != null)
+        {
+            return requestedPlayer;
+        }
+
+        if (HWJ_GameAccess.HasManager && HWJ_GameAccess.Manager.PlayerResolver != null)
+        {
+            return HWJ_GameAccess.Manager.PlayerResolver.transform;
+        }
+
+        HWJ_RootObjectDataResolver[] resolvers = FindObjectsByType<HWJ_RootObjectDataResolver>(
+            FindObjectsInactive.Exclude,
+            FindObjectsSortMode.None);
+
+        for (int i = 0; i < resolvers.Length; i++)
+        {
+            if (resolvers[i] != null && resolvers[i].ObjectType == HWJ_ObjectType.Player)
+            {
+                return resolvers[i].transform;
+            }
+        }
+
+        return previousTrackingTarget != focusAnchor ? previousTrackingTarget : null;
+    }
+
+    private void MoveFallbackCameraTowardPlayer(Camera camera, Transform player)
+    {
+        if (camera == null || player == null || disabledFollowSystem != null)
+        {
+            return;
+        }
+
+        Vector3 targetPosition = player.position;
+        targetPosition.z = camera.transform.position.z;
+        camera.transform.position = Vector3.Lerp(
+            camera.transform.position,
+            targetPosition,
+            Time.deltaTime * fallbackPositionLerpSpeed);
     }
 }

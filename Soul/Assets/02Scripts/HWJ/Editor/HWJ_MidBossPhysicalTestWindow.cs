@@ -2546,6 +2546,7 @@ public sealed class HWJ_MidBossPhysicalTestWindow : EditorWindow
             ValidateMidBoss2RequiredRuntimeComponents(prefabRoot, errors);
             ValidateMidBoss2RigidbodySettings(prefabRoot, errors);
             ValidateMidBoss2DialogueText(prefabRoot, errors);
+            ValidateMidBoss2CameraFraming(prefabRoot, errors);
             ValidateNoFighterBossResidue(prefabRoot, errors);
             ValidateNoMonsterRuntimeResidue(prefabRoot, errors);
             ValidateGenericBossHealthBar(prefabRoot, errors);
@@ -2616,6 +2617,29 @@ public sealed class HWJ_MidBossPhysicalTestWindow : EditorWindow
         ValidateRequiredRuntimeComponent<HWJ_BossDialogueBubbleSystem>(prefabRoot, errors);
         ValidateRequiredRuntimeComponent<HWJ_BossDuplicateGuardSystem>(prefabRoot, errors);
         ValidateRequiredRuntimeComponent<HWJ_BossCameraFocusSystem>(prefabRoot, errors);
+    }
+
+    private static void ValidateMidBoss2CameraFraming(
+        GameObject prefabRoot,
+        List<string> errors)
+    {
+        HWJ_BossCameraFocusSystem cameraFocus =
+            prefabRoot.GetComponent<HWJ_BossCameraFocusSystem>();
+
+        if (cameraFocus == null)
+        {
+            return;
+        }
+
+        if (!Mathf.Approximately(cameraFocus.DialogueFocusOrthographicSize, 5.5f))
+        {
+            errors.Add("[중간보스2] 대화 카메라 Orthographic Size는 넓은 구도 기준인 5.5여야 합니다.");
+        }
+
+        if (!Mathf.Approximately(cameraFocus.DialogueFocusFieldOfView, 36f))
+        {
+            errors.Add("[중간보스2] 대화 카메라 Field Of View는 넓은 구도 기준인 36이어야 합니다.");
+        }
     }
 
     private static void ValidateRequiredRuntimeComponent<T>(

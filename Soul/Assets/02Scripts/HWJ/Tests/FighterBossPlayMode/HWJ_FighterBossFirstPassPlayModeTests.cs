@@ -14,6 +14,8 @@ public class HWJ_FighterBossFirstPassPlayModeTests
 {
     private const string BossPrefabPath =
         "Assets/02Scripts/HWJ/Prefabs/Generated/Bosses/HWJ_MidBoss1_Runtime_Prefab.prefab";
+    private const string MidBoss2PrefabPath =
+        "Assets/02Scripts/HWJ/Prefabs/Generated/Bosses/HWJ_MidBoss2_Runtime_Prefab.prefab";
     private const string BossRootDataPath =
         "Assets/02Scripts/HWJ/ScriptableObjects/RootObjects/Bosses/HWJ_MidBoss1_RootObjectData.asset";
 
@@ -212,6 +214,61 @@ public class HWJ_FighterBossFirstPassPlayModeTests
             originalLens.OrthographicSize,
             cinemachineCamera.Lens.OrthographicSize,
             0.001f);
+
+        Object.Destroy(cameraObject);
+        Object.Destroy(player);
+        Object.Destroy(boss);
+        yield return null;
+    }
+
+    [UnityTest]
+    public IEnumerator MidBoss2DialogueCamera_UsesWiderFraming_AndReturnsToPlayerWhenInterrupted()
+    {
+        GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(MidBoss2PrefabPath);
+        Assert.NotNull(prefab, $"Mid Boss 2 prefab is missing: {MidBoss2PrefabPath}");
+
+        GameObject boss = Object.Instantiate(prefab);
+        GameObject player = new GameObject("MidBoss2Camera_PlayerTarget");
+        GameObject cameraObject = new GameObject("MidBoss2Camera_CinemachineCamera");
+        CinemachineCamera cinemachineCamera = cameraObject.AddComponent<CinemachineCamera>();
+        LensSettings originalLens = cinemachineCamera.Lens;
+        originalLens.FieldOfView = 40f;
+        originalLens.OrthographicSize = 10f;
+        cinemachineCamera.Lens = originalLens;
+
+        HWJ_BossCameraFocusSystem cameraFocus = boss.GetComponent<HWJ_BossCameraFocusSystem>();
+        Assert.NotNull(cameraFocus);
+        Assert.AreEqual(36f, cameraFocus.DialogueFocusFieldOfView, 0.001f);
+        Assert.AreEqual(5.5f, cameraFocus.DialogueFocusOrthographicSize, 0.001f);
+        SetPrivateField(cameraFocus, "targetCinemachineCamera", cinemachineCamera);
+
+        // A scene camera can begin without a TrackingTarget. The explicit player
+        // passed by BossBrain must still become the target after the cinematic.
+        Assert.IsNull(cinemachineCamera.Target.TrackingTarget);
+        cameraFocus.FocusOnBoss(boss.transform, player.transform, 2f);
+        yield return new WaitForSeconds(0.08f);
+
+        Assert.IsTrue(cameraFocus.IsFocusing);
+        Assert.AreNotSame(player.transform, cinemachineCamera.Target.TrackingTarget);
+        Assert.GreaterOrEqual(cameraFocus.DialogueFocusOrthographicSize, 5.5f);
+
+        cameraFocus.StopFocus();
+
+        Assert.IsFalse(cameraFocus.IsFocusing);
+        Assert.AreSame(player.transform, cinemachineCamera.Target.TrackingTarget);
+        Assert.AreEqual(originalLens.FieldOfView, cinemachineCamera.Lens.FieldOfView, 0.001f);
+        Assert.AreEqual(originalLens.OrthographicSize, cinemachineCamera.Lens.OrthographicSize, 0.001f);
+
+        // Verify the normal timed ending as well as the interrupted ending above.
+        cinemachineCamera.Target.TrackingTarget = null;
+        SetPrivateField(cameraFocus, "returnBlendSeconds", 0.05f);
+        cameraFocus.FocusOnBoss(boss.transform, player.transform, 0.08f);
+        yield return new WaitForSeconds(0.2f);
+
+        Assert.IsFalse(cameraFocus.IsFocusing);
+        Assert.AreSame(player.transform, cinemachineCamera.Target.TrackingTarget);
+        Assert.AreEqual(originalLens.FieldOfView, cinemachineCamera.Lens.FieldOfView, 0.001f);
+        Assert.AreEqual(originalLens.OrthographicSize, cinemachineCamera.Lens.OrthographicSize, 0.001f);
 
         Object.Destroy(cameraObject);
         Object.Destroy(player);

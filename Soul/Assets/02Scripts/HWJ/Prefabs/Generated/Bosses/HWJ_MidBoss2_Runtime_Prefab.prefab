@@ -622,10 +622,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: HWJ.Runtime::HWJ_BossCameraFocusSystem
   targetCinemachineCamera: {fileID: 0}
   targetCamera: {fileID: 0}
-  dialogueFocusFieldOfView: 28
-  dialogueFocusOrthographicSize: 3.2
+  dialogueFocusFieldOfView: 36
+  dialogueFocusOrthographicSize: 5.5
   zoomLerpSpeed: 4
-  returnBlendSeconds: 0.45
+  returnBlendSeconds: 0.6
   focusOffset: {x: 0, y: 0.8}
   disablePlayerFollowWhileFocusing: 1
   fallbackPositionLerpSpeed: 6
