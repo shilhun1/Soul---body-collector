@@ -15,6 +15,7 @@ public class hys_Ghost_Animator : MonoBehaviour
     [SerializeField] private SpriteRenderer spriteRenderer;
     [SerializeField] private Animator animator;
     [SerializeField] private hys_GhostStateSupport ghostStateSupport;
+    [SerializeField] private hys_HWJPossessionAnimationBridge possessionAnimationBridge;
 
     [Header("Animator Parameters")]
     // 怨좎뒪???대룞, 鍮숈쓽 ?깃났, ?쒗븳 ?쒓컙 醫낅즺 ?쒓컙留?Animator???꾨떖?⑸땲??
@@ -107,6 +108,11 @@ public class hys_Ghost_Animator : MonoBehaviour
         {
             ghostStateSupport = GetComponentInParent<hys_GhostStateSupport>();
         }
+
+        if (possessionAnimationBridge == null)
+        {
+            possessionAnimationBridge = GetComponentInParent<hys_HWJPossessionAnimationBridge>();
+        }
     }
 
     private void CacheParameterHashes()
@@ -138,9 +144,15 @@ public class hys_Ghost_Animator : MonoBehaviour
         {
             SetBoolIfExists(isMovingHash, false);
         }
-        TryPlayAppearTrigger(currentSoulState);
-        TryPlayPossessTrigger(currentSoulState);
-        TryPlayDeadTrigger(currentSoulState);
+        // 전용 브리지가 연출 중일 때는 같은 Animator에 Appear/Possess를 다시 보내지 않습니다.
+        bool bridgeOwnsAnimator = possessionAnimationBridge != null
+            && possessionAnimationBridge.IsPossessionAnimationPlaying;
+        if (!bridgeOwnsAnimator)
+        {
+            TryPlayAppearTrigger(currentSoulState);
+            TryPlayPossessTrigger(currentSoulState);
+            TryPlayDeadTrigger(currentSoulState);
+        }
 
         previousSoulState = currentSoulState;
     }
@@ -200,7 +212,15 @@ public class hys_Ghost_Animator : MonoBehaviour
         bool completedSoulTransition = previousSoulState == HWJ_SoulRuntimeState.BodyToSoul
             && currentSoulState == HWJ_SoulRuntimeState.Soul;
 
-        if (completedSoulTransition && !suppressAppearAfterBodySoul)
+        if (!completedSoulTransition)
+        {
+            return;
+        }
+
+        // 전용 브리지에서 Soul Exit를 이미 재생했다면 같은 전환의 공용 Appear는 소비하고 끝냅니다.
+        bool soulExitAlreadyShowedGhost = possessionAnimationBridge != null
+            && possessionAnimationBridge.ConsumeSoulExitAppearSuppression();
+        if (!soulExitAlreadyShowedGhost && !suppressAppearAfterBodySoul)
         {
             SetTriggerIfExists(appearTriggerHash);
         }

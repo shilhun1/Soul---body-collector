@@ -222,10 +222,15 @@ public class hys_Player_Animator : MonoBehaviour
             return;
         }
 
-        // 살아 있는 몬스터와 분리되는 동안에는 브리지가 영혼 Animator를 단독으로 유지합니다.
+        // 빙의 시작·사망·영혼 이탈·출현 연출 중에는 전용 브리지만 Animator를 제어합니다.
         if (possessionAnimationBridge != null
-            && possessionAnimationBridge.IsLivingBodyReleaseVisualActive)
+            && (possessionAnimationBridge.IsPossessionAnimationPlaying
+                || possessionAnimationBridge.IsLivingBodyReleaseVisualActive))
         {
+            // 연출 종료 뒤 상태 변화를 다시 감지해 Soul/Appear를 중복 재생하지 않도록 관찰값은 갱신합니다.
+            previousPlayerState = playerState != null ? playerState.CurrentState : hys_PlayerState.Idle;
+            wasSoulState = IsSoulState();
+            previousSoulRuntimeState = GetSoulRuntimeState();
             return;
         }
 
