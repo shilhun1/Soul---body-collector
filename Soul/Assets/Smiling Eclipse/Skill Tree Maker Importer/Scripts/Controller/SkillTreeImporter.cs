@@ -1,8 +1,8 @@
-
+#if UNITY_EDITOR
 namespace SmilingEclipse.STMImporter
 {
     using Newtonsoft.Json.Linq;
-    using NUnit.Framework;
+    
     using System;
     using System.Collections.Generic;
     using System.IO;
@@ -107,7 +107,7 @@ namespace SmilingEclipse.STMImporter
 
             skillTreeName = Regex.Replace(skillTreeName ?? string.Empty, @"[^\w\s\-]", "");
 
-            // Se ficar vazio, define nome padrão
+            // Se ficar vazio, define nome padrï¿½o
             if (string.IsNullOrEmpty(skillTreeName))
             {
                 skillTreeName = "Unnamed Skill Tree";
@@ -192,7 +192,7 @@ namespace SmilingEclipse.STMImporter
                         }
                         else
                         {
-                            Debug.LogError($"Não foi possível carregar sprite de: {assetIconPath}");
+                            Debug.LogError($"Nï¿½o foi possï¿½vel carregar sprite de: {assetIconPath}");
                         }
                     }
                     index++;
@@ -212,13 +212,13 @@ namespace SmilingEclipse.STMImporter
 
             //-----------------------------
 
-            // Resolver pré-requisitos e dependências
+            // Resolver prï¿½-requisitos e dependï¿½ncias
             foreach (var skillToken in skillsArray)
             {
                 string name = skillToken["Skill Name"]?.ToString();
                 SkillNodeData data = skillNodeMap[name];
 
-                // Pré-requisitos
+                // Prï¿½-requisitos
                 List<SkillNodeData> prereqList = new List<SkillNodeData>();
                 string prerequisiteName = skillToken["Skill Prerequisite"]?.ToString();
                 if (!string.IsNullOrEmpty(prerequisiteName) && prerequisiteName != "-")
@@ -233,7 +233,7 @@ namespace SmilingEclipse.STMImporter
                 }
                 data.parentNodes = prereqList.ToList();
 
-                // Dependências
+                // Dependï¿½ncias
                 var deps = skillToken["Skill Dependencies"] as JArray;
                 if (deps != null && deps.Count > 0)
                 {
@@ -253,7 +253,7 @@ namespace SmilingEclipse.STMImporter
             EditorUtility.SetDirty(database);
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
-            Debug.Log($"Importação concluída! ScriptableObjects salvos em: {dataPath}");
+            Debug.Log($"Importaï¿½ï¿½o concluï¿½da! ScriptableObjects salvos em: {dataPath}");
         }
 
         // ======================
@@ -270,7 +270,7 @@ namespace SmilingEclipse.STMImporter
             fullPath = $"{path}/{folderName}";
             if (FolderExists(fullPath) == false)
             {
-                Debug.Log($"Criou Pasta: {folderName} no path: {path} entao o fullPath é {fullPath}");
+                Debug.Log($"Criou Pasta: {folderName} no path: {path} entao o fullPath ï¿½ {fullPath}");
                 CreateFolder(path, folderName);
                 return true;
             }
@@ -329,10 +329,11 @@ namespace SmilingEclipse.STMImporter
             }
 
             Sprite sprite = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(0.5f, 0.5f), pixelsPerUnit);
-            sprite.name = tex.name; // define um nome útil
+            sprite.name = tex.name; // define um nome ï¿½til
             return sprite;
         }
 
     }
 }
+#endif
 
