@@ -360,9 +360,11 @@ MonoBehaviour:
   hpColor: {r: 1, g: 0, b: 0, a: 1}
   ghostHpColor: {r: 0.6, g: 0, b: 1, a: 1}
   expColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  mentalColor: {r: 0, g: 0.75, b: 1, a: 1}
   statusSystem: {fileID: 0}
   soulSystem: {fileID: 0}
   levelUpSystem: {fileID: 0}
+  possessionMentalSystem: {fileID: 0}
 --- !u!1 &1591864422097755871
 GameObject:
   m_ObjectHideFlags: 0
@@ -475,9 +477,11 @@ MonoBehaviour:
   hpColor: {r: 1, g: 0, b: 0, a: 1}
   ghostHpColor: {r: 0.6, g: 0, b: 1, a: 1}
   expColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  mentalColor: {r: 0, g: 0.75, b: 1, a: 1}
   statusSystem: {fileID: 0}
   soulSystem: {fileID: 0}
   levelUpSystem: {fileID: 0}
+  possessionMentalSystem: {fileID: 0}
 --- !u!1 &2338174598932476735
 GameObject:
   m_ObjectHideFlags: 0
@@ -852,7 +856,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HSH_BarUI
   barSlider: {fileID: 0}
-  currentType: 2
+  currentType: 3
   levelTextUI: {fileID: 3155867437230430257}
   gameOverUI: {fileID: 7186591711016754087}
   currentValue: 100
@@ -860,9 +864,11 @@ MonoBehaviour:
   hpColor: {r: 1, g: 0, b: 0, a: 1}
   ghostHpColor: {r: 0.6, g: 0, b: 1, a: 1}
   expColor: {r: 0.015686274, g: 1, b: 0.08564892, a: 1}
+  mentalColor: {r: 0, g: 0.75, b: 1, a: 1}
   statusSystem: {fileID: 0}
   soulSystem: {fileID: 0}
   levelUpSystem: {fileID: 0}
+  possessionMentalSystem: {fileID: 0}
 --- !u!1 &2703822179106552521
 GameObject:
   m_ObjectHideFlags: 0

@@ -7,7 +7,8 @@ public class HSH_BarUI : MonoBehaviour
     {
         HP,
         GhostHP,
-        Exp
+        Exp,
+        Mental
     }
 
     [Header("UI Settings")]
@@ -29,10 +30,12 @@ public class HSH_BarUI : MonoBehaviour
     public Color hpColor = Color.red;
     public Color ghostHpColor = new Color(0.6f, 0f, 1f); // 보라색
     public Color expColor = Color.yellow;
+    public Color mentalColor = new Color(0f, 0.75f, 1f); // 청록/파란색
 
     [SerializeField] private HWJ_RuntimeStatusSystem statusSystem;
     [SerializeField] private HWJ_SoulSystem soulSystem;
     [SerializeField] private HWJ_LevelUpSystem levelUpSystem;
+    [SerializeField] private HWJ_PossessionMentalSystem possessionMentalSystem;
     private bool temp = true;
 
     private void Start()
@@ -51,7 +54,7 @@ public class HSH_BarUI : MonoBehaviour
 
     private void FindPlayerSystems()
     {
-        if (statusSystem == null || levelUpSystem == null)
+        if (statusSystem == null || levelUpSystem == null || possessionMentalSystem == null)
         {
             GameObject player = GameObject.FindGameObjectWithTag("Player");
             if (player != null)
@@ -59,6 +62,7 @@ public class HSH_BarUI : MonoBehaviour
                 if (statusSystem == null) statusSystem = player.GetComponent<HWJ_RuntimeStatusSystem>();
                 if (soulSystem == null) soulSystem = player.GetComponent<HWJ_SoulSystem>();
                 if (levelUpSystem == null) levelUpSystem = player.GetComponent<HWJ_LevelUpSystem>();
+                if (possessionMentalSystem == null) possessionMentalSystem = player.GetComponent<HWJ_PossessionMentalSystem>();
             }
         }
 
@@ -72,6 +76,11 @@ public class HSH_BarUI : MonoBehaviour
             levelUpSystem = statusSystem.GetComponent<HWJ_LevelUpSystem>();
         }
 
+        if (possessionMentalSystem == null && statusSystem != null)
+        {
+            possessionMentalSystem = statusSystem.GetComponent<HWJ_PossessionMentalSystem>();
+        }
+
         if (levelUpSystem == null)
         {
             if (HWJ_GameManager.Instance != null && HWJ_GameManager.Instance.PlayerLevel != null)
@@ -82,6 +91,11 @@ public class HSH_BarUI : MonoBehaviour
             {
                 levelUpSystem = Object.FindAnyObjectByType<HWJ_LevelUpSystem>();
             }
+        }
+
+        if (possessionMentalSystem == null)
+        {
+            possessionMentalSystem = Object.FindAnyObjectByType<HWJ_PossessionMentalSystem>();
         }
 
         if (gameOverUI == null)
@@ -103,8 +117,8 @@ public class HSH_BarUI : MonoBehaviour
     {
         FindPlayerSystems();
 
-        // 플레이어의 Soul 상태에 맞춰 체력바 타입 자동 변경 (경험치 바는 제외)
-        if (soulSystem != null && currentType != BarType.Exp)
+        // 플레이어의 Soul 상태에 맞춰 체력바 타입 자동 변경 (경험치 바 및 멘탈 바는 제외)
+        if (soulSystem != null && currentType != BarType.Exp && currentType != BarType.Mental)
         {
             if (soulSystem.CurrentState == HWJ_SoulRuntimeState.Soul)
             {
@@ -167,6 +181,10 @@ public class HSH_BarUI : MonoBehaviour
             {
                 statusSystem.ApplyDamage(amount);
             }
+            else if (currentType == BarType.Mental)
+            {
+                statusSystem.TryApplySpiritMentalCost(amount);
+            }
             // 고스트 체력(GhostHP)은 함정 데미지 등 외부 요인으로 감소시키지 않음
         }
         else
@@ -205,11 +223,14 @@ public class HSH_BarUI : MonoBehaviour
     /// - BarType.Exp (경험치):
     ///   → HWJ_LevelUpSystem.CurrentExperience 및 TryGetRequiredExperienceForCurrentLevel 에서 경험치 정보와 요구 경험치를 가져옵니다.
     ///   → 레벨 정보는 HWJ_LevelUpSystem.CurrentLevel 에서 읽어와 levelTextUI 에 적용합니다.
+    /// 
+    /// - BarType.Mental (정신력):
+    ///   → 빙의 중일 때 빙의 정신력(HWJ_PossessionMentalSystem) 또는 영혼 상태의 정신력(CurrentSpiritMentalValue) 수치를 연동합니다.
     /// </summary>
     private void CheckState()
     {
         // ===== [1단계] 현재 바 타입에 맞는 실시간 데이터를 가져옵니다 =====
-        if (statusSystem != null || levelUpSystem != null)
+        if (statusSystem != null || levelUpSystem != null || possessionMentalSystem != null)
         {
             // [HP 바] 빙의 상태일 때의 체력
             if (currentType == BarType.HP && statusSystem != null)
@@ -220,8 +241,6 @@ public class HSH_BarUI : MonoBehaviour
             // [GhostHP 바] 영혼 상태일 때의 시간 카운트다운
             else if (currentType == BarType.GhostHP && soulSystem != null)
             {
-                //Debug.Log("실행");
-                //Debug.Log("실행2");
                 // 유저님의 요청대로 가장 심플하게 값만 대입합니다. (리플렉션 및 조건문 제거)
                 maxValue = 10f;
                 currentValue = soulSystem.SoulDeadlineTimer;
@@ -242,6 +261,20 @@ public class HSH_BarUI : MonoBehaviour
                 if (levelTextUI != null)
                 {
                     levelTextUI.SetLevel(levelUpSystem.CurrentLevel);
+                }
+            }
+            // [Mental 바] 정신력 (HWJ_PossessionMentalSystem 또는 HWJ_RuntimeStatusSystem 연동)
+            else if (currentType == BarType.Mental)
+            {
+                if (possessionMentalSystem != null && possessionMentalSystem.MaxPossessionMentalValue > 0f && possessionMentalSystem.IsDecaying)
+                {
+                    currentValue = possessionMentalSystem.RemainingPossessionMentalValue;
+                    maxValue = possessionMentalSystem.MaxPossessionMentalValue;
+                }
+                else if (statusSystem != null)
+                {
+                    currentValue = statusSystem.CurrentSpiritMentalValue;
+                    maxValue = statusSystem.MaxSpiritMentalValue;
                 }
             }
         }
@@ -339,6 +372,9 @@ public class HSH_BarUI : MonoBehaviour
                         break;
                     case BarType.Exp:
                         fillImage.color = expColor;
+                        break;
+                    case BarType.Mental:
+                        fillImage.color = mentalColor;
                         break;
                 }
             }

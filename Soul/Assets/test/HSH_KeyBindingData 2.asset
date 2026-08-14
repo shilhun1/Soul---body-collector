@@ -82,7 +82,7 @@ MonoBehaviour:
     hwjActionId: 6
     displayName: attack
     defaultKey: 0
-    defaultMouseButton: 1
+    defaultMouseButton: 2
   - categoryName: Movement
     keyAction: 0
     isHWJAction: 1
