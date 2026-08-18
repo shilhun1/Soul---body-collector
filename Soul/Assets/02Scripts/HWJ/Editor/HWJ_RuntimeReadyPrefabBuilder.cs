@@ -16,7 +16,6 @@ public static class HWJ_RuntimeReadyPrefabBuilder
     private const string AssetRoot = "Assets/02Scripts/HWJ";
     private const string OutputRoot = AssetRoot + "/Prefabs/Generated/RuntimeReady";
     private const string EnemyOutputRoot = OutputRoot + "/Enemies";
-    private const string CorpseOutputRoot = OutputRoot + "/Corpses";
     private const string RewardOutputRoot = OutputRoot + "/Rewards";
     private const string DatabaseRoot = AssetRoot + "/ScriptableObjects/Database";
 
@@ -49,15 +48,6 @@ public static class HWJ_RuntimeReadyPrefabBuilder
         new EnemyPrefabSpec("Bow", "HWJ_EnemyCorpse_Bow_RootObjectData.asset"),
         new EnemyPrefabSpec("Lance", "HWJ_EnemyCorpse_Lance_RootObjectData.asset"),
         new EnemyPrefabSpec("Shield", "HWJ_EnemyCorpse_Shield_RootObjectData.asset")
-    };
-
-    private static readonly EnemyPrefabSpec[] NoCorpseEnemySpecs =
-    {
-        new EnemyPrefabSpec("Sword", "HWJ_EnemyNoCorpse_Sword_RootObjectData.asset"),
-        new EnemyPrefabSpec("Axe", "HWJ_EnemyNoCorpse_Axe_RootObjectData.asset"),
-        new EnemyPrefabSpec("Bow", "HWJ_EnemyNoCorpse_Bow_RootObjectData.asset"),
-        new EnemyPrefabSpec("Lance", "HWJ_EnemyNoCorpse_Lance_RootObjectData.asset"),
-        new EnemyPrefabSpec("Shield", "HWJ_EnemyNoCorpse_Shield_RootObjectData.asset")
     };
 
     private static bool isRunning;
@@ -97,21 +87,8 @@ public static class HWJ_RuntimeReadyPrefabBuilder
             {
                 EnemyPrefabSpec spec = PossessableEnemySpecs[i];
                 SavePrefab(
-                    CreateEnemyPrefab(spec, true, false),
+                    CreateEnemyPrefab(spec),
                     GetLiveEnemyPrefabPath(spec),
-                    report);
-                SavePrefab(
-                    CreateEnemyPrefab(spec, false, true),
-                    GetCorpsePrefabPath(spec),
-                    report);
-            }
-
-            for (int i = 0; i < NoCorpseEnemySpecs.Length; i++)
-            {
-                EnemyPrefabSpec spec = NoCorpseEnemySpecs[i];
-                SavePrefab(
-                    CreateEnemyPrefab(spec, true, false),
-                    GetNoCorpseEnemyPrefabPath(spec),
                     report);
             }
 
@@ -181,8 +158,8 @@ public static class HWJ_RuntimeReadyPrefabBuilder
     }
 
     /// <summary>
-    /// 5종 무기 몬스터를 살아있을 때는 R 미니게임, 죽은 뒤에는 E 즉시 빙의 대상으로 사용하도록
-    /// 각 EnemyTypeData SO의 고정 설정을 한 곳에서 맞춥니다.
+    /// 5종 무기 몬스터를 살아있을 때 생체 빙의 대상으로 사용하고,
+    /// HP가 0이 되면 시체를 남기지 않도록 공통 설정을 맞춥니다.
     /// </summary>
     private static void ConfigurePossessableEnemyTypeData(List<string> report)
     {
@@ -200,7 +177,7 @@ public static class HWJ_RuntimeReadyPrefabBuilder
                     $"Possessable enemy TypeData is missing: {spec.RootObjectDataPath}");
             }
 
-            enemyData.Role.leavesCorpseOnDeath = true;
+            enemyData.Role.leavesCorpseOnDeath = false;
             enemyData.Role.isPossessableBody = true;
             enemyData.PossessionBody.canBePossessed = true;
             enemyData.PossessionBody.requiresDefeatedState = false;
@@ -209,7 +186,7 @@ public static class HWJ_RuntimeReadyPrefabBuilder
             enemyData.PossessionBody.livePossessionMentalDrainInterval = 1f;
             enemyData.PossessionBody.livePossessionMentalDrainAmount = 1f;
             EditorUtility.SetDirty(enemyData);
-            report.Add($"Configured live/corpse possession SO: {enemyData.name}");
+            report.Add($"Configured live-only possession SO: {enemyData.name}");
         }
     }
 
@@ -302,19 +279,15 @@ public static class HWJ_RuntimeReadyPrefabBuilder
         return root;
     }
 
-    private static GameObject CreateEnemyPrefab(EnemyPrefabSpec spec, bool alive, bool directCorpse)
+    private static GameObject CreateEnemyPrefab(EnemyPrefabSpec spec)
     {
         HWJ_RootObjectDataSO rootData = RequireAsset<HWJ_RootObjectDataSO>(spec.RootObjectDataPath);
-        bool possessable = spec.IsPossessable;
-        string prefix = directCorpse
-            ? "HWJ_Runtime_Corpse_"
-            : possessable ? "HWJ_Runtime_Enemy_Possessable_" : "HWJ_Runtime_Enemy_NoCorpse_";
-        GameObject root = new GameObject(prefix + spec.WeaponName);
+        GameObject root = new GameObject("HWJ_Runtime_Enemy_Possessable_" + spec.WeaponName);
         SetLayerIfExists(root, "Enemy");
 
         Rigidbody2D body = root.AddComponent<Rigidbody2D>();
-        body.bodyType = alive ? RigidbodyType2D.Dynamic : RigidbodyType2D.Kinematic;
-        body.gravityScale = alive ? 3f : 0f;
+        body.bodyType = RigidbodyType2D.Dynamic;
+        body.gravityScale = 3f;
         body.freezeRotation = true;
         body.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
         body.interpolation = RigidbodyInterpolation2D.Interpolate;
@@ -322,7 +295,7 @@ public static class HWJ_RuntimeReadyPrefabBuilder
         BoxCollider2D collider = root.AddComponent<BoxCollider2D>();
         collider.size = new Vector2(0.9f, 1.45f);
         collider.offset = new Vector2(0f, -0.05f);
-        collider.isTrigger = directCorpse;
+        collider.isTrigger = false;
 
         GameObject visual = CreateRootDataVisual(root.transform, rootData);
         SpriteRenderer renderer = visual.GetComponentInChildren<SpriteRenderer>(true);
@@ -339,29 +312,20 @@ public static class HWJ_RuntimeReadyPrefabBuilder
         HWJ_CharacterMotionSystem motion = root.AddComponent<HWJ_CharacterMotionSystem>();
         HWJ_HitEffectSystem hitEffect = root.AddComponent<HWJ_HitEffectSystem>();
 
-        if (possessable)
-        {
-            root.AddComponent<HWJ_PossessionBodyState>();
-
-            if (alive)
-            {
-                HWJ_LivePossessionMentalState liveMentalState =
-                    root.AddComponent<HWJ_LivePossessionMentalState>();
-                liveMentalState.LoadConfigurationFromTypeData();
-            }
-        }
-
-        if (alive)
-        {
-            HWJ_EnemyNavigationSystem navigation = root.AddComponent<HWJ_EnemyNavigationSystem>();
-            HWJ_EnemyAttackSystem enemyAttack = root.AddComponent<HWJ_EnemyAttackSystem>();
-            HWJ_MonsterAISystem monsterAI = root.AddComponent<HWJ_MonsterAISystem>();
-            root.AddComponent<HWJ_EnemyDeathLifecycleSystem>();
-            ConfigureEnemyBehavior(navigation, enemyAttack, monsterAI);
-        }
+        root.AddComponent<HWJ_PossessionBodyState>();
+        HWJ_LivePossessionMentalState liveMentalState =
+            root.AddComponent<HWJ_LivePossessionMentalState>();
+        liveMentalState.LoadConfigurationFromTypeData();
+        HWJ_EnemyNavigationSystem navigation = root.AddComponent<HWJ_EnemyNavigationSystem>();
+        HWJ_EnemyAttackSystem enemyAttack = root.AddComponent<HWJ_EnemyAttackSystem>();
+        HWJ_EnemyPerceptionSystem perception = root.AddComponent<HWJ_EnemyPerceptionSystem>();
+        HWJ_MonsterAISystem monsterAI = root.AddComponent<HWJ_MonsterAISystem>();
+        root.AddComponent<HWJ_EnemyDeathLifecycleSystem>();
+        visual.AddComponent<HWJ_EnemyAttackAnimationRelay>();
+        ConfigureEnemyBehavior(navigation, enemyAttack, perception, monsterAI);
 
         SerializedObject statusSo = new SerializedObject(status);
-        SetEnum(statusSo, "currentState", directCorpse ? (int)HWJ_RuntimeState.Dead : (int)HWJ_RuntimeState.Idle);
+        SetEnum(statusSo, "currentState", (int)HWJ_RuntimeState.Idle);
         statusSo.ApplyModifiedPropertiesWithoutUndo();
 
         ConfigureSkillAction(skillAction, resolver, status, combat, combatExecution, null, motion, body);
@@ -561,13 +525,6 @@ public static class HWJ_RuntimeReadyPrefabBuilder
             root.transform,
             "10_Player",
             new Vector3(-9f, 0.75f, 0f));
-        GameObject firstCorpse = InstantiatePrefabChild(
-            RequireAsset<GameObject>(GetCorpsePrefabPath(PossessableEnemySpecs[0])),
-            root.transform,
-            "11_FirstPossessionCorpse_Sword",
-            new Vector3(-6f, 0.75f, 0f));
-        firstCorpse.transform.localRotation = Quaternion.identity;
-
         InstantiatePrefabChild(
             RequireAsset<GameObject>(RewardsPrefabPath),
             root.transform,
@@ -583,12 +540,6 @@ public static class HWJ_RuntimeReadyPrefabBuilder
                 "30_Enemy_Possessable_" + spec.WeaponName,
                 new Vector3(2f + i * 3f, 0.75f, 0f));
         }
-
-        InstantiatePrefabChild(
-            RequireAsset<GameObject>(GetNoCorpseEnemyPrefabPath(NoCorpseEnemySpecs[1])),
-            root.transform,
-            "40_Enemy_NoCorpse_Axe",
-            new Vector3(18f, 0.75f, 0f));
 
         CreateTestFloor(root.transform);
         CreatePlayerStart(root.transform, player.GetComponent<HWJ_RootObjectDataResolver>());
@@ -728,6 +679,7 @@ public static class HWJ_RuntimeReadyPrefabBuilder
     private static void ConfigureEnemyBehavior(
         HWJ_EnemyNavigationSystem navigation,
         HWJ_EnemyAttackSystem enemyAttack,
+        HWJ_EnemyPerceptionSystem perception,
         HWJ_MonsterAISystem monsterAI)
     {
         SerializedObject navigationSo = new SerializedObject(navigation);
@@ -746,6 +698,11 @@ public static class HWJ_RuntimeReadyPrefabBuilder
         SetBool(attackSo, "showSkillWarning", true);
         SetFloat(attackSo, "skillWarningDelaySeconds", 1f);
         attackSo.ApplyModifiedPropertiesWithoutUndo();
+
+        SerializedObject perceptionSo = new SerializedObject(perception);
+        SetBool(perceptionSo, "autoFindPlayerTarget", true);
+        SetLayerMask(perceptionSo, "groundLayer", LayerMask.GetMask("Ground"));
+        perceptionSo.ApplyModifiedPropertiesWithoutUndo();
 
         SerializedObject aiSo = new SerializedObject(monsterAI);
         SetBool(aiSo, "driveBehavior", true);
@@ -1178,12 +1135,6 @@ public static class HWJ_RuntimeReadyPrefabBuilder
                 typeof(HWJ_PossessionBodyState),
                 typeof(HWJ_LivePossessionMentalState),
                 typeof(HWJ_EnemyDeathLifecycleSystem));
-            ValidatePrefab(
-                GetCorpsePrefabPath(PossessableEnemySpecs[i]),
-                errors,
-                typeof(HWJ_RuntimeStatusSystem),
-                typeof(HWJ_PossessionBodyState));
-
             HWJ_RootObjectDataSO rootData = RequireAsset<HWJ_RootObjectDataSO>(
                 PossessableEnemySpecs[i].RootObjectDataPath);
 
@@ -1195,7 +1146,7 @@ public static class HWJ_RuntimeReadyPrefabBuilder
                     10f))
             {
                 errors.Add(
-                    $"Possession SO is not configured for live R/corpse E flow: "
+                    $"Possession SO is not configured for the live-only flow: "
                     + PossessableEnemySpecs[i].RootObjectDataPath);
             }
         }
@@ -1241,7 +1192,6 @@ public static class HWJ_RuntimeReadyPrefabBuilder
         EnsureFolder(AssetRoot + "/Prefabs", "Generated");
         EnsureFolder(AssetRoot + "/Prefabs/Generated", "RuntimeReady");
         EnsureFolder(OutputRoot, "Enemies");
-        EnsureFolder(OutputRoot, "Corpses");
         EnsureFolder(OutputRoot, "Rewards");
     }
 
@@ -1382,16 +1332,6 @@ public static class HWJ_RuntimeReadyPrefabBuilder
     private static string GetLiveEnemyPrefabPath(EnemyPrefabSpec spec)
     {
         return EnemyOutputRoot + "/HWJ_Runtime_Enemy_Possessable_" + spec.WeaponName + ".prefab";
-    }
-
-    private static string GetNoCorpseEnemyPrefabPath(EnemyPrefabSpec spec)
-    {
-        return EnemyOutputRoot + "/HWJ_Runtime_Enemy_NoCorpse_" + spec.WeaponName + ".prefab";
-    }
-
-    private static string GetCorpsePrefabPath(EnemyPrefabSpec spec)
-    {
-        return CorpseOutputRoot + "/HWJ_Runtime_Corpse_" + spec.WeaponName + ".prefab";
     }
 
     private static T RequireAsset<T>(string path) where T : UnityEngine.Object
@@ -1541,12 +1481,10 @@ public static class HWJ_RuntimeReadyPrefabBuilder
             RootObjectDataPath = AssetRoot
                 + "/ScriptableObjects/RootObjects/Enemies/"
                 + rootObjectFileName;
-            IsPossessable = rootObjectFileName.IndexOf("EnemyCorpse", StringComparison.Ordinal) >= 0;
         }
 
         public string WeaponName { get; }
         public string RootObjectDataPath { get; }
-        public bool IsPossessable { get; }
     }
 
     private readonly struct PoolSpec

@@ -318,6 +318,17 @@ public partial class HWJ_RuntimeStatusSystem : MonoBehaviour
             return;
         }
 
+        if (TryApplyDamageAbsorbers(damage, source, sourceDamage, out float remainingDamage))
+        {
+            damage = remainingDamage;
+
+            if (damage <= 0f)
+            {
+                SavePlayerRuntimeSnapshotIfOwner();
+                return;
+            }
+        }
+
         bool wasDead = IsDead;
         currentHp = Mathf.Max(0f, currentHp - damage);
         CacheCurrentHpForActiveState();

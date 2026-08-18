@@ -167,6 +167,16 @@ public enum HWJ_BossFSMState
 }
 
 /// <summary>
+/// 보스의 평상시 이동 방식을 결정합니다.
+/// 패턴이 직접 수행하는 돌진이나 순간이동은 이 설정과 별도로 실행됩니다.
+/// </summary>
+public enum HWJ_BossLocomotionMode
+{
+    Chase,
+    StationaryCaster
+}
+
+/// <summary>
 /// 격투가 보스의 두 줄 체력 흐름을 나타냅니다.
 /// Phase1 소진은 사망이 아니라 Transition으로 연결되고, Phase2 소진만 Dead가 됩니다.
 /// </summary>
@@ -204,7 +214,17 @@ public enum HWJ_MonsterAIState
     Recovery,
     Repath,
     HitStun,
-    Dead
+    Dead,
+    Patrol,
+    ReturnHome,
+    WaitBelowPlatform
+}
+
+public enum HWJ_EnemyBasicAttackMode
+{
+    Immediate,
+    Contact,
+    AnimationEvent
 }
 
 public enum HWJ_PlayerInputActionId

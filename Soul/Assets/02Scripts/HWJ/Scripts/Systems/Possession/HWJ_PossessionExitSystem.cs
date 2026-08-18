@@ -132,26 +132,16 @@ public class HWJ_PossessionExitSystem : MonoBehaviour
                 : null;
 
         bool restoredOriginalBody = false;
-        bool restoredAsCorpse = false;
         bool removedCollapsedBody = false;
 
         if (previousKind == HWJ_PossessionKind.Live
             && (exitReason == HWJ_PossessedBodyExitReason.ManualExit
-                || exitReason == HWJ_PossessedBodyExitReason.MentalDepleted
-                || exitReason == HWJ_PossessedBodyExitReason.HpDepleted))
+                || exitReason == HWJ_PossessedBodyExitReason.MentalDepleted))
         {
             restoredOriginalBody = bodyController != null
                 && bodyController.RestoreOriginalBodyAfterPossession(
                     previousBodyResolver,
                     previousBodyState);
-
-            if (restoredOriginalBody
-                && exitReason == HWJ_PossessedBodyExitReason.HpDepleted)
-            {
-                restoredAsCorpse = bodyController.RestoreLiveBodyAsCorpse(
-                    previousBodyResolver,
-                    previousMentalState);
-            }
         }
 
         if (previousKind == HWJ_PossessionKind.Corpse
@@ -162,9 +152,9 @@ public class HWJ_PossessionExitSystem : MonoBehaviour
                 && bodyController.RemovePossessedBody(previousBodyResolver);
         }
         else if (previousKind == HWJ_PossessionKind.Live
-            && exitReason == HWJ_PossessedBodyExitReason.HpDepleted
-            && !restoredAsCorpse)
+            && exitReason == HWJ_PossessedBodyExitReason.HpDepleted)
         {
+            previousMentalState?.BlockPossessionPermanently();
             removedCollapsedBody = bodyController != null
                 && bodyController.RemovePossessedBody(previousBodyResolver);
         }
@@ -194,7 +184,6 @@ public class HWJ_PossessionExitSystem : MonoBehaviour
             previousKind,
             exitReason,
             restoredOriginalBody,
-            restoredAsCorpse,
             removedCollapsedBody);
 
         HWJ_GameplayEvents.RaisePossessionChanged(
@@ -249,7 +238,6 @@ public class HWJ_PossessionExitSystem : MonoBehaviour
         HWJ_PossessionKind previousKind,
         HWJ_PossessedBodyExitReason exitReason,
         bool restoredOriginalBody,
-        bool restoredAsCorpse,
         bool removedCollapsedBody)
     {
         switch (exitReason)
@@ -265,13 +253,8 @@ public class HWJ_PossessionExitSystem : MonoBehaviour
                     : "시체 부패가 최대치에 도달하여 빙의가 해제되었습니다.";
 
             case HWJ_PossessedBodyExitReason.HpDepleted:
-                if (restoredAsCorpse)
-                {
-                    return "살아 있는 빙의체의 체력이 0이 되어 플레이어가 유령으로 이탈하고 몬스터가 시체가 되었습니다.";
-                }
-
                 return removedCollapsedBody
-                    ? "빙의체 체력이 0이 되어 육체가 제거되었습니다."
+                    ? "빙의체 체력이 0이 되어 육체가 제거되었으며 다시 빙의할 수 없습니다."
                     : "빙의체 체력이 0이 되어 빙의가 해제되었습니다.";
 
             case HWJ_PossessedBodyExitReason.ManualExit:

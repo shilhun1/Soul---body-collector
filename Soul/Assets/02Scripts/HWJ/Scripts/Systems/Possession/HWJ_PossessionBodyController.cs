@@ -101,32 +101,6 @@ public class HWJ_PossessionBodyController : MonoBehaviour
         return true;
     }
 
-    /// <summary>
-    /// 살아 있는 빙의체의 HP가 0이 되었을 때 원래 몬스터를 시체로 바꿉니다.
-    /// </summary>
-    public bool RestoreLiveBodyAsCorpse(
-        HWJ_RootObjectDataResolver previousBodyResolver,
-        HWJ_LivePossessionMentalState mentalState)
-    {
-        if (previousBodyResolver == null)
-        {
-            return false;
-        }
-
-        HWJ_RuntimeStatusSystem enemyStatus =
-            previousBodyResolver.GetComponent<HWJ_RuntimeStatusSystem>();
-
-        if (enemyStatus == null)
-        {
-            return false;
-        }
-
-        enemyStatus.RestoreHpSnapshot(0f, 0f, 0f);
-        enemyStatus.SetState(HWJ_RuntimeState.Dead);
-        mentalState?.MarkBecameCorpseAfterLivePossession();
-        return true;
-    }
-
     public bool RemovePossessedBody(HWJ_RootObjectDataResolver previousBodyResolver)
     {
         if (previousBodyResolver == null)

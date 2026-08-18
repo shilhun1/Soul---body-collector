@@ -46,6 +46,8 @@ public class HWJ_CharacterMotionSystem : MonoBehaviour
     [SerializeField] private bool flipSpriteByMoveDirection = true;
     [SerializeField] private bool useInitialSpriteFlipAsRightFacing = true;
     [SerializeField] private bool flipTransformScaleWhenNoSpriteRenderer;
+    [Tooltip("켜져 있으면 Rigidbody2D 속도에 따라 자동으로 방향을 전환합니다. 몬스터 AI는 플레이어 인식 전 방향 고정을 위해 런타임에서 끕니다.")]
+    [SerializeField] private bool updateFacingFromVelocity = true;
     [SerializeField] private float moveThreshold = 0.05f;
     [SerializeField] private float facingThreshold = 0.01f;
 
@@ -63,6 +65,7 @@ public class HWJ_CharacterMotionSystem : MonoBehaviour
     private bool hasInitialScaleXSign;
 
     public float CurrentFacingDirection => ResolveCurrentFacingDirection();
+    public bool UpdatesFacingFromVelocity => updateFacingFromVelocity;
 
     private void Awake()
     {
@@ -206,6 +209,15 @@ public class HWJ_CharacterMotionSystem : MonoBehaviour
         }
 
         ApplyFacing(directionX < 0f);
+    }
+
+    /// <summary>
+    /// 이동 속도가 바뀔 때 자동으로 바라보는 방향까지 바꿀지 설정합니다.
+    /// 명시적인 FaceDirection 호출은 이 설정과 관계없이 계속 동작합니다.
+    /// </summary>
+    public void SetVelocityFacingEnabled(bool isEnabled)
+    {
+        updateFacingFromVelocity = isEnabled;
     }
 
     public float ResolveCurrentFacingDirection()
@@ -424,6 +436,11 @@ public class HWJ_CharacterMotionSystem : MonoBehaviour
 
     private void UpdateFacing()
     {
+        if (!updateFacingFromVelocity)
+        {
+            return;
+        }
+
         Vector2 velocity = GetCurrentVelocity();
 
         if (Mathf.Abs(velocity.x) <= facingThreshold)

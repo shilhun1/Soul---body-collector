@@ -5,6 +5,8 @@ public static class HWJ_FSMStateUtility
         switch (state)
         {
             case HWJ_MonsterAIState.Approach:
+            case HWJ_MonsterAIState.Patrol:
+            case HWJ_MonsterAIState.ReturnHome:
                 return HWJ_RuntimeState.Move;
             case HWJ_MonsterAIState.AttackPrepare:
             case HWJ_MonsterAIState.Attack:

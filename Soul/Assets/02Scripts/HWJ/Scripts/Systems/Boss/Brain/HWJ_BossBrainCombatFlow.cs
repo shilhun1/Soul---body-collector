@@ -31,6 +31,21 @@ public partial class HWJ_BossBrainSystem
         float attackRange = GetAttackRange(bossData);
         bool isCloseRange = distanceX <= Mathf.Max(0.1f, bossData.FSM.closeSkillRange);
 
+        if (bossData.FSM.locomotionMode == HWJ_BossLocomotionMode.StationaryCaster)
+        {
+            StopHorizontalMovement();
+
+            if (patternSystem != null
+                && patternSystem.TryUseAvailablePattern(target, currentPhaseNumber, isCloseRange))
+            {
+                SetBossState(HWJ_BossFSMState.Attack);
+                return;
+            }
+
+            SetBossState(HWJ_BossFSMState.Idle);
+            return;
+        }
+
         if (distanceX <= attackRange
             && patternSystem != null
             && patternSystem.TryUseAvailablePattern(target, currentPhaseNumber, isCloseRange))
@@ -105,7 +120,16 @@ public partial class HWJ_BossBrainSystem
 
         wasTargetSoulState = true;
         SetBossState(HWJ_BossFSMState.Idle);
-        MoveTowardPosition(GetBossRoomCenter(), bossData, bossData.FSM.soulReturnCenterStoppingDistance);
+
+        if (bossData.FSM.locomotionMode == HWJ_BossLocomotionMode.StationaryCaster)
+        {
+            StopHorizontalMovement();
+        }
+        else
+        {
+            MoveTowardPosition(GetBossRoomCenter(), bossData, bossData.FSM.soulReturnCenterStoppingDistance);
+        }
+
         return true;
     }
 
@@ -147,7 +171,12 @@ public partial class HWJ_BossBrainSystem
     private void StartPhaseTransition(HWJ_BossTypeDataSO bossData)
     {
         CancelCurrentBossActions();
-        TeleportToRoomCenter();
+
+        if (bossData.FSM.locomotionMode != HWJ_BossLocomotionMode.StationaryCaster)
+        {
+            TeleportToRoomCenter();
+        }
+
         SetBossState(HWJ_BossFSMState.PhaseTransition);
         StopHorizontalMovement();
         dialogueBubbleSystem?.ShowPhaseTwoDialogue();

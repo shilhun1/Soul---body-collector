@@ -135,7 +135,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 076888094eb54df599f4bea65fd53503, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: HWJ.Runtime::HWJ_HealthBarSystem
   healthBarData: {fileID: 0}
   runtimeStatus: {fileID: 7389126366998218925}
@@ -262,6 +262,7 @@ GameObject:
   - component: {fileID: 1567874289381373760}
   - component: {fileID: 5781337788464920117}
   - component: {fileID: 7010933038036811410}
+  - component: {fileID: 6148803296029220294}
   m_Layer: 3
   m_Name: HWJ_Runtime_Enemy_Possessable_Axe
   m_TagString: Untagged
@@ -347,7 +348,7 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0, y: -0.05}
+  m_Offset: {x: -0.06859112, y: -0.6930489}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0, y: 0}
@@ -357,7 +358,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 0.9, y: 1.45}
+  m_Size: {x: 4.2952976, y: 3.0790567}
   m_EdgeRadius: 0
 --- !u!114 &8494393320464119177
 MonoBehaviour:
@@ -645,8 +646,6 @@ MonoBehaviour:
   mentalDrainInterval: 1
   mentalDrainAmount: 1
   permanentlyBlocked: 0
-  becameCorpseAfterLivePossession: 0
-  corpsePossessionConsumed: 0
   logMentalChanges: 1
 --- !u!114 &4563574180979751768
 MonoBehaviour:
@@ -660,12 +659,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a5f8c63648b54ae99ff878df44de13dc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: HWJ.Runtime::HWJ_EnemyNavigationSystem
-  dataResolver: {fileID: 0}
-  runtimeStatus: {fileID: 0}
-  skillActionSystem: {fileID: 0}
-  motionSystem: {fileID: 0}
-  monsterAI: {fileID: 0}
-  body: {fileID: 0}
+  dataResolver: {fileID: 3625059074109884753}
+  runtimeStatus: {fileID: 7389126366998218925}
+  skillActionSystem: {fileID: 8823696380179045165}
+  motionSystem: {fileID: 4839435434449975832}
+  monsterAI: {fileID: 1567874289381373760}
+  body: {fileID: 3794954994270613298}
   target: {fileID: 0}
   autoFindPlayerTarget: 1
   chaseOnlyBodyState: 1
@@ -689,11 +688,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 70fa387beda542c4ae0bcac954b124e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: HWJ.Runtime::HWJ_EnemyAttackSystem
-  dataResolver: {fileID: 0}
-  runtimeStatus: {fileID: 0}
+  dataResolver: {fileID: 3625059074109884753}
+  runtimeStatus: {fileID: 7389126366998218925}
   combatExecutionSystem: {fileID: 0}
-  skillActionSystem: {fileID: 0}
-  monsterAI: {fileID: 0}
+  skillActionSystem: {fileID: 8823696380179045165}
+  monsterAI: {fileID: 1567874289381373760}
+  motionSystem: {fileID: 4839435434449975832}
+  animator: {fileID: 1521247142086250438}
   target: {fileID: 0}
   autoFindPlayerTarget: 1
   autoAttackWhenNoBehaviorDriver: 0
@@ -723,13 +724,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 26789bf4b63bff04dbd9989c608c5c9c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: HWJ.Runtime::HWJ_MonsterAISystem
-  dataResolver: {fileID: 0}
-  runtimeStatus: {fileID: 0}
-  enemyAttackSystem: {fileID: 0}
-  skillActionSystem: {fileID: 0}
-  motionSystem: {fileID: 0}
+  dataResolver: {fileID: 3625059074109884753}
+  runtimeStatus: {fileID: 7389126366998218925}
+  enemyAttackSystem: {fileID: 1560011533739933386}
+  perceptionSystem: {fileID: 6148803296029220294}
+  skillActionSystem: {fileID: 8823696380179045165}
+  motionSystem: {fileID: 4839435434449975832}
   knockbackSystem: {fileID: 0}
-  body: {fileID: 0}
+  body: {fileID: 3794954994270613298}
   target: {fileID: 0}
   driveBehavior: 1
   autoFindPlayerTarget: 1
@@ -768,7 +770,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: HWJ.Runtime::HWJ_EnemyDeathLifecycleSystem
   dataResolver: {fileID: 0}
   runtimeStatus: {fileID: 0}
-  noCorpseDespawnDelaySeconds: 0.2
+  defeatedEnemyDespawnDelaySeconds: 0.2
   makeCorpseCollidersTriggers: 1
   disableBehaviorOnDeath: 1
   possessableCorpseReadyDelaySeconds: 1
@@ -791,6 +793,29 @@ MonoBehaviour:
   patternReturnNormalizedTime: 0.98
   patternReturnTransitionSeconds: 0.05
   deathFreezeNormalizedTime: 0.995
+--- !u!114 &6148803296029220294
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8944674153436637418}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 04be6380e1eac4445a13413423b9bb2d, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: HWJ.Runtime::HWJ_EnemyPerceptionSystem
+  dataResolver: {fileID: 3625059074109884753}
+  motionSystem: {fileID: 4839435434449975832}
+  candidateTarget: {fileID: 0}
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 0
+  autoFindPlayerTarget: 1
+  targetSearchIntervalSeconds: 0.5
+  hasAggro: 0
+  spawnPosition: {x: 0, y: 0, z: 0}
+  lastPerceptionResult:
 --- !u!1001 &3240183686959695445
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -858,7 +883,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 4816403081166471119, guid: 4a094748baf292848abc8123e5d89341, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2813455085890488174}
   m_SourcePrefab: {fileID: 100100000, guid: 4a094748baf292848abc8123e5d89341, type: 3}
 --- !u!95 &1521247142086250438 stripped
 Animator:
@@ -870,6 +898,24 @@ SpriteRenderer:
   m_CorrespondingSourceObject: {fileID: 7306498609729525474, guid: 4a094748baf292848abc8123e5d89341, type: 3}
   m_PrefabInstance: {fileID: 3240183686959695445}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &7935409545323067802 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4816403081166471119, guid: 4a094748baf292848abc8123e5d89341, type: 3}
+  m_PrefabInstance: {fileID: 3240183686959695445}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &2813455085890488174
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7935409545323067802}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 424bd1d2447ca9a45a0de4544491ff05, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: HWJ.Runtime::HWJ_EnemyAttackAnimationRelay
+  enemyAttackSystem: {fileID: 0}
 --- !u!4 &7965197125134662359 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4791092712753511554, guid: 4a094748baf292848abc8123e5d89341, type: 3}

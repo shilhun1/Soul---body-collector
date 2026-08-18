@@ -452,6 +452,7 @@ MonoBehaviour:
   flipSpriteByMoveDirection: 1
   useInitialSpriteFlipAsRightFacing: 1
   flipTransformScaleWhenNoSpriteRenderer: 0
+  updateFacingFromVelocity: 1
   moveThreshold: 0.05
   facingThreshold: 0.01
 --- !u!114 &4987786105596655614
@@ -1031,8 +1032,10 @@ MonoBehaviour:
   playerState: {fileID: 0}
   playerMovement: {fileID: 0}
   playerAttack: {fileID: 0}
+  hwjMotionSystem: {fileID: 0}
   soulSystem: {fileID: 6808530972050499493}
   possessionSystem: {fileID: 1245751208064203804}
+  possessionAnimationBridge: {fileID: 0}
   playerStateParameter: PlayerState
   isMovingParameter: IsMoving
   isGroundedParameter: IsGrounded
@@ -1647,6 +1650,7 @@ MonoBehaviour:
   spriteRenderer: {fileID: 8280138536543409149}
   animator: {fileID: 256458342734844284}
   ghostStateSupport: {fileID: 0}
+  possessionAnimationBridge: {fileID: 0}
   isMovingParameter: IsMoving
   appearTriggerParameter: Appear
   possessTriggerParameter: Possess

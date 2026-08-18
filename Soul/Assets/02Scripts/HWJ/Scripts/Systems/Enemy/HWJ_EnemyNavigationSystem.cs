@@ -266,7 +266,7 @@ public class HWJ_EnemyNavigationSystem : MonoBehaviour
             return true;
         }
 
-        int layerMask = groundLayer.value != 0 ? groundLayer.value : Physics2D.AllLayers;
+        int layerMask = HWJ_PhysicsLayerUtility.ResolveGroundMask(groundLayer);
         Vector2 origin = transform.position;
         Vector2 direction = Vector2.right * Mathf.Sign(directionX);
 

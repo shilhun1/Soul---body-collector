@@ -1,8 +1,8 @@
 using UnityEngine;
 
 /// <summary>
-/// 적이 사망한 뒤 시체 유지 여부를 EnemyTypeDataSO 기준으로 처리합니다.
-/// 빙의 가능한 적은 충돌하지 않는 시체로 남기고, 시체가 남지 않는 적은 풀로 반환하거나 비활성화합니다.
+/// 적이 사망한 뒤 빙의 가능한 육신을 유지할지, 제거할지를 EnemyTypeDataSO 기준으로 처리합니다.
+/// 유지 대상이 아닌 적은 설정한 대기 시간 뒤 풀로 반환하거나 비활성화합니다.
 /// </summary>
 [DisallowMultipleComponent]
 [RequireComponent(typeof(HWJ_RootObjectDataResolver))]
@@ -14,8 +14,8 @@ public class HWJ_EnemyDeathLifecycleSystem : MonoBehaviour
     [SerializeField] private HWJ_RuntimeStatusSystem runtimeStatus;
 
     [Header("사망 처리")]
-    [Tooltip("시체가 남지 않는 적을 비활성화하기 전까지 기다리는 시간입니다. 보상 생성과 피격 이펙트가 먼저 처리될 시간을 줍니다.")]
-    [SerializeField] private float noCorpseDespawnDelaySeconds = 0.2f;
+    [Tooltip("유지하지 않는 적을 비활성화하기 전까지 기다리는 시간입니다. 보상 생성과 피격 이펙트가 먼저 처리될 시간을 줍니다.")]
+    [SerializeField] private float defeatedEnemyDespawnDelaySeconds = 0.2f;
     [Tooltip("빙의 가능한 시체가 플레이어와 물리적으로 밀리지 않도록 일반 콜라이더를 트리거로 전환합니다.")]
     [SerializeField] private bool makeCorpseCollidersTriggers = true;
     [Tooltip("사망 즉시 추적, 공격, AI, 스킬 행동을 멈춥니다.")]
@@ -59,7 +59,7 @@ public class HWJ_EnemyDeathLifecycleSystem : MonoBehaviour
 
         if (despawnRequested && Time.time >= despawnTime)
         {
-            DespawnNoCorpseEnemy();
+            DespawnDefeatedEnemy();
         }
     }
 
@@ -100,7 +100,7 @@ public class HWJ_EnemyDeathLifecycleSystem : MonoBehaviour
         }
 
         despawnRequested = true;
-        despawnTime = Time.time + Mathf.Max(0f, noCorpseDespawnDelaySeconds);
+        despawnTime = Time.time + Mathf.Max(0f, defeatedEnemyDespawnDelaySeconds);
     }
 
     private bool LeavesPossessableCorpse()
@@ -153,7 +153,7 @@ public class HWJ_EnemyDeathLifecycleSystem : MonoBehaviour
         }
     }
 
-    private void DespawnNoCorpseEnemy()
+    private void DespawnDefeatedEnemy()
     {
         despawnRequested = false;
         HWJ_PoolableObject poolableObject = GetComponent<HWJ_PoolableObject>();
