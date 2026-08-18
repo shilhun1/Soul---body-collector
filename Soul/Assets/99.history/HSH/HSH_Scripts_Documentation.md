@@ -36,6 +36,27 @@
     *   주기적 분출 또는 플레이어 감지 모드(`detectPlayer`)를 지원합니다. 수증기가 솟구칠 때 애니메이션과 함께 콜라이더의 `activeOffset`을 이동시켜 위로 솟구치는 데미지 및 넉백 판정을 발생시킵니다.
 *   **HSH_WindTrap** (바람 함정) *(업데이트: 2026-07-28)*
     *   발사기 모드에서 전방 레이캐스트로 플레이어를 감지 시 발사 애니메이션 연출을 실행하고 바람 프로젝타일을 발사합니다. 프로젝타일 충돌 시 데미지 및 넉백을 입힙니다.
+*   **HSH_Soulpass** (영혼 상태 전용 통과 벽/타일맵 기믹) *(신규 제작 및 타일맵 확장: 2026-08-07)*
+    *   플레이어가 영혼(Soul/Spirit) 상태일 때만 물리 충돌을 해제(`Physics2D.IgnoreCollision`)하여 통과할 수 있고, 육체 상태일 때는 막히는 물리 기믹입니다.
+    *   단일 SpriteRenderer뿐만 아니라 2D `Tilemap` 컴포넌트 및 `TilemapCollider2D`/`CompositeCollider2D`를 완벽 지원하여 타일맵 전체를 영혼 통과 레이어로 구성할 수 있습니다.
+*   **HSH_ShieldArrowTrap** (방패 방어 화살 함정) *(신규 제작: 2026-08-07)*
+    *   전방 플레이어 감지(`Physics2D.RaycastAll`) 또는 주기적 타이머에 따라 화살 투사체를 발사하는 함정 기믹입니다.
+    *   플레이어가 **방패 폼(`HWJ_WeaponType.Shield`)** 상태일 경우 화살을 데미지 없이 차단하고 소멸시키며, 방패 미착용 상태일 경우 데미지 및 넉백을 가합니다.
+*   **HSH_ProjectileSwitch** (발사체 타격 스위치) *(신규 제작: 2026-08-07)*
+    *   화살, 탄환 등 발사체 공격이 충돌(`OnTriggerEnter2D` / `OnCollisionEnter2D`)하면 발사체를 소멸시키며 작동하는 스위치 컴포넌트입니다.
+    *   작동 시 시각적 색상 변경, 애니메이션 Trigger 발동, `HSH_GimmickDoor` 연동 문 열림 및 디버그 로그(`Debug.Log`)를 출력합니다.
+*   **HSH_GimmickDoor** (기믹 연동 문) *(신규 제작: 2026-08-07)*
+    *   스위치나 기믹 연동 시 작동하는 문(Door/Gate) 컴포넌트입니다.
+    *   Animator 파라미터 제어(`AnimatorOnly`), 단순 콜라이더 해제(`DisableCollider`), Y축 부드러운 위치 이동(`TransformMove`), 오브젝트 비활성화(`DisableObject`) 모드를 지원하며 작동 상태를 디버그 로그로 출력합니다.
+*   **HSH_FlameWall** (불꽃벽 기믹) *(신규 제작: 2026-08-11)*
+    *   육체(Body) 상태에서는 물리 벽으로 막히며 닿을 시 데미지 및 넉백을 입습니다.
+    *   영혼(Soul/Spirit) 상태에서는 `HSH_Soulpass` 연동을 통해 통과가 허용되지만, 불꽃벽 내부에 있는 동안 주기적(`damageInterval`) 화염 데미지를 입도록 구현된 기믹 컴포넌트입니다.
+*   **HSH_SpearDashBreakable** (창 폼 1번/4번 스킬 돌진 파괴 기믹) *(신규 제작 및 업데이트: 2026-08-11)*
+    *   기본 대쉬기로는 파괴되지 않으며, 플레이어가 창 폼(`HWJ_WeaponType.Lance`) 상태에서 **1번 스킬(`PiercingDrive`)** 또는 **4번 스킬(`BurstLance`)**로 돌진하여 부딪혔을 때만 오브젝트가 파괴/해제되어 통과가 가능해지는 기믹 컴포넌트입니다.
+    *   기본 대쉬기나 타 무기 폼 충돌 시 일반 단단한 물리 벽으로 작동하며, 파괴 모드(`DisableObject`, `DestroyObject`, `DisableCollider`, `AnimatorTrigger`), 파괴 이펙트, 음향 및 자동 복구 기능을 지원합니다.
+*   **HSH_AxeBreakableObject** (도끼 폼 파괴 기믹 오브젝트) *(신규 제작: 2026-08-12)*
+    *   플레이어가 **도끼 폼(`HWJ_WeaponType.Axe`)** 상태일 때 일반 공격, 스킬 적중 또는 물리/트리거 충돌 시 부서져서 통과가 가능해지는 환경 파괴 오브젝트 기믹 컴포넌트입니다.
+    *   `HWJ_PossessionSystem`, `HWJ_WeaponGimmickActivatorUtility`, `hys_Player_Attack` 다중 연동을 통해 도끼 폼을 완벽 판정하며, 다양한 파괴 모드(`DisableObject`, `DestroyObject`, `DisableCollider`, `AnimatorTrigger`), 파괴 이펙트/사운드, 도끼 내려찍기(Axe Dive) 전용 조건 및 자동 복구 기능을 지원합니다.
 
 ## 4. UI 시스템 (UI)
 게임 화면 내 다양한 정보와 피드백을 표시하는 스크립트들입니다.
@@ -139,4 +160,22 @@
     *   **`HSH_AudioSettingsUI`**: 설정창 내 마스터, BGM, SFX 슬라이더 및 % 텍스트 표시 연동.
     *   **`HSH_KeyBindingManager`**: 커스텀 키 바인딩(일시정지, 스킬트리, 상호작용 등) 관리 및 Legacy KeyCode / InputSystem Key 통합 호환 레이어 작성.
     *   **`HSH_KeyRebindUI`**: 키 변경 버튼 클릭 시 키 입력 대기 모드 및 누른 키로 바인딩 즉시 변경 UI 제어. 기본값 복원 지원.
-    *   **`HSH_PauseUI` & `HSH_SkillTreeToggleUI` & `HSH_StealBody` & `HSH_StatProgressCore`**: `HSH_KeyBindingManager`와 동기화하여 변경된 단축키가 즉각 인기술 조작 및 UI에 적용되도록 연동.
+    *   **`HSH_PauseUI` & `HSH_SkillTreeToggleUI` & `HSH_StealBody` & `HSH_StatProgressCore`**: `HSH_KeyBindingManager`와 동기화하여 변경된 단축키가 즉각 인게임 조작 및 UI에 적용되도록 연동.
+
+### 📅 2026-08-07 (금)
+*   **[타일맵 영혼 통과 및 방패 함정 / 스위치 & 문 연동 기믹 신규 구현]**:
+    *   **`HSH_Soulpass`**: 2D `Tilemap` 색상/투명도 조절 지원 확장 및 클래스 이름 정제.
+    *   **`HSH_ShieldArrowTrap`**: 방패 폼(`HWJ_WeaponType.Shield`)일 경우 화살을 데미지 없이 막고 차단하는 방패 방어 화살 발사 함정 신규 제작 및 `RaycastAll` 감지 로직 적용.
+    *   **`HSH_ProjectileSwitch`**: 화살/탄환 충돌 시 작동하는 스위치 구현, 태그 비교 예외 방지(`string.Equals`) 적용 및 작동 감지 `Debug.Log` 출력 연동.
+    *   **`HSH_GimmickDoor`**: 스위치 및 기믹과 연동되어 열리는 문 컴포넌트 신규 제작 (애니메이터, 위치 이동, 콜라이더 제어 모드 지원 및 디버그 로그 출력).
+
+### 📅 2026-08-11 (화)
+*   **[HSH_FlameWall & HSH_SpearDashBreakable 기믹 신규 구현]**:
+    *   **`HSH_FlameWall`**: 육체 상태에서는 막힘/데미지를 적용하고 영혼 상태에서는 통과 가능하며 지속 데미지를 부여하는 불꽃벽 기믹 작성.
+    *   **`HSH_SpearDashBreakable`**: 창 폼(`HWJ_WeaponType.Lance`) 1번/4번 스킬 돌진 시에만 파괴되는 벽 기믹 구현.
+
+### 📅 2026-08-12 (수)
+*   **[HSH_AxeBreakableObject] 도끼 폼 파괴 기믹 오브젝트 신규 제작**:
+    *   도끼 폼(`HWJ_WeaponType.Axe`) 상태에서의 일반 공격(`TakeDamage`), 스킬 공격(`TryActivateFromSkillHit`) 및 물리/트리거 충돌 감지를 통해 환경 오브젝트를 파괴하는 기믹 작성.
+    *   `HWJ_PossessionSystem`, `HWJ_WeaponGimmickActivatorUtility`, `hys_Player_Attack` 다중 fallback 지원, 파괴 모드 4종(`DisableObject`, `DestroyObject`, `DisableCollider`, `AnimatorTrigger`), 시각/음향 연출 및 자동 복구(`respawnAfterTime`) 기능 구현.
+
