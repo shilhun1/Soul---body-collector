@@ -159,7 +159,7 @@ public class HWJ_EnemyAttackSystem : MonoBehaviour
             return false;
         }
 
-        float distance = Vector2.Distance(transform.position, target.position);
+        float distance = HWJ_PhysicsLayerUtility.GetColliderSurfaceDistance(transform, target);
 
         if (TryUseSkillCycle(distance))
         {
@@ -280,7 +280,9 @@ public class HWJ_EnemyAttackSystem : MonoBehaviour
 
         HWJ_EnemyBasicAttackData attackData = GetBasicAttackData();
         float tolerance = attackData != null ? Mathf.Max(0f, attackData.hitRangeTolerance) : 0f;
-        float distance = Vector2.Distance(transform.position, pendingBasicAttackTarget.transform.position);
+        float distance = HWJ_PhysicsLayerUtility.GetColliderSurfaceDistance(
+            transform,
+            pendingBasicAttackTarget.transform);
 
         if (runtimeStatus != null && (runtimeStatus.IsDead || !runtimeStatus.CanAttack))
         {
@@ -847,6 +849,31 @@ public class HWJ_EnemyAttackSystem : MonoBehaviour
     private bool CanAttackTargetState(Transform checkedTarget)
     {
         if (checkedTarget == null)
+        {
+            return false;
+        }
+
+        HWJ_RootObjectDataResolver checkedTargetResolver =
+            checkedTarget.GetComponent<HWJ_RootObjectDataResolver>();
+
+        if (checkedTargetResolver == null)
+        {
+            checkedTargetResolver =
+                checkedTarget.GetComponentInParent<HWJ_RootObjectDataResolver>();
+        }
+
+        if (checkedTargetResolver == dataResolver)
+        {
+            return false;
+        }
+
+        HWJ_PossessionSystem targetPossession =
+            checkedTargetResolver != null
+                ? checkedTargetResolver.GetComponent<HWJ_PossessionSystem>()
+                : null;
+
+        if (targetPossession != null
+            && targetPossession.PossessedBodyResolver == dataResolver)
         {
             return false;
         }

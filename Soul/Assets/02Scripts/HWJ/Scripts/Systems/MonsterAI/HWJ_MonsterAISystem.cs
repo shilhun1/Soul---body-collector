@@ -70,6 +70,9 @@ public class HWJ_MonsterAISystem : MonoBehaviour
     private void OnEnable()
     {
         CacheReferences();
+        RefreshData();
+        nextDecisionTime = 0f;
+        nextTargetSearchTime = 0f;
         motionSystem?.SetVelocityFacingEnabled(false);
     }
 
@@ -102,6 +105,13 @@ public class HWJ_MonsterAISystem : MonoBehaviour
         {
             target = FindPlayerTarget();
             nextTargetSearchTime = Time.time + Mathf.Max(0.05f, targetSearchIntervalSeconds);
+        }
+
+        // 공격 상태에 진입하기 전에도 인식 대상을 공유합니다.
+        // 디버그 Target이 비어 있거나 공격 직전 대상 전달이 누락되는 상황을 방지합니다.
+        if (target != null)
+        {
+            enemyAttackSystem?.SetTarget(target);
         }
 
         if (runtimeStatus != null && runtimeStatus.IsDead)
@@ -146,6 +156,14 @@ public class HWJ_MonsterAISystem : MonoBehaviour
         if (target != null && !CanUseTargetState())
         {
             perceptionSystem?.ClearAggro("대상 상태 규칙이 차단되어 스폰 위치로 복귀합니다.");
+        }
+
+        // 인식 시스템이 어그로를 획득한 프레임에 전투 상태 진입을 보장합니다.
+        // 스폰/빙의 복귀 직후 남아 있는 의사결정 타이머 때문에 Idle에 머무는 상황을 방지합니다.
+        if (HasActiveAggro() && IsOutOfCombatState(currentState))
+        {
+            SetAIState(HWJ_MonsterAIState.Detect, EnemyData.AI.detectSeconds);
+            nextDecisionTime = 0f;
         }
 
         if (!HasActiveAggro() && !IsOutOfCombatState(currentState))
@@ -719,7 +737,8 @@ public class HWJ_MonsterAISystem : MonoBehaviour
     private bool IsTargetInAttackRange()
     {
         float attackRange = GetAttackStartRange();
-        return GetTargetDistance() <= attackRange;
+        float targetDistance = HWJ_PhysicsLayerUtility.GetColliderSurfaceDistance(transform, target);
+        return targetDistance <= attackRange;
     }
 
     // 스킬 사거리는 실제 스킬 실행 가능 여부에만 쓰고, AI 접근을 멈추는 기준은 몬스터 포지셔닝 데이터로 제한합니다.

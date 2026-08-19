@@ -28,4 +28,58 @@ public static class HWJ_PhysicsLayerUtility
     {
         return ResolveGroundMask(default);
     }
+
+    /// <summary>
+    /// 두 캐릭터의 Transform 피벗이 아니라 실제 몸 콜라이더 표면 사이의 거리를 반환합니다.
+    /// 캐릭터마다 스프라이트 높이와 피벗이 달라도 근접 공격 사거리가 일관되게 동작하도록 사용합니다.
+    /// </summary>
+    public static float GetColliderSurfaceDistance(Transform source, Transform target)
+    {
+        if (source == null || target == null)
+        {
+            return float.MaxValue;
+        }
+
+        Collider2D sourceCollider = FindEnabledCollider(source);
+        Collider2D targetCollider = FindEnabledCollider(target);
+
+        if (sourceCollider != null && targetCollider != null)
+        {
+            ColliderDistance2D colliderDistance = sourceCollider.Distance(targetCollider);
+
+            if (colliderDistance.isValid)
+            {
+                return Mathf.Max(0f, colliderDistance.distance);
+            }
+        }
+
+        return Vector2.Distance(source.position, target.position);
+    }
+
+    private static Collider2D FindEnabledCollider(Transform owner)
+    {
+        Collider2D collider = owner.GetComponent<Collider2D>();
+
+        if (collider != null && collider.enabled && collider.gameObject.activeInHierarchy)
+        {
+            return collider;
+        }
+
+        Collider2D[] childColliders = owner.GetComponentsInChildren<Collider2D>(false);
+
+        for (int i = 0; i < childColliders.Length; i++)
+        {
+            Collider2D childCollider = childColliders[i];
+
+            if (childCollider != null
+                && childCollider.enabled
+                && !childCollider.isTrigger
+                && childCollider.gameObject.activeInHierarchy)
+            {
+                return childCollider;
+            }
+        }
+
+        return null;
+    }
 }

@@ -163,6 +163,7 @@ public class HWJ_PossessionExitSystem : MonoBehaviour
         possessionSystem.RuntimeBodySystem?.ClearCurrentBodyState(
             exitReason == HWJ_PossessedBodyExitReason.HpDepleted
             || exitReason == HWJ_PossessedBodyExitReason.DecayDepleted);
+        bodyController?.RestoreOwnerCollider();
         visualController?.RestoreOwnerVisual();
 
         if (refreshStatus)

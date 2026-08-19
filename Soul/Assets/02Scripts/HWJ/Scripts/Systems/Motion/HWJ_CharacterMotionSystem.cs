@@ -66,6 +66,23 @@ public class HWJ_CharacterMotionSystem : MonoBehaviour
 
     public float CurrentFacingDirection => ResolveCurrentFacingDirection();
     public bool UpdatesFacingFromVelocity => updateFacingFromVelocity;
+    public SpriteRenderer VisualRenderer
+    {
+        get
+        {
+            CacheReferences();
+            return spriteRenderer;
+        }
+    }
+
+    public Animator VisualAnimator
+    {
+        get
+        {
+            CacheReferences();
+            return animator;
+        }
+    }
 
     private void Awake()
     {

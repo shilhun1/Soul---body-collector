@@ -21,7 +21,7 @@ MonoBehaviour:
     abilityTags: 05000000
   status:
     level: 1
-    maxHp: 10000
+    maxHp: 100
     moveSpeed: 7
     attackPower: 1000
     defense: 0

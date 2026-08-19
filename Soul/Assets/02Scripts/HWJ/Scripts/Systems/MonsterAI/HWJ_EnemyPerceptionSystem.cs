@@ -7,6 +7,8 @@ using UnityEngine;
 [DisallowMultipleComponent]
 public class HWJ_EnemyPerceptionSystem : MonoBehaviour
 {
+    private const int GroundProbeHitCapacity = 8;
+
     [Header("참조")]
     [SerializeField] private HWJ_RootObjectDataResolver dataResolver;
     [SerializeField] private HWJ_CharacterMotionSystem motionSystem;
@@ -23,6 +25,7 @@ public class HWJ_EnemyPerceptionSystem : MonoBehaviour
     [SerializeField] private string lastPerceptionResult;
 
     private float nextTargetSearchTime;
+    private readonly RaycastHit2D[] groundProbeHits = new RaycastHit2D[GroundProbeHitCapacity];
 
     public Transform CurrentTarget => candidateTarget;
     public bool HasAggro => hasAggro;
@@ -136,11 +139,14 @@ public class HWJ_EnemyPerceptionSystem : MonoBehaviour
     {
         HWJ_EnemyTypeDataSO enemyData = EnemyData;
 
-        if (enemyData == null
-            || enemyData.Vision == null
-            || !IsValidBodyTarget(candidateTarget))
+        if (enemyData == null || enemyData.Vision == null)
         {
-            return false;
+            return FailPerception("적 시야 데이터가 없어 플레이어를 인식할 수 없습니다.");
+        }
+
+        if (!IsValidBodyTarget(candidateTarget))
+        {
+            return FailPerception("대상이 없거나 육신 상태가 아니어서 인식하지 않습니다.");
         }
 
         Vector2 toTarget = candidateTarget.position - transform.position;
@@ -148,9 +154,15 @@ public class HWJ_EnemyPerceptionSystem : MonoBehaviour
             ? enemyData.Vision.viewDistance
             : enemyData.Tracking.trackingRange;
 
-        if (viewDistance <= 0f || toTarget.magnitude > viewDistance)
+        if (viewDistance <= 0f)
         {
-            return false;
+            return FailPerception("시야 거리가 0 이하라 플레이어를 인식할 수 없습니다.");
+        }
+
+        if (toTarget.magnitude > viewDistance)
+        {
+            return FailPerception(
+                $"플레이어가 시야 거리 밖에 있습니다. 현재 {toTarget.magnitude:F2} / 허용 {viewDistance:F2}");
         }
 
         float facingDirection = motionSystem != null
@@ -159,17 +171,25 @@ public class HWJ_EnemyPerceptionSystem : MonoBehaviour
         facingDirection = Mathf.Approximately(facingDirection, 0f) ? 1f : facingDirection;
         float halfAngle = Mathf.Clamp(enemyData.Vision.viewAngle, 0f, 360f) * 0.5f;
 
-        if (Vector2.Angle(Vector2.right * facingDirection, toTarget) > halfAngle)
+        float targetAngle = Vector2.Angle(Vector2.right * facingDirection, toTarget);
+
+        if (targetAngle > halfAngle)
         {
-            return false;
+            return FailPerception(
+                $"플레이어가 시야각 밖에 있습니다. 현재 {targetAngle:F1}도 / 허용 {halfAngle:F1}도");
         }
 
         if (enemyData.Vision.requireSamePlatform && !IsTargetOnSamePlatform())
         {
-            return false;
+            return FailPerception("플레이어가 몬스터와 같은 발판에 있지 않아 인식하지 않습니다.");
         }
 
-        return !enemyData.Vision.requireClearLineOfSight || HasClearLineOfSight(toTarget);
+        if (enemyData.Vision.requireClearLineOfSight && !HasClearLineOfSight(toTarget))
+        {
+            return FailPerception("몬스터와 플레이어 사이의 지형이 시야를 막고 있습니다.");
+        }
+
+        return true;
     }
 
     public bool IsTargetOnSamePlatform()
@@ -183,31 +203,121 @@ public class HWJ_EnemyPerceptionSystem : MonoBehaviour
 
         float probeDistance = Mathf.Max(0.1f, enemyData.Vision.groundProbeDistance);
         int mask = HWJ_PhysicsLayerUtility.ResolveGroundMask(groundLayer);
-        RaycastHit2D selfGround = Physics2D.Raycast(
-            (Vector2)transform.position + Vector2.up * 0.1f,
-            Vector2.down,
-            probeDistance,
-            mask);
-        RaycastHit2D targetGround = Physics2D.Raycast(
-            (Vector2)candidateTarget.position + Vector2.up * 0.1f,
-            Vector2.down,
-            probeDistance,
-            mask);
         float tolerance = Mathf.Max(0f, enemyData.Vision.samePlatformHeightTolerance);
 
-        if (selfGround.collider != null && targetGround.collider != null)
+        bool hasSelfGround = TryGetGroundPoint(transform, probeDistance, mask, out float selfGroundY);
+        bool hasTargetGround = TryGetGroundPoint(candidateTarget, probeDistance, mask, out float targetGroundY);
+
+        if (hasSelfGround && hasTargetGround)
         {
-            return Mathf.Abs(selfGround.point.y - targetGround.point.y) <= tolerance;
+            return Mathf.Abs(selfGroundY - targetGroundY) <= tolerance;
         }
 
         return Mathf.Abs(candidateTarget.position.y - transform.position.y) <= tolerance;
     }
 
+    /// <summary>
+    /// Default 레이어를 지면으로 사용하는 씬에서도 캐릭터 자신의 콜라이더를 제외하고
+    /// 실제 발판의 높이를 찾습니다.
+    /// </summary>
+    private bool TryGetGroundPoint(
+        Transform actor,
+        float probeDistance,
+        int layerMask,
+        out float groundY)
+    {
+        groundY = 0f;
+
+        if (actor == null)
+        {
+            return false;
+        }
+
+        ContactFilter2D filter = new ContactFilter2D();
+        filter.SetLayerMask(layerMask);
+        filter.useTriggers = false;
+
+        int hitCount = Physics2D.Raycast(
+            (Vector2)actor.position + Vector2.up * 0.1f,
+            Vector2.down,
+            filter,
+            groundProbeHits,
+            Mathf.Max(0.1f, probeDistance));
+        float nearestDistance = float.MaxValue;
+        bool foundGround = false;
+
+        for (int i = 0; i < hitCount; i++)
+        {
+            RaycastHit2D hit = groundProbeHits[i];
+
+            if (hit.collider == null
+                || hit.transform == actor
+                || hit.transform.IsChildOf(actor))
+            {
+                continue;
+            }
+
+            if (hit.distance >= nearestDistance)
+            {
+                continue;
+            }
+
+            nearestDistance = hit.distance;
+            groundY = hit.point.y;
+            foundGround = true;
+        }
+
+        return foundGround;
+    }
+
+    private bool FailPerception(string reason)
+    {
+        lastPerceptionResult = reason;
+        return false;
+    }
+
     public bool IsTargetAboveDifferentPlatform()
     {
-        return candidateTarget != null
-            && candidateTarget.position.y > transform.position.y
-            && !IsTargetOnSamePlatform();
+        if (candidateTarget == null)
+        {
+            return false;
+        }
+
+        HWJ_EnemyTypeDataSO enemyData = EnemyData;
+        float heightTolerance = enemyData != null && enemyData.Vision != null
+            ? Mathf.Max(0.05f, enemyData.Vision.samePlatformHeightTolerance)
+            : 0.4f;
+        float targetHeightDelta = candidateTarget.position.y - transform.position.y;
+
+        if (targetHeightDelta <= heightTolerance)
+        {
+            return false;
+        }
+
+        // Transform 피벗 높이만으로 다른 발판을 판정하면 크기가 다른 캐릭터가
+        // 같은 바닥에 서 있어도 WaitBelowPlatform 상태에 고정될 수 있습니다.
+        // 양쪽 지면을 실제로 찾은 경우에만 상단 발판 대기 상태를 허용합니다.
+        float probeDistance = enemyData != null && enemyData.Vision != null
+            ? Mathf.Max(0.1f, enemyData.Vision.groundProbeDistance)
+            : 3f;
+        int groundMask = HWJ_PhysicsLayerUtility.ResolveGroundMask(groundLayer);
+        bool hasMonsterGround = TryGetGroundPoint(
+            transform,
+            probeDistance,
+            groundMask,
+            out float monsterGroundY);
+        bool hasTargetGround = TryGetGroundPoint(
+            candidateTarget,
+            probeDistance,
+            groundMask,
+            out float targetGroundY);
+
+        if (!hasMonsterGround || !hasTargetGround)
+        {
+            return false;
+        }
+
+        return targetGroundY - monsterGroundY > heightTolerance;
     }
 
     public bool ShouldLoseAggro()

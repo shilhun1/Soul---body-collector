@@ -26,22 +26,22 @@ MonoBehaviour:
     isPossessableBody: 1
     guaranteesStatOrb: 0
   tracking:
-    trackingRange: 8
-    loseTargetRange: 8
+    trackingRange: 12
+    loseTargetRange: 14
   patrol:
     enabled: 1
     radius: 2.5
     speedMultiplier: 0.55
     turnPauseSeconds: 0.15
   vision:
-    viewDistance: 3
-    viewAngle: 180
-    requireSamePlatform: 1
+    viewDistance: 12
+    viewAngle: 270
+    requireSamePlatform: 0
     samePlatformHeightTolerance: 0.4
     groundProbeDistance: 3
     requireClearLineOfSight: 1
   returnBehavior:
-    maxChaseDistanceFromSpawn: 8
+    maxChaseDistanceFromSpawn: 14
     speedMultiplier: 1
     arrivalDistance: 0.1
     waitBelowDifferentPlatform: 1
@@ -68,7 +68,7 @@ MonoBehaviour:
     wallCheckDistance: 0.18
   state:
     startState: 1
-    attackRange: 1.25
+    attackRange: 1.8
     returnToIdleDelaySeconds: 0.5
     stopWhenHit: 1
     hasSuperArmor: 0
