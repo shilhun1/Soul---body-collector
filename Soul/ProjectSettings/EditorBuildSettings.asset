@@ -18,7 +18,7 @@ EditorBuildSettings:
     path: Assets/01Scenes/HSH_1-2.unity
     guid: 85d6a93e0a728064f857dfab31874356
   - enabled: 1
-    path: Assets/01Scenes/Title.unity
+    path: Assets/01Scenes/Soul_Build/Title.unity
     guid: 31b03f9dcce59324dbfa117d3bc24f76
   - enabled: 1
     path: Assets/01Scenes/2-1.unity
