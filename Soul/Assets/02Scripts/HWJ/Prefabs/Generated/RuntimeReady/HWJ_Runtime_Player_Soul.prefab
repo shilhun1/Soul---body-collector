@@ -452,6 +452,7 @@ MonoBehaviour:
   flipSpriteByMoveDirection: 1
   useInitialSpriteFlipAsRightFacing: 1
   flipTransformScaleWhenNoSpriteRenderer: 0
+  updateFacingFromVelocity: 1
   moveThreshold: 0.05
   facingThreshold: 0.01
 --- !u!114 &4987786105596655614
@@ -760,6 +761,7 @@ MonoBehaviour:
   moveOwnerToPossessedBody: 1
   consumePossessedBody: 1
   deactivateConsumedBody: 1
+  usePossessedBodyCollider: 1
 --- !u!114 &3168022539913792669
 MonoBehaviour:
   m_ObjectHideFlags: 0

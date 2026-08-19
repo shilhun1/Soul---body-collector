@@ -1,0 +1,76 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5886d2e199e90b44e8180bfd0e5de850, type: 3}
+  m_Name: HWJ_Enemy_General_Slime_RootObjectData
+  m_EditorClassIdentifier: HWJ.Runtime::HWJ_RootObjectDataSO
+  identity:
+    objectId: enemy.general.slime
+    displayName: "\uC77C\uBC18 \uC2AC\uB77C\uC784"
+    objectType: 1
+    faction: 3
+    weaponType: 0
+    abilityTags: 
+  status:
+    level: 1
+    maxHp: 60
+    moveSpeed: 2.2
+    attackPower: 8
+    defense: 1
+    attackSpeed: 1
+    bodyWeight: 1.2
+  model:
+    modelPrefab: {fileID: 2129230811383490674, guid: 19e1cc1c8dc08714283de6f9cd6f64c8, type: 3}
+    animatorController: {fileID: 0}
+    heartEffectSocketName: Heart
+    hitEffectSocketName: Hit
+    possessedEyeSocketName: Eyes
+  damage:
+    damageType: 0
+    baseDamage: 0
+    criticalChance: 0
+    criticalMultiplier: 1.5
+    knockbackPower: 1.5
+    hitStunSeconds: 0.12
+    hitStopSeconds: 0
+    sameTargetHitCooldownSeconds: 0.08
+  receivedDamage:
+    damageMultiplier: 1
+    invincibleSecondsAfterHit: 0.1
+    isInvincible: 0
+    ignoreTrapDamage: 0
+    ignoreEnemyDamage: 0
+    hitStunSeconds: 0.18
+    hitReactionImmuneSeconds: 0.08
+    maxHitReactionsPerWindow: 3
+    hitReactionWindowSeconds: 1
+    hitReactionLimitImmuneSeconds: 0.2
+    knockbackWeightMultiplier: 1.2
+    hasSuperArmor: 0
+    ignoreHitStun: 0
+    ignoreKnockback: 0
+  interaction:
+    canInteract: 1
+    canBeTargeted: 1
+    interactionRange: 2
+  reward:
+    experienceReward: 10
+    skillPointReward: 0
+    dropsExperienceOrb: 1
+    experienceOrbPrefab: {fileID: 840010000000000001, guid: 22e7a47c526c4d51871f4bd3bdf889db, type: 3}
+    experienceOrbSpawnRadius: 0.35
+    dropsStatOrb: 0
+    statOrbDropChance: 0
+    statOrbSpawnRadius: 0.5
+    statOrbId: 
+    statOrbCandidates: []
+    useAllRegisteredStatOrbsWhenEmpty: 0
+  selectedTypeData: {fileID: 11400000, guid: 0674e64026424fb42b746008c4677a42, type: 2}

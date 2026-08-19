@@ -236,13 +236,6 @@ public class HWJ_PossessionSystem : MonoBehaviour
             possessionKind,
             liveMentalState);
 
-        if (possessionKind == HWJ_PossessionKind.Corpse
-            && targetDataResolver.TryGetComponent(out HWJ_LivePossessionMentalState corpseMentalState)
-            && corpseMentalState.CanPossessAsCorpse())
-        {
-            corpseMentalState.MarkCorpsePossessionConsumed();
-        }
-
         bodyController.CaptureBeforePossession(
             targetDataResolver,
             possessionKind == HWJ_PossessionKind.Live);

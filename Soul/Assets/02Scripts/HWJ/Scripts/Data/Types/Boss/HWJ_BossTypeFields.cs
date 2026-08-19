@@ -4,6 +4,11 @@ using UnityEngine;
 [Serializable]
 public class HWJ_BossFSMData
 {
+    [Header("보스 이동 정책")]
+    [InspectorName("평상시 이동 방식")]
+    [Tooltip("추적형 보스는 플레이어에게 접근하고, 고정형 시전자 보스는 제자리에서 방 전체를 대상으로 패턴을 사용합니다.")]
+    public HWJ_BossLocomotionMode locomotionMode = HWJ_BossLocomotionMode.Chase;
+
     [Header("보스전 시작")]
     [InspectorName("플레이어 입장 시 자동 시작")]
     [Tooltip("켜면 플레이어가 보스방에 들어왔을 때 보스전을 시작합니다.")]

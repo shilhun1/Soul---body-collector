@@ -130,11 +130,6 @@ public static class HWJ_DefaultPrefabSeederBridge
         RegisterModel(prefabs, "enemy_corpse_bow", "HWJ_Model_Enemy_Corpse_Bow", new Color32(80, 165, 85, 255), reportLines);
         RegisterModel(prefabs, "enemy_corpse_lance", "HWJ_Model_Enemy_Corpse_Lance", new Color32(75, 130, 210, 255), reportLines);
         RegisterModel(prefabs, "enemy_corpse_shield", "HWJ_Model_Enemy_Corpse_Shield", new Color32(190, 160, 55, 255), reportLines);
-        RegisterModel(prefabs, "enemy_nocorpse_sword", "HWJ_Model_Enemy_NoCorpse_Sword", new Color32(180, 45, 45, 255), reportLines);
-        RegisterModel(prefabs, "enemy_nocorpse_axe", "HWJ_Model_Enemy_NoCorpse_Axe", new Color32(170, 65, 35, 255), reportLines);
-        RegisterModel(prefabs, "enemy_nocorpse_bow", "HWJ_Model_Enemy_NoCorpse_Bow", new Color32(55, 135, 75, 255), reportLines);
-        RegisterModel(prefabs, "enemy_nocorpse_lance", "HWJ_Model_Enemy_NoCorpse_Lance", new Color32(55, 105, 180, 255), reportLines);
-        RegisterModel(prefabs, "enemy_nocorpse_shield", "HWJ_Model_Enemy_NoCorpse_Shield", new Color32(155, 135, 45, 255), reportLines);
         return prefabs;
     }
 

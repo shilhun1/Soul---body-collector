@@ -9,6 +9,7 @@ public class HWJ_MonsterAISystem : MonoBehaviour
     [SerializeField] private HWJ_RootObjectDataResolver dataResolver;
     [SerializeField] private HWJ_RuntimeStatusSystem runtimeStatus;
     [SerializeField] private HWJ_EnemyAttackSystem enemyAttackSystem;
+    [SerializeField] private HWJ_EnemyPerceptionSystem perceptionSystem;
     [SerializeField] private HWJ_SkillActionSystem skillActionSystem;
     [SerializeField] private HWJ_CharacterMotionSystem motionSystem;
     [SerializeField] private HWJ_KnockbackSystem knockbackSystem;
@@ -56,12 +57,28 @@ public class HWJ_MonsterAISystem : MonoBehaviour
     private float stateEndTime;
     private float nextTargetSearchTime;
     private float nextDecisionTime;
+    private Vector3 fallbackSpawnPosition;
     private bool hasStoredActionResult;
 
     private void Awake()
     {
         CacheReferences();
         RefreshData();
+        fallbackSpawnPosition = transform.position;
+    }
+
+    private void OnEnable()
+    {
+        CacheReferences();
+        RefreshData();
+        nextDecisionTime = 0f;
+        nextTargetSearchTime = 0f;
+        motionSystem?.SetVelocityFacingEnabled(false);
+    }
+
+    private void OnDisable()
+    {
+        motionSystem?.SetVelocityFacingEnabled(true);
     }
 
     private void Update()
@@ -79,10 +96,22 @@ public class HWJ_MonsterAISystem : MonoBehaviour
         CacheReferences();
         RefreshData();
 
-        if (target == null && autoFindPlayerTarget && Time.time >= nextTargetSearchTime)
+        if (perceptionSystem != null)
+        {
+            perceptionSystem.RefreshPerception();
+            target = perceptionSystem.CurrentTarget;
+        }
+        else if (target == null && autoFindPlayerTarget && Time.time >= nextTargetSearchTime)
         {
             target = FindPlayerTarget();
             nextTargetSearchTime = Time.time + Mathf.Max(0.05f, targetSearchIntervalSeconds);
+        }
+
+        // 공격 상태에 진입하기 전에도 인식 대상을 공유합니다.
+        // 디버그 Target이 비어 있거나 공격 직전 대상 전달이 누락되는 상황을 방지합니다.
+        if (target != null)
+        {
+            enemyAttackSystem?.SetTarget(target);
         }
 
         if (runtimeStatus != null && runtimeStatus.IsDead)
@@ -124,28 +153,22 @@ public class HWJ_MonsterAISystem : MonoBehaviour
             return;
         }
 
-        if (target == null)
+        if (target != null && !CanUseTargetState())
         {
-            SetAIState(HWJ_MonsterAIState.Idle);
-            StopHorizontalMovement();
-            StoreActionResult(CreateActionFailure(
-                HWJ_EnemyAIActionType.Idle,
-                HWJ_EnemyAIActionFailureCode.MissingTarget,
-                HWJ_MonsterAIState.Idle,
-                "Monster AI action failed: target is missing."));
-            return;
+            perceptionSystem?.ClearAggro("대상 상태 규칙이 차단되어 스폰 위치로 복귀합니다.");
         }
 
-        if (!CanUseTargetState())
+        // 인식 시스템이 어그로를 획득한 프레임에 전투 상태 진입을 보장합니다.
+        // 스폰/빙의 복귀 직후 남아 있는 의사결정 타이머 때문에 Idle에 머무는 상황을 방지합니다.
+        if (HasActiveAggro() && IsOutOfCombatState(currentState))
         {
-            SetAIState(HWJ_MonsterAIState.Idle);
-            StopHorizontalMovement();
-            StoreActionResult(CreateActionFailure(
-                HWJ_EnemyAIActionType.Idle,
-                HWJ_EnemyAIActionFailureCode.TargetStateBlocked,
-                HWJ_MonsterAIState.Idle,
-                "Monster AI action failed: target state is blocked by AI target rules."));
-            return;
+            SetAIState(HWJ_MonsterAIState.Detect, EnemyData.AI.detectSeconds);
+            nextDecisionTime = 0f;
+        }
+
+        if (!HasActiveAggro() && !IsOutOfCombatState(currentState))
+        {
+            SetAIState(HWJ_MonsterAIState.ReturnHome);
         }
 
         if (Time.time < nextDecisionTime)
@@ -169,6 +192,7 @@ public class HWJ_MonsterAISystem : MonoBehaviour
     public void SetTarget(Transform target)
     {
         this.target = target;
+        perceptionSystem?.SetCandidateTarget(target, true);
         enemyAttackSystem?.SetTarget(target);
     }
 
@@ -217,11 +241,14 @@ public class HWJ_MonsterAISystem : MonoBehaviour
                 actionResult = RunRepath();
                 break;
             case HWJ_MonsterAIState.HitStun:
-                SetAIState(HWJ_MonsterAIState.Approach);
+                HWJ_MonsterAIState hitStunNextState = HasActiveAggro()
+                    ? HWJ_MonsterAIState.Approach
+                    : HWJ_MonsterAIState.ReturnHome;
+                SetAIState(hitStunNextState);
                 actionResult = CreateActionSuccess(
                     HWJ_EnemyAIActionType.HitStun,
-                    HWJ_MonsterAIState.Approach,
-                    "Monster AI action resolved: hit stun ended and AI returned to approach.");
+                    hitStunNextState,
+                    "Monster AI action resolved: hit stun ended and the next state was selected.");
                 break;
             case HWJ_MonsterAIState.Dead:
                 StopHorizontalMovement();
@@ -229,6 +256,15 @@ public class HWJ_MonsterAISystem : MonoBehaviour
                     HWJ_EnemyAIActionType.Dead,
                     HWJ_MonsterAIState.Dead,
                     "Monster AI action resolved: dead state keeps movement stopped.");
+                break;
+            case HWJ_MonsterAIState.Patrol:
+                actionResult = RunPatrol();
+                break;
+            case HWJ_MonsterAIState.ReturnHome:
+                actionResult = RunReturnHome();
+                break;
+            case HWJ_MonsterAIState.WaitBelowPlatform:
+                actionResult = RunWaitBelowPlatform();
                 break;
             default:
                 actionResult = CreateActionFailure(
@@ -247,7 +283,7 @@ public class HWJ_MonsterAISystem : MonoBehaviour
         StopHorizontalMovement();
         runtimeStatus?.SetState(HWJ_RuntimeState.Idle);
 
-        if (IsTargetInTrackingRange())
+        if (HasActiveAggro())
         {
             SetAIState(HWJ_MonsterAIState.Detect, EnemyData.AI.detectSeconds);
             return CreateActionSuccess(
@@ -256,16 +292,26 @@ public class HWJ_MonsterAISystem : MonoBehaviour
                 "Monster AI action succeeded: target entered tracking range.");
         }
 
-        return CreateActionFailure(
+        return CreateActionSuccess(
             HWJ_EnemyAIActionType.Idle,
-            HWJ_EnemyAIActionFailureCode.TargetOutOfTrackingRange,
             HWJ_MonsterAIState.Idle,
-            "Monster AI action waiting: target is outside tracking range.");
+            "Monster AI is holding its initial facing until the player is detected.");
     }
 
     private HWJ_EnemyAIActionResult RunDetect()
     {
         StopHorizontalMovement();
+
+        if (!HasActiveAggro())
+        {
+            SetAIState(HWJ_MonsterAIState.ReturnHome);
+            return CreateActionFailure(
+                HWJ_EnemyAIActionType.Detect,
+                HWJ_EnemyAIActionFailureCode.TargetNotVisible,
+                HWJ_MonsterAIState.ReturnHome,
+                "Monster AI action failed: target was lost during detection.");
+        }
+
         FaceTarget();
 
         if (!IsStateTimeDone())
@@ -289,14 +335,25 @@ public class HWJ_MonsterAISystem : MonoBehaviour
 
     private HWJ_EnemyAIActionResult RunApproach()
     {
-        if (!IsTargetInTrackingRange())
+        if (!HasActiveAggro() || !IsTargetInTrackingRange())
         {
-            SetAIState(HWJ_MonsterAIState.Idle);
+            perceptionSystem?.ClearAggro("추적 범위를 벗어나 스폰 위치로 복귀합니다.");
+            SetAIState(HWJ_MonsterAIState.ReturnHome);
             return CreateActionFailure(
                 HWJ_EnemyAIActionType.Approach,
                 HWJ_EnemyAIActionFailureCode.TargetOutOfTrackingRange,
-                HWJ_MonsterAIState.Idle,
+                HWJ_MonsterAIState.ReturnHome,
                 "Monster AI action failed: target left tracking range.");
+        }
+
+        if (ShouldWaitBelowPlatform())
+        {
+            SetAIState(HWJ_MonsterAIState.WaitBelowPlatform);
+            return CreateActionFailure(
+                HWJ_EnemyAIActionType.Approach,
+                HWJ_EnemyAIActionFailureCode.TargetOnDifferentPlatform,
+                HWJ_MonsterAIState.WaitBelowPlatform,
+                "Monster AI action waiting: target moved to an upper platform.");
         }
 
         FaceTarget();
@@ -316,8 +373,29 @@ public class HWJ_MonsterAISystem : MonoBehaviour
     private HWJ_EnemyAIActionResult RunAttackPrepare()
     {
         StopHorizontalMovement();
-        FaceTarget();
         runtimeStatus?.SetState(HWJ_RuntimeState.Attack);
+
+        if (!HasActiveAggro())
+        {
+            SetAIState(HWJ_MonsterAIState.ReturnHome);
+            return CreateActionFailure(
+                HWJ_EnemyAIActionType.AttackPrepare,
+                HWJ_EnemyAIActionFailureCode.TargetOutOfTrackingRange,
+                HWJ_MonsterAIState.ReturnHome,
+                "Monster AI action failed: aggro ended during attack preparation.");
+        }
+
+        FaceTarget();
+
+        if (ShouldWaitBelowPlatform())
+        {
+            SetAIState(HWJ_MonsterAIState.WaitBelowPlatform);
+            return CreateActionFailure(
+                HWJ_EnemyAIActionType.AttackPrepare,
+                HWJ_EnemyAIActionFailureCode.TargetOnDifferentPlatform,
+                HWJ_MonsterAIState.WaitBelowPlatform,
+                "Monster AI action canceled: target is on an upper platform.");
+        }
 
         if (!IsTargetInAttackRange())
         {
@@ -348,7 +426,22 @@ public class HWJ_MonsterAISystem : MonoBehaviour
     private HWJ_EnemyAIActionResult RunAttack()
     {
         StopHorizontalMovement();
+
+        if (!HasActiveAggro() || ShouldWaitBelowPlatform())
+        {
+            HWJ_MonsterAIState nextState = HasActiveAggro()
+                ? HWJ_MonsterAIState.WaitBelowPlatform
+                : HWJ_MonsterAIState.ReturnHome;
+            SetAIState(nextState);
+            return CreateActionFailure(
+                HWJ_EnemyAIActionType.Attack,
+                HWJ_EnemyAIActionFailureCode.TargetUnavailable,
+                nextState,
+                "Monster AI action canceled: target is no longer attackable.");
+        }
+
         FaceTarget();
+
         enemyAttackSystem?.SetTarget(target);
         bool attackSucceeded = enemyAttackSystem != null && enemyAttackSystem.TryAutoAttack();
         SetAIState(HWJ_MonsterAIState.Recovery, EnemyData.AI.attackRecoverySeconds);
@@ -381,6 +474,16 @@ public class HWJ_MonsterAISystem : MonoBehaviour
     {
         StopHorizontalMovement();
 
+        if (!HasActiveAggro())
+        {
+            SetAIState(HWJ_MonsterAIState.ReturnHome);
+            return CreateActionFailure(
+                HWJ_EnemyAIActionType.Recovery,
+                HWJ_EnemyAIActionFailureCode.TargetOutOfTrackingRange,
+                HWJ_MonsterAIState.ReturnHome,
+                "Monster AI recovery ended because aggro was cleared.");
+        }
+
         if (IsStateTimeDone())
         {
             SetAIState(HWJ_MonsterAIState.Repath, EnemyData.AI.repathSeconds);
@@ -401,6 +504,16 @@ public class HWJ_MonsterAISystem : MonoBehaviour
     {
         StopHorizontalMovement();
 
+        if (!HasActiveAggro())
+        {
+            SetAIState(HWJ_MonsterAIState.ReturnHome);
+            return CreateActionFailure(
+                HWJ_EnemyAIActionType.Repath,
+                HWJ_EnemyAIActionFailureCode.TargetOutOfTrackingRange,
+                HWJ_MonsterAIState.ReturnHome,
+                "Monster AI repath ended because aggro was cleared.");
+        }
+
         if (!IsStateTimeDone())
         {
             return CreateActionFailure(
@@ -418,6 +531,120 @@ public class HWJ_MonsterAISystem : MonoBehaviour
             HWJ_EnemyAIActionType.Repath,
             nextState,
             "Monster AI action succeeded: repath timer finished.");
+    }
+
+    private HWJ_EnemyAIActionResult RunPatrol()
+    {
+        if (HasActiveAggro())
+        {
+            SetAIState(HWJ_MonsterAIState.Detect, EnemyData.AI.detectSeconds);
+            return CreateActionSuccess(
+                HWJ_EnemyAIActionType.Patrol,
+                HWJ_MonsterAIState.Detect,
+                "Monster AI patrol detected the player.");
+        }
+
+        StopHorizontalMovement();
+        SetAIState(HWJ_MonsterAIState.Idle);
+        return CreateActionSuccess(
+            HWJ_EnemyAIActionType.Patrol,
+            HWJ_MonsterAIState.Idle,
+            "Monster AI patrol was replaced with stationary detection behavior.");
+    }
+
+    private HWJ_EnemyAIActionResult RunReturnHome()
+    {
+        if (HasActiveAggro())
+        {
+            SetAIState(HWJ_MonsterAIState.Detect, EnemyData.AI.detectSeconds);
+            return CreateActionSuccess(
+                HWJ_EnemyAIActionType.ReturnHome,
+                HWJ_MonsterAIState.Detect,
+                "Monster AI reacquired the player while returning home.");
+        }
+
+        Vector3 spawnPosition = GetSpawnPosition();
+        float arrivalDistance = EnemyData.ReturnBehavior != null
+            ? Mathf.Max(0.01f, EnemyData.ReturnBehavior.arrivalDistance)
+            : 0.1f;
+        float distanceX = spawnPosition.x - transform.position.x;
+
+        if (Mathf.Abs(distanceX) <= arrivalDistance)
+        {
+            StopHorizontalMovement();
+            SetAIState(HWJ_MonsterAIState.Idle, EnemyData.AI.idleSeconds);
+            return CreateActionSuccess(
+                HWJ_EnemyAIActionType.ReturnHome,
+                HWJ_MonsterAIState.Idle,
+                "Monster AI returned to its spawn position.");
+        }
+
+        float direction = Mathf.Sign(distanceX);
+
+        if (!CanMoveForward(direction))
+        {
+            StopHorizontalMovement();
+            return CreateActionFailure(
+                HWJ_EnemyAIActionType.ReturnHome,
+                HWJ_EnemyAIActionFailureCode.MovementBlocked,
+                HWJ_MonsterAIState.ReturnHome,
+                "Monster AI return path is blocked by a wall or ledge.");
+        }
+
+        float speedMultiplier = EnemyData.ReturnBehavior != null
+            ? EnemyData.ReturnBehavior.speedMultiplier
+            : 1f;
+        return MoveHorizontal(
+            direction,
+            speedMultiplier,
+            HWJ_EnemyAIActionType.ReturnHome,
+            HWJ_MonsterAIState.ReturnHome,
+            "Monster AI is returning to its spawn position.");
+    }
+
+    private HWJ_EnemyAIActionResult RunWaitBelowPlatform()
+    {
+        if (!HasActiveAggro())
+        {
+            SetAIState(HWJ_MonsterAIState.ReturnHome);
+            return CreateActionFailure(
+                HWJ_EnemyAIActionType.WaitBelowPlatform,
+                HWJ_EnemyAIActionFailureCode.TargetOutOfTrackingRange,
+                HWJ_MonsterAIState.ReturnHome,
+                "Monster AI stopped waiting because aggro ended.");
+        }
+
+        if (!ShouldWaitBelowPlatform())
+        {
+            SetAIState(HWJ_MonsterAIState.Approach);
+            return CreateActionSuccess(
+                HWJ_EnemyAIActionType.WaitBelowPlatform,
+                HWJ_MonsterAIState.Approach,
+                "Monster AI target returned to the same platform.");
+        }
+
+        FaceTarget();
+        float stopDistance = EnemyData.Navigation.stoppingDistance > 0f
+            ? EnemyData.Navigation.stoppingDistance
+            : GetAttackStartRange();
+        float distanceX = target != null ? target.position.x - transform.position.x : 0f;
+
+        if (Mathf.Abs(distanceX) <= stopDistance || !CanMoveForward(Mathf.Sign(distanceX)))
+        {
+            StopHorizontalMovement();
+            runtimeStatus?.SetState(HWJ_RuntimeState.Idle);
+            return CreateActionSuccess(
+                HWJ_EnemyAIActionType.WaitBelowPlatform,
+                HWJ_MonsterAIState.WaitBelowPlatform,
+                "Monster AI is looking up below the target platform.");
+        }
+
+        return MoveHorizontal(
+            Mathf.Sign(distanceX),
+            1f,
+            HWJ_EnemyAIActionType.WaitBelowPlatform,
+            HWJ_MonsterAIState.WaitBelowPlatform,
+            "Monster AI is moving below the target platform.");
     }
 
     public HWJ_EnemyAITransitionResult TrySetAIState(HWJ_MonsterAIState nextState)
@@ -496,6 +723,11 @@ public class HWJ_MonsterAISystem : MonoBehaviour
 
     private bool IsTargetInTrackingRange()
     {
+        if (perceptionSystem != null)
+        {
+            return perceptionSystem.HasAggro && !perceptionSystem.ShouldLoseAggro();
+        }
+
         float trackingRange = EnemyData.Tracking.trackingRange > 0f
             ? EnemyData.Tracking.trackingRange
             : fallbackTrackingRange;
@@ -505,7 +737,8 @@ public class HWJ_MonsterAISystem : MonoBehaviour
     private bool IsTargetInAttackRange()
     {
         float attackRange = GetAttackStartRange();
-        return GetTargetDistance() <= attackRange;
+        float targetDistance = HWJ_PhysicsLayerUtility.GetColliderSurfaceDistance(transform, target);
+        return targetDistance <= attackRange;
     }
 
     // 스킬 사거리는 실제 스킬 실행 가능 여부에만 쓰고, AI 접근을 멈추는 기준은 몬스터 포지셔닝 데이터로 제한합니다.
@@ -591,6 +824,92 @@ public class HWJ_MonsterAISystem : MonoBehaviour
             "Monster AI action succeeded: moving transform toward target.");
     }
 
+    private HWJ_EnemyAIActionResult MoveHorizontal(
+        float directionX,
+        float speedMultiplier,
+        HWJ_EnemyAIActionType actionType,
+        HWJ_MonsterAIState nextState,
+        string message)
+    {
+        if (Mathf.Abs(directionX) <= 0.01f
+            || (runtimeStatus != null && !runtimeStatus.CanMove))
+        {
+            StopHorizontalMovement();
+            return CreateActionFailure(
+                actionType,
+                HWJ_EnemyAIActionFailureCode.CannotMove,
+                nextState,
+                "Monster AI cannot move in the requested direction.");
+        }
+
+        float baseSpeed = runtimeStatus != null
+            ? runtimeStatus.MoveSpeed
+            : dataResolver.Status.moveSpeed;
+        float moveSpeed = baseSpeed * Mathf.Max(0f, speedMultiplier);
+        float signedDirection = Mathf.Sign(directionX);
+
+        if (HasActiveAggro())
+        {
+            FaceTarget();
+        }
+
+        runtimeStatus?.SetState(HWJ_RuntimeState.Move);
+
+        if (body != null)
+        {
+            Vector2 velocity = body.linearVelocity;
+            velocity.x = signedDirection * moveSpeed;
+            body.linearVelocity = velocity;
+        }
+        else
+        {
+            transform.position += Vector3.right * signedDirection * moveSpeed * Time.deltaTime;
+        }
+
+        return CreateActionSuccess(actionType, nextState, message);
+    }
+
+    private bool HasActiveAggro()
+    {
+        if (perceptionSystem != null)
+        {
+            return perceptionSystem.HasAggro;
+        }
+
+        if (target == null || !CanUseTargetState())
+        {
+            return false;
+        }
+
+        float trackingRange = EnemyData != null && EnemyData.Tracking.trackingRange > 0f
+            ? EnemyData.Tracking.trackingRange
+            : fallbackTrackingRange;
+        return GetTargetDistance() <= trackingRange;
+    }
+
+    private bool ShouldWaitBelowPlatform()
+    {
+        return perceptionSystem != null
+            && EnemyData != null
+            && EnemyData.ReturnBehavior != null
+            && EnemyData.ReturnBehavior.waitBelowDifferentPlatform
+            && perceptionSystem.IsTargetAboveDifferentPlatform();
+    }
+
+    private Vector3 GetSpawnPosition()
+    {
+        return perceptionSystem != null
+            ? perceptionSystem.SpawnPosition
+            : fallbackSpawnPosition;
+    }
+
+    private static bool IsOutOfCombatState(HWJ_MonsterAIState state)
+    {
+        return state == HWJ_MonsterAIState.Idle
+            || state == HWJ_MonsterAIState.Patrol
+            || state == HWJ_MonsterAIState.ReturnHome;
+    }
+
     private bool CanMoveForward(float directionX)
     {
         if (EnemyData == null || Mathf.Abs(directionX) <= 0.01f)
@@ -598,7 +917,7 @@ public class HWJ_MonsterAISystem : MonoBehaviour
             return false;
         }
 
-        int layerMask = groundLayer.value != 0 ? groundLayer.value : Physics2D.AllLayers;
+        int layerMask = HWJ_PhysicsLayerUtility.ResolveGroundMask(groundLayer);
         Vector2 origin = transform.position;
         Vector2 direction = Vector2.right * Mathf.Sign(directionX);
 
@@ -791,6 +1110,11 @@ public class HWJ_MonsterAISystem : MonoBehaviour
         if (enemyAttackSystem == null)
         {
             enemyAttackSystem = GetComponent<HWJ_EnemyAttackSystem>();
+        }
+
+        if (perceptionSystem == null)
+        {
+            perceptionSystem = GetComponent<HWJ_EnemyPerceptionSystem>();
         }
 
         if (skillActionSystem == null)
