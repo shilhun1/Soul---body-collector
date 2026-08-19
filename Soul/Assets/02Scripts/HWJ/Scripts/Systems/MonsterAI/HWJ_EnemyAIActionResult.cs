@@ -12,7 +12,10 @@ public enum HWJ_EnemyAIActionType
     Repath,
     HitStun,
     Dead,
-    SkillNavigationBlock
+    SkillNavigationBlock,
+    Patrol,
+    ReturnHome,
+    WaitBelowPlatform
 }
 
 public enum HWJ_EnemyAIActionFailureCode
@@ -29,7 +32,11 @@ public enum HWJ_EnemyAIActionFailureCode
     MovementBlocked,
     MissingAttackSystem,
     AttackRequestRejected,
-    InvalidState
+    InvalidState,
+    TargetNotVisible,
+    TargetOnDifferentPlatform,
+    ReturningHome,
+    TargetUnavailable
 }
 
 [Serializable]

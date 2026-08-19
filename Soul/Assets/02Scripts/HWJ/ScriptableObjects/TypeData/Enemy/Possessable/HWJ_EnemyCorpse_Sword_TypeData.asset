@@ -20,12 +20,29 @@ MonoBehaviour:
   role:
     weaponType: 3
     isElite: 0
-    leavesCorpseOnDeath: 1
+    leavesCorpseOnDeath: 0
     isPossessableBody: 1
     guaranteesStatOrb: 0
   tracking:
     trackingRange: 8
     loseTargetRange: 0
+  patrol:
+    enabled: 1
+    radius: 2.5
+    speedMultiplier: 0.55
+    turnPauseSeconds: 0.15
+  vision:
+    viewDistance: 3
+    viewAngle: 180
+    requireSamePlatform: 1
+    samePlatformHeightTolerance: 0.4
+    groundProbeDistance: 3
+    requireClearLineOfSight: 1
+  returnBehavior:
+    maxChaseDistanceFromSpawn: 8
+    speedMultiplier: 1
+    arrivalDistance: 0.1
+    waitBelowDifferentPlatform: 1
   ai:
     aiProfileId: 
     decisionIntervalSeconds: 0.1
@@ -54,6 +71,13 @@ MonoBehaviour:
     stopWhenHit: 1
     hasSuperArmor: 0
     immuneToHitStun: 0
+  basicAttack:
+    mode: 0
+    motionKey: BasicAttack
+    fallbackHitDelaySeconds: 0.25
+    hitRangeTolerance: 0.15
+    damageMultiplier: 1
+    contactDamageIntervalSeconds: 1.5
   skillCycle:
     skills:
     - skillId: sword_diagonal_slash

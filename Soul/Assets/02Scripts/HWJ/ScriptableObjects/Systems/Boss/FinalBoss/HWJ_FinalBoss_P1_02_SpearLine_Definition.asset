@@ -1,0 +1,52 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ad30255c3c7414c41ab9446384ce7ab6, type: 3}
+  m_Name: HWJ_FinalBoss_P1_02_SpearLine_Definition
+  m_EditorClassIdentifier: HWJ.Runtime::HWJ_FinalBossPatternDefinitionSO
+  patternId: boss.final.p1.spear_line
+  patternKind: 2
+  gestureTrigger: Gesture_Spear
+  preparationSeconds: 1.5
+  animationEventTimeoutSeconds: 1.5
+  preferAnimationCastEvent: 0
+  recoverySeconds: 0.9
+  damageMultiplier: 1
+  possessionMentalDamageRatio: 0
+  stunSeconds: 0
+  repeatHitIntervalSeconds: 0.5
+  projectileCount: 1
+  projectileIntervalSeconds: 0
+  projectileSpeed: 18
+  projectileMaximumDistance: 32
+  projectileSize: {x: 1.6, y: 0.35}
+  projectileVisualPrefab: {fileID: 0}
+  secondaryProjectileVisualPrefab: {fileID: 0}
+  tertiaryProjectileVisualPrefab: {fileID: 0}
+  hazardDurationSeconds: 3
+  hazardSize: {x: 32, y: 0.35}
+  radialAttackCount: 8
+  telegraphVisualPrefab: {fileID: 0}
+  hazardVisualPrefab: {fileID: 0}
+  secondaryHazardVisualPrefab: {fileID: 0}
+  barrierHpRatio: 0
+  barrierDurationSeconds: 0
+  barrierVisualPrefab: {fileID: 0}
+  portalCount: 1
+  monstersPerPortal: 3
+  summonIntervalSeconds: 0.35
+  summonStepOffset: {x: 0.45, y: 0}
+  summonMonsterPrefabs: []
+  summonMonsterRootObjects: []
+  portalVisualPrefab: {fileID: 0}
+  chargeSpeed: 18
+  chargeMaximumDistance: 24
+  returnToAnchorSeconds: 0.35

@@ -29,8 +29,6 @@ public class HWJ_LivePossessionMentalState : MonoBehaviour
     [Space(8f)]
     [Header("빙의 상태")]
     [SerializeField] private bool permanentlyBlocked;
-    [SerializeField] private bool becameCorpseAfterLivePossession;
-    [SerializeField] private bool corpsePossessionConsumed;
 
     [Space(8f)]
     [Header("Mental Change Log")]
@@ -44,7 +42,6 @@ public class HWJ_LivePossessionMentalState : MonoBehaviour
         : 0f;
     public bool IsPermanentlyBlocked => permanentlyBlocked;
     public bool IsMentalDepleted => CurrentMentalValue <= 0f;
-    public bool BecameCorpseAfterLivePossession => becameCorpseAfterLivePossession;
     public float PossessionCostOnSuccess => Mathf.Max(0f, possessionCostOnSuccess);
     public float MentalDrainInterval => Mathf.Max(0.01f, mentalDrainInterval);
     public float MentalDrainAmount => Mathf.Max(0f, mentalDrainAmount);
@@ -83,7 +80,6 @@ public class HWJ_LivePossessionMentalState : MonoBehaviour
         float cost = Mathf.Max(0f, possessionCost);
 
         return !permanentlyBlocked
-            && !becameCorpseAfterLivePossession
             && CurrentMentalValue >= cost;
     }
 
@@ -94,7 +90,7 @@ public class HWJ_LivePossessionMentalState : MonoBehaviour
         float cost = Mathf.Max(0f, possessionCost);
         float before = CurrentMentalValue;
 
-        if (permanentlyBlocked || becameCorpseAfterLivePossession)
+        if (permanentlyBlocked)
         {
             resultMessage = "이 몬스터는 다시 생체 빙의할 수 없습니다.";
             return false;
@@ -205,44 +201,14 @@ public class HWJ_LivePossessionMentalState : MonoBehaviour
     }
 
     /// <summary>
-    /// 생체 빙의체 HP가 0이 되어 시체가 되었음을 기록합니다.
-    /// 이후 E 시체 빙의를 한 번 허용할 수 있습니다.
-    /// </summary>
-    public void MarkBecameCorpseAfterLivePossession()
-    {
-        currentMentalValue = 0f;
-        permanentlyBlocked = true;
-        becameCorpseAfterLivePossession = true;
-        corpsePossessionConsumed = false;
-    }
-
-    public bool CanPossessAsCorpse()
-    {
-        return becameCorpseAfterLivePossession
-            && !corpsePossessionConsumed;
-    }
-
-    public void MarkCorpsePossessionConsumed()
-    {
-        if (becameCorpseAfterLivePossession)
-        {
-            corpsePossessionConsumed = true;
-        }
-    }
-
-    /// <summary>
     /// 저장 시스템에서 정신력 상태를 복원할 때 사용할 수 있는 진입점입니다.
     /// </summary>
     public void RestoreRuntimeState(
         float restoredMentalValue,
-        bool restoredPermanentlyBlocked,
-        bool restoredAsCorpse,
-        bool restoredCorpseConsumed)
+        bool restoredPermanentlyBlocked)
     {
         currentMentalValue = Mathf.Clamp(restoredMentalValue, 0f, MaxMentalValue);
         permanentlyBlocked = restoredPermanentlyBlocked || currentMentalValue <= 0f;
-        becameCorpseAfterLivePossession = restoredAsCorpse;
-        corpsePossessionConsumed = restoredCorpseConsumed;
     }
 
     private void LogMental(string stage, float before, float after, float amount)

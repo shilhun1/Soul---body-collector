@@ -16,6 +16,15 @@ public class HWJ_EnemyTypeDataSO : HWJ_ObjectTypeDataSO
     [Tooltip("플레이어를 인식하고 추적하는 거리 설정입니다.")]
     [InspectorName("추적 데이터")]
     [SerializeField] private HWJ_TrackingData tracking = new HWJ_TrackingData();
+
+    [Tooltip("전투 중이 아닐 때 스폰 위치 주변을 이동하는 규칙입니다.")]
+    [SerializeField] private HWJ_EnemyPatrolData patrol = new HWJ_EnemyPatrolData();
+
+    [Tooltip("플레이어 최초 감지에 사용하는 거리, 각도, 발판 규칙입니다.")]
+    [SerializeField] private HWJ_EnemyVisionData vision = new HWJ_EnemyVisionData();
+
+    [Tooltip("어그로 해제와 원래 스폰 위치 복귀 규칙입니다.")]
+    [SerializeField] private HWJ_EnemyReturnData returnBehavior = new HWJ_EnemyReturnData();
     [Tooltip("대기, 인식, 공격 준비, 후딜, 스킬 기본 쿨타임 같은 AI 시간 설정입니다.")]
     [InspectorName("AI 시간 설정")]
     [SerializeField] private HWJ_AIData ai = new HWJ_AIData();
@@ -25,6 +34,9 @@ public class HWJ_EnemyTypeDataSO : HWJ_ObjectTypeDataSO
     [Tooltip("시작 상태, 공격 시작 거리, 피격 반응 같은 상태 설정입니다.")]
     [InspectorName("상태 규칙")]
     [SerializeField] private HWJ_EnemyStateData state = new HWJ_EnemyStateData();
+
+    [Tooltip("몬스터 종류별 기본 공격 판정 방식입니다.")]
+    [SerializeField] private HWJ_EnemyBasicAttackData basicAttack = new HWJ_EnemyBasicAttackData();
 
     [Header("전투와 빙의")]
     [Tooltip("몬스터가 살아있을 때 AI로 사용하는 스킬 목록입니다.")]
@@ -39,9 +51,13 @@ public class HWJ_EnemyTypeDataSO : HWJ_ObjectTypeDataSO
 
     public HWJ_EnemyRoleData Role => role;
     public HWJ_TrackingData Tracking => tracking;
+    public HWJ_EnemyPatrolData Patrol => patrol;
+    public HWJ_EnemyVisionData Vision => vision;
+    public HWJ_EnemyReturnData ReturnBehavior => returnBehavior;
     public HWJ_AIData AI => ai;
     public HWJ_NavigationData Navigation => navigation;
     public HWJ_EnemyStateData State => state;
+    public HWJ_EnemyBasicAttackData BasicAttack => basicAttack;
     public HWJ_SkillSetData SkillCycle => skillCycle;
     public HWJ_SkillSetData PlayerPossessionSkillSet => playerPossessionSkillSet;
     public HWJ_PossessionData PossessionBody => possessionBody;

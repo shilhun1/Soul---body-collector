@@ -12,7 +12,7 @@
 
 - Sword, Axe, Bow, Lance, Shield 플레이어 애니메이션 클립/컨트롤러
 - Sword, Axe, Bow, Lance, Shield 무기 몬스터 애니메이션 클립/컨트롤러
-- RuntimeReady 플레이어·Possessable/NoCorpse 몬스터·시체 프리팹
+- RuntimeReady 플레이어·생체 빙의 몬스터 프리팹
 - 플레이어/몬스터 분리 모션 프로필과 플레이어 스킬 애니메이션/이펙트
 - 영혼 애니메이션
 - `hys` 애니메이션 관련 스크립트와 플레이어 스크립트(이동 포함)
@@ -285,11 +285,8 @@
 - `Assets/02Scripts/HWJ/Prefabs/Generated/Models/HWJ_Model_Enemy_Corpse_Lance.prefab`
 - `Assets/02Scripts/HWJ/Prefabs/Generated/Models/HWJ_Model_Enemy_Corpse_Shield.prefab`
 - `Assets/02Scripts/HWJ/Prefabs/Generated/Models/HWJ_Model_Enemy_Corpse_Sword.prefab`
-- `Assets/02Scripts/HWJ/Prefabs/Generated/Models/HWJ_Model_Enemy_NoCorpse_Axe.prefab`
-- `Assets/02Scripts/HWJ/Prefabs/Generated/Models/HWJ_Model_Enemy_NoCorpse_Bow.prefab`
-- `Assets/02Scripts/HWJ/Prefabs/Generated/Models/HWJ_Model_Enemy_NoCorpse_Lance.prefab`
-- `Assets/02Scripts/HWJ/Prefabs/Generated/Models/HWJ_Model_Enemy_NoCorpse_Shield.prefab`
-- `Assets/02Scripts/HWJ/Prefabs/Generated/Models/HWJ_Model_Enemy_NoCorpse_Sword.prefab`
+- `Assets/02Scripts/HWJ/Prefabs/Generated/Models/HWJ_Model_Enemy_General_Rat.prefab`
+- `Assets/02Scripts/HWJ/Prefabs/Generated/Models/HWJ_Model_Enemy_General_Slime.prefab`
 - `Assets/02Scripts/HWJ/Prefabs/Generated/Models/HWJ_Model_MidBoss1_Placeholder.prefab`
 - `Assets/02Scripts/HWJ/Prefabs/Generated/Models/HWJ_Model_Player_Test.prefab`
 - `Assets/02Scripts/HWJ/Prefabs/Generated/Models/HWJ_Model_Stage1_Boss_Archer.prefab`
@@ -297,16 +294,8 @@
 - `Assets/02Scripts/HWJ/Prefabs/Generated/Projectiles/HWJ_Projectile_Bow_LowChargeShot.prefab`
 - `Assets/02Scripts/HWJ/Prefabs/Generated/Projectiles/HWJ_Projectile_Bow_RapidShot.prefab`
 - `Assets/02Scripts/HWJ/Prefabs/Generated/Projectiles/HWJ_Projectile_Sword_Wave.prefab`
-- `Assets/02Scripts/HWJ/Prefabs/Generated/RuntimeReady/Corpses/HWJ_Runtime_Corpse_Axe.prefab`
-- `Assets/02Scripts/HWJ/Prefabs/Generated/RuntimeReady/Corpses/HWJ_Runtime_Corpse_Bow.prefab`
-- `Assets/02Scripts/HWJ/Prefabs/Generated/RuntimeReady/Corpses/HWJ_Runtime_Corpse_Lance.prefab`
-- `Assets/02Scripts/HWJ/Prefabs/Generated/RuntimeReady/Corpses/HWJ_Runtime_Corpse_Shield.prefab`
-- `Assets/02Scripts/HWJ/Prefabs/Generated/RuntimeReady/Corpses/HWJ_Runtime_Corpse_Sword.prefab`
-- `Assets/02Scripts/HWJ/Prefabs/Generated/RuntimeReady/Enemies/HWJ_Runtime_Enemy_NoCorpse_Axe.prefab`
-- `Assets/02Scripts/HWJ/Prefabs/Generated/RuntimeReady/Enemies/HWJ_Runtime_Enemy_NoCorpse_Bow.prefab`
-- `Assets/02Scripts/HWJ/Prefabs/Generated/RuntimeReady/Enemies/HWJ_Runtime_Enemy_NoCorpse_Lance.prefab`
-- `Assets/02Scripts/HWJ/Prefabs/Generated/RuntimeReady/Enemies/HWJ_Runtime_Enemy_NoCorpse_Shield.prefab`
-- `Assets/02Scripts/HWJ/Prefabs/Generated/RuntimeReady/Enemies/HWJ_Runtime_Enemy_NoCorpse_Sword.prefab`
+- `Assets/02Scripts/HWJ/Prefabs/Generated/RuntimeReady/Enemies/HWJ_Runtime_Enemy_General_Rat.prefab`
+- `Assets/02Scripts/HWJ/Prefabs/Generated/RuntimeReady/Enemies/HWJ_Runtime_Enemy_General_Slime.prefab`
 - `Assets/02Scripts/HWJ/Prefabs/Generated/RuntimeReady/Enemies/HWJ_Runtime_Enemy_Possessable_Axe.prefab`
 - `Assets/02Scripts/HWJ/Prefabs/Generated/RuntimeReady/Enemies/HWJ_Runtime_Enemy_Possessable_Bow.prefab`
 - `Assets/02Scripts/HWJ/Prefabs/Generated/RuntimeReady/Enemies/HWJ_Runtime_Enemy_Possessable_Lance.prefab`
@@ -358,13 +347,8 @@
 - `Assets/02Scripts/HWJ/ScriptableObjects/RootObjects/Enemies/HWJ_EnemyCorpse_Lance_RootObjectData.asset`
 - `Assets/02Scripts/HWJ/ScriptableObjects/RootObjects/Enemies/HWJ_EnemyCorpse_Shield_RootObjectData.asset`
 - `Assets/02Scripts/HWJ/ScriptableObjects/RootObjects/Enemies/HWJ_EnemyCorpse_Sword_RootObjectData.asset`
-- `Assets/02Scripts/HWJ/ScriptableObjects/RootObjects/Enemies/HWJ_EnemyNoCorpse_Axe_RootObjectData.asset`
-- `Assets/02Scripts/HWJ/ScriptableObjects/RootObjects/Enemies/HWJ_EnemyNoCorpse_Bow_RootObjectData.asset`
-- `Assets/02Scripts/HWJ/ScriptableObjects/RootObjects/Enemies/HWJ_EnemyNoCorpse_Lance_RootObjectData.asset`
-- `Assets/02Scripts/HWJ/ScriptableObjects/RootObjects/Enemies/HWJ_EnemyNoCorpse_Normal_RootObjectData.asset`
-- `Assets/02Scripts/HWJ/ScriptableObjects/RootObjects/Enemies/HWJ_EnemyNoCorpse_Power_RootObjectData.asset`
-- `Assets/02Scripts/HWJ/ScriptableObjects/RootObjects/Enemies/HWJ_EnemyNoCorpse_Shield_RootObjectData.asset`
-- `Assets/02Scripts/HWJ/ScriptableObjects/RootObjects/Enemies/HWJ_EnemyNoCorpse_Sword_RootObjectData.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/RootObjects/Enemies/HWJ_Enemy_General_Rat_RootObjectData.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/RootObjects/Enemies/HWJ_Enemy_General_Slime_RootObjectData.asset`
 - `Assets/02Scripts/HWJ/ScriptableObjects/RootObjects/HWJ_Player_Test_RootObjectData.asset`
 - `Assets/02Scripts/HWJ/ScriptableObjects/Rules/Conditions/HWJ_Condition_AttackHitConfirmedDetailed.asset`
 - `Assets/02Scripts/HWJ/ScriptableObjects/Rules/Conditions/HWJ_Condition_BossEncounterStarted.asset`
@@ -493,13 +477,8 @@
 - `Assets/02Scripts/HWJ/ScriptableObjects/Systems/HWJ_TitleScreenData_Default.asset`
 - `Assets/02Scripts/HWJ/ScriptableObjects/TypeData/Boss/HWJ_BossTypeData.asset`
 - `Assets/02Scripts/HWJ/ScriptableObjects/TypeData/Boss/HWJ_MidBoss1_TypeData.asset`
-- `Assets/02Scripts/HWJ/ScriptableObjects/TypeData/Enemy/NoCorpse/HWJ_EnemyNoCorpse_Axe_TypeData.asset`
-- `Assets/02Scripts/HWJ/ScriptableObjects/TypeData/Enemy/NoCorpse/HWJ_EnemyNoCorpse_Bow_TypeData.asset`
-- `Assets/02Scripts/HWJ/ScriptableObjects/TypeData/Enemy/NoCorpse/HWJ_EnemyNoCorpse_Lance_TypeData.asset`
-- `Assets/02Scripts/HWJ/ScriptableObjects/TypeData/Enemy/NoCorpse/HWJ_EnemyNoCorpse_Normal_TypeData.asset`
-- `Assets/02Scripts/HWJ/ScriptableObjects/TypeData/Enemy/NoCorpse/HWJ_EnemyNoCorpse_Power_TypeData.asset`
-- `Assets/02Scripts/HWJ/ScriptableObjects/TypeData/Enemy/NoCorpse/HWJ_EnemyNoCorpse_Shield_TypeData.asset`
-- `Assets/02Scripts/HWJ/ScriptableObjects/TypeData/Enemy/NoCorpse/HWJ_EnemyNoCorpse_Sword_TypeData.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/TypeData/Enemy/General/HWJ_Enemy_General_Rat_TypeData.asset`
+- `Assets/02Scripts/HWJ/ScriptableObjects/TypeData/Enemy/General/HWJ_Enemy_General_Slime_TypeData.asset`
 - `Assets/02Scripts/HWJ/ScriptableObjects/TypeData/Enemy/Possessable/HWJ_EnemyCorpse_Axe_TypeData.asset`
 - `Assets/02Scripts/HWJ/ScriptableObjects/TypeData/Enemy/Possessable/HWJ_EnemyCorpse_Bow_TypeData.asset`
 - `Assets/02Scripts/HWJ/ScriptableObjects/TypeData/Enemy/Possessable/HWJ_EnemyCorpse_Lance_TypeData.asset`

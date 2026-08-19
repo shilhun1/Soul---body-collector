@@ -14,6 +14,20 @@ public class HWJ_PossessionBodyController : MonoBehaviour
     [SerializeField] private bool consumePossessedBody = true;
     [SerializeField] private bool deactivateConsumedBody = true;
 
+    [Space(8f)]
+    [Header("빙의체 충돌체")]
+    [Tooltip("빙의 중 플레이어 BoxCollider2D를 대상 육체의 크기와 중심으로 변경합니다.")]
+    [SerializeField] private bool usePossessedBodyCollider = true;
+
+    private BoxCollider2D ownerBoxCollider;
+    private Vector2 ownerOriginalColliderSize;
+    private Vector2 ownerOriginalColliderOffset;
+    private float ownerOriginalColliderEdgeRadius;
+    private PhysicsMaterial2D ownerOriginalColliderMaterial;
+    private bool ownerOriginalColliderUsedByEffector;
+    private bool ownerOriginalColliderEnabled;
+    private bool hasOwnerColliderCache;
+
     private void Reset()
     {
         ResolveReferences();
@@ -22,6 +36,7 @@ public class HWJ_PossessionBodyController : MonoBehaviour
     private void Awake()
     {
         ResolveReferences();
+        CacheOwnerCollider();
     }
 
     public void CaptureBeforePossession(
@@ -71,6 +86,8 @@ public class HWJ_PossessionBodyController : MonoBehaviour
             }
         }
 
+        ApplyPossessedBodyCollider(targetDataResolver.gameObject);
+
         visualController?.ApplyFromTarget(targetDataResolver.gameObject);
 
         if (consumePossessedBody)
@@ -101,32 +118,6 @@ public class HWJ_PossessionBodyController : MonoBehaviour
         return true;
     }
 
-    /// <summary>
-    /// 살아 있는 빙의체의 HP가 0이 되었을 때 원래 몬스터를 시체로 바꿉니다.
-    /// </summary>
-    public bool RestoreLiveBodyAsCorpse(
-        HWJ_RootObjectDataResolver previousBodyResolver,
-        HWJ_LivePossessionMentalState mentalState)
-    {
-        if (previousBodyResolver == null)
-        {
-            return false;
-        }
-
-        HWJ_RuntimeStatusSystem enemyStatus =
-            previousBodyResolver.GetComponent<HWJ_RuntimeStatusSystem>();
-
-        if (enemyStatus == null)
-        {
-            return false;
-        }
-
-        enemyStatus.RestoreHpSnapshot(0f, 0f, 0f);
-        enemyStatus.SetState(HWJ_RuntimeState.Dead);
-        mentalState?.MarkBecameCorpseAfterLivePossession();
-        return true;
-    }
-
     public bool RemovePossessedBody(HWJ_RootObjectDataResolver previousBodyResolver)
     {
         if (previousBodyResolver == null)
@@ -149,6 +140,80 @@ public class HWJ_PossessionBodyController : MonoBehaviour
         }
 
         return true;
+    }
+
+    public bool ApplyPossessedBodyCollider(GameObject possessedBody)
+    {
+        CacheOwnerCollider();
+
+        if (!usePossessedBodyCollider || ownerBoxCollider == null || possessedBody == null)
+        {
+            return false;
+        }
+
+        BoxCollider2D possessedCollider = possessedBody.GetComponent<BoxCollider2D>();
+
+        if (possessedCollider == null || possessedCollider.isTrigger)
+        {
+            BoxCollider2D[] targetColliders =
+                possessedBody.GetComponentsInChildren<BoxCollider2D>(true);
+
+            possessedCollider = null;
+
+            for (int i = 0; i < targetColliders.Length; i++)
+            {
+                if (targetColliders[i] != null && !targetColliders[i].isTrigger)
+                {
+                    possessedCollider = targetColliders[i];
+                    break;
+                }
+            }
+        }
+
+        if (possessedCollider == null)
+        {
+            return false;
+        }
+
+        Vector3 targetScale = possessedCollider.transform.lossyScale;
+        Vector3 ownerScale = ownerBoxCollider.transform.lossyScale;
+        float scaleX = Mathf.Abs(ownerScale.x) > Mathf.Epsilon
+            ? Mathf.Abs(targetScale.x / ownerScale.x)
+            : 1f;
+        float scaleY = Mathf.Abs(ownerScale.y) > Mathf.Epsilon
+            ? Mathf.Abs(targetScale.y / ownerScale.y)
+            : 1f;
+
+        ownerBoxCollider.size = new Vector2(
+            possessedCollider.size.x * scaleX,
+            possessedCollider.size.y * scaleY);
+        ownerBoxCollider.offset = new Vector2(
+            possessedCollider.offset.x * scaleX,
+            possessedCollider.offset.y * scaleY);
+        ownerBoxCollider.edgeRadius = possessedCollider.edgeRadius * Mathf.Min(scaleX, scaleY);
+        ownerBoxCollider.sharedMaterial = possessedCollider.sharedMaterial;
+        ownerBoxCollider.usedByEffector = possessedCollider.usedByEffector;
+        ownerBoxCollider.isTrigger = false;
+        ownerBoxCollider.enabled = true;
+        return true;
+    }
+
+    public void RestoreOwnerCollider()
+    {
+        CacheOwnerCollider();
+
+        if (ownerBoxCollider == null || !hasOwnerColliderCache)
+        {
+            return;
+        }
+
+        ownerBoxCollider.size = ownerOriginalColliderSize;
+        ownerBoxCollider.offset = ownerOriginalColliderOffset;
+        ownerBoxCollider.edgeRadius = ownerOriginalColliderEdgeRadius;
+        ownerBoxCollider.sharedMaterial = ownerOriginalColliderMaterial;
+        ownerBoxCollider.usedByEffector = ownerOriginalColliderUsedByEffector;
+        ownerBoxCollider.isTrigger = false;
+        ownerBoxCollider.enabled = ownerOriginalColliderEnabled;
     }
 
     private static void RestoreReleasedBodyHp(
@@ -204,11 +269,41 @@ public class HWJ_PossessionBodyController : MonoBehaviour
             return;
         }
 
+        HWJ_EnemyAttackSystem[] attackSystems =
+            targetObject.GetComponentsInChildren<HWJ_EnemyAttackSystem>(true);
+
+        for (int i = 0; i < attackSystems.Length; i++)
+        {
+            if (attackSystems[i] == null)
+            {
+                continue;
+            }
+
+            attackSystems[i].CancelPreparedBasicAttack();
+            attackSystems[i].SetTarget(null);
+            attackSystems[i].enabled = false;
+        }
+
+        HWJ_SkillActionSystem[] skillActionSystems =
+            targetObject.GetComponentsInChildren<HWJ_SkillActionSystem>(true);
+
+        for (int i = 0; i < skillActionSystems.Length; i++)
+        {
+            if (skillActionSystems[i] == null)
+            {
+                continue;
+            }
+
+            skillActionSystems[i].CancelCurrentAction();
+            skillActionSystems[i].enabled = false;
+        }
+
         HWJ_EnemyNavigationSystem navigation =
             targetObject.GetComponent<HWJ_EnemyNavigationSystem>();
 
         if (navigation != null)
         {
+            navigation.SetTarget(null);
             navigation.enabled = false;
         }
 
@@ -217,6 +312,7 @@ public class HWJ_PossessionBodyController : MonoBehaviour
 
         if (monsterAI != null)
         {
+            monsterAI.SetTarget(null);
             monsterAI.enabled = false;
         }
 
@@ -268,5 +364,26 @@ public class HWJ_PossessionBodyController : MonoBehaviour
         {
             possessionSystem = GetComponent<HWJ_PossessionSystem>();
         }
+    }
+
+    private void CacheOwnerCollider()
+    {
+        if (ownerBoxCollider == null)
+        {
+            ownerBoxCollider = GetComponent<BoxCollider2D>();
+        }
+
+        if (ownerBoxCollider == null || hasOwnerColliderCache)
+        {
+            return;
+        }
+
+        ownerOriginalColliderSize = ownerBoxCollider.size;
+        ownerOriginalColliderOffset = ownerBoxCollider.offset;
+        ownerOriginalColliderEdgeRadius = ownerBoxCollider.edgeRadius;
+        ownerOriginalColliderMaterial = ownerBoxCollider.sharedMaterial;
+        ownerOriginalColliderUsedByEffector = ownerBoxCollider.usedByEffector;
+        ownerOriginalColliderEnabled = ownerBoxCollider.enabled;
+        hasOwnerColliderCache = true;
     }
 }

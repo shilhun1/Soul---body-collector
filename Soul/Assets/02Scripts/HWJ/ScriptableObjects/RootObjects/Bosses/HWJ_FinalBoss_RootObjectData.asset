@@ -1,0 +1,76 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5886d2e199e90b44e8180bfd0e5de850, type: 3}
+  m_Name: HWJ_FinalBoss_RootObjectData
+  m_EditorClassIdentifier: HWJ.Runtime::HWJ_RootObjectDataSO
+  identity:
+    objectId: boss.final.01.sovereign
+    displayName: "\uCD5C\uC885\uBCF4\uC2A4"
+    objectType: 3
+    faction: 3
+    weaponType: 0
+    abilityTags: 
+  status:
+    level: 1
+    maxHp: 10000
+    moveSpeed: 0
+    attackPower: 100
+    defense: 50
+    attackSpeed: 1
+    bodyWeight: 10
+  model:
+    modelPrefab: {fileID: 8142996962477980502, guid: 57cbe2994f14c9442b6fe99c0f9bcbdd, type: 3}
+    animatorController: {fileID: 0}
+    heartEffectSocketName: 
+    hitEffectSocketName: HWJ_FinalBoss_VisualRoot
+    possessedEyeSocketName: 
+  damage:
+    damageType: 1
+    baseDamage: 20
+    criticalChance: 0
+    criticalMultiplier: 1.5
+    knockbackPower: 4
+    hitStunSeconds: 0.15
+    hitStopSeconds: 0
+    sameTargetHitCooldownSeconds: 0.08
+  receivedDamage:
+    damageMultiplier: 1
+    invincibleSecondsAfterHit: 0.06
+    isInvincible: 0
+    ignoreTrapDamage: 0
+    ignoreEnemyDamage: 0
+    hitStunSeconds: 0.18
+    hitReactionImmuneSeconds: 0
+    maxHitReactionsPerWindow: 0
+    hitReactionWindowSeconds: 1
+    hitReactionLimitImmuneSeconds: 0
+    knockbackWeightMultiplier: 8
+    hasSuperArmor: 0
+    ignoreHitStun: 0
+    ignoreKnockback: 0
+  interaction:
+    canInteract: 0
+    canBeTargeted: 1
+    interactionRange: 0
+  reward:
+    experienceReward: 1000
+    skillPointReward: 3
+    dropsExperienceOrb: 0
+    experienceOrbPrefab: {fileID: 0}
+    experienceOrbSpawnRadius: 0
+    dropsStatOrb: 0
+    statOrbDropChance: 1
+    statOrbSpawnRadius: 0.75
+    statOrbId: 
+    statOrbCandidates: []
+    useAllRegisteredStatOrbsWhenEmpty: 0
+  selectedTypeData: {fileID: 11400000, guid: 2d036cd401d94ec46ab6731a0ad6ebc8, type: 2}

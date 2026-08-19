@@ -367,6 +367,13 @@ public class HWJ_SpawnerSystem : MonoBehaviour
         {
             enemyNavigation.SetTarget(FindPlayerTransform());
         }
+
+        HWJ_EnemyPerceptionSystem perception = instance.GetComponent<HWJ_EnemyPerceptionSystem>();
+
+        if (perception != null)
+        {
+            perception.SetCandidateTarget(FindPlayerTransform(), false);
+        }
     }
 
     private void RefreshSpawnedRuntimeData(GameObject instance)
@@ -395,6 +402,13 @@ public class HWJ_SpawnerSystem : MonoBehaviour
         if (monsterAI != null)
         {
             monsterAI.RefreshData();
+        }
+
+        HWJ_EnemyPerceptionSystem perception = instance.GetComponent<HWJ_EnemyPerceptionSystem>();
+
+        if (perception != null)
+        {
+            perception.CaptureSpawnOrigin();
         }
     }
 

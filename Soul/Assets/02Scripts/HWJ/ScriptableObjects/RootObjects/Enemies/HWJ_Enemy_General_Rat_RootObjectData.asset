@@ -1,0 +1,76 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5886d2e199e90b44e8180bfd0e5de850, type: 3}
+  m_Name: HWJ_Enemy_General_Rat_RootObjectData
+  m_EditorClassIdentifier: HWJ.Runtime::HWJ_RootObjectDataSO
+  identity:
+    objectId: enemy.general.rat
+    displayName: "\uC77C\uBC18 \uC950"
+    objectType: 1
+    faction: 3
+    weaponType: 0
+    abilityTags: 
+  status:
+    level: 1
+    maxHp: 45
+    moveSpeed: 3.4
+    attackPower: 10
+    defense: 0
+    attackSpeed: 1
+    bodyWeight: 0.7
+  model:
+    modelPrefab: {fileID: 2759862399435902277, guid: 5cf8cd45829b26d47b9532689f2f9172, type: 3}
+    animatorController: {fileID: 0}
+    heartEffectSocketName: Heart
+    hitEffectSocketName: Hit
+    possessedEyeSocketName: Eyes
+  damage:
+    damageType: 0
+    baseDamage: 0
+    criticalChance: 0
+    criticalMultiplier: 1.5
+    knockbackPower: 2.5
+    hitStunSeconds: 0.12
+    hitStopSeconds: 0
+    sameTargetHitCooldownSeconds: 0.08
+  receivedDamage:
+    damageMultiplier: 1
+    invincibleSecondsAfterHit: 0.1
+    isInvincible: 0
+    ignoreTrapDamage: 0
+    ignoreEnemyDamage: 0
+    hitStunSeconds: 0.18
+    hitReactionImmuneSeconds: 0.08
+    maxHitReactionsPerWindow: 3
+    hitReactionWindowSeconds: 1
+    hitReactionLimitImmuneSeconds: 0.2
+    knockbackWeightMultiplier: 0.75
+    hasSuperArmor: 0
+    ignoreHitStun: 0
+    ignoreKnockback: 0
+  interaction:
+    canInteract: 1
+    canBeTargeted: 1
+    interactionRange: 2
+  reward:
+    experienceReward: 10
+    skillPointReward: 0
+    dropsExperienceOrb: 1
+    experienceOrbPrefab: {fileID: 840010000000000001, guid: 22e7a47c526c4d51871f4bd3bdf889db, type: 3}
+    experienceOrbSpawnRadius: 0.35
+    dropsStatOrb: 0
+    statOrbDropChance: 0
+    statOrbSpawnRadius: 0.5
+    statOrbId: 
+    statOrbCandidates: []
+    useAllRegisteredStatOrbsWhenEmpty: 0
+  selectedTypeData: {fileID: 11400000, guid: ef4ffd90439ce7f40b0ad8587a7d9233, type: 2}

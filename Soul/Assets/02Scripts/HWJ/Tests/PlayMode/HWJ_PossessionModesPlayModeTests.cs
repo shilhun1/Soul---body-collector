@@ -226,7 +226,7 @@ public class HWJ_PossessionModesPlayModeTests
     }
 
     [UnityTest]
-    public IEnumerator LiveBodyHpZero_EjectsPlayerToSpiritAndLeavesDeadMonster()
+    public IEnumerator LiveBodyHpZero_EjectsPlayerToSpiritAndRemovesBodyPermanently()
     {
         GameObject player = CreatePlayer("LiveHpZeroPlayer", 10f, 20f);
         GameObject enemy = CreateEnemy(
@@ -246,17 +246,14 @@ public class HWJ_PossessionModesPlayModeTests
 
         HWJ_SoulSystem soul = player.GetComponent<HWJ_SoulSystem>();
 
-        for (int i = 0; i < 10 && soul.CurrentState != HWJ_SoulRuntimeState.Soul; i++)
-        {
-            yield return null;
-        }
+        Assert.AreEqual(HWJ_SoulRuntimeState.BodyToSoul, soul.CurrentState);
+        yield return new WaitForSeconds(0.03f);
 
         Assert.IsFalse(possession.HasActivePossessedBody);
         Assert.AreEqual(HWJ_SoulRuntimeState.Soul, soul.CurrentState);
-        Assert.IsTrue(enemy.activeSelf);
-        Assert.AreEqual(HWJ_RuntimeState.Dead, enemy.GetComponent<HWJ_RuntimeStatusSystem>().CurrentState);
-        Assert.AreEqual(0f, enemy.GetComponent<HWJ_RuntimeStatusSystem>().CurrentHp, 0.001f);
-        Assert.IsTrue(enemy.GetComponent<HWJ_LivePossessionMentalState>().BecameCorpseAfterLivePossession);
+        Assert.IsFalse(enemy.activeSelf);
+        Assert.IsTrue(enemy.GetComponent<HWJ_PossessionBodyState>().IsRemovedAfterPossession);
+        Assert.IsTrue(enemy.GetComponent<HWJ_LivePossessionMentalState>().IsPermanentlyBlocked);
     }
 
     [UnityTest]
@@ -325,6 +322,7 @@ public class HWJ_PossessionModesPlayModeTests
             100f,
             1f);
         HWJ_PossessionSystem possession = player.GetComponent<HWJ_PossessionSystem>();
+        SetPrivateField(possession, "possessionControlLockSeconds", 0.05f);
 
         Assert.IsTrue(possession.CompleteLivePossessionFromMinigame(
             enemy.GetComponent<HWJ_RootObjectDataResolver>()));
@@ -334,6 +332,10 @@ public class HWJ_PossessionModesPlayModeTests
 
         Assert.AreEqual(HWJ_SoulRuntimeState.Body, player.GetComponent<HWJ_SoulSystem>().CurrentState);
         Assert.AreEqual(3f, playerBody.gravityScale, 0.001f);
+        Assert.IsFalse(player.GetComponent<HWJ_RuntimeStatusSystem>().CanMove);
+
+        yield return new WaitForSeconds(0.06f);
+        Assert.IsTrue(player.GetComponent<HWJ_RuntimeStatusSystem>().CanMove);
 
         movement.SetGrounded(true);
         MethodInfo tryJump = typeof(HWJ_PlayerMovementSystem).GetMethod(
@@ -349,7 +351,7 @@ public class HWJ_PossessionModesPlayModeTests
     }
 
     [UnityTest]
-    public IEnumerator PossessionTransition_ReleasesMashGate_AndAcceptsNextSpaceJump()
+    public IEnumerator PossessionTransition_ReleasesMashGate_AndAcceptsNextJumpRequest()
     {
 #if ENABLE_INPUT_SYSTEM
         GameObject player = CreatePlayer("PossessionPhysicalJumpPlayer", 20f, 20f);
@@ -373,6 +375,7 @@ public class HWJ_PossessionModesPlayModeTests
             100f,
             1f);
         HWJ_PossessionSystem possession = player.GetComponent<HWJ_PossessionSystem>();
+        SetPrivateField(possession, "possessionControlLockSeconds", 0.05f);
 
         testKeyboard = InputSystem.AddDevice<Keyboard>();
         InputSystem.QueueStateEvent(testKeyboard, new KeyboardState(Key.Space));
@@ -389,11 +392,19 @@ public class HWJ_PossessionModesPlayModeTests
         InvokePrivate(movement, "UpdateJumpReleaseGate");
         Assert.IsFalse(GetPrivateField<bool>(movement, "waitForJumpReleaseAfterBodyEntry"));
 
-        movement.SetGrounded(true);
-        InputSystem.QueueStateEvent(testKeyboard, new KeyboardState(Key.Space));
-        InputSystem.Update();
-        InvokePrivate(movement, "Update");
+        yield return new WaitForSeconds(0.06f);
+        Assert.IsTrue(player.GetComponent<HWJ_RuntimeStatusSystem>().CanMove);
 
+        movement.SetGrounded(true);
+        MethodInfo tryJump = typeof(HWJ_PlayerMovementSystem).GetMethod(
+            "TryJump",
+            BindingFlags.Instance | BindingFlags.NonPublic,
+            null,
+            System.Type.EmptyTypes,
+            null);
+
+        Assert.NotNull(tryJump);
+        Assert.IsTrue((bool)tryJump.Invoke(movement, null));
         Assert.Greater(playerBody.linearVelocity.y, 0f);
         Assert.AreEqual(0, GetPrivateField<int>(movement, "usedDoubleJumpCount"));
 #else

@@ -143,7 +143,6 @@ public class HWJ_PossessionTargetValidator : MonoBehaviour
         }
 
         bool isLiveTarget = IsLiveTarget(targetDataResolver, possessionBody);
-        bool canUseConsumedCorpse = CanUseConsumedCorpse(targetDataResolver, isLiveTarget);
 
         if (!isLiveTarget
             && IsCorpseReadinessBlocked(targetDataResolver, out string corpseReadinessMessage))
@@ -156,8 +155,7 @@ public class HWJ_PossessionTargetValidator : MonoBehaviour
 
         // 생체 대상은 수동 해제 후 재빙의할 수 있으므로 Consumed 플래그만으로 차단하지 않습니다.
         if (IsConsumedPossessionBody(targetDataResolver)
-            && !isLiveTarget
-            && !canUseConsumedCorpse)
+            && !isLiveTarget)
         {
             return HWJ_PossessionResult.Fail(
                 HWJ_PossessionFailureCode.TargetAlreadyPossessed,
@@ -184,10 +182,7 @@ public class HWJ_PossessionTargetValidator : MonoBehaviour
             }
         }
 
-        // 생체 빙의 중 사망해 시체가 된 대상은 기존 corpse_available 규칙이
-        // Consumed 플래그로 막을 수 있으므로 이 경우에는 직접 검증 결과를 사용합니다.
-        if (!canUseConsumedCorpse
-            && !IsGameplayRuleSatisfied(targetDataResolver, out string ruleMessage))
+        if (!IsGameplayRuleSatisfied(targetDataResolver, out string ruleMessage))
         {
             return HWJ_PossessionResult.Fail(
                 ResolveRuleFailureCode(ruleMessage),
@@ -218,15 +213,22 @@ public class HWJ_PossessionTargetValidator : MonoBehaviour
             return false;
         }
 
-        if (enemyData.Role != null
-            && (!enemyData.Role.leavesCorpseOnDeath
-                || !enemyData.Role.isPossessableBody))
+        if (enemyData.Role == null || !enemyData.Role.isPossessableBody)
         {
             return false;
         }
 
         possessionBody = enemyData.PossessionBody;
-        return possessionBody != null;
+
+        if (possessionBody == null)
+        {
+            return false;
+        }
+
+        // 생체 빙의 가능 여부와 사망 후 시체 유지 여부는 서로 다른 규칙입니다.
+        // HP 0으로 제거되는 일반 몬스터는 살아 있을 때만 빙의할 수 있습니다.
+        return !IsDefeatedTarget(targetDataResolver)
+            || enemyData.Role.leavesCorpseOnDeath;
     }
 
     public bool IsLiveTarget(
@@ -287,19 +289,6 @@ public class HWJ_PossessionTargetValidator : MonoBehaviour
             targetDataResolver.GetComponent<HWJ_RuntimeStatusSystem>();
 
         return targetStatus != null && targetStatus.IsDead;
-    }
-
-    private static bool CanUseConsumedCorpse(
-        HWJ_RootObjectDataResolver targetDataResolver,
-        bool isLiveTarget)
-    {
-        if (isLiveTarget || targetDataResolver == null)
-        {
-            return false;
-        }
-
-        return targetDataResolver.TryGetComponent(out HWJ_LivePossessionMentalState mentalState)
-            && mentalState.CanPossessAsCorpse();
     }
 
     private bool IsCorpseReadinessBlocked(
