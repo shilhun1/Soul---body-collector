@@ -15027,7 +15027,7 @@ SpriteRenderer:
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 1.9200001, y: 1.92375}
+  m_Size: {x: 6, y: 6.0117188}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
@@ -19383,6 +19383,7 @@ MonoBehaviour:
   flipSpriteByMoveDirection: 1
   useInitialSpriteFlipAsRightFacing: 1
   flipTransformScaleWhenNoSpriteRenderer: 0
+  updateFacingFromVelocity: 1
   moveThreshold: 0.05
   facingThreshold: 0.01
 --- !u!114 &1177503441
@@ -19774,6 +19775,7 @@ MonoBehaviour:
   moveOwnerToPossessedBody: 1
   consumePossessedBody: 1
   deactivateConsumedBody: 1
+  usePossessedBodyCollider: 1
 --- !u!114 &1177503457
 MonoBehaviour:
   m_ObjectHideFlags: 0
