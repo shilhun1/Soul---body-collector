@@ -104,6 +104,19 @@ HWJ 모듈은 게임의 **핵심 메커니즘**(플레이어 이동/전투, 영�
 ### 6.2 `HWJ_SkillActionSystem` & `HWJ_SkillUnlockSystem`
 - **위치**: `Assets/02Scripts/HWJ/Scripts/Systems/Skill/`
 - **역할**: 스킬 노드의 해금 조건 검사, 스킬 포인트 차감 및 해금된 스킬 슬롯 액션 실행을 전담합니다.
+- **주요 구성 및 기능**:
+  - `HWJ_SkillActionSystem.cs`: 스킬 ID/엔트리/SO 기반 스킬 실행 진입점(`TryUseSkill`).
+  - `HWJ_SkillActionAreaAndMotion.cs` & `HWJ_SkillActionProjectileAndDash.cs`: 근접/범위/투사체/대시 스킬의 판정 및 모션, 이펙트 생성 처리.
+  - **스킬 이펙트 위치 및 변형 커스터마이징**:
+    - **스킬 데이터 단위 (`HWJ_SkillActionDataSO`)**:
+      - `전용 이펙트 오프셋 사용 (useCustomActionEffectOffset)`: 스킬별 개별 오프셋 사용 여부 플래그.
+      - `액션 이펙트 오프셋 (actionEffectOffset)`: 캐릭터 중심 기준 생성 오프셋 (X, Y). 캐릭터의 바라보는 방향에 따라 X축 자동 반전.
+      - `액션 이펙트 회전각 (actionEffectRotationZ)`: 추가 Z축 회전 각도.
+      - `액션 이펙트 크기 배율 (actionEffectScaleMultiplier)`: 이펙트 스케일 배율.
+    - **시스템 공통 단위 (`HWJ_SkillActionSystem`)**:
+      - `ActionEffectSpawnOffset`: 개별 설정을 사용하지 않는 모든 스킬의 기본 이펙트 생성 위치.
+      - `MirrorActionEffectByFacing`: 바라보는 방향에 따른 이펙트 X축 반전 활성화 여부.
+  - `HWJ_SkillUnlockSystem.cs`: 스킬 트리 노드 해금 상태 검사 및 스킬 포인트 소모 처리.
 
 ---
 

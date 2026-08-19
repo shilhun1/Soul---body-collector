@@ -178,21 +178,66 @@ public partial class HWJ_SkillActionSystem
         return spawned != null ? spawned : Instantiate(prefab, position, rotation);
     }
 
-    private GameObject SpawnActionEffect(GameObject prefab)
+    private GameObject SpawnActionEffect(HWJ_SkillActionDataSO skillAction)
     {
-        float facingDirection = GetFacingDirection();
-        Vector3 offset = new Vector3(actionEffectSpawnOffset.x * facingDirection, actionEffectSpawnOffset.y, 0f);
-        GameObject spawned = SpawnPooled(prefab, transform.position + offset, transform.rotation);
-
-        if (spawned == null || !mirrorActionEffectByFacing)
+        if (skillAction == null || skillAction.ActionEffectPrefab == null)
         {
-            return spawned;
+            return null;
         }
 
-        // Slash prefabs are authored facing right; negative root scale mirrors them for left-facing attacks.
-        Vector3 scale = spawned.transform.localScale;
-        scale.x = Mathf.Abs(scale.x) * (facingDirection < 0f ? -1f : 1f);
-        spawned.transform.localScale = scale;
+        Vector2 offset = skillAction.UseCustomActionEffectOffset
+            ? skillAction.ActionEffectOffset
+            : actionEffectSpawnOffset;
+        float rotationZ = skillAction.ActionEffectRotationZ;
+        float scaleMultiplier = skillAction.ActionEffectScaleMultiplier;
+
+        return SpawnActionEffect(skillAction.ActionEffectPrefab, offset, rotationZ, scaleMultiplier);
+    }
+
+    private GameObject SpawnActionEffect(GameObject prefab)
+    {
+        return SpawnActionEffect(prefab, actionEffectSpawnOffset, 0f, 1f);
+    }
+
+    private GameObject SpawnActionEffect(
+        GameObject prefab,
+        Vector2 spawnOffset,
+        float rotationZ = 0f,
+        float scaleMultiplier = 1f)
+    {
+        if (prefab == null)
+        {
+            return null;
+        }
+
+        float facingDirection = GetFacingDirection();
+        Vector3 offset = new Vector3(spawnOffset.x * facingDirection, spawnOffset.y, 0f);
+
+        Quaternion spawnRotation = transform.rotation;
+        if (!Mathf.Approximately(rotationZ, 0f))
+        {
+            float appliedRotationZ = facingDirection < 0f ? -rotationZ : rotationZ;
+            spawnRotation = Quaternion.Euler(0f, 0f, appliedRotationZ) * spawnRotation;
+        }
+
+        GameObject spawned = SpawnPooled(prefab, transform.position + offset, spawnRotation);
+
+        if (spawned == null)
+        {
+            return null;
+        }
+
+        if (mirrorActionEffectByFacing || !Mathf.Approximately(scaleMultiplier, 1f))
+        {
+            Vector3 scale = spawned.transform.localScale;
+            float targetScaleMultiplier = scaleMultiplier <= 0f ? 1f : scaleMultiplier;
+            float signX = (facingDirection < 0f && mirrorActionEffectByFacing) ? -1f : 1f;
+            scale.x = Mathf.Abs(scale.x) * signX * targetScaleMultiplier;
+            scale.y = Mathf.Abs(scale.y) * targetScaleMultiplier;
+            scale.z = Mathf.Abs(scale.z) * targetScaleMultiplier;
+            spawned.transform.localScale = scale;
+        }
+
         return spawned;
     }
 

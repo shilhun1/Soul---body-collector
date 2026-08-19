@@ -4,7 +4,7 @@ using UnityEngine.Events;
 namespace HSH.Gimmick
 {
     /// <summary>
-    /// 화살, 탄환, 투사체 공격이 충돌(Hit)하면 작동하는 스위치 기믹 컴포넌트입니다.
+    /// 화살, 탄환, 투사체 공격 및 플레이어 상호작용(E 키 / 터치 / 공격)으로 작동하는 스위치 기믹 컴포넌트입니다.
     /// 스위치가 작동하면 연동된 문(HSH_GimmickDoor)을 열거나 이벤트를 발송합니다.
     /// </summary>
     [RequireComponent(typeof(Collider2D))]
@@ -20,8 +20,14 @@ namespace HSH.Gimmick
         [Tooltip("플레이어 상호작용 키(E)로도 직접 작동 허용 여부")]
         [SerializeField] private bool allowPlayerInteract = true;
 
-        [Tooltip("감지할 투사체 태그 목록")]
-        [SerializeField] private string[] projectileTags = new string[] { "Projectile", "Arrow", "Bullet", "PlayerAttack" };
+        [Tooltip("플레이어 상호작용 감지 최대 거리 (0이면 Collider Trigger 진입 기준)")]
+        [SerializeField] private float interactMaxDistance = 2.5f;
+
+        [Tooltip("플레이어 직접 접촉(몸체 충돌) 시 즉시 작동 허용 여부")]
+        [SerializeField] private bool allowPlayerTouchActivate = false;
+
+        [Tooltip("감지할 투사체 및 공격 태그 목록")]
+        [SerializeField] private string[] projectileTags = new string[] { "Projectile", "Arrow", "Bullet", "PlayerAttack", "Attack", "Weapon" };
 
         [Header("연동된 문 & 이벤트")]
         [Tooltip("작동 시 열게 될 문 컴포넌트 참조")]
@@ -39,8 +45,12 @@ namespace HSH.Gimmick
 
         private bool isActivated = false;
         private bool playerInside = false;
+        private HWJ_PlayerInputSystem cachedPlayerInput;
 
         public bool IsActivated => isActivated;
+        public bool OneShot => oneShot;
+        public bool DestroyProjectileOnHit => destroyProjectileOnHit;
+        public bool AllowPlayerInteract {get => allowPlayerInteract; set => allowPlayerInteract = value; }
 
         private void Awake()
         {
@@ -59,10 +69,9 @@ namespace HSH.Gimmick
 
         private void Update()
         {
-            if (playerInside && allowPlayerInteract && (!oneShot || !isActivated))
+            if (allowPlayerInteract && (!oneShot || !isActivated))
             {
-                HWJ_PlayerInputSystem input = HWJ_GameAccess.PlayerInput;
-                if (input != null && input.InteractPressedThisFrame)
+                if (IsPlayerNearby() && IsInteractInputPressed())
                 {
                     Debug.Log($"[HSH_ProjectileSwitch] 플레이어 상호작용 입력(Interact)으로 스위치 '{gameObject.name}' 작동!");
                     ActivateSwitch();
@@ -76,14 +85,20 @@ namespace HSH.Gimmick
 
             Debug.Log($"[HSH_ProjectileSwitch] [Trigger 진입] 오브젝트: '{other.name}', Tag: '{other.tag}'");
 
-            if (other.CompareTag("Player") || other.GetComponentInParent<HWJ_SoulSystem>() != null)
+            if (IsPlayerObject(other.gameObject))
             {
                 playerInside = true;
+                if (allowPlayerTouchActivate)
+                {
+                    Debug.Log($"[HSH_ProjectileSwitch] 플레이어 직접 접촉으로 스위치 '{gameObject.name}' 작동!");
+                    ActivateSwitch();
+                    return;
+                }
             }
 
             if (IsProjectileHit(other.gameObject))
             {
-                Debug.Log($"[HSH_ProjectileSwitch] ★★★ 스위치 '{gameObject.name}' 투사체 감지 성공! (타겟: '{other.name}', Tag: '{other.tag}')");
+                Debug.Log($"[HSH_ProjectileSwitch] ★★★ 스위치 '{gameObject.name}' 투사체/공격 감지 성공! (타겟: '{other.name}', Tag: '{other.tag}')");
                 ActivateSwitch();
 
                 if (destroyProjectileOnHit)
@@ -93,9 +108,23 @@ namespace HSH.Gimmick
             }
         }
 
+        private void OnTriggerStay2D(Collider2D other)
+        {
+            if (other == null || (oneShot && isActivated)) return;
+
+            if (IsPlayerObject(other.gameObject))
+            {
+                playerInside = true;
+                if (allowPlayerTouchActivate && !isActivated)
+                {
+                    ActivateSwitch();
+                }
+            }
+        }
+
         private void OnTriggerExit2D(Collider2D other)
         {
-            if (other != null && (other.CompareTag("Player") || other.GetComponentInParent<HWJ_SoulSystem>() != null))
+            if (other != null && IsPlayerObject(other.gameObject))
             {
                 playerInside = false;
             }
@@ -107,14 +136,38 @@ namespace HSH.Gimmick
 
             Debug.Log($"[HSH_ProjectileSwitch] [Collision 진입] 오브젝트: '{collision.gameObject.name}', Tag: '{collision.gameObject.tag}'");
 
+            if (IsPlayerObject(collision.gameObject))
+            {
+                playerInside = true;
+                if (allowPlayerTouchActivate)
+                {
+                    ActivateSwitch();
+                    return;
+                }
+            }
+
             if (IsProjectileHit(collision.gameObject))
             {
-                Debug.Log($"[HSH_ProjectileSwitch] ★★★ 스위치 '{gameObject.name}' 물리 투사체 감지 성공! (타겟: '{collision.gameObject.name}', Tag: '{collision.gameObject.tag}')");
+                Debug.Log($"[HSH_ProjectileSwitch] ★★★ 스위치 '{gameObject.name}' 물리 투사체/공격 감지 성공! (타겟: '{collision.gameObject.name}', Tag: '{collision.gameObject.tag}')");
                 ActivateSwitch();
 
                 if (destroyProjectileOnHit)
                 {
                     Destroy(collision.gameObject);
+                }
+            }
+        }
+
+        private void OnCollisionStay2D(Collision2D collision)
+        {
+            if (collision == null || (oneShot && isActivated)) return;
+
+            if (IsPlayerObject(collision.gameObject))
+            {
+                playerInside = true;
+                if (allowPlayerTouchActivate && !isActivated)
+                {
+                    ActivateSwitch();
                 }
             }
         }
@@ -151,33 +204,123 @@ namespace HSH.Gimmick
             }
         }
 
-        private bool IsProjectileHit(GameObject obj)
+        private bool IsPlayerObject(GameObject obj)
         {
             if (obj == null) return false;
 
-            // 1. 태그 목록 검사
-            for (int i = 0; i < projectileTags.Length; i++)
+            if (obj.CompareTag("Player")) return true;
+
+            Transform current = obj.transform;
+            while (current != null)
             {
-                if (!string.IsNullOrEmpty(projectileTags[i]) && string.Equals(obj.tag, projectileTags[i], System.StringComparison.Ordinal))
-                {
-                    return true;
-                }
+                if (current.CompareTag("Player")) return true;
+                current = current.parent;
             }
 
-            // 2. HSH 화살 함정 등 투사체 컴포넌트 검사
-            if (obj.GetComponent<HSH_ShieldArrowTrap>() != null ||
-                obj.GetComponentInParent<HSH_ShieldArrowTrap>() != null)
+            if (obj.GetComponentInParent<HWJ_SoulSystem>() != null) return true;
+            if (obj.GetComponentInParent<HWJ_PlayerInputSystem>() != null) return true;
+            if (obj.GetComponentInParent<HWJ_PossessionSystem>() != null) return true;
+
+            return false;
+        }
+
+        private bool IsPlayerNearby()
+        {
+            if (playerInside) return true;
+
+            Transform playerT = GetPlayerTransform();
+            if (playerT == null) return false;
+
+            float dist = Vector2.Distance(transform.position, playerT.position);
+            return dist <= interactMaxDistance;
+        }
+
+        private Transform GetPlayerTransform()
+        {
+            if (HWJ_GameAccess.PlayerResolver != null)
+            {
+                return HWJ_GameAccess.PlayerResolver.transform;
+            }
+
+            var soulSystem = Object.FindFirstObjectByType<HWJ_SoulSystem>();
+            if (soulSystem != null)
+            {
+                return soulSystem.transform;
+            }
+
+            var playerInput = GetPlayerInput();
+            if (playerInput != null)
+            {
+                return playerInput.transform;
+            }
+
+            GameObject playerObj = GameObject.FindWithTag("Player");
+            if (playerObj != null)
+            {
+                return playerObj.transform;
+            }
+
+            return null;
+        }
+
+        private HWJ_PlayerInputSystem GetPlayerInput()
+        {
+            HWJ_PlayerInputSystem input = HWJ_GameAccess.PlayerInput;
+            if (input != null) return input;
+
+            if (cachedPlayerInput == null)
+            {
+                cachedPlayerInput = Object.FindFirstObjectByType<HWJ_PlayerInputSystem>();
+            }
+
+            return cachedPlayerInput;
+        }
+
+        private bool IsInteractInputPressed()
+        {
+            HWJ_PlayerInputSystem input = GetPlayerInput();
+            if (input != null && input.InteractPressedThisFrame)
             {
                 return true;
             }
 
-            // 3. 오브젝트 이름 패턴 검사 (arrow, bullet, projectile, shot, attack 등)
-            string lowerName = obj.name.ToLower();
-            if (lowerName.Contains("arrow") ||
-                lowerName.Contains("bullet") ||
-                lowerName.Contains("projectile") ||
-                lowerName.Contains("shot") ||
-                lowerName.Contains("attack"))
+            if (Input.GetKeyDown(KeyCode.E))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool IsProjectileHit(GameObject obj)
+        {
+            if (obj == null) return false;
+
+            // 1. 태그 목록 검사 (자식/부모/루트 오브젝트 태그 포함)
+            for (int i = 0; i < projectileTags.Length; i++)
+            {
+                string t = projectileTags[i];
+                if (string.IsNullOrEmpty(t)) continue;
+
+                if (string.Equals(obj.tag, t, System.StringComparison.Ordinal))
+                {
+                    return true;
+                }
+
+                Transform current = obj.transform.parent;
+                while (current != null)
+                {
+                    if (string.Equals(current.tag, t, System.StringComparison.Ordinal))
+                    {
+                        return true;
+                    }
+                    current = current.parent;
+                }
+            }
+
+            // 2. HSH 화살 함정 등 전용 투사체 컴포넌트 검사
+            if (obj.GetComponent<HSH_ShieldArrowTrap>() != null ||
+                obj.GetComponentInParent<HSH_ShieldArrowTrap>() != null)
             {
                 return true;
             }
@@ -186,3 +329,4 @@ namespace HSH.Gimmick
         }
     }
 }
+
