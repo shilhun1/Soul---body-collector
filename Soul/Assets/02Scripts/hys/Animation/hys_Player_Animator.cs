@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -13,8 +14,10 @@ public class hys_Player_Animator : MonoBehaviour
     [SerializeField] private hys_Player_State playerState;
     [SerializeField] private hys_Player_Movement playerMovement;
     [SerializeField] private hys_Player_Attack playerAttack;
+    [SerializeField] private HWJ_CharacterMotionSystem hwjMotionSystem;
     [SerializeField] private HWJ_SoulSystem soulSystem;
     [SerializeField] private HWJ_PossessionSystem possessionSystem;
+    [SerializeField] private hys_HWJPossessionAnimationBridge possessionAnimationBridge;
 
     [Header("Animator Parameters")]
     // PlayerState가 핵심 상태 값이고, 나머지는 보조 조건입니다.
@@ -155,9 +158,12 @@ public class hys_Player_Animator : MonoBehaviour
     private bool queuedRestartAttackAnimation;
     private RuntimeAnimatorController cachedBodyAnimatorController;
     private AnimatorOverrideController activeGhostPossessionController;
+    private RuntimeAnimatorController lastPossessedBodyAnimatorController;
+    private HWJ_WeaponType lastPossessedWeaponType = HWJ_WeaponType.Sword;
     private HWJ_SoulRuntimeState previousSoulRuntimeState = HWJ_SoulRuntimeState.Body;
     private bool isGhostPossessionPlaying;
     private bool isGhostDeadPlaying;
+    private bool isBodySoulExitPlaying;
     private float ghostPossessionStartedTime;
     private bool wasAxeDiveStarting;
     private bool wasAxeDiveFalling;
@@ -216,6 +222,18 @@ public class hys_Player_Animator : MonoBehaviour
             return;
         }
 
+        // 빙의 시작·사망·영혼 이탈·출현 연출 중에는 전용 브리지만 Animator를 제어합니다.
+        if (possessionAnimationBridge != null
+            && (possessionAnimationBridge.IsPossessionAnimationPlaying
+                || possessionAnimationBridge.IsLivingBodyReleaseVisualActive))
+        {
+            // 연출 종료 뒤 상태 변화를 다시 감지해 Soul/Appear를 중복 재생하지 않도록 관찰값은 갱신합니다.
+            previousPlayerState = playerState != null ? playerState.CurrentState : hys_PlayerState.Idle;
+            wasSoulState = IsSoulState();
+            previousSoulRuntimeState = GetSoulRuntimeState();
+            return;
+        }
+
         float horizontalVelocity = rb != null ? rb.linearVelocity.x : 0f;
         float verticalVelocity = rb != null ? rb.linearVelocity.y : 0f;
         bool isMoving = Mathf.Abs(horizontalVelocity) > moveThreshold;
@@ -233,6 +251,8 @@ public class hys_Player_Animator : MonoBehaviour
         }
         int attackComboStep = isAxeDiveAttacking ? 0 : UpdateAttackAnimationCombo(currentState);
 
+        // HWJ는 빙의 해제 시 무기 정보를 먼저 비우므로 Body 상태일 때 마지막 무기 정보를 보관합니다.
+        CacheActivePossessionAnimationContext();
         UpdateAnimatorControllerForSoulState(soulRuntimeState);
         bool isUsingGhostController = IsUsingGhostAnimatorController();
         SetAnimatorInt(playerStateHash, (int)currentState);
@@ -363,6 +383,11 @@ public class hys_Player_Animator : MonoBehaviour
             playerAttack = GetComponent<hys_Player_Attack>();
         }
 
+        if (hwjMotionSystem == null)
+        {
+            hwjMotionSystem = GetComponent<HWJ_CharacterMotionSystem>();
+        }
+
         if (soulSystem == null)
         {
             soulSystem = GetComponent<HWJ_SoulSystem>();
@@ -371,6 +396,11 @@ public class hys_Player_Animator : MonoBehaviour
         if (possessionSystem == null)
         {
             possessionSystem = GetComponent<HWJ_PossessionSystem>();
+        }
+
+        if (possessionAnimationBridge == null)
+        {
+            possessionAnimationBridge = GetComponent<hys_HWJPossessionAnimationBridge>();
         }
 
     }
@@ -404,8 +434,15 @@ public class hys_Player_Animator : MonoBehaviour
             && soulState == HWJ_SoulRuntimeState.Body
             && possessionSystem != null
             && possessionSystem.HasActivePossessedBody;
+        bool startedBodyToSoul = previousSoulRuntimeState == HWJ_SoulRuntimeState.Body
+            && soulState == HWJ_SoulRuntimeState.BodyToSoul;
         bool startedDead = soulState == HWJ_SoulRuntimeState.Dead
             && !isGhostDeadPlaying;
+
+        if (soulState != HWJ_SoulRuntimeState.BodyToSoul)
+        {
+            isBodySoulExitPlaying = false;
+        }
 
         if (previousSoulRuntimeState == HWJ_SoulRuntimeState.Dead
             && soulState != HWJ_SoulRuntimeState.Dead)
@@ -418,8 +455,17 @@ public class hys_Player_Animator : MonoBehaviour
         {
             isGhostPossessionPlaying = true;
             isGhostDeadPlaying = false;
+            isBodySoulExitPlaying = false;
             ghostPossessionStartedTime = Time.unscaledTime;
             activeGhostPossessionController = CreateGhostPossessionOverrideController();
+        }
+
+        if (startedBodyToSoul)
+        {
+            // 소유 정보가 지워진 뒤에도 마지막 몸의 컨트롤러로 빙의 해제 모션을 끝까지 재생합니다.
+            isGhostPossessionPlaying = false;
+            activeGhostPossessionController = null;
+            isBodySoulExitPlaying = true;
         }
 
         if (startedDead)
@@ -429,8 +475,12 @@ public class hys_Player_Animator : MonoBehaviour
             activeGhostPossessionController = null;
         }
 
+        bool shouldKeepBodyForSoulExit = soulState == HWJ_SoulRuntimeState.BodyToSoul
+            && isBodySoulExitPlaying;
         bool shouldUseGhostController = soulState == HWJ_SoulRuntimeState.Soul ||
-            (switchGhostControllerOnBodyToSoul && soulState == HWJ_SoulRuntimeState.BodyToSoul) ||
+            (switchGhostControllerOnBodyToSoul
+                && soulState == HWJ_SoulRuntimeState.BodyToSoul
+                && !shouldKeepBodyForSoulExit) ||
             soulState == HWJ_SoulRuntimeState.Dead ||
             isGhostPossessionPlaying ||
             isGhostDeadPlaying;
@@ -438,9 +488,11 @@ public class hys_Player_Animator : MonoBehaviour
             && activeGhostPossessionController != null
             ? activeGhostPossessionController
             : ghostAnimatorController;
-        RuntimeAnimatorController targetController = shouldUseGhostController
-            ? possessionGhostController
-            : ResolveBodyAnimatorController();
+        RuntimeAnimatorController targetController = shouldKeepBodyForSoulExit
+            ? lastPossessedBodyAnimatorController ?? GetDefaultBodyAnimatorController()
+            : shouldUseGhostController
+                ? possessionGhostController
+                : ResolveBodyAnimatorController();
 
         if (targetController != null && animator.runtimeAnimatorController != targetController)
         {
@@ -454,6 +506,21 @@ public class hys_Player_Animator : MonoBehaviour
         if (startedPossession)
         {
             PlayGhostState(ghostPossessionStateName);
+        }
+
+        if (startedBodyToSoul)
+        {
+            string soulExitStateName = ResolveSoulExitStateName(lastPossessedWeaponType);
+            bool playedSoulExit = PlayAnimatorState(soulExitStateName);
+            if (!playedSoulExit)
+            {
+                // 직접 상태 재생이 불가능한 구형 컨트롤러는 기존 SoulTrigger 전환을 사용합니다.
+                SetAnimatorTrigger(soulTriggerHash);
+            }
+
+            Debug.Log(
+                $"[hys Animator] Soul exit -> {soulExitStateName}, Weapon={lastPossessedWeaponType}, Played={playedSoulExit}",
+                this);
         }
 
         if (startedDead)
@@ -507,7 +574,38 @@ public class hys_Player_Animator : MonoBehaviour
 
         // 공용 Ghost Controller에서 Possession 클립 하나만 현재 무기 전용 클립으로 교체합니다.
         AnimatorOverrideController overrideController = new AnimatorOverrideController(ghostAnimatorController);
-        overrideController[ghostPossessionClipName] = replacementClip;
+        List<KeyValuePair<AnimationClip, AnimationClip>> overrides =
+            new List<KeyValuePair<AnimationClip, AnimationClip>>(overrideController.overridesCount);
+        overrideController.GetOverrides(overrides);
+
+        bool replaced = false;
+        for (int i = 0; i < overrides.Count; i++)
+        {
+            AnimationClip originalClip = overrides[i].Key;
+            if (originalClip == null || originalClip.name != ghostPossessionClipName)
+            {
+                continue;
+            }
+
+            overrides[i] = new KeyValuePair<AnimationClip, AnimationClip>(
+                originalClip,
+                replacementClip);
+            replaced = true;
+            break;
+        }
+
+        if (!replaced)
+        {
+            Debug.LogWarning(
+                $"[hys Animator] Ghost 원본 클립 '{ghostPossessionClipName}'을 찾지 못했습니다.",
+                this);
+            return null;
+        }
+
+        overrideController.ApplyOverrides(overrides);
+        Debug.Log(
+            $"[hys Animator] Possession clip -> {replacementClip.name}, Weapon={ResolvePossessionWeaponType()}",
+            this);
         return overrideController;
     }
 
@@ -518,7 +616,7 @@ public class hys_Player_Animator : MonoBehaviour
             return null;
         }
 
-        switch (possessionSystem.CurrentWeaponType)
+        switch (ResolvePossessionWeaponType())
         {
             case HWJ_WeaponType.Axe:
                 return axeGhostPossessionClip;
@@ -573,6 +671,90 @@ public class hys_Player_Animator : MonoBehaviour
     private RuntimeAnimatorController GetDefaultBodyAnimatorController()
     {
         return bodyAnimatorController != null ? bodyAnimatorController : cachedBodyAnimatorController;
+    }
+
+    private void CacheActivePossessionAnimationContext()
+    {
+        if (possessionSystem == null || !possessionSystem.HasActivePossessedBody)
+        {
+            return;
+        }
+
+        HWJ_WeaponType weaponType = possessionSystem.CurrentWeaponType;
+        if (!IsSupportedPlayerWeapon(weaponType))
+        {
+            return;
+        }
+
+        lastPossessedWeaponType = weaponType;
+        lastPossessedBodyAnimatorController = ResolveBodyAnimatorControllerForWeapon(weaponType);
+    }
+
+    private HWJ_WeaponType ResolvePossessionWeaponType()
+    {
+        if (possessionSystem != null
+            && possessionSystem.HasActivePossessedBody
+            && IsSupportedPlayerWeapon(possessionSystem.CurrentWeaponType))
+        {
+            return possessionSystem.CurrentWeaponType;
+        }
+
+        return lastPossessedWeaponType;
+    }
+
+    private RuntimeAnimatorController ResolveBodyAnimatorControllerForWeapon(HWJ_WeaponType weaponType)
+    {
+        switch (weaponType)
+        {
+            case HWJ_WeaponType.Sword:
+                return swordAnimatorController != null
+                    ? swordAnimatorController
+                    : GetDefaultBodyAnimatorController();
+            case HWJ_WeaponType.Axe:
+                return axeAnimatorController != null
+                    ? axeAnimatorController
+                    : GetDefaultBodyAnimatorController();
+            case HWJ_WeaponType.Bow:
+                return bowAnimatorController != null
+                    ? bowAnimatorController
+                    : GetDefaultBodyAnimatorController();
+            case HWJ_WeaponType.Lance:
+                return lanceAnimatorController != null
+                    ? lanceAnimatorController
+                    : GetDefaultBodyAnimatorController();
+            case HWJ_WeaponType.Shield:
+                return shieldAnimatorController != null
+                    ? shieldAnimatorController
+                    : GetDefaultBodyAnimatorController();
+            default:
+                return GetDefaultBodyAnimatorController();
+        }
+    }
+
+    private static bool IsSupportedPlayerWeapon(HWJ_WeaponType weaponType)
+    {
+        return weaponType == HWJ_WeaponType.Sword
+            || weaponType == HWJ_WeaponType.Axe
+            || weaponType == HWJ_WeaponType.Bow
+            || weaponType == HWJ_WeaponType.Lance
+            || weaponType == HWJ_WeaponType.Shield;
+    }
+
+    private static string ResolveSoulExitStateName(HWJ_WeaponType weaponType)
+    {
+        switch (weaponType)
+        {
+            case HWJ_WeaponType.Axe:
+                return "hys_Axe_Soul";
+            case HWJ_WeaponType.Bow:
+                return "hys_Bow_Soul";
+            case HWJ_WeaponType.Lance:
+                return "hys_Lance_Soul";
+            case HWJ_WeaponType.Shield:
+                return "hys_Shield_Soul";
+            default:
+                return "hys_Sword_Soul";
+        }
     }
 
     private void PlayGhostState(string stateName)
@@ -656,10 +838,8 @@ public class hys_Player_Animator : MonoBehaviour
 
     private bool HasGhostState(string stateName)
     {
-        // 긴 영혼 흡수·기상 연출이 기존 0.45초 폴백에 잘리지 않도록 상태 존재 여부를 먼저 확인합니다.
-        return animator != null
-            && !string.IsNullOrEmpty(stateName)
-            && animator.HasState(baseLayerIndex, Animator.StringToHash(stateName));
+        // 짧은 이름이 아니라 레이어 전체 경로를 확인해 무기별 빙의 클립 종료까지 기다립니다.
+        return TryResolveAnimatorStateHash(stateName, out _);
     }
 
     private void SyncBodyLocomotionState(
@@ -990,6 +1170,12 @@ public class hys_Player_Animator : MonoBehaviour
 
     private void UpdateFacing(float horizontalVelocity)
     {
+        // HWJ 플레이어에서는 HWJ_CharacterMotionSystem만 방향을 결정해 두 컴포넌트가 flipX를 서로 덮어쓰지 않게 합니다.
+        if (hwjMotionSystem != null && hwjMotionSystem.enabled)
+        {
+            return;
+        }
+
         if (!flipSpriteByMoveDirection || spriteRenderer == null)
         {
             return;

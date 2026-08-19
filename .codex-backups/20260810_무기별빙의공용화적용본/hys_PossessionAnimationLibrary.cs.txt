@@ -1,0 +1,36 @@
+using UnityEngine;
+
+/// <summary>
+/// HWJ 무기 타입별 플레이어 빙의 애니메이션 클립을 공용으로 제공합니다.
+/// </summary>
+[CreateAssetMenu(
+    fileName = "hys_PossessionAnimationLibrary",
+    menuName = "hys/Animation/Possession Animation Library")]
+public sealed class hys_PossessionAnimationLibrary : ScriptableObject
+{
+    [SerializeField] private AnimationClip swordPossessionClip;
+    [SerializeField] private AnimationClip axePossessionClip;
+    [SerializeField] private AnimationClip bowPossessionClip;
+    [SerializeField] private AnimationClip lancePossessionClip;
+    [SerializeField] private AnimationClip shieldPossessionClip;
+
+    // 빙의한 몬스터의 HWJ 무기 타입과 일치하는 플레이어 전용 클립을 반환합니다.
+    public AnimationClip GetPossessionClip(HWJ_WeaponType weaponType)
+    {
+        switch (weaponType)
+        {
+            case HWJ_WeaponType.Axe:
+                return axePossessionClip;
+            case HWJ_WeaponType.Bow:
+                return bowPossessionClip;
+            case HWJ_WeaponType.Lance:
+                return lancePossessionClip;
+            case HWJ_WeaponType.Shield:
+                return shieldPossessionClip;
+            case HWJ_WeaponType.Sword:
+                return swordPossessionClip;
+            default:
+                return null;
+        }
+    }
+}

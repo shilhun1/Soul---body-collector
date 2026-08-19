@@ -1,5 +1,12 @@
 fileFormatVersion: 2
 guid: 79352eee20725204fbf7d4ee9c37ee02
+AssetOrigin:
+  serializedVersion: 1
+  productId: 105521
+  packageName: Pixel art Chess Knights pack ver.1
+  packageVersion: 1.0
+  assetPath: Assets/Pixel art Chess Knights pack/03_Knight/Red_Knight/R_Knight_atk05.png
+  uploadId: 929706
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -79,7 +86,7 @@ TextureImporter:
     overridden: 0
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
-    forceMaximumCompressionQuality_BC6H_BC7: 1
+    forceMaximumCompressionQuality_BC6H_BC7: 0
   - serializedVersion: 4
     buildTarget: Standalone
     maxTextureSize: 2048
@@ -92,7 +99,7 @@ TextureImporter:
     overridden: 0
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
-    forceMaximumCompressionQuality_BC6H_BC7: 1
+    forceMaximumCompressionQuality_BC6H_BC7: 0
   - serializedVersion: 4
     buildTarget: WebGL
     maxTextureSize: 2048
@@ -128,10 +135,3 @@ TextureImporter:
   userData: 
   assetBundleName: 
   assetBundleVariant: 
-AssetOrigin:
-  serializedVersion: 1
-  productId: 105521
-  packageName: Pixel art Chess Knights pack ver.1
-  packageVersion: 1.0
-  assetPath: Assets/Pixel art Chess Knights pack/03_Knight/Red_Knight/R_Knight_atk05.png
-  uploadId: 929706

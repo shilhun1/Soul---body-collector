@@ -9,7 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b2b235cde52b4f82af8866e242c6cb06, type: 3}
+  m_Script: {fileID: 11500000, guid: b24efc684d46fd14592bcf59c8641e72, type: 3}
   m_Name: HWJ_TitleScreenData_Default
   m_EditorClassIdentifier: HWJ.Runtime::HWJ_TitleScreenDataSO
   titleScreenId: default_title

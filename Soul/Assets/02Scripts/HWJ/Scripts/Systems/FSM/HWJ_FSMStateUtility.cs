@@ -5,6 +5,8 @@ public static class HWJ_FSMStateUtility
         switch (state)
         {
             case HWJ_MonsterAIState.Approach:
+            case HWJ_MonsterAIState.Patrol:
+            case HWJ_MonsterAIState.ReturnHome:
                 return HWJ_RuntimeState.Move;
             case HWJ_MonsterAIState.AttackPrepare:
             case HWJ_MonsterAIState.Attack:
@@ -28,9 +30,12 @@ public static class HWJ_FSMStateUtility
                 return HWJ_RuntimeState.Attack;
             case HWJ_BossFSMState.PhaseTransition:
             case HWJ_BossFSMState.Groggy:
+            case HWJ_BossFSMState.Stagger:
                 return HWJ_RuntimeState.Hit;
             case HWJ_BossFSMState.Dead:
                 return HWJ_RuntimeState.Dead;
+            case HWJ_BossFSMState.Recover:
+                return HWJ_RuntimeState.Idle;
             default:
                 return HWJ_RuntimeState.Idle;
         }

@@ -18,6 +18,8 @@ public class HWJ_EnemyAttackSystem : MonoBehaviour
     [SerializeField] private HWJ_CombatExecutionSystem combatExecutionSystem;
     [SerializeField] private HWJ_SkillActionSystem skillActionSystem;
     [SerializeField] private HWJ_MonsterAISystem monsterAI;
+    [SerializeField] private HWJ_CharacterMotionSystem motionSystem;
+    [SerializeField] private Animator animator;
     [Header("타겟")]
     [SerializeField] private Transform target;
     [SerializeField] private bool autoFindPlayerTarget = true;
@@ -46,13 +48,31 @@ public class HWJ_EnemyAttackSystem : MonoBehaviour
     private int nextSkillCycleIndex;
     private bool isPreparingSkill;
     private Coroutine skillPrepareRoutine;
+    private HWJ_RootObjectDataResolver pendingBasicAttackTarget;
+    private Coroutine basicAttackFallbackRoutine;
+    private bool pendingBasicAttackHitApplied;
+    private float nextContactDamageTime;
 
     public string LastAttackResult => lastAttackResult;
     public float LastDamageApplied => lastDamageApplied;
+    public bool HasPendingBasicAttack => pendingBasicAttackTarget != null;
 
     private void Awake()
     {
         CacheReferences();
+    }
+
+    private void OnDisable()
+    {
+        CancelPreparedBasicAttack();
+
+        if (skillPrepareRoutine != null)
+        {
+            StopCoroutine(skillPrepareRoutine);
+            skillPrepareRoutine = null;
+        }
+
+        isPreparingSkill = false;
     }
 
     private void Update()
@@ -139,7 +159,7 @@ public class HWJ_EnemyAttackSystem : MonoBehaviour
             return false;
         }
 
-        float distance = Vector2.Distance(transform.position, target.position);
+        float distance = HWJ_PhysicsLayerUtility.GetColliderSurfaceDistance(transform, target);
 
         if (TryUseSkillCycle(distance))
         {
@@ -168,8 +188,153 @@ public class HWJ_EnemyAttackSystem : MonoBehaviour
 
         nextBasicAttackTime = Time.time + GetAttackIntervalSeconds();
         runtimeStatus?.SetState(HWJ_RuntimeState.Attack);
+        return TryExecuteBasicAttack(targetResolver);
+    }
 
-        if (combatExecutionSystem != null && combatExecutionSystem.TryExecuteAttackTo(targetResolver))
+    private bool TryExecuteBasicAttack(HWJ_RootObjectDataResolver targetResolver)
+    {
+        HWJ_EnemyBasicAttackData attackData = GetBasicAttackData();
+        HWJ_EnemyBasicAttackMode attackMode = attackData != null
+            ? attackData.mode
+            : HWJ_EnemyBasicAttackMode.Immediate;
+
+        switch (attackMode)
+        {
+            case HWJ_EnemyBasicAttackMode.Contact:
+                lastAttackResult = "Contact attack is armed and applies damage only while touching the player.";
+                return true;
+            case HWJ_EnemyBasicAttackMode.AnimationEvent:
+                return BeginPreparedBasicAttack(targetResolver, attackData);
+            default:
+                return ExecuteBasicAttackDamage(targetResolver, attackData, true);
+        }
+    }
+
+    private bool BeginPreparedBasicAttack(
+        HWJ_RootObjectDataResolver targetResolver,
+        HWJ_EnemyBasicAttackData attackData)
+    {
+        if (pendingBasicAttackTarget != null)
+        {
+            lastAttackResult = "Basic attack failed: an animation-timed attack is already pending.";
+            return false;
+        }
+
+        pendingBasicAttackTarget = targetResolver;
+        pendingBasicAttackHitApplied = false;
+        string motionKey = attackData != null ? attackData.motionKey : null;
+
+        if (motionSystem != null)
+        {
+            if (string.IsNullOrWhiteSpace(motionKey))
+            {
+                motionSystem.PlayAttack(null);
+            }
+            else
+            {
+                motionSystem.PlayMotionKey(motionKey);
+            }
+        }
+
+        bool hasAnimationController = animator != null && animator.runtimeAnimatorController != null;
+        float delaySeconds = attackData != null
+            ? Mathf.Max(0f, attackData.fallbackHitDelaySeconds)
+            : 0f;
+
+        // Animation Event가 등록되어 있으면 먼저 타격을 적용하고, 등록되지 않았으면
+        // fallback 타이머가 대신 적용합니다. pendingBasicAttackHitApplied가 중복 피해를 막습니다.
+        basicAttackFallbackRoutine = StartCoroutine(
+            TimedBasicAttackFallbackRoutine(delaySeconds));
+
+        lastAttackResult = hasAnimationController
+            ? "Animation-timed basic attack started. Animation Event or fallback timer will apply the hit."
+            : "Basic attack started with the no-animation fallback timer.";
+        return true;
+    }
+
+    private IEnumerator TimedBasicAttackFallbackRoutine(float delaySeconds)
+    {
+        if (delaySeconds > 0f)
+        {
+            yield return new WaitForSeconds(delaySeconds);
+        }
+
+        ApplyPreparedBasicAttackHit();
+        pendingBasicAttackTarget = null;
+        pendingBasicAttackHitApplied = false;
+        basicAttackFallbackRoutine = null;
+    }
+
+    /// <summary>
+    /// 공격 애니메이션의 실제 타격 프레임에서 Animation Event로 호출합니다.
+    /// 한 공격 요청에서는 한 번만 피해가 적용됩니다.
+    /// </summary>
+    public bool ApplyPreparedBasicAttackHit()
+    {
+        if (pendingBasicAttackTarget == null || pendingBasicAttackHitApplied)
+        {
+            lastAttackResult = "Animation hit ignored: no pending basic attack.";
+            return false;
+        }
+
+        HWJ_EnemyBasicAttackData attackData = GetBasicAttackData();
+        float tolerance = attackData != null ? Mathf.Max(0f, attackData.hitRangeTolerance) : 0f;
+        float distance = HWJ_PhysicsLayerUtility.GetColliderSurfaceDistance(
+            transform,
+            pendingBasicAttackTarget.transform);
+
+        if (runtimeStatus != null && (runtimeStatus.IsDead || !runtimeStatus.CanAttack))
+        {
+            lastAttackResult = "Animation hit canceled: attacker cannot attack.";
+            return false;
+        }
+
+        if (!CanAttackTargetState(pendingBasicAttackTarget.transform)
+            || distance > GetAttackRange() + tolerance)
+        {
+            lastAttackResult = "Animation hit missed: target left the valid range or state.";
+            pendingBasicAttackHitApplied = true;
+            return false;
+        }
+
+        pendingBasicAttackHitApplied = true;
+        return ExecuteBasicAttackDamage(pendingBasicAttackTarget, attackData, false);
+    }
+
+    /// <summary>
+    /// 공격 애니메이션의 종료 프레임에서 Animation Event로 호출합니다.
+    /// </summary>
+    public void CompletePreparedBasicAttack()
+    {
+        if (basicAttackFallbackRoutine != null)
+        {
+            StopCoroutine(basicAttackFallbackRoutine);
+            basicAttackFallbackRoutine = null;
+        }
+
+        pendingBasicAttackTarget = null;
+        pendingBasicAttackHitApplied = false;
+    }
+
+    public void CancelPreparedBasicAttack()
+    {
+        CompletePreparedBasicAttack();
+        lastAttackResult = "Prepared basic attack was canceled.";
+    }
+
+    private bool ExecuteBasicAttackDamage(
+        HWJ_RootObjectDataResolver targetResolver,
+        HWJ_EnemyBasicAttackData attackData,
+        bool shouldPlayMotion)
+    {
+        float multiplier = attackData != null ? Mathf.Max(0f, attackData.damageMultiplier) : 1f;
+
+        if (combatExecutionSystem != null
+            && combatExecutionSystem.TryExecuteAttackTo(
+                targetResolver,
+                multiplier,
+                attackData != null ? attackData.motionKey : null,
+                shouldPlayMotion))
         {
             lastDamageApplied = combatExecutionSystem.LastDamageApplied;
             lastAttackResult = combatExecutionSystem.LastExecutionResult;
@@ -180,6 +345,43 @@ public class HWJ_EnemyAttackSystem : MonoBehaviour
             ? combatExecutionSystem.LastExecutionResult
             : "Attack failed: missing combat execution system.";
         return false;
+    }
+
+    private void OnCollisionStay2D(Collision2D collision)
+    {
+        TryApplyContactDamage(collision != null ? collision.collider : null);
+    }
+
+    private void OnTriggerStay2D(Collider2D other)
+    {
+        TryApplyContactDamage(other);
+    }
+
+    private void TryApplyContactDamage(Collider2D other)
+    {
+        HWJ_EnemyBasicAttackData attackData = GetBasicAttackData();
+
+        if (attackData == null
+            || attackData.mode != HWJ_EnemyBasicAttackMode.Contact
+            || other == null
+            || Time.time < nextContactDamageTime
+            || (runtimeStatus != null && (runtimeStatus.IsDead || !runtimeStatus.CanAttack)))
+        {
+            return;
+        }
+
+        HWJ_RootObjectDataResolver targetResolver =
+            other.GetComponentInParent<HWJ_RootObjectDataResolver>();
+
+        if (targetResolver == null
+            || !CanAttackTargetState(targetResolver.transform))
+        {
+            return;
+        }
+
+        nextContactDamageTime = Time.time
+            + Mathf.Max(0.01f, attackData.contactDamageIntervalSeconds);
+        ExecuteBasicAttackDamage(targetResolver, attackData, false);
     }
 
     private bool TryUseSkillCycle(float distanceToTarget)
@@ -627,6 +829,17 @@ public class HWJ_EnemyAttackSystem : MonoBehaviour
         return Mathf.Max(0f, fallbackAttackIntervalSeconds);
     }
 
+    private HWJ_EnemyBasicAttackData GetBasicAttackData()
+    {
+        if (dataResolver != null
+            && dataResolver.TryGetTypeData(out HWJ_EnemyTypeDataSO enemyData))
+        {
+            return enemyData.BasicAttack;
+        }
+
+        return null;
+    }
+
     private bool CanAttackTargetState()
     {
         return CanAttackTargetState(target);
@@ -635,6 +848,31 @@ public class HWJ_EnemyAttackSystem : MonoBehaviour
     private bool CanAttackTargetState(Transform checkedTarget)
     {
         if (checkedTarget == null)
+        {
+            return false;
+        }
+
+        HWJ_RootObjectDataResolver checkedTargetResolver =
+            checkedTarget.GetComponent<HWJ_RootObjectDataResolver>();
+
+        if (checkedTargetResolver == null)
+        {
+            checkedTargetResolver =
+                checkedTarget.GetComponentInParent<HWJ_RootObjectDataResolver>();
+        }
+
+        if (checkedTargetResolver == dataResolver)
+        {
+            return false;
+        }
+
+        HWJ_PossessionSystem targetPossession =
+            checkedTargetResolver != null
+                ? checkedTargetResolver.GetComponent<HWJ_PossessionSystem>()
+                : null;
+
+        if (targetPossession != null
+            && targetPossession.PossessedBodyResolver == dataResolver)
         {
             return false;
         }
@@ -706,6 +944,16 @@ public class HWJ_EnemyAttackSystem : MonoBehaviour
         if (monsterAI == null)
         {
             monsterAI = GetComponent<HWJ_MonsterAISystem>();
+        }
+
+        if (motionSystem == null)
+        {
+            motionSystem = GetComponent<HWJ_CharacterMotionSystem>();
+        }
+
+        if (animator == null)
+        {
+            animator = GetComponentInChildren<Animator>(true);
         }
     }
 

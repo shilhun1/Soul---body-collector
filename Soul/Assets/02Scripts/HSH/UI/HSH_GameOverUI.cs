@@ -6,22 +6,6 @@ public class HSH_GameOverUI : MonoBehaviour
     [Header("UI 연결")]
     public GameObject gameOverPanel; // 게임오버 시 화면에 띄울 창 (패널)
 
-    public static HSH_GameOverUI Instance { get; private set; }
-
-    private void Awake()
-    {
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
-            return;
-        }
-
-        Instance = this;
-        
-        // 씬이 변경되어도 파괴되지 않도록 설정 (루트 오브젝트여야 작동합니다)
-        DontDestroyOnLoad(gameObject);
-    }
-
     private void Start()
     {
         // 게임 시작 시 게임오버 창이 켜져있다면 숨기기

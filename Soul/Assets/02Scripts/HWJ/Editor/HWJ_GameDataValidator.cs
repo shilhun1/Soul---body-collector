@@ -429,11 +429,68 @@ public static class HWJ_GameDataValidator
             }
         }
 
-        if (enemyType.PossessionBody != null
-            && enemyType.PossessionBody.canBePossessed
-            && !enemyType.PossessionBody.requiresDefeatedState)
+        if (enemyType.Patrol != null)
         {
-            AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Warning, "ENEMY_POSSESSION_WITHOUT_DEFEATED_REQUIREMENT", "REQ-9", assetPath, "PossessionBody.requiresDefeatedState", "Enemy body is possessable without requiring defeated state.", "Keep requiresDefeatedState enabled unless live possession is an intentional special case.");
+            ValidateNonNegative(validationIssues, enemyType.Patrol.radius, "REQ-14", assetPath, "Patrol.radius", "ENEMY_PATROL_RADIUS_NEGATIVE");
+            ValidateNonNegative(validationIssues, enemyType.Patrol.speedMultiplier, "REQ-14", assetPath, "Patrol.speedMultiplier", "ENEMY_PATROL_SPEED_NEGATIVE");
+            ValidateNonNegative(validationIssues, enemyType.Patrol.turnPauseSeconds, "REQ-14", assetPath, "Patrol.turnPauseSeconds", "ENEMY_PATROL_TURN_PAUSE_NEGATIVE");
+        }
+
+        if (enemyType.Vision != null)
+        {
+            ValidateNonNegative(validationIssues, enemyType.Vision.viewDistance, "REQ-14", assetPath, "Vision.viewDistance", "ENEMY_VISION_DISTANCE_NEGATIVE");
+            ValidateNonNegative(validationIssues, enemyType.Vision.samePlatformHeightTolerance, "REQ-14", assetPath, "Vision.samePlatformHeightTolerance", "ENEMY_VISION_PLATFORM_TOLERANCE_NEGATIVE");
+
+            if (enemyType.Vision.viewAngle <= 0f || enemyType.Vision.viewAngle > 360f)
+            {
+                AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "ENEMY_VISION_ANGLE_INVALID", "REQ-14", assetPath, "Vision.viewAngle", "Enemy view angle must be greater than 0 and no more than 360 degrees.", "Set viewAngle to the authored field of view. The general-monster default is 180 degrees.");
+            }
+        }
+
+        if (enemyType.ReturnBehavior != null)
+        {
+            ValidateNonNegative(validationIssues, enemyType.ReturnBehavior.maxChaseDistanceFromSpawn, "REQ-14", assetPath, "ReturnBehavior.maxChaseDistanceFromSpawn", "ENEMY_RETURN_MAX_DISTANCE_NEGATIVE");
+            ValidateNonNegative(validationIssues, enemyType.ReturnBehavior.speedMultiplier, "REQ-14", assetPath, "ReturnBehavior.speedMultiplier", "ENEMY_RETURN_SPEED_NEGATIVE");
+
+            if (enemyType.ReturnBehavior.arrivalDistance <= 0f)
+            {
+                AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "ENEMY_RETURN_ARRIVAL_DISTANCE_INVALID", "REQ-14", assetPath, "ReturnBehavior.arrivalDistance", "Enemy return arrival distance must be greater than 0.", "Set a small positive value such as 0.1.");
+            }
+        }
+
+        if (enemyType.BasicAttack != null)
+        {
+            ValidateNonNegative(validationIssues, enemyType.BasicAttack.fallbackHitDelaySeconds, "REQ-14", assetPath, "BasicAttack.fallbackHitDelaySeconds", "ENEMY_BASIC_ATTACK_FALLBACK_DELAY_NEGATIVE");
+            ValidateNonNegative(validationIssues, enemyType.BasicAttack.hitRangeTolerance, "REQ-14", assetPath, "BasicAttack.hitRangeTolerance", "ENEMY_BASIC_ATTACK_RANGE_TOLERANCE_NEGATIVE");
+            ValidateNonNegative(validationIssues, enemyType.BasicAttack.damageMultiplier, "REQ-14", assetPath, "BasicAttack.damageMultiplier", "ENEMY_BASIC_ATTACK_DAMAGE_MULTIPLIER_NEGATIVE");
+
+            if (enemyType.BasicAttack.mode == HWJ_EnemyBasicAttackMode.Contact
+                && enemyType.BasicAttack.contactDamageIntervalSeconds <= 0f)
+            {
+                AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "ENEMY_CONTACT_ATTACK_INTERVAL_INVALID", "REQ-14", assetPath, "BasicAttack.contactDamageIntervalSeconds", "Contact damage interval must be greater than 0.", "Set a positive interval so one collision cannot damage every physics frame.");
+            }
+        }
+
+        if (enemyType.PossessionBody != null && enemyType.Role != null)
+        {
+            if (enemyType.PossessionBody.canBePossessed != enemyType.Role.isPossessableBody)
+            {
+                AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "ENEMY_POSSESSION_FLAGS_MISMATCH", "REQ-9", assetPath, "Role.isPossessableBody", "Enemy role and possession data disagree about whether this enemy can be possessed.", "Set Role.isPossessableBody and PossessionBody.canBePossessed to the same value.");
+            }
+
+            if (enemyType.PossessionBody.canBePossessed
+                && !enemyType.PossessionBody.requiresDefeatedState
+                && enemyType.PossessionBody.livePossessionMaxMental <= 0f)
+            {
+                AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "ENEMY_LIVE_POSSESSION_MENTAL_INVALID", "REQ-9", assetPath, "PossessionBody.livePossessionMaxMental", "A live-possessable enemy must have positive possession mental.", "Set livePossessionMaxMental above 0.");
+            }
+
+            if (enemyType.PossessionBody.requiresDefeatedState
+                && enemyType.PossessionBody.canBePossessed
+                && !enemyType.Role.leavesCorpseOnDeath)
+            {
+                AddIssue(validationIssues, HWJ_GameDataValidationSeverity.Error, "ENEMY_DEAD_POSSESSION_WITHOUT_CORPSE", "REQ-9", assetPath, "Role.leavesCorpseOnDeath", "Defeated-state possession is enabled but the enemy does not leave a corpse.", "Either leave a corpse or use live possession by disabling requiresDefeatedState.");
+            }
         }
     }
 

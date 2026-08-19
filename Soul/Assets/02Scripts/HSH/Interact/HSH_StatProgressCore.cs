@@ -33,8 +33,12 @@ public class HSH_StatProgressCore : MonoBehaviour
 
     void Update()
     {
+        Key effectiveKey = (HSH.UI.HSH_KeyBindingManager.Instance != null)
+            ? HSH.UI.HSH_KeyBindingManager.Instance.GetInputSystemKey(HSH.UI.HSH_KeyAction.Interact)
+            : interactionKey;
+
         // 플레이어가 범위 안에 있고, 상호작용 키를 눌렀을 때 작동
-        if (isPlayerInRange && Keyboard.current != null && Keyboard.current[interactionKey].wasPressedThisFrame)
+        if (isPlayerInRange && Keyboard.current != null && Keyboard.current[effectiveKey].wasPressedThisFrame)
         {
             TriggerRandomStat();
         }
@@ -113,8 +117,12 @@ public class HSH_StatProgressCore : MonoBehaviour
 
             if (spawnedUi != null)
             {
+                Key effectiveKey = (HSH.UI.HSH_KeyBindingManager.Instance != null)
+                    ? HSH.UI.HSH_KeyBindingManager.Instance.GetInputSystemKey(HSH.UI.HSH_KeyAction.Interact)
+                    : interactionKey;
+
                 UpdateUIPosition();
-                spawnedUi.ShowUI(interactionKey.ToString());
+                spawnedUi.ShowUI(effectiveKey.ToString());
             }
         }
     }

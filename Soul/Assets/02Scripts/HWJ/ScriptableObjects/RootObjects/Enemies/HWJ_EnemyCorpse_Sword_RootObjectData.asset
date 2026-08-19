@@ -22,8 +22,8 @@ MonoBehaviour:
   status:
     level: 1
     maxHp: 100
-    moveSpeed: 3
-    attackPower: 10
+    moveSpeed: 7
+    attackPower: 1000
     defense: 0
     attackSpeed: 1
     bodyWeight: 1
@@ -35,7 +35,7 @@ MonoBehaviour:
     possessedEyeSocketName: 
   damage:
     damageType: 0
-    baseDamage: 1500
+    baseDamage: 15
     criticalChance: 0
     criticalMultiplier: 1.5
     knockbackPower: 5

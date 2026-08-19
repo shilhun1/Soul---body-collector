@@ -14,68 +14,101 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HWJ_SpawnTableDataSO
   tableId: spawn.hwj.default
   entries:
-  - spawnId: enemy_Sword
-    spawnPointId: enemy_Sword
+  - spawnId: Enemy_Sword
+    spawnPointId: Enemy_Sword
     spawnPointType: 1
     rootObjectData: {fileID: 11400000, guid: cc000000000000000000000000000001, type: 2}
-    prefabOverride: {fileID: 3576862325422680928, guid: d5bf07532af8bbc45a0f20ef875ee17a, type: 3}
+    prefabOverride: {fileID: 2687331519739871537, guid: 8d18c9698cc0c8b48b1f18164366cafe, type: 3}
     spawnCount: 1
     spawnDelaySeconds: 0
     useSequentialSpawnWhenMultiple: 1
     waitUntilCurrentSpawnedMonstersDefeated: 1
     nextSpawnMaxWaitSeconds: 5
+    skipSpawnWhenRewardClaimed: 1
     spawnOffset: {x: 0, y: 0}
     randomizePoint: 0
     spawnOnStart: 1
-  - spawnId: enemy_Axe
-    spawnPointId: enemy_Axe
+  - spawnId: Enemy_Axe
+    spawnPointId: Enemy_Axe
     spawnPointType: 1
     rootObjectData: {fileID: 11400000, guid: cc000000000000000000000000000003, type: 2}
-    prefabOverride: {fileID: 3576862325422680928, guid: f3be394d9fe9a654c972f7282987f973, type: 3}
+    prefabOverride: {fileID: 8944674153436637418, guid: 29f75bab50acbfa45868f235b5d9cd9e, type: 3}
     spawnCount: 1
     spawnDelaySeconds: 0
     useSequentialSpawnWhenMultiple: 1
     waitUntilCurrentSpawnedMonstersDefeated: 1
     nextSpawnMaxWaitSeconds: 5
+    skipSpawnWhenRewardClaimed: 1
     spawnOffset: {x: 0, y: 0}
     randomizePoint: 0
     spawnOnStart: 1
-  - spawnId: enemy_Bow
-    spawnPointId: enemy_Bow
+  - spawnId: Enemy_Bow
+    spawnPointId: Enemy_Bow
     spawnPointType: 1
     rootObjectData: {fileID: 11400000, guid: cc000000000000000000000000000005, type: 2}
-    prefabOverride: {fileID: 3576862325422680928, guid: 63bca773b812f4e4091ce7ef09775955, type: 3}
+    prefabOverride: {fileID: 6245554184141707589, guid: fbd2161cc86a8c340b3f48a981041866, type: 3}
     spawnCount: 1
     spawnDelaySeconds: 0
     useSequentialSpawnWhenMultiple: 1
     waitUntilCurrentSpawnedMonstersDefeated: 1
     nextSpawnMaxWaitSeconds: 5
+    skipSpawnWhenRewardClaimed: 1
     spawnOffset: {x: 0, y: 0}
     randomizePoint: 0
     spawnOnStart: 1
-  - spawnId: enemy_Shield
-    spawnPointId: enemy_Shield
+  - spawnId: Enemy_Shield
+    spawnPointId: Enemy_Shield
     spawnPointType: 1
     rootObjectData: {fileID: 11400000, guid: cc000000000000000000000000000004, type: 2}
-    prefabOverride: {fileID: 3576862325422680928, guid: a59df2ced68ffef41899d729c2e94a7d, type: 3}
+    prefabOverride: {fileID: 7698015754555945441, guid: 834f6bca05b8e9e45bc16a4f59a90769, type: 3}
     spawnCount: 1
     spawnDelaySeconds: 0
     useSequentialSpawnWhenMultiple: 1
     waitUntilCurrentSpawnedMonstersDefeated: 1
     nextSpawnMaxWaitSeconds: 5
+    skipSpawnWhenRewardClaimed: 1
     spawnOffset: {x: 0, y: 0}
     randomizePoint: 0
     spawnOnStart: 1
-  - spawnId: enemy_Lance
-    spawnPointId: enemy_Lance
+  - spawnId: Enemy_Lance
+    spawnPointId: Enemy_Lance
     spawnPointType: 1
     rootObjectData: {fileID: 11400000, guid: cc000000000000000000000000000002, type: 2}
-    prefabOverride: {fileID: 3576862325422680928, guid: b5b460fd804c27741882ca7cb73f719c, type: 3}
+    prefabOverride: {fileID: 3880702661718353314, guid: 11ee875ef6a95a741b7557f8bb64002c, type: 3}
     spawnCount: 1
     spawnDelaySeconds: 0
     useSequentialSpawnWhenMultiple: 1
     waitUntilCurrentSpawnedMonstersDefeated: 1
     nextSpawnMaxWaitSeconds: 5
+    skipSpawnWhenRewardClaimed: 1
     spawnOffset: {x: 0, y: 0}
     randomizePoint: 0
     spawnOnStart: 1
+  - spawnId: Enemy_General_Slime
+    spawnPointId: Enemy_General_Slime
+    spawnPointType: 1
+    rootObjectData: {fileID: 11400000, guid: 81aac2a979aedd346ab0e520b4b9151f, type: 2}
+    prefabOverride: {fileID: 7057163663799429369, guid: cfb879187ec1e6b4b92b3601d90a6939, type: 3}
+    spawnCount: 1
+    spawnDelaySeconds: 0
+    useSequentialSpawnWhenMultiple: 1
+    waitUntilCurrentSpawnedMonstersDefeated: 1
+    nextSpawnMaxWaitSeconds: 5
+    skipSpawnWhenRewardClaimed: 1
+    spawnOffset: {x: 0, y: 0}
+    randomizePoint: 0
+    spawnOnStart: 0
+  - spawnId: Enemy_General_Rat
+    spawnPointId: Enemy_General_Rat
+    spawnPointType: 1
+    rootObjectData: {fileID: 11400000, guid: 57a61846de480b143b46ea0b4cde2c37, type: 2}
+    prefabOverride: {fileID: 5209565325691485207, guid: 34f7b06717407b743888f490fe7b654f, type: 3}
+    spawnCount: 1
+    spawnDelaySeconds: 0
+    useSequentialSpawnWhenMultiple: 1
+    waitUntilCurrentSpawnedMonstersDefeated: 1
+    nextSpawnMaxWaitSeconds: 5
+    skipSpawnWhenRewardClaimed: 1
+    spawnOffset: {x: 0, y: 0}
+    randomizePoint: 0
+    spawnOnStart: 0

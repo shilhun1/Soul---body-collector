@@ -36,6 +36,18 @@
     *   주기적 분출 또는 플레이어 감지 모드(`detectPlayer`)를 지원합니다. 수증기가 솟구칠 때 애니메이션과 함께 콜라이더의 `activeOffset`을 이동시켜 위로 솟구치는 데미지 및 넉백 판정을 발생시킵니다.
 *   **HSH_WindTrap** (바람 함정) *(업데이트: 2026-07-28)*
     *   발사기 모드에서 전방 레이캐스트로 플레이어를 감지 시 발사 애니메이션 연출을 실행하고 바람 프로젝타일을 발사합니다. 프로젝타일 충돌 시 데미지 및 넉백을 입힙니다.
+*   **HSH_Soulpass** (영혼 상태 전용 통과 벽/타일맵 기믹) *(신규 제작 및 타일맵 확장: 2026-08-07)*
+    *   플레이어가 영혼(Soul/Spirit) 상태일 때만 물리 충돌을 해제(`Physics2D.IgnoreCollision`)하여 통과할 수 있고, 육체 상태일 때는 막히는 물리 기믹입니다.
+    *   단일 SpriteRenderer뿐만 아니라 2D `Tilemap` 컴포넌트 및 `TilemapCollider2D`/`CompositeCollider2D`를 완벽 지원하여 타일맵 전체를 영혼 통과 레이어로 구성할 수 있습니다.
+*   **HSH_ShieldArrowTrap** (방패 방어 화살 함정) *(신규 제작: 2026-08-07)*
+    *   전방 플레이어 감지(`Physics2D.RaycastAll`) 또는 주기적 타이머에 따라 화살 투사체를 발사하는 함정 기믹입니다.
+    *   플레이어가 **방패 폼(`HWJ_WeaponType.Shield`)** 상태일 경우 화살을 데미지 없이 차단하고 소멸시키며, 방패 미착용 상태일 경우 데미지 및 넉백을 가합니다.
+*   **HSH_ProjectileSwitch** (발사체 타격 스위치) *(신규 제작: 2026-08-07)*
+    *   화살, 탄환 등 발사체 공격이 충돌(`OnTriggerEnter2D` / `OnCollisionEnter2D`)하면 발사체를 소멸시키며 작동하는 스위치 컴포넌트입니다.
+    *   작동 시 시각적 색상 변경, 애니메이션 Trigger 발동, `HSH_GimmickDoor` 연동 문 열림 및 디버그 로그(`Debug.Log`)를 출력합니다.
+*   **HSH_GimmickDoor** (기믹 연동 문) *(신규 제작: 2026-08-07)*
+    *   스위치나 기믹 연동 시 작동하는 문(Door/Gate) 컴포넌트입니다.
+    *   Animator 파라미터 제어(`AnimatorOnly`), 단순 콜라이더 해제(`DisableCollider`), Y축 부드러운 위치 이동(`TransformMove`), 오브젝트 비활성화(`DisableObject`) 모드를 지원하며 작동 상태를 디버그 로그로 출력합니다.
 
 ## 4. UI 시스템 (UI)
 게임 화면 내 다양한 정보와 피드백을 표시하는 스크립트들입니다.
@@ -65,6 +77,27 @@
 *   **HSH_SkillTreeToggleUI** *(추가일: 2026-07-22)*
     *   단축키(기본값: Tab, 인스펙터에서 임의 지정 가능)를 눌러 스킬 트리 UI 패널을 열고 닫을 수 있게 하는 컨트롤러 스크립트입니다.
     *   스킬 트리가 열리면 이전 게임의 시간 흐름 속도를 기억한 뒤 `Time.timeScale = 0f`로 정지시켜 게임이 일시 정지되도록 하고, 마우스 커서를 해제하여 노드 선택 및 스킬 해금을 자유롭게 수행할 수 있도록 지원합니다. 스킬 트리가 닫히면 게임 시간을 기존 상태로 안전하게 복원합니다.
+*   **HSH_PauseUI** *(신규 제작: 2026-08-03)*
+    *   `ESC` 키 입력 시 게임을 일시 정지(`Time.timeScale = 0f`)시키고 마우스 커서를 해제하며 일시정지 팝업 UI 창을 표시합니다.
+    *   일시정지 창 내부에는 상단부터 **계속하기 (Resume)**, **설정 (Settings)**, **게임 종료 (Quit)** 3개의 버튼이 배치됩니다.
+    *   **설정** 버튼 클릭 시 일시정지 창이 닫히고/숨겨지며 **설정 창(Settings Panel)**이 화면에 띄워집니다. (설정 창에서 `ESC` 또는 뒤로가기 버튼 입력 시 다시 일시정지 창으로 전환됩니다.)
+*   **HSH_AudioManager** *(신규 제작: 2026-08-04)*
+    *   마스터 음량(Master), 배경음악(BGM), 효과음(SFX)을 총괄 관리하는 싱글톤 오디오 매니저입니다.
+    *   `AudioMixer` 파라미터 연동(`MasterVolume`, `BGMVolume`, `SFXVolume`)을 기본 지원하며, AudioMixer가 없는 경우 `AudioListener` 및 개별 `AudioSource` 볼륨을 자동 조절합니다.
+    *   모든 음량 설정값은 `PlayerPrefs`에 자동 저장/로드됩니다.
+*   **HSH_AudioSettingsUI** *(신규 제작: 2026-08-04)*
+    *   설정창 내부의 마스터, BGM, SFX 슬라이더(Slider) 및 % 텍스트(TMP/Legacy Text)를 제어합니다.
+    *   슬라이더 조작 시 `HSH_AudioManager`에 볼륨을 즉시 전달하고 저장합니다.
+*   **HSH_KeyBindingManager** *(신규 제작: 2026-08-04)*
+    *   일시정지(Pause), 스킬트리(SkillTree), 상호작용(Interact), 이동 방향키 등 커스텀 단축키 변경 및 PlayerPrefs 저장을 관리하는 싱글톤 매니저입니다.
+    *   Legacy `KeyCode` 및 Unity New Input System `Key` 동시 변환을 지원하며, 키 바인딩 변경 시 이벤트(`OnKeyBindingChanged`)를 발송합니다.
+*   **HSH_KeyRebindUI** *(신규 제작: 2026-08-04)*
+    *   설정창 내의 키 변경 버튼 및 현재 단축키 텍스트를 제어합니다.
+    *   키 변경 버튼 클릭 시 키 입력 대기 연출("키 입력 대기...") 및 실제 누른 키로 키 바인딩을 즉시 갱신합니다. 기본값 복원(Reset to Defaults) 기능을 포함합니다.
+
+*(💡 설정창 및 매니저 오브젝트 세팅 상세 가이드는 [HSH_Settings_And_KeyBinding_Setup_Guide.md](file:///c:/Users/shong/OneDrive/%EB%B0%94%ED%83%95%20%ED%99%94%EB%A9%B4/unity/4/Soul---body-collector/Soul/Assets/99.history/HSH/HSH_Settings_And_KeyBinding_Setup_Guide.md)에서 확인하실 수 있습니다.)*
+
+---
 
 ## 5. 스킬트리 연동 (외부 에셋 통합)
 에셋 스토어의 Smiling Eclipse - Skill Tree Maker Importer 에셋을 프로젝트의 메인 게임 시스템(HWJ)과 연동하기 위해 수정한 내역입니다.
@@ -95,7 +128,6 @@
     *   `HSH_SkillTreeToggleUI` 오픈 시 `RefreshAllNodes()`를 실행하여 트리를 열었을 때 포인트 및 노드 구매 가능 비주얼이 즉시 최신화되도록 수정.
     *   `SkillNode`: 노드 구매 시 `HWJ_LevelUpSystem` 포인트를 정상 차감하고, 포인트 부족 시 `BuyableState`에서 `UnlockedState`로 비주얼이 정상 복구되도록 개선.
     *   `SkillTreePointsUI`: `OnEnable()` 추가 및 이중 이벤트 구독을 통해 일시정지 상태에서도 포인트 숫자가 실시간 갱신되도록 보완.
-*   **[적 HP 체력바 씬 이동 및 다중 캔버스 문제 우회/해결]**:
     *   `HSH_EnemyHPUI`: 무작위 Canvas 참조(`FindAnyObjectByType`)로 인해 숨겨진 캔버스에 생성되던 문제를 방지하고자 메인 Overlay/Camera HUD Canvas를 탐색하는 `FindMainHUDCanvas()` 구현.
     *   씬 이동 시 이전 씬의 Canvas나 메인 카메라가 파괴되더라도, `Update()` / `LateUpdate()`에서 새 씬의 주 캔버스와 카메라를 자동 재탐색하고 HP UI를 재생성하는 복구 로직 구축.
 
@@ -107,5 +139,25 @@
     *   **`HSH_FallingTrap`**: 아래쪽 플레이어 감지 시 1회성 발동(`hasTriggered`) 구조 구현, Animator 및 `activeOffset` 데미지 영역 이동 적용.
     *   **`HSH_SteamTrap`**: 주기적 분출 외 플레이어 감지 모드(`detectPlayer`) 추가. 분출 시 Animator 및 Collider2D `activeOffset` 솟구침 영역 판정 반영.
     *   **`HSH_FireSparkTrap` & `HSH_WindTrap`**: 발사기(Spawner) 모드일 때 플레이어 감지 시 발사 애니메이션 연출(`fireTriggerName`) 실행 및 투사체 생성. 발사된 프로젝타일이 타겟 충돌 시(`OnTriggerEnter2D`) 데미지를 주고 소멸하도록 메커니즘 정제.
+
+### 📅 2026-08-03 (월)
+*   **[HSH_PauseUI] 신규 제작**: `ESC` 키 입력 시 게임을 일시정지(`Time.timeScale = 0f`)하고 일시정지 UI 창을 토글 표시하도록 구현.
+    *   일시정지 창에 위에서부터 **계속하기**, **설정**, **게임 종료** 3개 버튼 기능 반영.
+    *   **설정** 버튼 클릭 시 일시정지 창을 숨기고 설정 창(Settings Panel)을 표시하는 화면 전환 기능 구현 및 설정 창에서 `ESC`/뒤로가기 입력 시 일시정지 창으로 복귀 연동.
+
+### 📅 2026-08-04 (화)
+*   **[설정창 오디오 조절 및 키 변경(Key Rebinding) 시스템 신규 구축]**:
+    *   **`HSH_AudioManager`**: 마스터, BGM, SFX 볼륨을 동적으로 제어하고 PlayerPrefs에 저장/로드하는 싱글톤 오디오 컨트롤러 추가. AudioMixer 연동 및 AudioListener/AudioSource 직렬 조절 지원.
+    *   **`HSH_AudioSettingsUI`**: 설정창 내 마스터, BGM, SFX 슬라이더 및 % 텍스트 표시 연동.
+    *   **`HSH_KeyBindingManager`**: 커스텀 키 바인딩(일시정지, 스킬트리, 상호작용 등) 관리 및 Legacy KeyCode / InputSystem Key 통합 호환 레이어 작성.
+    *   **`HSH_KeyRebindUI`**: 키 변경 버튼 클릭 시 키 입력 대기 모드 및 누른 키로 바인딩 즉시 변경 UI 제어. 기본값 복원 지원.
+    *   **`HSH_PauseUI` & `HSH_SkillTreeToggleUI` & `HSH_StealBody` & `HSH_StatProgressCore`**: `HSH_KeyBindingManager`와 동기화하여 변경된 단축키가 즉각 인게임 조작 및 UI에 적용되도록 연동.
+
+### 📅 2026-08-07 (금)
+*   **[타일맵 영혼 통과 및 방패 함정 / 스위치 & 문 연동 기믹 신규 구현]**:
+    *   **`HSH_Soulpass`**: 2D `Tilemap` 색상/투명도 조절 지원 확장 및 클래스 이름 정제.
+    *   **`HSH_ShieldArrowTrap`**: 방패 폼(`HWJ_WeaponType.Shield`)일 경우 화살을 데미지 없이 막고 차단하는 방패 방어 화살 발사 함정 신규 제작 및 `RaycastAll` 감지 로직 적용.
+    *   **`HSH_ProjectileSwitch`**: 화살/탄환 충돌 시 작동하는 스위치 구현, 태그 비교 예외 방지(`string.Equals`) 적용 및 작동 감지 `Debug.Log` 출력 연동.
+    *   **`HSH_GimmickDoor`**: 스위치 및 기믹과 연동되어 열리는 문 컴포넌트 신규 제작 (애니메이터, 위치 이동, 콜라이더 제어 모드 지원 및 디버그 로그 출력).
 
 

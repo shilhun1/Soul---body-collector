@@ -1,5 +1,8 @@
 using UnityEngine;
 using SmilingEclipse.STMImporter;
+#if ENABLE_INPUT_SYSTEM
+using UnityEngine.InputSystem;
+#endif
 
 namespace HSH.UI
 {
@@ -35,7 +38,14 @@ namespace HSH.UI
 
         public KeyCode ToggleKey
         {
-            get => toggleKey;
+            get
+            {
+                if (HSH_KeyBindingManager.Instance != null)
+                {
+                    return HSH_KeyBindingManager.Instance.GetKey(HSH_KeyAction.SkillTree);
+                }
+                return toggleKey;
+            }
             set => toggleKey = value;
         }
 
@@ -58,10 +68,26 @@ namespace HSH.UI
 
         private void Update()
         {
-            if (Input.GetKeyDown(toggleKey))
+            KeyCode currentToggleKey = ToggleKey;
+            if (WasKeyPressedThisFrame(currentToggleKey))
             {
                 ToggleSkillTree();
             }
+        }
+
+        private bool WasKeyPressedThisFrame(KeyCode keyCode)
+        {
+#if ENABLE_INPUT_SYSTEM
+            if (Keyboard.current != null)
+            {
+                Key inputKey = HSH_KeyBindingManager.KeyCodeToInputKey(keyCode);
+                if (inputKey != Key.None && Keyboard.current[inputKey].wasPressedThisFrame)
+                {
+                    return true;
+                }
+            }
+#endif
+            return Input.GetKeyDown(keyCode);
         }
 
         /// <summary>
@@ -112,10 +138,20 @@ namespace HSH.UI
                 Cursor.visible = true;
             }
 
-            // 스킬 트리 컨트롤러 UI 최신화
-            if (skillTreeController != null)
+            // 스킬 트리 컨트롤러 UI 및 포인트 최신화
+            var saveManager = HSH_SkillSaveManager.Instance ?? FindFirstObjectByType<HSH_SkillSaveManager>();
+            if (saveManager != null)
             {
-                skillTreeController.UpdateInfo();
+                saveManager.LoadSkillData();
+            }
+            else if (skillTreeController != null)
+            {
+                var levelUpSystem = FindFirstObjectByType<HWJ_LevelUpSystem>();
+                if (levelUpSystem != null && skillTreeController.skillPoints != null)
+                {
+                    skillTreeController.skillPoints.Points = levelUpSystem.SkillPoint;
+                }
+                skillTreeController.StartCoroutine(skillTreeController.Load());
             }
         }
 

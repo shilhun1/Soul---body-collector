@@ -35,6 +35,22 @@ public class HWJ_PossessionData
     public float spiritMentalCostOnPossession;
 
     [Header("살아있는 대상 빙의 저항")]
+    [InspectorName("생체 빙의 최대 정신력")]
+    [Tooltip("이 몬스터가 살아있는 동안 보유하는 빙의 저항 정신력의 최대값입니다.")]
+    public float livePossessionMaxMental = 100f;
+
+    [InspectorName("생체 빙의 성공 정신력 감소")]
+    [Tooltip("미니게임 성공 후 대상 몬스터의 정신력에서 차감하는 값입니다. 기본값은 10입니다.")]
+    public float livePossessionMentalCostOnSuccess = 10f;
+
+    [InspectorName("생체 빙의 정신력 감소 간격")]
+    [Tooltip("생체 빙의를 유지하는 동안 대상 몬스터 정신력을 감소시키는 시간 간격입니다.")]
+    public float livePossessionMentalDrainInterval = 1f;
+
+    [InspectorName("생체 빙의 시간당 정신력 감소량")]
+    [Tooltip("각 감소 간격마다 대상 몬스터 정신력에서 차감하는 값입니다.")]
+    public float livePossessionMentalDrainAmount = 1f;
+
     [InspectorName("살아있는 대상 빙의 성공 확률")]
     [Tooltip("처치되지 않은 대상에게 빙의를 시도했을 때 성공할 확률입니다. 1은 항상 성공, 0은 항상 실패입니다.")]
     [Range(0f, 1f)]
@@ -72,12 +88,12 @@ public class HWJ_PossessionData
     [Tooltip("켜면 빙의한 몸의 스탯과 무기 데이터를 플레이어 런타임에 적용합니다.")]
     public bool loadsBodyStatsToPlayer = true;
 
-    [Header("빙의 정신력 오버라이드")]
-    [InspectorName("빙의 정신력 덮어쓰기")]
-    [Tooltip("켜면 플레이어 기본 빙의체 정신력 대신 이 몸 전용 정신력 데이터를 사용합니다.")]
+    [Header("시체 빙의 부패 오버라이드")]
+    [InspectorName("시체 부패 덮어쓰기")]
+    [Tooltip("켜면 시체 빙의 중 플레이어 기본 부패 데이터 대신 이 몸 전용 부패 데이터를 사용합니다. 생체 빙의 정신력에는 적용되지 않습니다.")]
     public bool overrideBodyDecayOnPossession;
 
-    [InspectorName("빙의 전용 정신력")]
-    [Tooltip("이 몸에 빙의하고 있는 동안만 사용하는 정신력 데이터입니다. 중간보스처럼 더 오래 유지되는 몸에 사용합니다.")]
+    [InspectorName("시체 빙의 전용 부패")]
+    [Tooltip("이 대상의 시체에 빙의한 동안만 사용하는 부패 데이터입니다.")]
     public HWJ_BodyDecayData possessedBodyDecayOverride = new HWJ_BodyDecayData();
 }

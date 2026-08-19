@@ -16,7 +16,6 @@ public static class HWJ_RuntimeReadyPrefabBuilder
     private const string AssetRoot = "Assets/02Scripts/HWJ";
     private const string OutputRoot = AssetRoot + "/Prefabs/Generated/RuntimeReady";
     private const string EnemyOutputRoot = OutputRoot + "/Enemies";
-    private const string CorpseOutputRoot = OutputRoot + "/Corpses";
     private const string RewardOutputRoot = OutputRoot + "/Rewards";
     private const string DatabaseRoot = AssetRoot + "/ScriptableObjects/Database";
 
@@ -51,15 +50,6 @@ public static class HWJ_RuntimeReadyPrefabBuilder
         new EnemyPrefabSpec("Shield", "HWJ_EnemyCorpse_Shield_RootObjectData.asset")
     };
 
-    private static readonly EnemyPrefabSpec[] NoCorpseEnemySpecs =
-    {
-        new EnemyPrefabSpec("Sword", "HWJ_EnemyNoCorpse_Sword_RootObjectData.asset"),
-        new EnemyPrefabSpec("Axe", "HWJ_EnemyNoCorpse_Axe_RootObjectData.asset"),
-        new EnemyPrefabSpec("Bow", "HWJ_EnemyNoCorpse_Bow_RootObjectData.asset"),
-        new EnemyPrefabSpec("Lance", "HWJ_EnemyNoCorpse_Lance_RootObjectData.asset"),
-        new EnemyPrefabSpec("Shield", "HWJ_EnemyNoCorpse_Shield_RootObjectData.asset")
-    };
-
     private static bool isRunning;
     private static double nextFlagCheckTime;
 
@@ -87,6 +77,7 @@ public static class HWJ_RuntimeReadyPrefabBuilder
             RequireAsset<HWJ_GameplayDatabaseSO>(GameplayDatabasePath);
             RequireAsset<HWJ_RootObjectDataSO>(PlayerRootPath);
             RequireAsset<GameObject>(ExperienceOrbPath);
+            ConfigurePossessableEnemyTypeData(report);
 
             SavePrefab(CreatePlayerPrefab(), PlayerPrefabPath, report);
             SavePrefab(CreateCameraPrefab(), CameraPrefabPath, report);
@@ -96,21 +87,8 @@ public static class HWJ_RuntimeReadyPrefabBuilder
             {
                 EnemyPrefabSpec spec = PossessableEnemySpecs[i];
                 SavePrefab(
-                    CreateEnemyPrefab(spec, true, false),
+                    CreateEnemyPrefab(spec),
                     GetLiveEnemyPrefabPath(spec),
-                    report);
-                SavePrefab(
-                    CreateEnemyPrefab(spec, false, true),
-                    GetCorpsePrefabPath(spec),
-                    report);
-            }
-
-            for (int i = 0; i < NoCorpseEnemySpecs.Length; i++)
-            {
-                EnemyPrefabSpec spec = NoCorpseEnemySpecs[i];
-                SavePrefab(
-                    CreateEnemyPrefab(spec, true, false),
-                    GetNoCorpseEnemyPrefabPath(spec),
                     report);
             }
 
@@ -179,6 +157,39 @@ public static class HWJ_RuntimeReadyPrefabBuilder
         BuildRuntimeReadyPrefabs();
     }
 
+    /// <summary>
+    /// 5종 무기 몬스터를 살아있을 때 생체 빙의 대상으로 사용하고,
+    /// HP가 0이 되면 시체를 남기지 않도록 공통 설정을 맞춥니다.
+    /// </summary>
+    private static void ConfigurePossessableEnemyTypeData(List<string> report)
+    {
+        for (int i = 0; i < PossessableEnemySpecs.Length; i++)
+        {
+            EnemyPrefabSpec spec = PossessableEnemySpecs[i];
+            HWJ_RootObjectDataSO rootData =
+                RequireAsset<HWJ_RootObjectDataSO>(spec.RootObjectDataPath);
+
+            if (!rootData.TryGetTypeData(out HWJ_EnemyTypeDataSO enemyData)
+                || enemyData.PossessionBody == null
+                || enemyData.Role == null)
+            {
+                throw new InvalidOperationException(
+                    $"Possessable enemy TypeData is missing: {spec.RootObjectDataPath}");
+            }
+
+            enemyData.Role.leavesCorpseOnDeath = false;
+            enemyData.Role.isPossessableBody = true;
+            enemyData.PossessionBody.canBePossessed = true;
+            enemyData.PossessionBody.requiresDefeatedState = false;
+            enemyData.PossessionBody.livePossessionMaxMental = 100f;
+            enemyData.PossessionBody.livePossessionMentalCostOnSuccess = 10f;
+            enemyData.PossessionBody.livePossessionMentalDrainInterval = 1f;
+            enemyData.PossessionBody.livePossessionMentalDrainAmount = 1f;
+            EditorUtility.SetDirty(enemyData);
+            report.Add($"Configured live-only possession SO: {enemyData.name}");
+        }
+    }
+
     private static GameObject CreatePlayerPrefab()
     {
         GameObject root = new GameObject("HWJ_Runtime_Player_Soul");
@@ -218,6 +229,10 @@ public static class HWJ_RuntimeReadyPrefabBuilder
         HWJ_SoulSystem soul = root.AddComponent<HWJ_SoulSystem>();
         root.AddComponent<HWJ_PossessedBodySystem>();
         HWJ_PossessionSystem possession = root.AddComponent<HWJ_PossessionSystem>();
+        HWJ_LivePossessionMinigameController possessionMinigame =
+            root.AddComponent<HWJ_LivePossessionMinigameController>();
+        HWJ_PossessionInteractionController possessionInteraction =
+            root.AddComponent<HWJ_PossessionInteractionController>();
         HWJ_BodyDiscoverySystem bodyDiscovery = root.AddComponent<HWJ_BodyDiscoverySystem>();
         HWJ_PossessionMentalSystem mental = root.AddComponent<HWJ_PossessionMentalSystem>();
         root.AddComponent<HWJ_CollapseSystem>();
@@ -255,23 +270,24 @@ public static class HWJ_RuntimeReadyPrefabBuilder
         ConfigureMotion(motion, animator, renderer, body, resolver, status, null, GetAllMotionProfiles());
         ConfigureHitEffect(hitEffect, status, resolver);
         ConfigurePlayerReferences(soul, possession, bodyDiscovery, mental);
+        ConfigurePossessionInteraction(
+            root,
+            possession,
+            possessionMinigame,
+            possessionInteraction);
         CreateWorldBar(root.transform, status, mental, soul, resolver, new Vector3(0f, 1.1f, 0f));
         return root;
     }
 
-    private static GameObject CreateEnemyPrefab(EnemyPrefabSpec spec, bool alive, bool directCorpse)
+    private static GameObject CreateEnemyPrefab(EnemyPrefabSpec spec)
     {
         HWJ_RootObjectDataSO rootData = RequireAsset<HWJ_RootObjectDataSO>(spec.RootObjectDataPath);
-        bool possessable = spec.IsPossessable;
-        string prefix = directCorpse
-            ? "HWJ_Runtime_Corpse_"
-            : possessable ? "HWJ_Runtime_Enemy_Possessable_" : "HWJ_Runtime_Enemy_NoCorpse_";
-        GameObject root = new GameObject(prefix + spec.WeaponName);
+        GameObject root = new GameObject("HWJ_Runtime_Enemy_Possessable_" + spec.WeaponName);
         SetLayerIfExists(root, "Enemy");
 
         Rigidbody2D body = root.AddComponent<Rigidbody2D>();
-        body.bodyType = alive ? RigidbodyType2D.Dynamic : RigidbodyType2D.Kinematic;
-        body.gravityScale = alive ? 3f : 0f;
+        body.bodyType = RigidbodyType2D.Dynamic;
+        body.gravityScale = 3f;
         body.freezeRotation = true;
         body.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
         body.interpolation = RigidbodyInterpolation2D.Interpolate;
@@ -279,7 +295,7 @@ public static class HWJ_RuntimeReadyPrefabBuilder
         BoxCollider2D collider = root.AddComponent<BoxCollider2D>();
         collider.size = new Vector2(0.9f, 1.45f);
         collider.offset = new Vector2(0f, -0.05f);
-        collider.isTrigger = directCorpse;
+        collider.isTrigger = false;
 
         GameObject visual = CreateRootDataVisual(root.transform, rootData);
         SpriteRenderer renderer = visual.GetComponentInChildren<SpriteRenderer>(true);
@@ -296,22 +312,20 @@ public static class HWJ_RuntimeReadyPrefabBuilder
         HWJ_CharacterMotionSystem motion = root.AddComponent<HWJ_CharacterMotionSystem>();
         HWJ_HitEffectSystem hitEffect = root.AddComponent<HWJ_HitEffectSystem>();
 
-        if (possessable)
-        {
-            root.AddComponent<HWJ_PossessionBodyState>();
-        }
-
-        if (alive)
-        {
-            HWJ_EnemyNavigationSystem navigation = root.AddComponent<HWJ_EnemyNavigationSystem>();
-            HWJ_EnemyAttackSystem enemyAttack = root.AddComponent<HWJ_EnemyAttackSystem>();
-            HWJ_MonsterAISystem monsterAI = root.AddComponent<HWJ_MonsterAISystem>();
-            root.AddComponent<HWJ_EnemyDeathLifecycleSystem>();
-            ConfigureEnemyBehavior(navigation, enemyAttack, monsterAI);
-        }
+        root.AddComponent<HWJ_PossessionBodyState>();
+        HWJ_LivePossessionMentalState liveMentalState =
+            root.AddComponent<HWJ_LivePossessionMentalState>();
+        liveMentalState.LoadConfigurationFromTypeData();
+        HWJ_EnemyNavigationSystem navigation = root.AddComponent<HWJ_EnemyNavigationSystem>();
+        HWJ_EnemyAttackSystem enemyAttack = root.AddComponent<HWJ_EnemyAttackSystem>();
+        HWJ_EnemyPerceptionSystem perception = root.AddComponent<HWJ_EnemyPerceptionSystem>();
+        HWJ_MonsterAISystem monsterAI = root.AddComponent<HWJ_MonsterAISystem>();
+        root.AddComponent<HWJ_EnemyDeathLifecycleSystem>();
+        visual.AddComponent<HWJ_EnemyAttackAnimationRelay>();
+        ConfigureEnemyBehavior(navigation, enemyAttack, perception, monsterAI);
 
         SerializedObject statusSo = new SerializedObject(status);
-        SetEnum(statusSo, "currentState", directCorpse ? (int)HWJ_RuntimeState.Dead : (int)HWJ_RuntimeState.Idle);
+        SetEnum(statusSo, "currentState", (int)HWJ_RuntimeState.Idle);
         statusSo.ApplyModifiedPropertiesWithoutUndo();
 
         ConfigureSkillAction(skillAction, resolver, status, combat, combatExecution, null, motion, body);
@@ -511,13 +525,6 @@ public static class HWJ_RuntimeReadyPrefabBuilder
             root.transform,
             "10_Player",
             new Vector3(-9f, 0.75f, 0f));
-        GameObject firstCorpse = InstantiatePrefabChild(
-            RequireAsset<GameObject>(GetCorpsePrefabPath(PossessableEnemySpecs[0])),
-            root.transform,
-            "11_FirstPossessionCorpse_Sword",
-            new Vector3(-6f, 0.75f, 0f));
-        firstCorpse.transform.localRotation = Quaternion.identity;
-
         InstantiatePrefabChild(
             RequireAsset<GameObject>(RewardsPrefabPath),
             root.transform,
@@ -533,12 +540,6 @@ public static class HWJ_RuntimeReadyPrefabBuilder
                 "30_Enemy_Possessable_" + spec.WeaponName,
                 new Vector3(2f + i * 3f, 0.75f, 0f));
         }
-
-        InstantiatePrefabChild(
-            RequireAsset<GameObject>(GetNoCorpseEnemyPrefabPath(NoCorpseEnemySpecs[1])),
-            root.transform,
-            "40_Enemy_NoCorpse_Axe",
-            new Vector3(18f, 0.75f, 0f));
 
         CreateTestFloor(root.transform);
         CreatePlayerStart(root.transform, player.GetComponent<HWJ_RootObjectDataResolver>());
@@ -678,6 +679,7 @@ public static class HWJ_RuntimeReadyPrefabBuilder
     private static void ConfigureEnemyBehavior(
         HWJ_EnemyNavigationSystem navigation,
         HWJ_EnemyAttackSystem enemyAttack,
+        HWJ_EnemyPerceptionSystem perception,
         HWJ_MonsterAISystem monsterAI)
     {
         SerializedObject navigationSo = new SerializedObject(navigation);
@@ -696,6 +698,11 @@ public static class HWJ_RuntimeReadyPrefabBuilder
         SetBool(attackSo, "showSkillWarning", true);
         SetFloat(attackSo, "skillWarningDelaySeconds", 1f);
         attackSo.ApplyModifiedPropertiesWithoutUndo();
+
+        SerializedObject perceptionSo = new SerializedObject(perception);
+        SetBool(perceptionSo, "autoFindPlayerTarget", true);
+        SetLayerMask(perceptionSo, "groundLayer", LayerMask.GetMask("Ground"));
+        perceptionSo.ApplyModifiedPropertiesWithoutUndo();
 
         SerializedObject aiSo = new SerializedObject(monsterAI);
         SetBool(aiSo, "driveBehavior", true);
@@ -798,12 +805,38 @@ public static class HWJ_RuntimeReadyPrefabBuilder
         soulSo.ApplyModifiedPropertiesWithoutUndo();
 
         SerializedObject possessionSo = new SerializedObject(possession);
-        SetBool(possessionSo, "moveOwnerToPossessedBody", true);
-        SetBool(possessionSo, "copyPossessedBodyVisual", true);
-        SetBool(possessionSo, "consumePossessedCorpse", true);
-        SetBool(possessionSo, "deactivateConsumedCorpse", true);
-        SetBool(possessionSo, "allowManualSoulExit", true);
+        SetObject(possessionSo, "ownerDataResolver", possession.GetComponent<HWJ_RootObjectDataResolver>());
+        SetObject(possessionSo, "soulSystem", soul);
+        SetObject(possessionSo, "runtimeStatus", possession.GetComponent<HWJ_RuntimeStatusSystem>());
+        SetObject(possessionSo, "playerInput", possession.GetComponent<HWJ_PlayerInputSystem>());
+        SetObject(possessionSo, "possessedBodySystem", possession.GetComponent<HWJ_PossessedBodySystem>());
+        SetObject(possessionSo, "skillUnlockSystem", possession.GetComponent<HWJ_SkillUnlockSystem>());
+        SetObject(possessionSo, "targetValidator", possession.GetComponent<HWJ_PossessionTargetValidator>());
+        SetObject(possessionSo, "livePossessionSystem", possession.GetComponent<HWJ_LivePossessionSystem>());
+        SetObject(possessionSo, "corpsePossessionSystem", possession.GetComponent<HWJ_CorpsePossessionSystem>());
+        SetObject(possessionSo, "exitSystem", possession.GetComponent<HWJ_PossessionExitSystem>());
+        SetObject(possessionSo, "snapshotSystem", possession.GetComponent<HWJ_PossessionSnapshotSystem>());
+        SetObject(possessionSo, "bodyController", possession.GetComponent<HWJ_PossessionBodyController>());
+        SetObject(possessionSo, "visualController", possession.GetComponent<HWJ_PossessionVisualController>());
+        SetObject(possessionSo, "skillProvider", possession.GetComponent<HWJ_PossessedSkillProvider>());
         possessionSo.ApplyModifiedPropertiesWithoutUndo();
+
+        SerializedObject bodyControllerSo = new SerializedObject(
+            possession.GetComponent<HWJ_PossessionBodyController>());
+        SetBool(bodyControllerSo, "moveOwnerToPossessedBody", true);
+        SetBool(bodyControllerSo, "consumePossessedBody", true);
+        SetBool(bodyControllerSo, "deactivateConsumedBody", true);
+        bodyControllerSo.ApplyModifiedPropertiesWithoutUndo();
+
+        SerializedObject visualControllerSo = new SerializedObject(
+            possession.GetComponent<HWJ_PossessionVisualController>());
+        SetBool(visualControllerSo, "copyPossessedBodyVisual", true);
+        visualControllerSo.ApplyModifiedPropertiesWithoutUndo();
+
+        SerializedObject exitSo = new SerializedObject(
+            possession.GetComponent<HWJ_PossessionExitSystem>());
+        SetBool(exitSo, "allowManualSoulExit", true);
+        exitSo.ApplyModifiedPropertiesWithoutUndo();
 
         SerializedObject discoverySo = new SerializedObject(bodyDiscovery);
         SetBool(discoverySo, "useSceneFallbackSearch", true);
@@ -813,6 +846,120 @@ public static class HWJ_RuntimeReadyPrefabBuilder
         SerializedObject mentalSo = new SerializedObject(mental);
         SetBool(mentalSo, "resetDecayWhenEnterBody", true);
         mentalSo.ApplyModifiedPropertiesWithoutUndo();
+    }
+
+    private static void ConfigurePossessionInteraction(
+        GameObject playerRoot,
+        HWJ_PossessionSystem possession,
+        HWJ_LivePossessionMinigameController minigame,
+        HWJ_PossessionInteractionController interaction)
+    {
+        HWJ_PossessionTargetValidator validator =
+            playerRoot.GetComponent<HWJ_PossessionTargetValidator>();
+
+        GameObject canvasObject = CreateChild(
+            playerRoot.transform,
+            "HWJ_LivePossessionMinigameCanvas");
+        Canvas canvas = canvasObject.AddComponent<Canvas>();
+        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        canvas.sortingOrder = 450;
+
+        CanvasScaler scaler = canvasObject.AddComponent<CanvasScaler>();
+        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        scaler.referenceResolution = new Vector2(1920f, 1080f);
+        scaler.matchWidthOrHeight = 0.5f;
+        canvasObject.AddComponent<GraphicRaycaster>();
+
+        GameObject panel = CreateUiImage(
+            canvasObject.transform,
+            "PossessionMinigamePanel",
+            new Color(0.035f, 0.04f, 0.055f, 0.94f));
+        SetCenterRect(
+            panel.GetComponent<RectTransform>(),
+            new Vector2(0f, 30f),
+            new Vector2(760f, 230f));
+
+        Text title = CreateUiText(
+            panel.transform,
+            "Instruction",
+            "SPACE 연타: 정신력 게이지를 100%까지 올리세요.",
+            28,
+            Color.white);
+        title.alignment = TextAnchor.MiddleCenter;
+        SetCenterRect(title.rectTransform, new Vector2(0f, 72f), new Vector2(700f, 42f));
+
+        Text timer = CreateUiText(
+            panel.transform,
+            "Timer",
+            "남은 시간: 5.0",
+            24,
+            new Color(1f, 0.86f, 0.45f, 1f));
+        timer.alignment = TextAnchor.MiddleCenter;
+        SetCenterRect(timer.rectTransform, new Vector2(0f, 32f), new Vector2(300f, 34f));
+
+        GameObject sliderObject = new GameObject("MentalGauge");
+        sliderObject.transform.SetParent(panel.transform);
+        RectTransform sliderRect = sliderObject.AddComponent<RectTransform>();
+        sliderRect.localScale = Vector3.one;
+        SetCenterRect(sliderRect, new Vector2(0f, -18f), new Vector2(650f, 28f));
+
+        GameObject sliderBackground = CreateUiImage(
+            sliderObject.transform,
+            "Background",
+            new Color(0.11f, 0.12f, 0.16f, 1f));
+        RectTransform backgroundRect = sliderBackground.GetComponent<RectTransform>();
+        StretchRect(backgroundRect, Vector2.zero, Vector2.zero);
+
+        GameObject fillObject = CreateUiImage(
+            sliderObject.transform,
+            "Fill",
+            new Color(0.58f, 0.28f, 0.95f, 1f));
+        RectTransform fillRect = fillObject.GetComponent<RectTransform>();
+        StretchRect(fillRect, new Vector2(4f, 4f), new Vector2(-4f, -4f));
+
+        Slider slider = sliderObject.AddComponent<Slider>();
+        slider.minValue = 0f;
+        slider.maxValue = 1f;
+        slider.value = 0.5f;
+        slider.wholeNumbers = false;
+        slider.direction = Slider.Direction.LeftToRight;
+        slider.fillRect = fillRect;
+        slider.targetGraphic = fillObject.GetComponent<Image>();
+
+        Text result = CreateUiText(
+            panel.transform,
+            "Result",
+            "게이지: 50%",
+            22,
+            new Color(0.75f, 0.9f, 1f, 1f));
+        result.alignment = TextAnchor.MiddleCenter;
+        SetCenterRect(result.rectTransform, new Vector2(0f, -68f), new Vector2(500f, 34f));
+
+        SerializedObject minigameSo = new SerializedObject(minigame);
+        SetObject(minigameSo, "possessionSystem", possession);
+        SetObject(minigameSo, "minigameRoot", panel);
+        SetObject(minigameSo, "mentalGaugeSlider", slider);
+        SetObject(minigameSo, "timerText", timer);
+        SetObject(minigameSo, "instructionText", title);
+        SetObject(minigameSo, "resultText", result);
+        SetBool(minigameSo, "pauseEntireWorldDuringMinigame", false);
+        minigameSo.ApplyModifiedPropertiesWithoutUndo();
+
+        SerializedObject interactionSo = new SerializedObject(interaction);
+        SetObject(interactionSo, "possessionSystem", possession);
+        SetObject(interactionSo, "targetValidator", validator);
+        SetObject(interactionSo, "minigameController", minigame);
+        SetObject(interactionSo, "detectionOrigin", playerRoot.transform);
+        SetFloat(interactionSo, "detectionRadius", 2.5f);
+        int enemyLayerMask = LayerMask.GetMask("Enemy");
+        SetLayerMask(
+            interactionSo,
+            "targetLayerMask",
+            enemyLayerMask != 0 ? enemyLayerMask : ~0);
+        SetBool(interactionSo, "readKeyboardDirectly", true);
+        interactionSo.ApplyModifiedPropertiesWithoutUndo();
+
+        panel.SetActive(false);
     }
 
     private static GameObject CreatePlayerVisual(Transform parent)
@@ -953,6 +1100,11 @@ public static class HWJ_RuntimeReadyPrefabBuilder
             typeof(HWJ_InteractionSystem),
             typeof(HWJ_SoulSystem),
             typeof(HWJ_PossessionSystem),
+            typeof(HWJ_PossessionTargetValidator),
+            typeof(HWJ_LivePossessionSystem),
+            typeof(HWJ_CorpsePossessionSystem),
+            typeof(HWJ_LivePossessionMinigameController),
+            typeof(HWJ_PossessionInteractionController),
             typeof(HWJ_PossessionMentalSystem));
         ValidatePrefab(
             CorePrefabPath,
@@ -981,12 +1133,22 @@ public static class HWJ_RuntimeReadyPrefabBuilder
                 typeof(HWJ_MonsterAISystem),
                 typeof(HWJ_EnemyAttackSystem),
                 typeof(HWJ_PossessionBodyState),
+                typeof(HWJ_LivePossessionMentalState),
                 typeof(HWJ_EnemyDeathLifecycleSystem));
-            ValidatePrefab(
-                GetCorpsePrefabPath(PossessableEnemySpecs[i]),
-                errors,
-                typeof(HWJ_RuntimeStatusSystem),
-                typeof(HWJ_PossessionBodyState));
+            HWJ_RootObjectDataSO rootData = RequireAsset<HWJ_RootObjectDataSO>(
+                PossessableEnemySpecs[i].RootObjectDataPath);
+
+            if (!rootData.TryGetTypeData(out HWJ_EnemyTypeDataSO enemyData)
+                || enemyData.PossessionBody == null
+                || enemyData.PossessionBody.requiresDefeatedState
+                || !Mathf.Approximately(
+                    enemyData.PossessionBody.livePossessionMentalCostOnSuccess,
+                    10f))
+            {
+                errors.Add(
+                    $"Possession SO is not configured for the live-only flow: "
+                    + PossessableEnemySpecs[i].RootObjectDataPath);
+            }
         }
 
         if (errors.Count > 0)
@@ -1030,7 +1192,6 @@ public static class HWJ_RuntimeReadyPrefabBuilder
         EnsureFolder(AssetRoot + "/Prefabs", "Generated");
         EnsureFolder(AssetRoot + "/Prefabs/Generated", "RuntimeReady");
         EnsureFolder(OutputRoot, "Enemies");
-        EnsureFolder(OutputRoot, "Corpses");
         EnsureFolder(OutputRoot, "Rewards");
     }
 
@@ -1137,6 +1298,27 @@ public static class HWJ_RuntimeReadyPrefabBuilder
         rect.sizeDelta = size;
     }
 
+    private static void SetCenterRect(RectTransform rect, Vector2 position, Vector2 size)
+    {
+        rect.anchorMin = new Vector2(0.5f, 0.5f);
+        rect.anchorMax = new Vector2(0.5f, 0.5f);
+        rect.pivot = new Vector2(0.5f, 0.5f);
+        rect.anchoredPosition = position;
+        rect.sizeDelta = size;
+    }
+
+    private static void StretchRect(
+        RectTransform rect,
+        Vector2 offsetMin,
+        Vector2 offsetMax)
+    {
+        rect.anchorMin = Vector2.zero;
+        rect.anchorMax = Vector2.one;
+        rect.pivot = new Vector2(0.5f, 0.5f);
+        rect.offsetMin = offsetMin;
+        rect.offsetMax = offsetMax;
+    }
+
     private static void SetLayerIfExists(GameObject target, string layerName)
     {
         int layer = LayerMask.NameToLayer(layerName);
@@ -1150,16 +1332,6 @@ public static class HWJ_RuntimeReadyPrefabBuilder
     private static string GetLiveEnemyPrefabPath(EnemyPrefabSpec spec)
     {
         return EnemyOutputRoot + "/HWJ_Runtime_Enemy_Possessable_" + spec.WeaponName + ".prefab";
-    }
-
-    private static string GetNoCorpseEnemyPrefabPath(EnemyPrefabSpec spec)
-    {
-        return EnemyOutputRoot + "/HWJ_Runtime_Enemy_NoCorpse_" + spec.WeaponName + ".prefab";
-    }
-
-    private static string GetCorpsePrefabPath(EnemyPrefabSpec spec)
-    {
-        return CorpseOutputRoot + "/HWJ_Runtime_Corpse_" + spec.WeaponName + ".prefab";
     }
 
     private static T RequireAsset<T>(string path) where T : UnityEngine.Object
@@ -1309,12 +1481,10 @@ public static class HWJ_RuntimeReadyPrefabBuilder
             RootObjectDataPath = AssetRoot
                 + "/ScriptableObjects/RootObjects/Enemies/"
                 + rootObjectFileName;
-            IsPossessable = rootObjectFileName.IndexOf("EnemyCorpse", StringComparison.Ordinal) >= 0;
         }
 
         public string WeaponName { get; }
         public string RootObjectDataPath { get; }
-        public bool IsPossessable { get; }
     }
 
     private readonly struct PoolSpec

@@ -64,6 +64,9 @@ public class hys_SecondBossLogic : MonoBehaviour
 
     public bool EncounterStarted => encounterStarted;
     public bool IsDefeated => runtimeStatus != null && runtimeStatus.IsDead;
+    // Animator 브리지가 현재 이동 및 그로기 상태를 안전하게 읽도록 공개합니다.
+    public bool IsMoving => currentState == hys_SecondBossState.Chase;
+    public bool IsGroggy => currentState == hys_SecondBossState.Groggy;
     public hys_SecondBossPatternId LastPattern => lastPattern;
     public string LastAction => lastAction;
 

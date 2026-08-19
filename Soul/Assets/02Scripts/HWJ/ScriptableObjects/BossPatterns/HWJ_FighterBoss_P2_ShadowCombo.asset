@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a90330eaacde420a95f961c55b9f0b0f, type: 3}
+  m_Name: HWJ_FighterBoss_P2_ShadowCombo
+  m_EditorClassIdentifier: HWJ.Runtime::HWJ_BossPatternDataSO
+  patternId: P2_ShadowCombo
+  patternNumber: 15
+  trigger: 0
+  rangeMode: 0
+  usableInPhase1: 0
+  usableInPhase2: 1
+  hpRatio: 1
+  cooldownSeconds: 6.5
+  defaultCooldownSeconds: 6.5
+  weight: 4
+  animationId: P2_ShadowCombo
+  useStageOneSpecialExecution: 0
+  useCustomPatternExecutor: 1
+  customPatternExecutorKey: fighter_boss_phase_two
+  skillActions: []

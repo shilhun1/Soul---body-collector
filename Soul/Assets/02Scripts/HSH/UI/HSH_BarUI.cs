@@ -83,6 +83,11 @@ public class HSH_BarUI : MonoBehaviour
                 levelUpSystem = Object.FindAnyObjectByType<HWJ_LevelUpSystem>();
             }
         }
+
+        if (gameOverUI == null)
+        {
+            gameOverUI = FindFirstObjectByType<HSH_GameOverUI>();
+        }
     }
 
 #if UNITY_EDITOR
@@ -215,8 +220,8 @@ public class HSH_BarUI : MonoBehaviour
             // [GhostHP 바] 영혼 상태일 때의 시간 카운트다운
             else if (currentType == BarType.GhostHP && soulSystem != null)
             {
-                Debug.Log("실행");
-                Debug.Log("실행2");
+                //Debug.Log("실행");
+                //Debug.Log("실행2");
                 // 유저님의 요청대로 가장 심플하게 값만 대입합니다. (리플렉션 및 조건문 제거)
                 maxValue = 10f;
                 currentValue = soulSystem.SoulDeadlineTimer;
@@ -279,13 +284,14 @@ public class HSH_BarUI : MonoBehaviour
                 hasTriggeredGameOver = true;
                 Debug.Log("GhostHP가 모두 닳았습니다! 게임 오버!");
 
+                if (gameOverUI == null)
+                {
+                    gameOverUI = FindFirstObjectByType<HSH_GameOverUI>();
+                }
+
                 if (gameOverUI != null)
                 {
                     gameOverUI.ShowGameOver();
-                }
-                else if (HSH_GameOverUI.Instance != null)
-                {
-                    HSH_GameOverUI.Instance.ShowGameOver();
                 }
                 else
                 {

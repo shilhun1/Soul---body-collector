@@ -5,7 +5,7 @@ using UnityEngine;
 /// 플레이어, 적, 보스가 공통으로 사용할 런타임 HP와 상태를 관리합니다.
 /// 원본 능력치는 RootObjectDataSO에서 읽고, 구슬/버프 같은 임시 변화는 이 컴포넌트의 보너스로만 관리합니다.
 /// </summary>
-public class HWJ_RuntimeStatusSystem : MonoBehaviour
+public partial class HWJ_RuntimeStatusSystem : MonoBehaviour
 {
     [Header("연결 컴포넌트")]
     [Tooltip("현재 오브젝트의 런타임 데이터 접근 창구입니다. 빙의, 저장, 전투 시스템이 같은 런타임 상태를 공유할 때 사용합니다.")]
@@ -97,6 +97,7 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
     private float attackSpeedBonus;
     private Collider2D[] bodyCollisionColliders;
     private float nextBodyCollisionRefreshTime;
+    private HWJ_IHealthDepletionHandler healthDepletionHandler;
 
     public HWJ_RuntimeState CurrentState => currentState;
     public float CurrentHp => currentHp;
@@ -119,6 +120,13 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
     public bool IsTemporarilyInvincible => Time.time < invincibleEndTime;
     public bool IsHitReactionImmune => Time.time < hitReactionImmuneEndTime;
     public bool IsHitReactionLimited => Time.time < hitReactionLimitEndTime;
+    /// <summary>
+    /// 영혼 상태와 육신에서 영혼으로 전환 중인 플레이어는 전투 피해를 받지 않습니다.
+    /// 정신력 소모는 ApplyDamage가 아니라 TryApplySpiritMentalCost를 통해서만 처리합니다.
+    /// </summary>
+    public bool IsSpiritDamageImmune => soulSystem != null
+        && (soulSystem.CurrentState == HWJ_SoulRuntimeState.Soul
+            || soulSystem.CurrentState == HWJ_SoulRuntimeState.BodyToSoul);
     public bool HasSuperArmor => HasDataSuperArmor() || (bossBrain != null && bossBrain.HasSuperArmor);
     public bool ShouldIgnoreKnockback => IsBossBody()
         || HasSuperArmor
@@ -129,20 +137,12 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
     public bool CanAttack => !IsDead && Time.time >= attackLockEndTime && !IsHitStunned;
     public bool CanDash => !IsDead && Time.time >= dashLockEndTime && !IsHitStunned;
     public float KnockbackScale => 1f / Mathf.Max(0.01f, GetKnockbackWeight());
-    public bool IsDead
-    {
-        get
-        {
-            if (soulSystem != null)
-            {
-                bool soulSystemDead = soulSystem.CurrentState == HWJ_SoulRuntimeState.Dead;
-                bool runtimeDead = currentState == HWJ_RuntimeState.Dead;
-                return (soulSystemDead || runtimeDead) && CurrentSpiritMentalValue <= 0f;
-            }
-
-            return currentState == HWJ_RuntimeState.Dead || UsesHp && currentHp <= 0f;
-        }
-    }
+    public bool IsDead => currentState == HWJ_RuntimeState.Dead
+        || (soulSystem != null && soulSystem.CurrentState == HWJ_SoulRuntimeState.Dead)
+        || (soulSystem == null
+            && UsesHp
+            && currentHp <= 0f
+            && !IsHealthDepletionDeferred());
 
     private void Awake()
     {
@@ -206,6 +206,8 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
         {
             bossBrain = GetComponent<HWJ_BossBrainSystem>();
         }
+
+        ResolveHealthDepletionHandler();
     }
 
     /// <summary>
@@ -283,7 +285,10 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
 
     public bool CanReceiveHitFrom(Component source)
     {
-        if (IsDead || IsTemporarilyInvincible || IsDataInvincible())
+        if (IsDead
+            || IsSpiritDamageImmune
+            || IsTemporarilyInvincible
+            || IsDataInvincible())
         {
             return false;
         }
@@ -296,7 +301,8 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
 
     /// <summary>
     /// 피해를 적용합니다.
-    /// 플레이어는 빙의 상태 HP가 0이면 영혼 상태가 되고, 영혼 상태 HP가 0이면 게임오버 상태가 됩니다.
+    /// 플레이어는 빙의 상태 HP가 0이면 영혼 상태가 됩니다.
+    /// 영혼 상태에서는 전투 피해를 무시하고, 정신력이 0이 될 때만 게임오버 상태가 됩니다.
     /// </summary>
     public void ApplyDamage(float damage)
     {
@@ -312,6 +318,17 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
             return;
         }
 
+        if (TryApplyDamageAbsorbers(damage, source, sourceDamage, out float remainingDamage))
+        {
+            damage = remainingDamage;
+
+            if (damage <= 0f)
+            {
+                SavePlayerRuntimeSnapshotIfOwner();
+                return;
+            }
+        }
+
         bool wasDead = IsDead;
         currentHp = Mathf.Max(0f, currentHp - damage);
         CacheCurrentHpForActiveState();
@@ -319,7 +336,10 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
 
         if (currentHp <= 0f)
         {
-            HandleEmptyHp();
+            if (!TryHandleHealthDepleted())
+            {
+                HandleEmptyHp();
+            }
         }
         else
         {
@@ -347,6 +367,75 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
 
         currentHp = Mathf.Min(MaxHp, currentHp + amount);
         CacheCurrentHpForActiveState();
+    }
+
+    /// <summary>
+    /// 시체 빙의 중 발생한 부패만큼 현재 빙의체 HP를 감소시킵니다.
+    /// 전투 피해가 아니므로 무적 시간, 방어, 피격 경직, 피격 이펙트를 적용하지 않습니다.
+    /// </summary>
+    public bool ApplyCorpseDecayHpLoss(float hpLoss)
+    {
+        ResolveReferences();
+
+        if (hpLoss <= 0f
+            || !UsesHp
+            || currentHp <= 0f
+            || soulSystem == null
+            || soulSystem.CurrentState != HWJ_SoulRuntimeState.Body
+            || possessionSystem == null
+            || !possessionSystem.IsCorpsePossessionActive)
+        {
+            return false;
+        }
+
+        currentHp = Mathf.Max(0f, currentHp - hpLoss);
+        CacheCurrentHpForActiveState();
+
+        if (currentHp <= 0f)
+        {
+            if (!TryHandleHealthDepleted())
+            {
+                HandleEmptyHp();
+            }
+        }
+
+        SavePlayerRuntimeSnapshotIfOwner();
+        return true;
+    }
+
+    /// <summary>
+    /// Debug and automated-test entry point for setting HP without applying damage side effects.
+    /// Gameplay damage must continue to use ApplyDamage.
+    /// </summary>
+    public void SetCurrentHpForDebug(float value)
+    {
+        ResolveReferences();
+        currentHp = Mathf.Clamp(value, 0f, Mathf.Max(0f, MaxHp));
+
+        if (currentHp > 0f && currentState == HWJ_RuntimeState.Dead)
+        {
+            SetState(HWJ_RuntimeState.Idle);
+        }
+
+        CacheCurrentHpForActiveState();
+    }
+
+    /// <summary>
+    /// Restores timers, damage-source cooldowns, state, and HP for a reusable encounter prefab.
+    /// </summary>
+    public void ResetForEncounter(bool refillToMax = true)
+    {
+        ResolveReferences();
+        moveLockEndTime = 0f;
+        attackLockEndTime = 0f;
+        dashLockEndTime = 0f;
+        hitStunEndTime = 0f;
+        invincibleEndTime = 0f;
+        hitReactionImmuneEndTime = 0f;
+        ClearHitReactionLimit();
+        nextDamageTimesBySource.Clear();
+        SetState(HWJ_RuntimeState.Idle);
+        RefreshCurrentHpFromData(refillToMax);
     }
 
     /// <summary>
@@ -500,525 +589,4 @@ public class HWJ_RuntimeStatusSystem : MonoBehaviour
     /// 능력치 구슬 데이터를 런타임 보너스로 적용합니다.
     /// ScriptableObject 원본 스탯은 수정하지 않기 때문에 데이터 오염을 막을 수 있습니다.
     /// </summary>
-    public bool CanApplyStatOrb(HWJ_StatOrbDataSO statOrbData)
-    {
-        ResolveReferences();
-
-        if (statOrbData == null)
-        {
-            return false;
-        }
-
-        HWJ_StatOrbProgressSystem statOrbProgressSystem = GetComponent<HWJ_StatOrbProgressSystem>();
-        return statOrbProgressSystem == null || statOrbProgressSystem.CanApplyStatOrb(statOrbData);
-    }
-
-    public bool TryApplyStatOrb(HWJ_StatOrbDataSO statOrbData)
-    {
-        ResolveReferences();
-
-        if (statOrbData == null)
-        {
-            return false;
-        }
-
-        HWJ_StatOrbProgressSystem statOrbProgressSystem = GetComponent<HWJ_StatOrbProgressSystem>();
-
-        if (statOrbProgressSystem != null)
-        {
-            return statOrbProgressSystem.TryApplyStatOrb(statOrbData, this, out _);
-        }
-
-        ApplyStatOrbBonus(statOrbData, false);
-        return true;
-    }
-
-    public void ApplyStatOrb(HWJ_StatOrbDataSO statOrbData)
-    {
-        TryApplyStatOrb(statOrbData);
-    }
-
-    public void ClearStatOrbBonuses()
-    {
-        ResolveReferences();
-
-        maxHpBonus = 0f;
-        moveSpeedBonus = 0f;
-        attackPowerBonus = 0f;
-        defenseBonus = 0f;
-        attackSpeedBonus = 0f;
-        RefreshCurrentHpFromData(false);
-    }
-
-    public void ApplyStatOrbBonus(HWJ_StatOrbDataSO statOrbData, bool preserveCurrentHp)
-    {
-        ResolveReferences();
-
-        if (statOrbData == null)
-        {
-            return;
-        }
-
-        switch (statOrbData.OrbType)
-        {
-            case HWJ_StatOrbType.MaxHp:
-                maxHpBonus += statOrbData.Amount;
-                if (preserveCurrentHp)
-                {
-                    RefreshCurrentHpFromData(false);
-                }
-                else
-                {
-                    currentHp = Mathf.Min(MaxHp, currentHp + statOrbData.Amount);
-                    CacheCurrentHpForActiveState();
-                }
-                break;
-            case HWJ_StatOrbType.MoveSpeed:
-                moveSpeedBonus += statOrbData.Amount;
-                break;
-            case HWJ_StatOrbType.AttackPower:
-                attackPowerBonus += statOrbData.Amount;
-                break;
-            case HWJ_StatOrbType.Defense:
-                defenseBonus += statOrbData.Amount;
-                break;
-            case HWJ_StatOrbType.AttackSpeed:
-                attackSpeedBonus += statOrbData.Amount;
-                break;
-        }
-    }
-
-    private float GetBaseStatusValue(System.Func<HWJ_StatusData, float> selector)
-    {
-        if (runtimeContext != null)
-        {
-            HWJ_StatusData effectiveStatus = runtimeContext.GetEffectiveStatusData();
-            return effectiveStatus != null ? selector(effectiveStatus) : 0f;
-        }
-
-        if (possessionSystem != null && possessionSystem.TryGetPossessedStatus(out HWJ_StatusData possessedStatus))
-        {
-            return selector(possessedStatus);
-        }
-
-        if (dataResolver == null || dataResolver.Status == null)
-        {
-            return 0f;
-        }
-
-        return selector(dataResolver.Status);
-    }
-
-    private float GetRuntimeBodyMaxHpOrBase()
-    {
-        if (TryGetCurrentPossessedBodyState(out HWJ_PossessedBodyRuntimeState bodyState))
-        {
-            return bodyState.MaxHp;
-        }
-
-        return GetBaseStatusValue(status => status.maxHp);
-    }
-
-    private HWJ_ReceivedDamageData GetReceivedDamageData()
-    {
-        if (runtimeContext != null)
-        {
-            return runtimeContext.GetEffectiveReceivedDamageData();
-        }
-
-        if (possessionSystem != null
-            && possessionSystem.TryGetPossessedReceivedDamage(out HWJ_ReceivedDamageData possessedReceivedDamage))
-        {
-            return possessedReceivedDamage;
-        }
-
-        return dataResolver != null ? dataResolver.ReceivedDamage : null;
-    }
-
-    private bool IsDataInvincible()
-    {
-        HWJ_ReceivedDamageData receivedDamage = GetReceivedDamageData();
-        return receivedDamage != null && receivedDamage.isInvincible;
-    }
-
-    private bool HasDataSuperArmor()
-    {
-        HWJ_ReceivedDamageData receivedDamage = GetReceivedDamageData();
-
-        if (receivedDamage != null && receivedDamage.hasSuperArmor)
-        {
-            return true;
-        }
-
-        return dataResolver != null
-            && dataResolver.TryGetTypeData(out HWJ_EnemyTypeDataSO enemyData)
-            && enemyData.State != null
-            && enemyData.State.hasSuperArmor;
-    }
-
-    private bool ShouldDataIgnoreKnockback()
-    {
-        HWJ_ReceivedDamageData receivedDamage = GetReceivedDamageData();
-        return receivedDamage != null && receivedDamage.ignoreKnockback;
-    }
-
-    private bool IsBossBody()
-    {
-        return dataResolver != null && dataResolver.ObjectType == HWJ_ObjectType.Boss;
-    }
-
-    private bool ShouldUseBodyCollisionFilter()
-    {
-        if (dataResolver == null)
-        {
-            return false;
-        }
-
-        return dataResolver.ObjectType == HWJ_ObjectType.Player
-            || dataResolver.ObjectType == HWJ_ObjectType.Enemy
-            || dataResolver.ObjectType == HWJ_ObjectType.Boss;
-    }
-
-    private void CacheBodyCollisionColliders()
-    {
-        bodyCollisionColliders = GetComponentsInChildren<Collider2D>();
-    }
-
-    private void UpdateBodyCollisionIgnores()
-    {
-        if (Time.time < nextBodyCollisionRefreshTime)
-        {
-            return;
-        }
-
-        nextBodyCollisionRefreshTime = Time.time + Mathf.Max(0.02f, bodyCollisionRefreshSeconds);
-
-        if (!ShouldUseBodyCollisionFilter())
-        {
-            return;
-        }
-
-        if (bodyCollisionColliders == null || bodyCollisionColliders.Length == 0)
-        {
-            CacheBodyCollisionColliders();
-        }
-
-        HWJ_RootObjectDataResolver[] resolvers = FindObjectsByType<HWJ_RootObjectDataResolver>(
-            FindObjectsInactive.Exclude,
-            FindObjectsSortMode.None);
-
-        for (int i = 0; i < resolvers.Length; i++)
-        {
-            HWJ_RootObjectDataResolver otherResolver = resolvers[i];
-
-            if (otherResolver == null
-                || otherResolver == dataResolver
-                || !ShouldIgnoreBodyCollisionWith(otherResolver))
-            {
-                continue;
-            }
-
-            IgnoreBodyCollisionWith(otherResolver);
-        }
-    }
-
-    private bool ShouldIgnoreBodyCollisionWith(HWJ_RootObjectDataResolver otherResolver)
-    {
-        if (dataResolver == null || otherResolver == null)
-        {
-            return false;
-        }
-
-        HWJ_ObjectType selfType = dataResolver.ObjectType;
-        HWJ_ObjectType otherType = otherResolver.ObjectType;
-
-        if (selfType == HWJ_ObjectType.Player)
-        {
-            return ignorePlayerMonsterBodyCollision && IsMonsterType(otherType);
-        }
-
-        if (IsMonsterType(selfType))
-        {
-            return otherType == HWJ_ObjectType.Player && ignorePlayerMonsterBodyCollision
-                || IsMonsterType(otherType) && ignoreMonsterBodyCollision;
-        }
-
-        return false;
-    }
-
-    private void IgnoreBodyCollisionWith(HWJ_RootObjectDataResolver otherResolver)
-    {
-        if (bodyCollisionColliders == null)
-        {
-            return;
-        }
-
-        Collider2D[] otherColliders = otherResolver.GetComponentsInChildren<Collider2D>();
-
-        for (int i = 0; i < bodyCollisionColliders.Length; i++)
-        {
-            Collider2D ownedCollider = bodyCollisionColliders[i];
-
-            if (!IsPhysicalBodyCollider(ownedCollider))
-            {
-                continue;
-            }
-
-            for (int j = 0; j < otherColliders.Length; j++)
-            {
-                Collider2D otherCollider = otherColliders[j];
-
-                if (!IsPhysicalBodyCollider(otherCollider) || otherCollider == ownedCollider)
-                {
-                    continue;
-                }
-
-                Physics2D.IgnoreCollision(ownedCollider, otherCollider, true);
-            }
-        }
-    }
-
-    private static bool IsPhysicalBodyCollider(Collider2D collider)
-    {
-        return collider != null && !collider.isTrigger;
-    }
-
-    private static bool IsMonsterType(HWJ_ObjectType objectType)
-    {
-        return objectType == HWJ_ObjectType.Enemy || objectType == HWJ_ObjectType.Boss;
-    }
-
-    private float GetKnockbackWeight()
-    {
-        HWJ_StatusData status = GetStatusDataForWeight();
-        HWJ_ReceivedDamageData receivedDamage = GetReceivedDamageData();
-        float bodyWeight = status != null && status.bodyWeight > 0f ? status.bodyWeight : 1f;
-        float reactionWeight = receivedDamage != null && receivedDamage.knockbackWeightMultiplier > 0f
-            ? receivedDamage.knockbackWeightMultiplier
-            : 1f;
-        return bodyWeight * reactionWeight;
-    }
-
-    private HWJ_StatusData GetStatusDataForWeight()
-    {
-        if (possessionSystem != null && possessionSystem.TryGetPossessedStatus(out HWJ_StatusData possessedStatus))
-        {
-            return possessedStatus;
-        }
-
-        return dataResolver != null ? dataResolver.Status : null;
-    }
-
-    private float GetHitStunSeconds(HWJ_DamageData sourceDamage)
-    {
-        if (IsHitReactionImmune)
-        {
-            return 0f;
-        }
-
-        HWJ_ReceivedDamageData receivedDamage = GetReceivedDamageData();
-
-        if (receivedDamage != null && receivedDamage.ignoreHitStun)
-        {
-            return 0f;
-        }
-
-        if (dataResolver != null
-            && dataResolver.TryGetTypeData(out HWJ_EnemyTypeDataSO enemyData)
-            && enemyData.State != null
-            && enemyData.State.immuneToHitStun)
-        {
-            return 0f;
-        }
-
-        if (sourceDamage != null && sourceDamage.hitStunSeconds > 0f)
-        {
-            return sourceDamage.hitStunSeconds;
-        }
-
-        return receivedDamage != null ? Mathf.Max(0f, receivedDamage.hitStunSeconds) : 0f;
-    }
-
-    private void ApplyPostHitTimers(Component source, HWJ_DamageData sourceDamage)
-    {
-        HWJ_ReceivedDamageData receivedDamage = GetReceivedDamageData();
-
-        if (receivedDamage != null)
-        {
-            GrantInvincibility(receivedDamage.invincibleSecondsAfterHit);
-            hitReactionImmuneEndTime = Mathf.Max(
-                hitReactionImmuneEndTime,
-                Time.time + Mathf.Max(0f, receivedDamage.hitReactionImmuneSeconds));
-        }
-
-        int sourceId = source != null ? source.GetInstanceID() : 0;
-
-        if (sourceId == 0)
-        {
-            return;
-        }
-
-        float cooldownSeconds = sourceDamage != null
-            ? Mathf.Max(0f, sourceDamage.sameTargetHitCooldownSeconds)
-            : 0f;
-
-        if (cooldownSeconds > 0f)
-        {
-            nextDamageTimesBySource[sourceId] = Time.time + cooldownSeconds;
-        }
-    }
-
-    private float GetOwnerBaseStatusValue(System.Func<HWJ_StatusData, float> selector)
-    {
-        if (dataResolver == null || dataResolver.Status == null)
-        {
-            return 0f;
-        }
-
-        return selector(dataResolver.Status);
-    }
-
-    private float GetStoredHpForActiveState()
-    {
-        if (soulSystem == null)
-        {
-            return MaxHp;
-        }
-
-        if (soulSystem.CurrentState == HWJ_SoulRuntimeState.Body)
-        {
-            return possessedBodyHp;
-        }
-
-        return soulHp;
-    }
-
-    private void ApplyHitReaction(float damage, HWJ_DamageData sourceDamage)
-    {
-        bool reactionBlockedBySuperArmor = HasSuperArmor;
-        bool reactionBlockedByLimit = IsHitReactionLimited;
-        bossBrain?.NotifyDamageTaken(damage, reactionBlockedBySuperArmor, reactionBlockedByLimit);
-
-        if (bossBrain != null && bossBrain.IsGroggy)
-        {
-            return;
-        }
-
-        if (reactionBlockedBySuperArmor)
-        {
-            return;
-        }
-
-        HWJ_ReceivedDamageData receivedDamage = GetReceivedDamageData();
-
-        if (!TryConsumeHitReactionSlot(receivedDamage))
-        {
-            return;
-        }
-
-        float hitStunSeconds = GetHitStunSeconds(sourceDamage);
-
-        if (hitStunSeconds > 0f)
-        {
-            hitStunEndTime = Mathf.Max(hitStunEndTime, Time.time + hitStunSeconds);
-            LockControl(hitStunSeconds);
-        }
-
-        SetState(HWJ_RuntimeState.Hit);
-        motionSystem?.PlayHit();
-    }
-
-    private bool TryConsumeHitReactionSlot(HWJ_ReceivedDamageData receivedDamage)
-    {
-        if (receivedDamage == null || receivedDamage.maxHitReactionsPerWindow <= 0)
-        {
-            return true;
-        }
-
-        if (IsHitReactionLimited)
-        {
-            return false;
-        }
-
-        float windowSeconds = Mathf.Max(0.01f, receivedDamage.hitReactionWindowSeconds);
-
-        if (Time.time >= hitReactionWindowEndTime)
-        {
-            hitReactionWindowEndTime = Time.time + windowSeconds;
-            hitReactionCountInWindow = 0;
-        }
-
-        if (hitReactionCountInWindow >= receivedDamage.maxHitReactionsPerWindow)
-        {
-            float immuneSeconds = Mathf.Max(0f, receivedDamage.hitReactionLimitImmuneSeconds);
-
-            if (immuneSeconds > 0f)
-            {
-                hitReactionLimitEndTime = Mathf.Max(hitReactionLimitEndTime, Time.time + immuneSeconds);
-            }
-
-            return false;
-        }
-
-        hitReactionCountInWindow++;
-        return true;
-    }
-
-    private void SavePlayerRuntimeSnapshotIfOwner()
-    {
-        if (HWJ_GameAccess.HasManager && HWJ_GameAccess.Manager.PlayerStatus == this)
-        {
-            HWJ_GameAccess.Manager.SavePlayerRuntimeSnapshot();
-        }
-    }
-
-    private void HandleEmptyHp()
-    {
-        if (soulSystem == null)
-        {
-            SetState(HWJ_RuntimeState.Dead);
-            motionSystem?.PlayDead();
-            return;
-        }
-
-        if (soulSystem.CurrentState == HWJ_SoulRuntimeState.Body)
-        {
-            if (collapseSystem == null)
-            {
-                collapseSystem = GetComponent<HWJ_CollapseSystem>();
-            }
-
-            if (collapseSystem != null)
-            {
-                collapseSystem.TryCollapseCurrentBody(HWJ_BodyCollapseReason.HpDepleted);
-                return;
-            }
-
-            possessedBodySystem?.MarkCurrentBodyCollapsed();
-            soulSystem.EnterSoulState(false, HWJ_PossessedBodyExitReason.HpDepleted);
-            return;
-        }
-
-        if (soulSystem.CurrentState == HWJ_SoulRuntimeState.Soul)
-        {
-            soulSystem.EnterDeadState();
-            return;
-        }
-
-        SetState(HWJ_RuntimeState.Dead);
-        motionSystem?.PlayDead();
-    }
-
-    private bool TryGetCurrentPossessedBodyState(out HWJ_PossessedBodyRuntimeState bodyState)
-    {
-        if (possessedBodySystem == null)
-        {
-            possessedBodySystem = GetComponent<HWJ_PossessedBodySystem>();
-        }
-
-        bodyState = null;
-        return possessedBodySystem != null
-            && possessedBodySystem.TryGetCurrentBodyState(out bodyState)
-            && bodyState != null;
-    }
 }

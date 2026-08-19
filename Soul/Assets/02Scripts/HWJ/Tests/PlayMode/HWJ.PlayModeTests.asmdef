@@ -2,7 +2,8 @@
     "name": "HWJ.PlayModeTests",
     "rootNamespace": "HWJ.Tests",
     "references": [
-        "HWJ.Runtime"
+        "HWJ.Runtime",
+        "Unity.InputSystem"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

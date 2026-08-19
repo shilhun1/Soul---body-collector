@@ -38,6 +38,9 @@ public class hys_FinalBossLogic : MonoBehaviour
 
     public bool EncounterStarted => encounterStarted;
     public bool IsDefeated => runtimeStatus != null && runtimeStatus.IsDead;
+    // Animator 브리지가 현재 이동 및 그로기 상태를 안전하게 읽도록 공개합니다.
+    public bool IsMoving => currentState == hys_FinalBossState.Chase;
+    public bool IsGroggy => currentState == hys_FinalBossState.Groggy;
     public string LastAction => lastAction;
 
     private void Awake()
