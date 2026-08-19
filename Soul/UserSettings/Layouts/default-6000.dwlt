@@ -453,7 +453,7 @@ MonoBehaviour:
   m_Pos:
     serializedVersion: 2
     x: 0
-    y: 43
+    y: 0
     width: 1920
     height: 36
   m_SerializedDataModeController:
@@ -579,8 +579,8 @@ MonoBehaviour:
       sizeOverridden: 0
     - dockPosition: 1
       containerId: overlay-toolbar__top
-      displayed: 1
-      id: Editor Controls/Layout
+      displayed: 0
+      id: Editor Utility/Quality
       index: 1
       contents: '{"m_Layout":4,"m_Collapsed":false,"m_Folded":false,"m_Floating":false,"m_FloatingSnapOffset":{"x":0.0,"y":0.0},"m_SnapOffsetDelta":{"x":0.0,"y":0.0},"m_FloatingSnapCorner":0,"m_Size":{"x":0.0,"y":0.0},"m_SizeOverridden":false}'
       floating: 0
@@ -593,8 +593,8 @@ MonoBehaviour:
       sizeOverridden: 0
     - dockPosition: 1
       containerId: overlay-toolbar__top
-      displayed: 0
-      id: Editor Utility/Quality
+      displayed: 1
+      id: Editor Controls/Layout
       index: 2
       contents: '{"m_Layout":4,"m_Collapsed":false,"m_Folded":false,"m_Floating":false,"m_FloatingSnapOffset":{"x":0.0,"y":0.0},"m_SnapOffsetDelta":{"x":0.0,"y":0.0},"m_FloatingSnapCorner":0,"m_Size":{"x":0.0,"y":0.0},"m_SizeOverridden":false}'
       floating: 0
@@ -680,12 +680,12 @@ MonoBehaviour:
       displayed: 1
       id: Play Mode Controls
       index: 0
-      contents: '{"m_Layout":4,"m_Collapsed":false,"m_Folded":false,"m_Floating":false,"m_FloatingSnapOffset":{"x":-913.0,"y":-36.0},"m_SnapOffsetDelta":{"x":0.0,"y":0.0},"m_FloatingSnapCorner":3,"m_Size":{"x":0.0,"y":0.0},"m_SizeOverridden":false}'
+      contents: '{"m_Layout":4,"m_Collapsed":false,"m_Folded":false,"m_Floating":false,"m_FloatingSnapOffset":{"x":0.0,"y":0.0},"m_SnapOffsetDelta":{"x":0.0,"y":0.0},"m_FloatingSnapCorner":0,"m_Size":{"x":0.0,"y":0.0},"m_SizeOverridden":false}'
       floating: 0
       collapsed: 0
-      snapOffset: {x: -913, y: -36}
+      snapOffset: {x: 0, y: 0}
       snapOffsetDelta: {x: 0, y: 0}
-      snapCorner: 3
+      snapCorner: 0
       layout: 4
       size: {x: 0, y: 0}
       sizeOverridden: 0
@@ -733,7 +733,7 @@ MonoBehaviour:
   m_Pos:
     serializedVersion: 2
     x: 0
-    y: 557
+    y: 502
     width: 1085
     height: 429
   m_SerializedDataModeController:
@@ -836,7 +836,7 @@ MonoBehaviour:
   m_Pos:
     serializedVersion: 2
     x: 0
-    y: 79
+    y: 24
     width: 1085
     height: 452
   m_SerializedDataModeController:
@@ -1437,7 +1437,7 @@ MonoBehaviour:
   m_AudioPlay: 0
   m_DebugDrawModesUseInteractiveLightBakingData: 0
   m_Position:
-    m_Target: {x: 23.768267, y: -2.2235613, z: 0.29092562}
+    m_Target: {x: 28.956297, y: -8.702044, z: -0.07913925}
     speed: 2
     m_Value: {x: 23.768267, y: -2.2235613, z: 0.29092562}
   m_RenderMode: 0
@@ -1489,7 +1489,7 @@ MonoBehaviour:
     speed: 2
     m_Value: {x: 0, y: 0, z: 0, w: 1}
   m_Size:
-    m_Target: 7.410343
+    m_Target: 11.129645
     speed: 2
     m_Value: 7.410343
   m_Ortho:
@@ -1546,8 +1546,8 @@ MonoBehaviour:
     m_TextWithWhitespace: "Hierarchy\u200B"
   m_Pos:
     serializedVersion: 2
-    x: 1086
-    y: 79
+    x: 1
+    y: 24
     width: 473
     height: 519
   m_SerializedDataModeController:
@@ -1566,10 +1566,9 @@ MonoBehaviour:
   m_SceneHierarchy:
     m_TreeViewState:
       scrollPos: {x: 0, y: 0}
-      m_SelectedIDs:
-      - m_Data: 59700
+      m_SelectedIDs: []
       m_LastClickedID:
-        m_Data: 59700
+        m_Data: 0
       m_ExpandedIDs:
       - m_Data: -1348
       - m_Data: 60166
@@ -1619,8 +1618,8 @@ MonoBehaviour:
     m_TextWithWhitespace: "Project\u200B"
   m_Pos:
     serializedVersion: 2
-    x: 1086
-    y: 624
+    x: 1
+    y: 569
     width: 473
     height: 362
   m_SerializedDataModeController:
@@ -1669,107 +1668,81 @@ MonoBehaviour:
       m_Data: 0
     m_ExpandedIDs:
     - m_Data: 0
-    - m_Data: 57234
-    - m_Data: 58610
-    - m_Data: 58688
-    - m_Data: 59310
-    - m_Data: 63686
-    - m_Data: 64598
-    - m_Data: 64600
-    - m_Data: 64602
-    - m_Data: 64604
-    - m_Data: 64606
-    - m_Data: 64608
-    - m_Data: 64610
-    - m_Data: 64612
-    - m_Data: 64614
-    - m_Data: 64616
-    - m_Data: 64618
-    - m_Data: 64620
-    - m_Data: 64622
-    - m_Data: 64624
-    - m_Data: 64626
-    - m_Data: 64628
-    - m_Data: 64630
-    - m_Data: 64632
-    - m_Data: 64634
-    - m_Data: 64636
-    - m_Data: 64638
-    - m_Data: 64640
-    - m_Data: 64642
-    - m_Data: 64644
-    - m_Data: 64646
-    - m_Data: 64648
-    - m_Data: 64650
-    - m_Data: 64652
-    - m_Data: 64654
-    - m_Data: 64656
-    - m_Data: 64658
-    - m_Data: 64660
-    - m_Data: 64662
-    - m_Data: 64664
-    - m_Data: 64666
-    - m_Data: 64668
-    - m_Data: 64670
-    - m_Data: 64672
-    - m_Data: 64674
-    - m_Data: 64676
-    - m_Data: 64678
-    - m_Data: 64680
-    - m_Data: 64682
-    - m_Data: 64684
-    - m_Data: 64686
-    - m_Data: 64688
-    - m_Data: 64690
-    - m_Data: 64692
-    - m_Data: 64694
-    - m_Data: 64696
-    - m_Data: 64698
-    - m_Data: 64700
-    - m_Data: 64702
-    - m_Data: 64704
-    - m_Data: 64706
-    - m_Data: 64708
-    - m_Data: 64710
-    - m_Data: 64712
-    - m_Data: 64714
-    - m_Data: 64716
-    - m_Data: 64718
-    - m_Data: 64720
-    - m_Data: 64722
-    - m_Data: 64724
-    - m_Data: 64726
-    - m_Data: 64728
-    - m_Data: 64730
-    - m_Data: 64732
-    - m_Data: 64734
-    - m_Data: 64736
-    - m_Data: 64738
-    - m_Data: 64740
-    - m_Data: 64742
-    - m_Data: 64744
-    - m_Data: 64746
-    - m_Data: 64748
-    - m_Data: 64750
-    - m_Data: 64752
-    - m_Data: 64754
-    - m_Data: 64756
-    - m_Data: 64758
-    - m_Data: 64760
-    - m_Data: 64762
-    - m_Data: 64764
-    - m_Data: 64766
-    - m_Data: 64768
-    - m_Data: 64770
-    - m_Data: 64772
-    - m_Data: 64774
-    - m_Data: 64776
-    - m_Data: 64778
-    - m_Data: 64780
-    - m_Data: 64782
-    - m_Data: 64784
-    - m_Data: 64786
-    - m_Data: 64788
+    - m_Data: 58076
+    - m_Data: 65260
+    - m_Data: 66182
+    - m_Data: 66184
+    - m_Data: 66186
+    - m_Data: 66188
+    - m_Data: 66190
+    - m_Data: 66192
+    - m_Data: 66194
+    - m_Data: 66196
+    - m_Data: 66198
+    - m_Data: 66200
+    - m_Data: 66202
+    - m_Data: 66204
+    - m_Data: 66206
+    - m_Data: 66208
+    - m_Data: 66210
+    - m_Data: 66212
+    - m_Data: 66214
+    - m_Data: 66216
+    - m_Data: 66218
+    - m_Data: 66220
+    - m_Data: 66222
+    - m_Data: 66224
+    - m_Data: 66226
+    - m_Data: 66228
+    - m_Data: 66230
+    - m_Data: 66232
+    - m_Data: 66234
+    - m_Data: 66236
+    - m_Data: 66238
+    - m_Data: 66240
+    - m_Data: 66242
+    - m_Data: 66244
+    - m_Data: 66246
+    - m_Data: 66248
+    - m_Data: 66250
+    - m_Data: 66252
+    - m_Data: 66254
+    - m_Data: 66256
+    - m_Data: 66258
+    - m_Data: 66260
+    - m_Data: 66262
+    - m_Data: 66264
+    - m_Data: 66266
+    - m_Data: 66268
+    - m_Data: 66270
+    - m_Data: 66272
+    - m_Data: 66274
+    - m_Data: 66276
+    - m_Data: 66278
+    - m_Data: 66280
+    - m_Data: 66282
+    - m_Data: 66284
+    - m_Data: 66286
+    - m_Data: 66288
+    - m_Data: 66290
+    - m_Data: 66292
+    - m_Data: 66294
+    - m_Data: 66296
+    - m_Data: 66298
+    - m_Data: 66300
+    - m_Data: 66302
+    - m_Data: 66304
+    - m_Data: 66306
+    - m_Data: 66308
+    - m_Data: 66310
+    - m_Data: 66312
+    - m_Data: 66314
+    - m_Data: 66316
+    - m_Data: 66318
+    - m_Data: 66320
+    - m_Data: 66322
+    - m_Data: 66324
+    - m_Data: 66326
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 
@@ -1803,128 +1776,85 @@ MonoBehaviour:
       m_Data: 0
     m_ExpandedIDs:
     - m_Data: 0
-    - m_Data: 57234
-    - m_Data: 58610
-    - m_Data: 58688
-    - m_Data: 59310
-    - m_Data: 63686
-    - m_Data: 64598
-    - m_Data: 64600
-    - m_Data: 64602
-    - m_Data: 64604
-    - m_Data: 64606
-    - m_Data: 64608
-    - m_Data: 64610
-    - m_Data: 64612
-    - m_Data: 64614
-    - m_Data: 64616
-    - m_Data: 64618
-    - m_Data: 64620
-    - m_Data: 64622
-    - m_Data: 64624
-    - m_Data: 64626
-    - m_Data: 64628
-    - m_Data: 64630
-    - m_Data: 64632
-    - m_Data: 64634
-    - m_Data: 64636
-    - m_Data: 64638
-    - m_Data: 64640
-    - m_Data: 64642
-    - m_Data: 64644
-    - m_Data: 64646
-    - m_Data: 64648
-    - m_Data: 64650
-    - m_Data: 64652
-    - m_Data: 64654
-    - m_Data: 64656
-    - m_Data: 64658
-    - m_Data: 64660
-    - m_Data: 64662
-    - m_Data: 64664
-    - m_Data: 64666
-    - m_Data: 64668
-    - m_Data: 64670
-    - m_Data: 64672
-    - m_Data: 64674
-    - m_Data: 64676
-    - m_Data: 64678
-    - m_Data: 64680
-    - m_Data: 64682
-    - m_Data: 64686
-    - m_Data: 64688
-    - m_Data: 64690
-    - m_Data: 64692
-    - m_Data: 64694
-    - m_Data: 64696
-    - m_Data: 64698
-    - m_Data: 64700
-    - m_Data: 64702
-    - m_Data: 64704
-    - m_Data: 64706
-    - m_Data: 64708
-    - m_Data: 64710
-    - m_Data: 64712
-    - m_Data: 64714
-    - m_Data: 64716
-    - m_Data: 64718
-    - m_Data: 64720
-    - m_Data: 64722
-    - m_Data: 64724
-    - m_Data: 64726
-    - m_Data: 64730
-    - m_Data: 64732
-    - m_Data: 64734
-    - m_Data: 64736
-    - m_Data: 64738
-    - m_Data: 64740
-    - m_Data: 64742
-    - m_Data: 64744
-    - m_Data: 64746
-    - m_Data: 64748
-    - m_Data: 64750
-    - m_Data: 64752
-    - m_Data: 64754
-    - m_Data: 64756
-    - m_Data: 64758
-    - m_Data: 64760
-    - m_Data: 64762
-    - m_Data: 64764
-    - m_Data: 64766
-    - m_Data: 64768
-    - m_Data: 64770
-    - m_Data: 64774
-    - m_Data: 64776
-    - m_Data: 64778
-    - m_Data: 64780
-    - m_Data: 64782
-    - m_Data: 64784
-    - m_Data: 64786
-    - m_Data: 64788
-    - m_Data: 64998
-    - m_Data: 65014
-    - m_Data: 65684
-    - m_Data: 65740
-    - m_Data: 65750
-    - m_Data: 68586
-    - m_Data: 68918
-    - m_Data: 68920
-    - m_Data: 68926
-    - m_Data: 69082
-    - m_Data: 69520
-    - m_Data: 69590
-    - m_Data: 69620
-    - m_Data: 69630
-    - m_Data: 69646
-    - m_Data: 69698
-    - m_Data: 69700
-    - m_Data: 69702
-    - m_Data: 69810
-    - m_Data: 87318
+    - m_Data: 58076
+    - m_Data: 65260
+    - m_Data: 66182
+    - m_Data: 66184
+    - m_Data: 66186
+    - m_Data: 66188
+    - m_Data: 66190
+    - m_Data: 66192
+    - m_Data: 66194
+    - m_Data: 66196
+    - m_Data: 66198
+    - m_Data: 66200
+    - m_Data: 66202
+    - m_Data: 66204
+    - m_Data: 66206
+    - m_Data: 66208
+    - m_Data: 66210
+    - m_Data: 66212
+    - m_Data: 66214
+    - m_Data: 66216
+    - m_Data: 66218
+    - m_Data: 66220
+    - m_Data: 66222
+    - m_Data: 66224
+    - m_Data: 66226
+    - m_Data: 66228
+    - m_Data: 66230
+    - m_Data: 66232
+    - m_Data: 66234
+    - m_Data: 66236
+    - m_Data: 66238
+    - m_Data: 66240
+    - m_Data: 66242
+    - m_Data: 66244
+    - m_Data: 66246
+    - m_Data: 66248
+    - m_Data: 66250
+    - m_Data: 66252
+    - m_Data: 66254
+    - m_Data: 66256
+    - m_Data: 66258
+    - m_Data: 66260
+    - m_Data: 66262
+    - m_Data: 66264
+    - m_Data: 66266
+    - m_Data: 66268
+    - m_Data: 66270
+    - m_Data: 66272
+    - m_Data: 66274
+    - m_Data: 66276
+    - m_Data: 66278
+    - m_Data: 66280
+    - m_Data: 66282
+    - m_Data: 66284
+    - m_Data: 66286
+    - m_Data: 66288
+    - m_Data: 66290
+    - m_Data: 66292
+    - m_Data: 66294
+    - m_Data: 66296
+    - m_Data: 66298
+    - m_Data: 66300
+    - m_Data: 66302
+    - m_Data: 66304
+    - m_Data: 66306
+    - m_Data: 66308
+    - m_Data: 66310
+    - m_Data: 66312
+    - m_Data: 66314
+    - m_Data: 66316
+    - m_Data: 66318
+    - m_Data: 66320
+    - m_Data: 66322
+    - m_Data: 66324
+    - m_Data: 66326
     m_RenameOverlay:
       m_UserAcceptedRename: 0
-      m_Name: SlashFX SpriteSheet FX 3A_2_12
-      m_OriginalName: SlashFX SpriteSheet FX 3A_2_12
+      m_Name: 
+      m_OriginalName: 
       m_EditFieldRect:
         serializedVersion: 2
         x: 0
@@ -1932,10 +1862,10 @@ MonoBehaviour:
         width: 0
         height: 0
       m_UserData:
-        m_Data: -34414
+        m_Data: 0
       m_IsWaitingForDelay: 0
       m_IsRenaming: 0
-      m_OriginalEventType: 0
+      m_OriginalEventType: 11
       m_IsRenamingFilename: 1
       m_TrimLeadingAndTrailingWhitespace: 0
       m_ClientGUIView: {fileID: 11}
@@ -2040,8 +1970,8 @@ MonoBehaviour:
     m_TextWithWhitespace: "Inspector\u200B"
   m_Pos:
     serializedVersion: 2
-    x: 1561
-    y: 79
+    x: 1562
+    y: 24
     width: 358
     height: 907
   m_SerializedDataModeController:
