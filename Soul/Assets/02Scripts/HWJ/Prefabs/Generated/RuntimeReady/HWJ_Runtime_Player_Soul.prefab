@@ -920,6 +920,7 @@ MonoBehaviour:
   soulSystem: {fileID: 6808530972050499493}
   possessionSystem: {fileID: 1245751208064203804}
   possessedBodySystem: {fileID: 7083461312387985894}
+  runtimeStatus: {fileID: 0}
   currentDecayValue: 0
   resetDecayWhenEnterBody: 1
   isDecaying: 0

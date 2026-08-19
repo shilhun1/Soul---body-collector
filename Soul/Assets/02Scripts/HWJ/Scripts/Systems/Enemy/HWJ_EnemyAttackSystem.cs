@@ -237,18 +237,17 @@ public class HWJ_EnemyAttackSystem : MonoBehaviour
         }
 
         bool hasAnimationController = animator != null && animator.runtimeAnimatorController != null;
+        float delaySeconds = attackData != null
+            ? Mathf.Max(0f, attackData.fallbackHitDelaySeconds)
+            : 0f;
 
-        if (!hasAnimationController)
-        {
-            float delaySeconds = attackData != null
-                ? Mathf.Max(0f, attackData.fallbackHitDelaySeconds)
-                : 0f;
-            basicAttackFallbackRoutine = StartCoroutine(
-                TimedBasicAttackFallbackRoutine(delaySeconds));
-        }
+        // Animation Event가 등록되어 있으면 먼저 타격을 적용하고, 등록되지 않았으면
+        // fallback 타이머가 대신 적용합니다. pendingBasicAttackHitApplied가 중복 피해를 막습니다.
+        basicAttackFallbackRoutine = StartCoroutine(
+            TimedBasicAttackFallbackRoutine(delaySeconds));
 
         lastAttackResult = hasAnimationController
-            ? "Animation-timed basic attack started. Waiting for the animation hit event."
+            ? "Animation-timed basic attack started. Animation Event or fallback timer will apply the hit."
             : "Basic attack started with the no-animation fallback timer.";
         return true;
     }

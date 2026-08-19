@@ -20,7 +20,7 @@ MonoBehaviour:
   role:
     weaponType: 6
     isElite: 0
-    leavesCorpseOnDeath: 0
+    leavesCorpseOnDeath: 1
     isPossessableBody: 1
     guaranteesStatOrb: 0
   tracking:
@@ -152,9 +152,9 @@ MonoBehaviour:
     requiresDefeatedState: 0
     transfersControlToBody: 1
     loadsBodyStatsToPlayer: 1
-    overrideBodyDecayOnPossession: 0
+    overrideBodyDecayOnPossession: 1
     possessedBodyDecayOverride:
-      resourceDisplayName: "\uBE59\uC758\uCCB4 \uC815\uC2E0\uB825"
+      resourceDisplayName: "\uC2DC\uCCB4 \uBD80\uD328"
       initialDecayValue: 0
       maxDecayValue: 120
       decayTickSeconds: 0.5
@@ -165,6 +165,7 @@ MonoBehaviour:
       actionDecayAmount: 0
       hitDecayPenalty: 0
       decayResistance: 0
+      reduceBodyHpWithDecay: 1
       startDecayOnEnterBody: 1
       enterSoulStateWhenMaxed: 1
       enterSoulStateWhenEmpty: 1

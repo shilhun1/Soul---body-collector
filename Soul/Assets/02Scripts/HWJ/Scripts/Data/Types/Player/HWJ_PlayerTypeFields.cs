@@ -256,69 +256,75 @@ public enum HWJ_DecayDangerLevel
 public class HWJ_DecayDangerThresholdData
 {
     [InspectorName("위험 단계")]
-    [Tooltip("이 비율에 도달했을 때 표시할 빙의체 정신력 위험 단계입니다.")]
+    [Tooltip("이 비율에 도달했을 때 표시할 시체 부패 위험 단계입니다.")]
     public HWJ_DecayDangerLevel dangerLevel = HWJ_DecayDangerLevel.Warning;
-    [InspectorName("정신력 소모 비율")]
-    [Tooltip("0~1 사이 값입니다. 0.5는 정신력이 절반 소모된 상태를 의미합니다.")]
+    [InspectorName("부패 진행 비율")]
+    [Tooltip("0~1 사이 값입니다. 0.5는 시체 부패가 절반 진행된 상태를 의미합니다.")]
     public float ratio = 0.5f;
 }
 
 [Serializable]
 public class HWJ_BodyDecayData
 {
-    [Header("빙의체 정신력 표시")]
+    [Header("시체 부패 표시")]
     [InspectorName("표시 이름")]
-    [Tooltip("UI나 디버그에서 보여줄 자원 이름입니다. 기존 코드 이름은 BodyDecay지만 실제 기획 의미는 빙의체 정신력입니다.")]
-    public string resourceDisplayName = "빙의체 정신력";
+    [Tooltip("시체에 빙의했을 때 UI나 디버그에 보여줄 부패 자원 이름입니다.")]
+    public string resourceDisplayName = "시체 부패";
 
-    [Header("빙의체 정신력 기본값")]
-    [InspectorName("초기 소모 정신력")]
-    [Tooltip("몸에 들어갔을 때 이미 소모된 것으로 시작할 정신력 값입니다. 보통 0으로 둡니다.")]
+    [Header("시체 부패 기본값")]
+    [InspectorName("초기 부패도")]
+    [Tooltip("시체에 들어갔을 때 시작할 부패도입니다. 보통 0으로 둡니다.")]
     public float initialDecayValue;
-    [InspectorName("최대 정신력")]
-    [Tooltip("빙의를 유지할 수 있는 최대 정신력입니다. 내부적으로는 이 값만큼 소모되면 빙의가 풀립니다.")]
+    [InspectorName("최대 부패도")]
+    [Tooltip("이 값까지 부패하면 시체가 붕괴하고 빙의가 해제됩니다.")]
     public float maxDecayValue = 120f;
-    [InspectorName("정신력 소모 틱 시간")]
-    [Tooltip("시간 기반 정신력 소모가 적용되는 간격입니다.")]
+    [InspectorName("부패 틱 시간")]
+    [Tooltip("시간 기반 부패가 적용되는 간격입니다.")]
     public float decayTickSeconds = 0.5f;
-    [InspectorName("틱당 정신력 소모량")]
-    [Tooltip("정신력 틱마다 소모되는 기본 정신력 양입니다.")]
+    [InspectorName("틱당 부패 증가량")]
+    [Tooltip("부패 틱마다 증가하는 기본 부패도입니다.")]
     public float decayAmountPerTick = 1f;
-    [Header("행동별 정신력 소모")]
-    [InspectorName("이동 초당 정신력 소모량")]
-    [Tooltip("이동 중 매초 추가로 소모되는 정신력 양입니다.")]
+    [Header("행동별 부패 증가")]
+    [InspectorName("이동 초당 부패 증가량")]
+    [Tooltip("이동 중 매초 추가되는 부패도입니다.")]
     public float moveDecayPerSecond;
-    [InspectorName("기본 공격 정신력 소모량")]
-    [Tooltip("기본 공격을 사용할 때 추가로 소모되는 정신력 양입니다.")]
+    [InspectorName("기본 공격 부패 증가량")]
+    [Tooltip("기본 공격을 사용할 때 추가되는 부패도입니다.")]
     public float basicAttackDecayAmount;
-    [InspectorName("스킬 사용 정신력 소모량")]
-    [Tooltip("스킬을 사용할 때 추가로 소모되는 정신력 양입니다.")]
+    [InspectorName("스킬 사용 부패 증가량")]
+    [Tooltip("스킬을 사용할 때 추가되는 부패도입니다.")]
     public float skillDecayAmount;
-    [InspectorName("특정 행동 정신력 소모량")]
-    [Tooltip("기타 행동에 공통으로 추가할 정신력 소모량입니다.")]
+    [InspectorName("특정 행동 부패 증가량")]
+    [Tooltip("기타 행동에 공통으로 추가할 부패도입니다.")]
     public float actionDecayAmount;
-    [InspectorName("미사용 - 피격 정신력 소모량")]
+    [InspectorName("미사용 - 피격 부패 증가량")]
     [Tooltip("현재 기획에서는 피격 시 HP만 감소합니다. 기존 데이터 호환용으로 남아 있으며 실제 피격 처리에서는 사용하지 않습니다.")]
     public float hitDecayPenalty;
-    [InspectorName("정신력 소모 저항력")]
-    [Tooltip("정신력 소모량을 줄이는 값입니다.")]
+    [InspectorName("부패 저항력")]
+    [Tooltip("적용되는 부패 증가량을 줄이는 0~1 값입니다.")]
     public float decayResistance;
-    [Header("정신력 상태 전환")]
-    [InspectorName("육신 진입 시 정신력 소모 시작")]
-    [Tooltip("켜면 빙의한 순간부터 정신력 소모가 진행됩니다.")]
+
+    [Header("시체 HP 감소")]
+    [InspectorName("부패량만큼 HP 감소")]
+    [Tooltip("켜면 최종 부패 증가량과 같은 수치만큼 현재 빙의체 HP도 감소합니다. 생체 빙의에는 적용되지 않습니다.")]
+    public bool reduceBodyHpWithDecay;
+
+    [Header("부패 상태 전환")]
+    [InspectorName("시체 진입 시 부패 시작")]
+    [Tooltip("켜면 시체에 빙의한 순간부터 부패가 진행됩니다.")]
     public bool startDecayOnEnterBody = true;
-    [InspectorName("정신력 0 시 영혼 전환")]
-    [Tooltip("켜면 정신력이 모두 소모되었을 때 영혼 상태로 돌아갑니다.")]
+    [InspectorName("최대 부패 시 영혼 전환")]
+    [Tooltip("켜면 부패도가 최대치에 도달했을 때 시체가 붕괴하고 영혼 상태로 돌아갑니다.")]
     public bool enterSoulStateWhenMaxed = true;
     [InspectorName("구형 0 이하 전환 호환")]
     [Tooltip("구형 감소식과 호환하기 위한 옵션입니다. 현재는 최대 소모 방식을 우선 사용합니다.")]
     public bool enterSoulStateWhenEmpty = true;
 
-    [InspectorName("정신력 0 메시지")]
-    [Tooltip("정신력이 모두 소모되었을 때 로그/대사/UI에 사용할 문장입니다.")]
+    [InspectorName("시체 붕괴 메시지")]
+    [Tooltip("부패 또는 HP 소진으로 시체가 붕괴했을 때 로그/대사/UI에 사용할 문장입니다.")]
     public string depletedMessage = "이 몸은 더 이상 못 쓰겠다.";
-    [InspectorName("정신력 위험 단계")]
-    [Tooltip("정신력 소모 비율별 Warning/Dangerous/Critical 단계를 설정합니다.")]
+    [InspectorName("부패 위험 단계")]
+    [Tooltip("부패 진행 비율별 Warning/Dangerous/Critical 단계를 설정합니다.")]
     public HWJ_DecayDangerThresholdData[] dangerThresholds =
     {
         new HWJ_DecayDangerThresholdData

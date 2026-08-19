@@ -88,12 +88,12 @@ public class HWJ_PossessionData
     [Tooltip("켜면 빙의한 몸의 스탯과 무기 데이터를 플레이어 런타임에 적용합니다.")]
     public bool loadsBodyStatsToPlayer = true;
 
-    [Header("빙의 정신력 오버라이드")]
-    [InspectorName("빙의 정신력 덮어쓰기")]
-    [Tooltip("켜면 플레이어 기본 빙의체 정신력 대신 이 몸 전용 정신력 데이터를 사용합니다.")]
+    [Header("시체 빙의 부패 오버라이드")]
+    [InspectorName("시체 부패 덮어쓰기")]
+    [Tooltip("켜면 시체 빙의 중 플레이어 기본 부패 데이터 대신 이 몸 전용 부패 데이터를 사용합니다. 생체 빙의 정신력에는 적용되지 않습니다.")]
     public bool overrideBodyDecayOnPossession;
 
-    [InspectorName("빙의 전용 정신력")]
-    [Tooltip("이 몸에 빙의하고 있는 동안만 사용하는 정신력 데이터입니다. 중간보스처럼 더 오래 유지되는 몸에 사용합니다.")]
+    [InspectorName("시체 빙의 전용 부패")]
+    [Tooltip("이 대상의 시체에 빙의한 동안만 사용하는 부패 데이터입니다.")]
     public HWJ_BodyDecayData possessedBodyDecayOverride = new HWJ_BodyDecayData();
 }

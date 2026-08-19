@@ -44,7 +44,7 @@ MonoBehaviour:
     maxChaseDistanceFromSpawn: 14
     speedMultiplier: 1
     arrivalDistance: 0.1
-    waitBelowDifferentPlatform: 1
+    waitBelowDifferentPlatform: 0
   ai:
     aiProfileId: ai.general.slime
     decisionIntervalSeconds: 0.1
