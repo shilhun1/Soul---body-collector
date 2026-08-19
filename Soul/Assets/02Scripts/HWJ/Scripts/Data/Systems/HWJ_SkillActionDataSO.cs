@@ -150,6 +150,18 @@ public class HWJ_SkillActionDataSO : ScriptableObject
     [Tooltip("스킬 사용 위치에 생성할 이펙트 프리팹입니다.")]
     [InspectorName("액션 이펙트 프리팹")]
     [SerializeField] private GameObject actionEffectPrefab;
+    [Tooltip("켜면 시스템 기본 오프셋 대신 이 스킬 전용 이펙트 오프셋을 사용합니다.")]
+    [InspectorName("전용 이펙트 오프셋 사용")]
+    [SerializeField] private bool useCustomActionEffectOffset;
+    [Tooltip("스킬 사용 위치(캐릭터 중심) 기준 이펙트 생성 오프셋 (X, Y)입니다. (바라보는 방향에 따라 X가 자동 반전됩니다)")]
+    [InspectorName("액션 이펙트 오프셋")]
+    [SerializeField] private Vector2 actionEffectOffset = new Vector2(0.8f, 0.15f);
+    [Tooltip("스킬 이펙트의 추가 회전 각도(Z축)입니다.")]
+    [InspectorName("액션 이펙트 회전각 (Z)")]
+    [SerializeField] private float actionEffectRotationZ;
+    [Tooltip("스킬 이펙트의 크기 배율입니다. (0 이하일 경우 1배)")]
+    [InspectorName("액션 이펙트 크기 배율")]
+    [SerializeField] private float actionEffectScaleMultiplier = 1f;
 
     public string SkillActionId => skillActionId;
     public string SourceSkillId => sourceSkillId;
@@ -195,6 +207,10 @@ public class HWJ_SkillActionDataSO : ScriptableObject
     public float MotionStepIntervalSeconds => motionStepIntervalSeconds;
     public GameObject ProjectilePrefab => projectilePrefab;
     public GameObject ActionEffectPrefab => actionEffectPrefab;
+    public bool UseCustomActionEffectOffset => useCustomActionEffectOffset;
+    public Vector2 ActionEffectOffset => actionEffectOffset;
+    public float ActionEffectRotationZ => actionEffectRotationZ;
+    public float ActionEffectScaleMultiplier => actionEffectScaleMultiplier <= 0f ? 1f : actionEffectScaleMultiplier;
     public bool HasMotionSequence => motionSequenceKeys != null && motionSequenceKeys.Length > 0;
 
     /// <summary>
