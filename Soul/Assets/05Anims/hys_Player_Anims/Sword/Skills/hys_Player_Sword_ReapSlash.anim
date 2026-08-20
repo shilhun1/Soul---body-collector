@@ -47,7 +47,24 @@ AnimationClip:
     classID: 212
     script: {fileID: 0}
     flags: 16
-  m_PPtrCurves: []
+  m_PPtrCurves:
+  - serializedVersion: 2
+    curve:
+    - time: 0
+      value: {fileID: 21300000, guid: ead16a2fb9fd4ea3964a15f336b120e0, type: 3}
+    - time: 0.30416664
+      value: {fileID: 21300000, guid: fbb4e971a6ef45569d4b276b06d5af44, type: 3}
+    - time: 0.6083333
+      value: {fileID: 21300000, guid: 33925825fffd4ebfb56d407140a7f523, type: 3}
+    - time: 0.9124999
+      value: {fileID: 21300000, guid: 9d4428aa1a0a4c33bf7670d5b9fc4617, type: 3}
+    - time: 1.2166666
+      value: {fileID: 21300000, guid: 1d7130f28a0948b9b0a8945228d0768a, type: 3}
+    attribute: m_Sprite
+    path: 
+    classID: 212
+    script: {fileID: 0}
+    flags: 2
   m_SampleRate: 12
   m_WrapMode: 1
   m_Bounds:
@@ -57,6 +74,15 @@ AnimationClip:
     genericBindings:
     - serializedVersion: 2
       path: 0
+      attribute: 0
+      script: {fileID: 0}
+      typeID: 212
+      customType: 23
+      isPPtrCurve: 1
+      isIntCurve: 0
+      isSerializeReferenceCurve: 0
+    - serializedVersion: 2
+      path: 0
       attribute: 304273561
       script: {fileID: 0}
       typeID: 212
@@ -64,7 +90,12 @@ AnimationClip:
       isPPtrCurve: 0
       isIntCurve: 0
       isSerializeReferenceCurve: 0
-    pptrCurveMapping: []
+    pptrCurveMapping:
+    - {fileID: 21300000, guid: ead16a2fb9fd4ea3964a15f336b120e0, type: 3}
+    - {fileID: 21300000, guid: fbb4e971a6ef45569d4b276b06d5af44, type: 3}
+    - {fileID: 21300000, guid: 33925825fffd4ebfb56d407140a7f523, type: 3}
+    - {fileID: 21300000, guid: 9d4428aa1a0a4c33bf7670d5b9fc4617, type: 3}
+    - {fileID: 21300000, guid: 1d7130f28a0948b9b0a8945228d0768a, type: 3}
   m_AnimationClipSettings:
     serializedVersion: 2
     m_AdditiveReferencePoseClip: {fileID: 0}
@@ -119,11 +150,4 @@ AnimationClip:
   m_EulerEditorCurves: []
   m_HasGenericRootTransform: 0
   m_HasMotionFloatCurves: 0
-  m_Events:
-  - time: 0.15
-    functionName: hys_PlaySkillEffect
-    data: CircularSlash|2.6|1.0|0.1|0|18
-    objectReferenceParameter: {fileID: 0}
-    floatParameter: 0
-    intParameter: 0
-    messageOptions: 0
+  m_Events: []

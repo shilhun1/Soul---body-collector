@@ -1,0 +1,1863 @@
+{
+  "pass_number": 6,
+  "stage": "sword_unique_created_frames",
+  "summary_checks": {
+    "all_15_exist": true,
+    "all_skills_have_four_or_more_key_poses": true,
+    "all_individual_checks_pass": false,
+    "all_135_unity_frames_exist": true,
+    "all_15_clip_guid_sequences_match": true,
+    "all_unity_asset_checks_pass": false,
+    "all_actual_reference_files_exist": true,
+    "all_135_frames_use_player_sprite_sources": false,
+    "procedural_replacement_body_removed": true,
+    "skill_specific_motion_names": true
+  },
+  "cross_skill_duplicate_frames": [
+    [
+      "hys_Final_Enemy_Sword_sword_diagonal_slash.gif#0",
+      "hys_Final_Enemy_Sword_sword_diagonal_slash.gif#8",
+      "hys_Final_Enemy_Sword_sword_up_diagonal_slash.gif#0",
+      "hys_Final_Enemy_Sword_sword_up_diagonal_slash.gif#8",
+      "hys_Final_Enemy_Sword_sword_wave.gif#0",
+      "hys_Final_Enemy_Sword_sword_wave.gif#8"
+    ],
+    [
+      "hys_Final_Enemy_Axe_axe_swing.gif#0",
+      "hys_Final_Enemy_Axe_axe_swing.gif#8",
+      "hys_Final_Enemy_Axe_axe_body_charge.gif#0",
+      "hys_Final_Enemy_Axe_axe_body_charge.gif#6",
+      "hys_Final_Enemy_Axe_axe_body_charge.gif#8",
+      "hys_Final_Enemy_Axe_axe_spin_charge.gif#3",
+      "hys_Final_Enemy_Axe_axe_spin_charge.gif#8"
+    ],
+    [
+      "hys_Final_Enemy_Axe_axe_swing.gif#1",
+      "hys_Final_Enemy_Axe_axe_swing.gif#7",
+      "hys_Final_Enemy_Axe_axe_body_charge.gif#1",
+      "hys_Final_Enemy_Axe_axe_body_charge.gif#5",
+      "hys_Final_Enemy_Axe_axe_body_charge.gif#7"
+    ],
+    [
+      "hys_Final_Enemy_Axe_axe_swing.gif#2",
+      "hys_Final_Enemy_Axe_axe_swing.gif#6",
+      "hys_Final_Enemy_Axe_axe_body_charge.gif#2",
+      "hys_Final_Enemy_Axe_axe_body_charge.gif#4"
+    ],
+    [
+      "hys_Final_Enemy_Axe_axe_swing.gif#3",
+      "hys_Final_Enemy_Axe_axe_swing.gif#5",
+      "hys_Final_Enemy_Axe_axe_body_charge.gif#3"
+    ],
+    [
+      "hys_Final_Enemy_Axe_axe_swing.gif#4",
+      "hys_Final_Enemy_Axe_axe_spin_charge.gif#2",
+      "hys_Final_Enemy_Axe_axe_spin_charge.gif#7"
+    ],
+    [
+      "hys_Final_Enemy_Axe_axe_spin_charge.gif#0",
+      "hys_Final_Enemy_Axe_axe_spin_charge.gif#5"
+    ],
+    [
+      "hys_Final_Enemy_Axe_axe_spin_charge.gif#1",
+      "hys_Final_Enemy_Axe_axe_spin_charge.gif#6"
+    ],
+    [
+      "hys_Final_Enemy_Bow_bow_rapid_shot.gif#1",
+      "hys_Final_Enemy_Bow_bow_rapid_shot.gif#3",
+      "hys_Final_Enemy_Bow_bow_rapid_shot.gif#5"
+    ],
+    [
+      "hys_Final_Enemy_Bow_bow_rapid_shot.gif#2",
+      "hys_Final_Enemy_Bow_bow_rapid_shot.gif#4",
+      "hys_Final_Enemy_Bow_bow_rapid_shot.gif#6"
+    ],
+    [
+      "hys_Final_Enemy_Bow_bow_low_charge_shot.gif#0",
+      "hys_Final_Enemy_Bow_bow_low_charge_shot.gif#5"
+    ],
+    [
+      "hys_Final_Enemy_Lance_lance_charge_thrust.gif#0",
+      "hys_Final_Enemy_Lance_lance_charge_thrust.gif#8",
+      "hys_Final_Enemy_Lance_lance_thrust_combo.gif#0",
+      "hys_Final_Enemy_Lance_lance_thrust_combo.gif#4"
+    ],
+    [
+      "hys_Final_Enemy_Lance_lance_charge_thrust.gif#1",
+      "hys_Final_Enemy_Lance_lance_charge_thrust.gif#7"
+    ],
+    [
+      "hys_Final_Enemy_Lance_lance_charge_thrust.gif#3",
+      "hys_Final_Enemy_Lance_lance_thrust_combo.gif#1",
+      "hys_Final_Enemy_Lance_lance_thrust_combo.gif#5"
+    ],
+    [
+      "hys_Final_Enemy_Lance_lance_charge_thrust.gif#4",
+      "hys_Final_Enemy_Lance_lance_charge_thrust.gif#6"
+    ],
+    [
+      "hys_Final_Enemy_Lance_lance_charge_thrust.gif#5",
+      "hys_Final_Enemy_Lance_lance_thrust_combo.gif#8"
+    ],
+    [
+      "hys_Final_Enemy_Lance_lance_thrust_combo.gif#2",
+      "hys_Final_Enemy_Lance_lance_thrust_combo.gif#6",
+      "hys_Final_Enemy_Lance_lance_finisher_thrust.gif#0",
+      "hys_Final_Enemy_Lance_lance_finisher_thrust.gif#8"
+    ],
+    [
+      "hys_Final_Enemy_Lance_lance_thrust_combo.gif#3",
+      "hys_Final_Enemy_Lance_lance_thrust_combo.gif#7",
+      "hys_Final_Enemy_Lance_lance_finisher_thrust.gif#3"
+    ],
+    [
+      "hys_Final_Enemy_Lance_lance_finisher_thrust.gif#1",
+      "hys_Final_Enemy_Lance_lance_finisher_thrust.gif#7"
+    ],
+    [
+      "hys_Final_Enemy_Lance_lance_finisher_thrust.gif#4",
+      "hys_Final_Enemy_Lance_lance_finisher_thrust.gif#6"
+    ],
+    [
+      "hys_Final_Enemy_Shield_shield_slam.gif#0",
+      "hys_Final_Enemy_Shield_shield_slam.gif#8",
+      "hys_Final_Enemy_Shield_shield_diagonal_knockback.gif#0",
+      "hys_Final_Enemy_Shield_shield_diagonal_knockback.gif#8"
+    ]
+  ],
+  "weapon_invariants": {
+    "Sword": "R_Queen_idle00의 적색/주황 넓은 검 픽셀과 원본 팔레트 고정",
+    "Axe": "손잡이·양날 도끼 머리 치수와 적색/주황 팔레트 고정",
+    "Bow": "활 높이 36px와 붉은 프레임·은색 시위 고정",
+    "Lance": "자루 54px와 은색 창끝 8px 고정",
+    "Shield": "34x46 원본형 방패와 중앙 금색 보강대 고정"
+  },
+  "actual_reference_paths": {
+    "Sword": "Assets/05Anims/hys_Player_Anims/Sword/Reference/hys_Sword_24BodyPose_GeneratedGuide.png",
+    "Axe": "Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Idle_02.png",
+    "Bow": "Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_Idle_00.png",
+    "Lance": "Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Idle_00.png",
+    "Shield": "Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_Idle_00.png"
+  },
+  "unity_asset_results": [
+    {
+      "weapon": "Sword",
+      "skill": "sword_diagonal_slash",
+      "frame_count": 9,
+      "clip_guid_count": 9,
+      "clip_duration_seconds": 0.34,
+      "expected_clip_duration_seconds": 0.34,
+      "checks": {
+        "nine_png_frames": true,
+        "nine_meta_files": true,
+        "unity_import_settings": true,
+        "frame_size_160x112": true,
+        "transparent_margin_no_clip": true,
+        "colors_match_player_sprite_palette": true,
+        "clip_exists": true,
+        "clip_guid_order_matches_frames": true,
+        "clip_sample_rate_12": true,
+        "clip_duration_matches_skill_data": true,
+        "clip_has_no_animation_events": true
+      },
+      "passed": true
+    },
+    {
+      "weapon": "Sword",
+      "skill": "sword_up_diagonal_slash",
+      "frame_count": 9,
+      "clip_guid_count": 9,
+      "clip_duration_seconds": 0.34,
+      "expected_clip_duration_seconds": 0.34,
+      "checks": {
+        "nine_png_frames": true,
+        "nine_meta_files": true,
+        "unity_import_settings": true,
+        "frame_size_160x112": true,
+        "transparent_margin_no_clip": true,
+        "colors_match_player_sprite_palette": true,
+        "clip_exists": true,
+        "clip_guid_order_matches_frames": true,
+        "clip_sample_rate_12": true,
+        "clip_duration_matches_skill_data": true,
+        "clip_has_no_animation_events": true
+      },
+      "passed": true
+    },
+    {
+      "weapon": "Sword",
+      "skill": "sword_wave",
+      "frame_count": 9,
+      "clip_guid_count": 9,
+      "clip_duration_seconds": 0.53,
+      "expected_clip_duration_seconds": 0.53,
+      "checks": {
+        "nine_png_frames": true,
+        "nine_meta_files": true,
+        "unity_import_settings": true,
+        "frame_size_160x112": true,
+        "transparent_margin_no_clip": true,
+        "colors_match_player_sprite_palette": true,
+        "clip_exists": true,
+        "clip_guid_order_matches_frames": true,
+        "clip_sample_rate_12": true,
+        "clip_duration_matches_skill_data": true,
+        "clip_has_no_animation_events": true
+      },
+      "passed": true
+    },
+    {
+      "weapon": "Axe",
+      "skill": "axe_swing",
+      "frame_count": 9,
+      "clip_guid_count": 9,
+      "clip_duration_seconds": 0.34,
+      "expected_clip_duration_seconds": 0.34,
+      "checks": {
+        "nine_png_frames": true,
+        "nine_meta_files": true,
+        "unity_import_settings": true,
+        "frame_size_160x112": true,
+        "transparent_margin_no_clip": true,
+        "colors_match_player_sprite_palette": true,
+        "clip_exists": true,
+        "clip_guid_order_matches_frames": true,
+        "clip_sample_rate_12": true,
+        "clip_duration_matches_skill_data": true,
+        "clip_has_no_animation_events": true
+      },
+      "passed": true
+    },
+    {
+      "weapon": "Axe",
+      "skill": "axe_body_charge",
+      "frame_count": 9,
+      "clip_guid_count": 9,
+      "clip_duration_seconds": 0.46,
+      "expected_clip_duration_seconds": 0.46,
+      "checks": {
+        "nine_png_frames": true,
+        "nine_meta_files": true,
+        "unity_import_settings": true,
+        "frame_size_160x112": true,
+        "transparent_margin_no_clip": true,
+        "colors_match_player_sprite_palette": true,
+        "clip_exists": true,
+        "clip_guid_order_matches_frames": true,
+        "clip_sample_rate_12": true,
+        "clip_duration_matches_skill_data": true,
+        "clip_has_no_animation_events": true
+      },
+      "passed": true
+    },
+    {
+      "weapon": "Axe",
+      "skill": "axe_spin_charge",
+      "frame_count": 9,
+      "clip_guid_count": 9,
+      "clip_duration_seconds": 0.49,
+      "expected_clip_duration_seconds": 0.49,
+      "checks": {
+        "nine_png_frames": true,
+        "nine_meta_files": true,
+        "unity_import_settings": true,
+        "frame_size_160x112": true,
+        "transparent_margin_no_clip": true,
+        "colors_match_player_sprite_palette": true,
+        "clip_exists": true,
+        "clip_guid_order_matches_frames": true,
+        "clip_sample_rate_12": true,
+        "clip_duration_matches_skill_data": true,
+        "clip_has_no_animation_events": true
+      },
+      "passed": true
+    },
+    {
+      "weapon": "Bow",
+      "skill": "bow_air_arrow_shot",
+      "frame_count": 9,
+      "clip_guid_count": 9,
+      "clip_duration_seconds": 0.55,
+      "expected_clip_duration_seconds": 0.55,
+      "checks": {
+        "nine_png_frames": true,
+        "nine_meta_files": true,
+        "unity_import_settings": true,
+        "frame_size_160x112": true,
+        "transparent_margin_no_clip": true,
+        "colors_match_player_sprite_palette": true,
+        "clip_exists": true,
+        "clip_guid_order_matches_frames": true,
+        "clip_sample_rate_12": true,
+        "clip_duration_matches_skill_data": true,
+        "clip_has_no_animation_events": true
+      },
+      "passed": true
+    },
+    {
+      "weapon": "Bow",
+      "skill": "bow_rapid_shot",
+      "frame_count": 9,
+      "clip_guid_count": 9,
+      "clip_duration_seconds": 0.62,
+      "expected_clip_duration_seconds": 0.62,
+      "checks": {
+        "nine_png_frames": true,
+        "nine_meta_files": true,
+        "unity_import_settings": true,
+        "frame_size_160x112": true,
+        "transparent_margin_no_clip": true,
+        "colors_match_player_sprite_palette": true,
+        "clip_exists": true,
+        "clip_guid_order_matches_frames": true,
+        "clip_sample_rate_12": true,
+        "clip_duration_matches_skill_data": true,
+        "clip_has_no_animation_events": true
+      },
+      "passed": true
+    },
+    {
+      "weapon": "Bow",
+      "skill": "bow_low_charge_shot",
+      "frame_count": 9,
+      "clip_guid_count": 9,
+      "clip_duration_seconds": 1.1,
+      "expected_clip_duration_seconds": 1.1,
+      "checks": {
+        "nine_png_frames": true,
+        "nine_meta_files": true,
+        "unity_import_settings": true,
+        "frame_size_160x112": true,
+        "transparent_margin_no_clip": true,
+        "colors_match_player_sprite_palette": true,
+        "clip_exists": true,
+        "clip_guid_order_matches_frames": true,
+        "clip_sample_rate_12": true,
+        "clip_duration_matches_skill_data": true,
+        "clip_has_no_animation_events": true
+      },
+      "passed": true
+    },
+    {
+      "weapon": "Lance",
+      "skill": "lance_charge_thrust",
+      "frame_count": 9,
+      "clip_guid_count": 9,
+      "clip_duration_seconds": 0.3,
+      "expected_clip_duration_seconds": 0.48,
+      "checks": {
+        "nine_png_frames": true,
+        "nine_meta_files": true,
+        "unity_import_settings": true,
+        "frame_size_160x112": true,
+        "transparent_margin_no_clip": true,
+        "colors_match_player_sprite_palette": true,
+        "clip_exists": true,
+        "clip_guid_order_matches_frames": true,
+        "clip_sample_rate_12": true,
+        "clip_duration_matches_skill_data": false,
+        "clip_has_no_animation_events": true
+      },
+      "passed": false
+    },
+    {
+      "weapon": "Lance",
+      "skill": "lance_thrust_combo",
+      "frame_count": 9,
+      "clip_guid_count": 9,
+      "clip_duration_seconds": 0.65,
+      "expected_clip_duration_seconds": 0.65,
+      "checks": {
+        "nine_png_frames": true,
+        "nine_meta_files": true,
+        "unity_import_settings": true,
+        "frame_size_160x112": true,
+        "transparent_margin_no_clip": true,
+        "colors_match_player_sprite_palette": true,
+        "clip_exists": true,
+        "clip_guid_order_matches_frames": true,
+        "clip_sample_rate_12": true,
+        "clip_duration_matches_skill_data": true,
+        "clip_has_no_animation_events": true
+      },
+      "passed": true
+    },
+    {
+      "weapon": "Lance",
+      "skill": "lance_finisher_thrust",
+      "frame_count": 9,
+      "clip_guid_count": 9,
+      "clip_duration_seconds": 0.35,
+      "expected_clip_duration_seconds": 0.34,
+      "checks": {
+        "nine_png_frames": true,
+        "nine_meta_files": true,
+        "unity_import_settings": true,
+        "frame_size_160x112": true,
+        "transparent_margin_no_clip": true,
+        "colors_match_player_sprite_palette": true,
+        "clip_exists": true,
+        "clip_guid_order_matches_frames": true,
+        "clip_sample_rate_12": true,
+        "clip_duration_matches_skill_data": false,
+        "clip_has_no_animation_events": true
+      },
+      "passed": false
+    },
+    {
+      "weapon": "Shield",
+      "skill": "shield_charge",
+      "frame_count": 9,
+      "clip_guid_count": 9,
+      "clip_duration_seconds": 0.52,
+      "expected_clip_duration_seconds": 0.52,
+      "checks": {
+        "nine_png_frames": true,
+        "nine_meta_files": true,
+        "unity_import_settings": true,
+        "frame_size_160x112": true,
+        "transparent_margin_no_clip": true,
+        "colors_match_player_sprite_palette": true,
+        "clip_exists": true,
+        "clip_guid_order_matches_frames": true,
+        "clip_sample_rate_12": true,
+        "clip_duration_matches_skill_data": true,
+        "clip_has_no_animation_events": true
+      },
+      "passed": true
+    },
+    {
+      "weapon": "Shield",
+      "skill": "shield_slam",
+      "frame_count": 9,
+      "clip_guid_count": 9,
+      "clip_duration_seconds": 0.66,
+      "expected_clip_duration_seconds": 0.66,
+      "checks": {
+        "nine_png_frames": true,
+        "nine_meta_files": true,
+        "unity_import_settings": true,
+        "frame_size_160x112": true,
+        "transparent_margin_no_clip": true,
+        "colors_match_player_sprite_palette": true,
+        "clip_exists": true,
+        "clip_guid_order_matches_frames": true,
+        "clip_sample_rate_12": true,
+        "clip_duration_matches_skill_data": true,
+        "clip_has_no_animation_events": true
+      },
+      "passed": true
+    },
+    {
+      "weapon": "Shield",
+      "skill": "shield_diagonal_knockback",
+      "frame_count": 9,
+      "clip_guid_count": 9,
+      "clip_duration_seconds": 0.54,
+      "expected_clip_duration_seconds": 0.54,
+      "checks": {
+        "nine_png_frames": true,
+        "nine_meta_files": true,
+        "unity_import_settings": true,
+        "frame_size_160x112": true,
+        "transparent_margin_no_clip": true,
+        "colors_match_player_sprite_palette": true,
+        "clip_exists": true,
+        "clip_guid_order_matches_frames": true,
+        "clip_sample_rate_12": true,
+        "clip_duration_matches_skill_data": true,
+        "clip_has_no_animation_events": true
+      },
+      "passed": true
+    }
+  ],
+  "results": [
+    {
+      "file": "hys_Final_Enemy_Sword_sword_diagonal_slash.gif",
+      "frames": 9,
+      "durations_ms": [
+        40,
+        40,
+        40,
+        40,
+        40,
+        40,
+        40,
+        30,
+        30
+      ],
+      "expected_frame_ms": 40,
+      "unique_frames": 8,
+      "alpha_boxes": [
+        [
+          128,
+          228,
+          264,
+          396
+        ],
+        [
+          108,
+          208,
+          292,
+          396
+        ],
+        [
+          152,
+          216,
+          300,
+          396
+        ],
+        [
+          164,
+          228,
+          300,
+          396
+        ],
+        [
+          108,
+          244,
+          300,
+          396
+        ],
+        [
+          108,
+          264,
+          296,
+          396
+        ],
+        [
+          128,
+          228,
+          272,
+          396
+        ],
+        [
+          136,
+          228,
+          260,
+          396
+        ],
+        [
+          128,
+          228,
+          264,
+          396
+        ]
+      ],
+      "change_ratios": [
+        0.067243,
+        0.068638,
+        0.048382,
+        0.059208,
+        0.059375,
+        0.063225,
+        0.055246,
+        0.048828
+      ],
+      "recovery_distance_scaled_pixels": 0,
+      "checks": {
+        "gif_has_four_or_more_visible_poses": true,
+        "at_least_four_distinct_key_poses": true,
+        "size_consistent": true,
+        "duration_matches_skill_data": true,
+        "transparent_margin_no_clip": true,
+        "motion_changes_present": true,
+        "recovery_near_start": true
+      },
+      "passed": true
+    },
+    {
+      "file": "hys_Final_Enemy_Sword_sword_up_diagonal_slash.gif",
+      "frames": 9,
+      "durations_ms": [
+        40,
+        40,
+        40,
+        40,
+        40,
+        40,
+        40,
+        30,
+        30
+      ],
+      "expected_frame_ms": 40,
+      "unique_frames": 8,
+      "alpha_boxes": [
+        [
+          128,
+          228,
+          264,
+          396
+        ],
+        [
+          136,
+          228,
+          256,
+          396
+        ],
+        [
+          152,
+          228,
+          248,
+          396
+        ],
+        [
+          108,
+          228,
+          288,
+          396
+        ],
+        [
+          108,
+          264,
+          300,
+          396
+        ],
+        [
+          132,
+          228,
+          284,
+          396
+        ],
+        [
+          132,
+          228,
+          300,
+          396
+        ],
+        [
+          140,
+          212,
+          296,
+          396
+        ],
+        [
+          128,
+          228,
+          264,
+          396
+        ]
+      ],
+      "change_ratios": [
+        0.052679,
+        0.046819,
+        0.057366,
+        0.0649,
+        0.061942,
+        0.060156,
+        0.064676,
+        0.059542
+      ],
+      "recovery_distance_scaled_pixels": 0,
+      "checks": {
+        "gif_has_four_or_more_visible_poses": true,
+        "at_least_four_distinct_key_poses": true,
+        "size_consistent": true,
+        "duration_matches_skill_data": true,
+        "transparent_margin_no_clip": true,
+        "motion_changes_present": true,
+        "recovery_near_start": true
+      },
+      "passed": true
+    },
+    {
+      "file": "hys_Final_Enemy_Sword_sword_wave.gif",
+      "frames": 9,
+      "durations_ms": [
+        60,
+        60,
+        60,
+        60,
+        60,
+        50,
+        60,
+        60,
+        60
+      ],
+      "expected_frame_ms": 60,
+      "unique_frames": 8,
+      "alpha_boxes": [
+        [
+          128,
+          228,
+          264,
+          396
+        ],
+        [
+          136,
+          228,
+          264,
+          396
+        ],
+        [
+          116,
+          224,
+          280,
+          396
+        ],
+        [
+          132,
+          228,
+          284,
+          396
+        ],
+        [
+          116,
+          228,
+          300,
+          396
+        ],
+        [
+          132,
+          228,
+          300,
+          396
+        ],
+        [
+          108,
+          272,
+          300,
+          396
+        ],
+        [
+          128,
+          228,
+          268,
+          396
+        ],
+        [
+          128,
+          228,
+          264,
+          396
+        ]
+      ],
+      "change_ratios": [
+        0.052288,
+        0.063337,
+        0.066406,
+        0.064342,
+        0.064342,
+        0.059319,
+        0.05971,
+        0.04827
+      ],
+      "recovery_distance_scaled_pixels": 0,
+      "checks": {
+        "gif_has_four_or_more_visible_poses": true,
+        "at_least_four_distinct_key_poses": true,
+        "size_consistent": true,
+        "duration_matches_skill_data": true,
+        "transparent_margin_no_clip": true,
+        "motion_changes_present": true,
+        "recovery_near_start": true
+      },
+      "passed": true
+    },
+    {
+      "file": "hys_Final_Enemy_Axe_axe_swing.gif",
+      "frames": 9,
+      "durations_ms": [
+        40,
+        40,
+        40,
+        40,
+        40,
+        40,
+        40,
+        40,
+        40
+      ],
+      "expected_frame_ms": 40,
+      "unique_frames": 5,
+      "alpha_boxes": [
+        [
+          80,
+          196,
+          356,
+          396
+        ],
+        [
+          76,
+          188,
+          344,
+          396
+        ],
+        [
+          76,
+          120,
+          292,
+          396
+        ],
+        [
+          76,
+          136,
+          288,
+          396
+        ],
+        [
+          76,
+          272,
+          248,
+          396
+        ],
+        [
+          76,
+          136,
+          288,
+          396
+        ],
+        [
+          76,
+          120,
+          292,
+          396
+        ],
+        [
+          76,
+          188,
+          344,
+          396
+        ],
+        [
+          80,
+          196,
+          356,
+          396
+        ]
+      ],
+      "change_ratios": [
+        0.078795,
+        0.117467,
+        0.073772,
+        0.102344,
+        0.102344,
+        0.073772,
+        0.117467,
+        0.078795
+      ],
+      "recovery_distance_scaled_pixels": 0,
+      "checks": {
+        "gif_has_four_or_more_visible_poses": true,
+        "at_least_four_distinct_key_poses": true,
+        "size_consistent": true,
+        "duration_matches_skill_data": false,
+        "transparent_margin_no_clip": true,
+        "motion_changes_present": true,
+        "recovery_near_start": true
+      },
+      "passed": false
+    },
+    {
+      "file": "hys_Final_Enemy_Axe_axe_body_charge.gif",
+      "frames": 9,
+      "durations_ms": [
+        50,
+        50,
+        50,
+        50,
+        50,
+        50,
+        50,
+        50,
+        50
+      ],
+      "expected_frame_ms": 50,
+      "unique_frames": 4,
+      "alpha_boxes": [
+        [
+          80,
+          196,
+          356,
+          396
+        ],
+        [
+          76,
+          188,
+          344,
+          396
+        ],
+        [
+          76,
+          120,
+          292,
+          396
+        ],
+        [
+          76,
+          136,
+          288,
+          396
+        ],
+        [
+          76,
+          120,
+          292,
+          396
+        ],
+        [
+          76,
+          188,
+          344,
+          396
+        ],
+        [
+          80,
+          196,
+          356,
+          396
+        ],
+        [
+          76,
+          188,
+          344,
+          396
+        ],
+        [
+          80,
+          196,
+          356,
+          396
+        ]
+      ],
+      "change_ratios": [
+        0.078795,
+        0.117467,
+        0.073772,
+        0.073772,
+        0.117467,
+        0.078795,
+        0.078795,
+        0.078795
+      ],
+      "recovery_distance_scaled_pixels": 0,
+      "checks": {
+        "gif_has_four_or_more_visible_poses": true,
+        "at_least_four_distinct_key_poses": true,
+        "size_consistent": true,
+        "duration_matches_skill_data": false,
+        "transparent_margin_no_clip": true,
+        "motion_changes_present": true,
+        "recovery_near_start": true
+      },
+      "passed": false
+    },
+    {
+      "file": "hys_Final_Enemy_Axe_axe_spin_charge.gif",
+      "frames": 9,
+      "durations_ms": [
+        50,
+        50,
+        50,
+        50,
+        50,
+        50,
+        50,
+        50,
+        50
+      ],
+      "expected_frame_ms": 50,
+      "unique_frames": 5,
+      "alpha_boxes": [
+        [
+          76,
+          120,
+          288,
+          396
+        ],
+        [
+          76,
+          136,
+          292,
+          396
+        ],
+        [
+          76,
+          272,
+          248,
+          396
+        ],
+        [
+          80,
+          196,
+          356,
+          396
+        ],
+        [
+          76,
+          188,
+          340,
+          396
+        ],
+        [
+          76,
+          120,
+          288,
+          396
+        ],
+        [
+          76,
+          136,
+          292,
+          396
+        ],
+        [
+          76,
+          272,
+          248,
+          396
+        ],
+        [
+          80,
+          196,
+          356,
+          396
+        ]
+      ],
+      "change_ratios": [
+        0.092188,
+        0.103237,
+        0.120592,
+        0.083594,
+        0.117467,
+        0.092188,
+        0.103237,
+        0.120592
+      ],
+      "recovery_distance_scaled_pixels": 4,
+      "checks": {
+        "gif_has_four_or_more_visible_poses": true,
+        "at_least_four_distinct_key_poses": true,
+        "size_consistent": true,
+        "duration_matches_skill_data": false,
+        "transparent_margin_no_clip": true,
+        "motion_changes_present": true,
+        "recovery_near_start": true
+      },
+      "passed": false
+    },
+    {
+      "file": "hys_Final_Enemy_Bow_bow_air_arrow_shot.gif",
+      "frames": 9,
+      "durations_ms": [
+        60,
+        60,
+        60,
+        60,
+        60,
+        60,
+        60,
+        60,
+        60
+      ],
+      "expected_frame_ms": 60,
+      "unique_frames": 9,
+      "alpha_boxes": [
+        [
+          172,
+          232,
+          284,
+          396
+        ],
+        [
+          128,
+          212,
+          288,
+          376
+        ],
+        [
+          124,
+          196,
+          284,
+          352
+        ],
+        [
+          124,
+          180,
+          284,
+          328
+        ],
+        [
+          144,
+          112,
+          332,
+          324
+        ],
+        [
+          140,
+          120,
+          348,
+          332
+        ],
+        [
+          148,
+          140,
+          312,
+          352
+        ],
+        [
+          188,
+          192,
+          332,
+          376
+        ],
+        [
+          176,
+          240,
+          304,
+          396
+        ]
+      ],
+      "change_ratios": [
+        0.039676,
+        0.038393,
+        0.035658,
+        0.066685,
+        0.063951,
+        0.070647,
+        0.06317,
+        0.044308
+      ],
+      "recovery_distance_scaled_pixels": 4,
+      "checks": {
+        "gif_has_four_or_more_visible_poses": true,
+        "at_least_four_distinct_key_poses": true,
+        "size_consistent": true,
+        "duration_matches_skill_data": false,
+        "transparent_margin_no_clip": true,
+        "motion_changes_present": true,
+        "recovery_near_start": true
+      },
+      "passed": false
+    },
+    {
+      "file": "hys_Final_Enemy_Bow_bow_rapid_shot.gif",
+      "frames": 9,
+      "durations_ms": [
+        70,
+        70,
+        70,
+        70,
+        70,
+        70,
+        70,
+        70,
+        70
+      ],
+      "expected_frame_ms": 70,
+      "unique_frames": 5,
+      "alpha_boxes": [
+        [
+          156,
+          184,
+          324,
+          396
+        ],
+        [
+          144,
+          184,
+          332,
+          396
+        ],
+        [
+          140,
+          184,
+          348,
+          396
+        ],
+        [
+          144,
+          184,
+          332,
+          396
+        ],
+        [
+          140,
+          184,
+          348,
+          396
+        ],
+        [
+          144,
+          184,
+          332,
+          396
+        ],
+        [
+          140,
+          184,
+          348,
+          396
+        ],
+        [
+          148,
+          184,
+          312,
+          396
+        ],
+        [
+          160,
+          184,
+          320,
+          396
+        ]
+      ],
+      "change_ratios": [
+        0.068359,
+        0.057868,
+        0.057868,
+        0.057868,
+        0.057868,
+        0.057868,
+        0.060324,
+        0.06317
+      ],
+      "recovery_distance_scaled_pixels": 4,
+      "checks": {
+        "gif_has_four_or_more_visible_poses": true,
+        "at_least_four_distinct_key_poses": true,
+        "size_consistent": true,
+        "duration_matches_skill_data": false,
+        "transparent_margin_no_clip": true,
+        "motion_changes_present": true,
+        "recovery_near_start": true
+      },
+      "passed": false
+    },
+    {
+      "file": "hys_Final_Enemy_Bow_bow_low_charge_shot.gif",
+      "frames": 6,
+      "durations_ms": [
+        120,
+        120,
+        480,
+        120,
+        120,
+        120
+      ],
+      "expected_frame_ms": 120,
+      "unique_frames": 5,
+      "alpha_boxes": [
+        [
+          120,
+          240,
+          300,
+          396
+        ],
+        [
+          140,
+          200,
+          324,
+          396
+        ],
+        [
+          144,
+          200,
+          300,
+          396
+        ],
+        [
+          140,
+          208,
+          316,
+          396
+        ],
+        [
+          124,
+          220,
+          296,
+          396
+        ],
+        [
+          120,
+          240,
+          300,
+          396
+        ]
+      ],
+      "change_ratios": [
+        0.063839,
+        0.054911,
+        0.062723,
+        0.059654,
+        0.051283
+      ],
+      "recovery_distance_scaled_pixels": 0,
+      "checks": {
+        "gif_has_four_or_more_visible_poses": true,
+        "at_least_four_distinct_key_poses": true,
+        "size_consistent": true,
+        "duration_matches_skill_data": false,
+        "transparent_margin_no_clip": true,
+        "motion_changes_present": true,
+        "recovery_near_start": true
+      },
+      "passed": false
+    },
+    {
+      "file": "hys_Final_Enemy_Lance_lance_charge_thrust.gif",
+      "frames": 9,
+      "durations_ms": [
+        30,
+        30,
+        20,
+        40,
+        40,
+        40,
+        40,
+        30,
+        30
+      ],
+      "expected_frame_ms": 50,
+      "unique_frames": 6,
+      "alpha_boxes": [
+        [
+          104,
+          184,
+          356,
+          396
+        ],
+        [
+          100,
+          204,
+          360,
+          396
+        ],
+        [
+          108,
+          192,
+          396,
+          396
+        ],
+        [
+          100,
+          216,
+          416,
+          396
+        ],
+        [
+          80,
+          212,
+          412,
+          396
+        ],
+        [
+          152,
+          196,
+          416,
+          396
+        ],
+        [
+          80,
+          212,
+          412,
+          396
+        ],
+        [
+          100,
+          204,
+          360,
+          396
+        ],
+        [
+          104,
+          184,
+          356,
+          396
+        ]
+      ],
+      "change_ratios": [
+        0.077623,
+        0.077846,
+        0.088449,
+        0.077958,
+        0.080971,
+        0.080971,
+        0.077958,
+        0.077623
+      ],
+      "recovery_distance_scaled_pixels": 0,
+      "checks": {
+        "gif_has_four_or_more_visible_poses": true,
+        "at_least_four_distinct_key_poses": true,
+        "size_consistent": true,
+        "duration_matches_skill_data": false,
+        "transparent_margin_no_clip": true,
+        "motion_changes_present": true,
+        "recovery_near_start": true
+      },
+      "passed": false
+    },
+    {
+      "file": "hys_Final_Enemy_Lance_lance_thrust_combo.gif",
+      "frames": 9,
+      "durations_ms": [
+        70,
+        60,
+        60,
+        60,
+        60,
+        60,
+        60,
+        70,
+        150
+      ],
+      "expected_frame_ms": 70,
+      "unique_frames": 5,
+      "alpha_boxes": [
+        [
+          104,
+          184,
+          356,
+          396
+        ],
+        [
+          100,
+          216,
+          416,
+          396
+        ],
+        [
+          72,
+          208,
+          356,
+          396
+        ],
+        [
+          72,
+          212,
+          428,
+          396
+        ],
+        [
+          104,
+          184,
+          356,
+          396
+        ],
+        [
+          100,
+          216,
+          416,
+          396
+        ],
+        [
+          72,
+          208,
+          356,
+          396
+        ],
+        [
+          72,
+          212,
+          428,
+          396
+        ],
+        [
+          152,
+          196,
+          416,
+          396
+        ]
+      ],
+      "change_ratios": [
+        0.096708,
+        0.095592,
+        0.089621,
+        0.090346,
+        0.096708,
+        0.095592,
+        0.089621,
+        0.083984
+      ],
+      "recovery_distance_scaled_pixels": 48,
+      "checks": {
+        "gif_has_four_or_more_visible_poses": true,
+        "at_least_four_distinct_key_poses": true,
+        "size_consistent": true,
+        "duration_matches_skill_data": true,
+        "transparent_margin_no_clip": true,
+        "motion_changes_present": true,
+        "recovery_near_start": true
+      },
+      "passed": true
+    },
+    {
+      "file": "hys_Final_Enemy_Lance_lance_finisher_thrust.gif",
+      "frames": 9,
+      "durations_ms": [
+        30,
+        30,
+        20,
+        50,
+        50,
+        50,
+        40,
+        40,
+        40
+      ],
+      "expected_frame_ms": 40,
+      "unique_frames": 6,
+      "alpha_boxes": [
+        [
+          72,
+          208,
+          356,
+          396
+        ],
+        [
+          80,
+          196,
+          332,
+          396
+        ],
+        [
+          72,
+          212,
+          356,
+          396
+        ],
+        [
+          72,
+          212,
+          428,
+          396
+        ],
+        [
+          96,
+          212,
+          420,
+          396
+        ],
+        [
+          132,
+          200,
+          372,
+          396
+        ],
+        [
+          96,
+          212,
+          420,
+          396
+        ],
+        [
+          80,
+          196,
+          332,
+          396
+        ],
+        [
+          72,
+          208,
+          356,
+          396
+        ]
+      ],
+      "change_ratios": [
+        0.071875,
+        0.078069,
+        0.083147,
+        0.079074,
+        0.083203,
+        0.083203,
+        0.099498,
+        0.071875
+      ],
+      "recovery_distance_scaled_pixels": 0,
+      "checks": {
+        "gif_has_four_or_more_visible_poses": true,
+        "at_least_four_distinct_key_poses": true,
+        "size_consistent": true,
+        "duration_matches_skill_data": false,
+        "transparent_margin_no_clip": true,
+        "motion_changes_present": true,
+        "recovery_near_start": true
+      },
+      "passed": false
+    },
+    {
+      "file": "hys_Final_Enemy_Shield_shield_charge.gif",
+      "frames": 9,
+      "durations_ms": [
+        60,
+        60,
+        60,
+        60,
+        60,
+        60,
+        60,
+        60,
+        60
+      ],
+      "expected_frame_ms": 60,
+      "unique_frames": 9,
+      "alpha_boxes": [
+        [
+          192,
+          264,
+          360,
+          396
+        ],
+        [
+          192,
+          268,
+          356,
+          396
+        ],
+        [
+          192,
+          268,
+          356,
+          396
+        ],
+        [
+          192,
+          268,
+          356,
+          396
+        ],
+        [
+          192,
+          268,
+          356,
+          396
+        ],
+        [
+          192,
+          268,
+          360,
+          396
+        ],
+        [
+          132,
+          252,
+          316,
+          396
+        ],
+        [
+          136,
+          252,
+          312,
+          396
+        ],
+        [
+          132,
+          248,
+          300,
+          396
+        ]
+      ],
+      "change_ratios": [
+        0.063672,
+        0.060714,
+        0.059989,
+        0.060268,
+        0.061551,
+        0.096373,
+        0.043415,
+        0.068973
+      ],
+      "recovery_distance_scaled_pixels": 60,
+      "checks": {
+        "gif_has_four_or_more_visible_poses": true,
+        "at_least_four_distinct_key_poses": true,
+        "size_consistent": true,
+        "duration_matches_skill_data": false,
+        "transparent_margin_no_clip": true,
+        "motion_changes_present": true,
+        "recovery_near_start": true
+      },
+      "passed": false
+    },
+    {
+      "file": "hys_Final_Enemy_Shield_shield_slam.gif",
+      "frames": 9,
+      "durations_ms": [
+        70,
+        70,
+        70,
+        70,
+        70,
+        70,
+        70,
+        70,
+        70
+      ],
+      "expected_frame_ms": 70,
+      "unique_frames": 8,
+      "alpha_boxes": [
+        [
+          124,
+          248,
+          292,
+          396
+        ],
+        [
+          124,
+          224,
+          296,
+          392
+        ],
+        [
+          124,
+          196,
+          308,
+          388
+        ],
+        [
+          124,
+          188,
+          312,
+          384
+        ],
+        [
+          124,
+          212,
+          312,
+          400
+        ],
+        [
+          124,
+          264,
+          316,
+          412
+        ],
+        [
+          124,
+          260,
+          328,
+          416
+        ],
+        [
+          124,
+          252,
+          304,
+          400
+        ],
+        [
+          124,
+          248,
+          292,
+          396
+        ]
+      ],
+      "change_ratios": [
+        0.054632,
+        0.059821,
+        0.062388,
+        0.082199,
+        0.079743,
+        0.045759,
+        0.071875,
+        0.055301
+      ],
+      "recovery_distance_scaled_pixels": 0,
+      "checks": {
+        "gif_has_four_or_more_visible_poses": true,
+        "at_least_four_distinct_key_poses": true,
+        "size_consistent": true,
+        "duration_matches_skill_data": false,
+        "transparent_margin_no_clip": true,
+        "motion_changes_present": true,
+        "recovery_near_start": true
+      },
+      "passed": false
+    },
+    {
+      "file": "hys_Final_Enemy_Shield_shield_diagonal_knockback.gif",
+      "frames": 9,
+      "durations_ms": [
+        60,
+        60,
+        60,
+        60,
+        60,
+        60,
+        60,
+        60,
+        60
+      ],
+      "expected_frame_ms": 60,
+      "unique_frames": 8,
+      "alpha_boxes": [
+        [
+          124,
+          248,
+          292,
+          396
+        ],
+        [
+          124,
+          252,
+          288,
+          396
+        ],
+        [
+          124,
+          240,
+          308,
+          396
+        ],
+        [
+          132,
+          224,
+          336,
+          396
+        ],
+        [
+          132,
+          204,
+          372,
+          396
+        ],
+        [
+          136,
+          200,
+          384,
+          396
+        ],
+        [
+          132,
+          220,
+          348,
+          396
+        ],
+        [
+          124,
+          240,
+          308,
+          396
+        ],
+        [
+          124,
+          248,
+          292,
+          396
+        ]
+      ],
+      "change_ratios": [
+        0.037054,
+        0.037891,
+        0.071987,
+        0.080078,
+        0.069587,
+        0.082533,
+        0.074219,
+        0.051283
+      ],
+      "recovery_distance_scaled_pixels": 0,
+      "checks": {
+        "gif_has_four_or_more_visible_poses": true,
+        "at_least_four_distinct_key_poses": true,
+        "size_consistent": true,
+        "duration_matches_skill_data": true,
+        "transparent_margin_no_clip": true,
+        "motion_changes_present": true,
+        "recovery_near_start": true
+      },
+      "passed": true
+    }
+  ],
+  "passed": false
+}

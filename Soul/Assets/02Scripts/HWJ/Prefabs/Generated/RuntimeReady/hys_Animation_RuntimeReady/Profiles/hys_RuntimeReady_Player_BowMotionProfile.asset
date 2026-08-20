@@ -18,7 +18,7 @@ MonoBehaviour:
   motions:
   - motionKey: Bow_Draw
     animatorTriggerName: 
-    animatorStateName: hys_Bow_Attack1
+    animatorStateName: Base Layer.hys_Bow_Attack1
     layerIndex: 0
     transitionSeconds: 0.03
     useTrigger: 0
@@ -26,7 +26,7 @@ MonoBehaviour:
     resetTriggerBeforeSet: 1
   - motionKey: Bow_Shoot
     animatorTriggerName: 
-    animatorStateName: hys_Bow_Attack2
+    animatorStateName: Base Layer.hys_Bow_Attack2
     layerIndex: 0
     transitionSeconds: 0.03
     useTrigger: 0
@@ -66,7 +66,7 @@ MonoBehaviour:
     resetTriggerBeforeSet: 1
   - motionKey: Jump
     animatorTriggerName: 
-    animatorStateName: hys_Bow_Jump_Start
+    animatorStateName: Base Layer.hys_Bow_Jump_Start
     layerIndex: 0
     transitionSeconds: 0.03
     useTrigger: 0
@@ -74,7 +74,7 @@ MonoBehaviour:
     resetTriggerBeforeSet: 1
   - motionKey: DoubleJump
     animatorTriggerName: 
-    animatorStateName: hys_Bow_Jump_Start
+    animatorStateName: Base Layer.hys_Bow_Jump_Start
     layerIndex: 0
     transitionSeconds: 0.03
     useTrigger: 0
@@ -82,7 +82,7 @@ MonoBehaviour:
     resetTriggerBeforeSet: 1
   - motionKey: DropJump
     animatorTriggerName: 
-    animatorStateName: hys_Bow_Jump_Fall
+    animatorStateName: Base Layer.hys_Bow_Jump_Fall
     layerIndex: 0
     transitionSeconds: 0.03
     useTrigger: 0
@@ -90,7 +90,7 @@ MonoBehaviour:
     resetTriggerBeforeSet: 1
   - motionKey: Dash
     animatorTriggerName: 
-    animatorStateName: hys_Bow_Dash
+    animatorStateName: Base Layer.hys_Bow_Dash
     layerIndex: 0
     transitionSeconds: 0.03
     useTrigger: 0
@@ -98,7 +98,7 @@ MonoBehaviour:
     resetTriggerBeforeSet: 1
   - motionKey: Hit
     animatorTriggerName: 
-    animatorStateName: hys_Bow_Hit
+    animatorStateName: Base Layer.hys_Bow_Hit
     layerIndex: 0
     transitionSeconds: 0.03
     useTrigger: 0
@@ -106,7 +106,7 @@ MonoBehaviour:
     resetTriggerBeforeSet: 1
   - motionKey: Dead
     animatorTriggerName: 
-    animatorStateName: hys_Bow_Die
+    animatorStateName: Base Layer.hys_Bow_Die
     layerIndex: 0
     transitionSeconds: 0.03
     useTrigger: 0

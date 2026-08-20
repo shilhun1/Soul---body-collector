@@ -1,0 +1,122 @@
+[
+  {
+    "weapon": "Sword",
+    "skill": "sword_diagonal_slash",
+    "sheet": "C:\\Users\\hanss\\Desktop\\Soul---body-collector\\Soul\\Tools\\hys_imagegen_sheets\\Sword\\hys_Sword_sword_diagonal_slash_sheet.png",
+    "gif": "C:\\Users\\hanss\\Desktop\\Soul---body-collector\\hys_FinalVersion_15_GIFs\\hys_Final_Enemy_Sword_sword_diagonal_slash.gif",
+    "frames": 9,
+    "unique_frames": 9
+  },
+  {
+    "weapon": "Sword",
+    "skill": "sword_up_diagonal_slash",
+    "sheet": "C:\\Users\\hanss\\Desktop\\Soul---body-collector\\Soul\\Tools\\hys_imagegen_sheets\\Sword\\hys_Sword_sword_up_diagonal_slash_sheet.png",
+    "gif": "C:\\Users\\hanss\\Desktop\\Soul---body-collector\\hys_FinalVersion_15_GIFs\\hys_Final_Enemy_Sword_sword_up_diagonal_slash.gif",
+    "frames": 9,
+    "unique_frames": 9
+  },
+  {
+    "weapon": "Sword",
+    "skill": "sword_wave",
+    "sheet": "C:\\Users\\hanss\\Desktop\\Soul---body-collector\\Soul\\Tools\\hys_imagegen_sheets\\Sword\\hys_Sword_sword_wave_sheet.png",
+    "gif": "C:\\Users\\hanss\\Desktop\\Soul---body-collector\\hys_FinalVersion_15_GIFs\\hys_Final_Enemy_Sword_sword_wave.gif",
+    "frames": 9,
+    "unique_frames": 9
+  },
+  {
+    "weapon": "Axe",
+    "skill": "axe_swing",
+    "sheet": "C:\\Users\\hanss\\Desktop\\Soul---body-collector\\Soul\\Tools\\hys_imagegen_sheets\\Axe\\hys_Axe_axe_swing_sheet.png",
+    "gif": "C:\\Users\\hanss\\Desktop\\Soul---body-collector\\hys_FinalVersion_15_GIFs\\hys_Final_Enemy_Axe_axe_swing.gif",
+    "frames": 9,
+    "unique_frames": 9
+  },
+  {
+    "weapon": "Axe",
+    "skill": "axe_body_charge",
+    "sheet": "C:\\Users\\hanss\\Desktop\\Soul---body-collector\\Soul\\Tools\\hys_imagegen_sheets\\Axe\\hys_Axe_axe_body_charge_sheet.png",
+    "gif": "C:\\Users\\hanss\\Desktop\\Soul---body-collector\\hys_FinalVersion_15_GIFs\\hys_Final_Enemy_Axe_axe_body_charge.gif",
+    "frames": 9,
+    "unique_frames": 9
+  },
+  {
+    "weapon": "Axe",
+    "skill": "axe_spin_charge",
+    "sheet": "C:\\Users\\hanss\\Desktop\\Soul---body-collector\\Soul\\Tools\\hys_imagegen_sheets\\Axe\\hys_Axe_axe_spin_charge_sheet.png",
+    "gif": "C:\\Users\\hanss\\Desktop\\Soul---body-collector\\hys_FinalVersion_15_GIFs\\hys_Final_Enemy_Axe_axe_spin_charge.gif",
+    "frames": 9,
+    "unique_frames": 9
+  },
+  {
+    "weapon": "Bow",
+    "skill": "bow_air_arrow_shot",
+    "sheet": "C:\\Users\\hanss\\Desktop\\Soul---body-collector\\Soul\\Tools\\hys_imagegen_sheets\\Bow\\hys_Bow_bow_air_arrow_shot_sheet.png",
+    "gif": "C:\\Users\\hanss\\Desktop\\Soul---body-collector\\hys_FinalVersion_15_GIFs\\hys_Final_Enemy_Bow_bow_air_arrow_shot.gif",
+    "frames": 9,
+    "unique_frames": 9
+  },
+  {
+    "weapon": "Bow",
+    "skill": "bow_rapid_shot",
+    "sheet": "C:\\Users\\hanss\\Desktop\\Soul---body-collector\\Soul\\Tools\\hys_imagegen_sheets\\Bow\\hys_Bow_bow_rapid_shot_sheet.png",
+    "gif": "C:\\Users\\hanss\\Desktop\\Soul---body-collector\\hys_FinalVersion_15_GIFs\\hys_Final_Enemy_Bow_bow_rapid_shot.gif",
+    "frames": 9,
+    "unique_frames": 9
+  },
+  {
+    "weapon": "Bow",
+    "skill": "bow_low_charge_shot",
+    "sheet": "C:\\Users\\hanss\\Desktop\\Soul---body-collector\\Soul\\Tools\\hys_imagegen_sheets\\Bow\\hys_Bow_bow_low_charge_shot_sheet.png",
+    "gif": "C:\\Users\\hanss\\Desktop\\Soul---body-collector\\hys_FinalVersion_15_GIFs\\hys_Final_Enemy_Bow_bow_low_charge_shot.gif",
+    "frames": 9,
+    "unique_frames": 9
+  },
+  {
+    "weapon": "Lance",
+    "skill": "lance_charge_thrust",
+    "sheet": "C:\\Users\\hanss\\Desktop\\Soul---body-collector\\Soul\\Tools\\hys_imagegen_sheets\\Lance\\hys_Lance_lance_charge_thrust_sheet.png",
+    "gif": "C:\\Users\\hanss\\Desktop\\Soul---body-collector\\hys_FinalVersion_15_GIFs\\hys_Final_Enemy_Lance_lance_charge_thrust.gif",
+    "frames": 9,
+    "unique_frames": 9
+  },
+  {
+    "weapon": "Lance",
+    "skill": "lance_thrust_combo",
+    "sheet": "C:\\Users\\hanss\\Desktop\\Soul---body-collector\\Soul\\Tools\\hys_imagegen_sheets\\Lance\\hys_Lance_lance_thrust_combo_sheet.png",
+    "gif": "C:\\Users\\hanss\\Desktop\\Soul---body-collector\\hys_FinalVersion_15_GIFs\\hys_Final_Enemy_Lance_lance_thrust_combo.gif",
+    "frames": 9,
+    "unique_frames": 9
+  },
+  {
+    "weapon": "Lance",
+    "skill": "lance_finisher_thrust",
+    "sheet": "C:\\Users\\hanss\\Desktop\\Soul---body-collector\\Soul\\Tools\\hys_imagegen_sheets\\Lance\\hys_Lance_lance_finisher_thrust_sheet.png",
+    "gif": "C:\\Users\\hanss\\Desktop\\Soul---body-collector\\hys_FinalVersion_15_GIFs\\hys_Final_Enemy_Lance_lance_finisher_thrust.gif",
+    "frames": 9,
+    "unique_frames": 9
+  },
+  {
+    "weapon": "Shield",
+    "skill": "shield_charge",
+    "sheet": "C:\\Users\\hanss\\Desktop\\Soul---body-collector\\Soul\\Tools\\hys_imagegen_sheets\\Shield\\hys_Shield_shield_charge_sheet.png",
+    "gif": "C:\\Users\\hanss\\Desktop\\Soul---body-collector\\hys_FinalVersion_15_GIFs\\hys_Final_Enemy_Shield_shield_charge.gif",
+    "frames": 9,
+    "unique_frames": 9
+  },
+  {
+    "weapon": "Shield",
+    "skill": "shield_slam",
+    "sheet": "C:\\Users\\hanss\\Desktop\\Soul---body-collector\\Soul\\Tools\\hys_imagegen_sheets\\Shield\\hys_Shield_shield_slam_sheet.png",
+    "gif": "C:\\Users\\hanss\\Desktop\\Soul---body-collector\\hys_FinalVersion_15_GIFs\\hys_Final_Enemy_Shield_shield_slam.gif",
+    "frames": 9,
+    "unique_frames": 9
+  },
+  {
+    "weapon": "Shield",
+    "skill": "shield_diagonal_knockback",
+    "sheet": "C:\\Users\\hanss\\Desktop\\Soul---body-collector\\Soul\\Tools\\hys_imagegen_sheets\\Shield\\hys_Shield_shield_diagonal_knockback_sheet.png",
+    "gif": "C:\\Users\\hanss\\Desktop\\Soul---body-collector\\hys_FinalVersion_15_GIFs\\hys_Final_Enemy_Shield_shield_diagonal_knockback.gif",
+    "frames": 9,
+    "unique_frames": 9
+  }
+]

@@ -1,0 +1,866 @@
+[
+  {
+    "weapon": "Sword",
+    "skill": "sword_diagonal_slash",
+    "duration_ms": 340,
+    "gif_frame_ms": 40,
+    "frame_sources": [
+      {
+        "frame": 0,
+        "source": "Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_ForwardAttack1_00.png",
+        "edits": []
+      },
+      {
+        "frame": 1,
+        "source": "Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_ForwardAttack1_01.png",
+        "edits": []
+      },
+      {
+        "frame": 2,
+        "source": "Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_ForwardAttack1_01.png",
+        "edits": []
+      },
+      {
+        "frame": 3,
+        "source": "Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_ForwardAttack1_05.png",
+        "edits": []
+      },
+      {
+        "frame": 4,
+        "source": "Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_ForwardAttack1_05.png",
+        "edits": []
+      },
+      {
+        "frame": 5,
+        "source": "Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_ForwardAttack1_06.png",
+        "edits": []
+      },
+      {
+        "frame": 6,
+        "source": "Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_ForwardAttack1_07.png",
+        "edits": []
+      },
+      {
+        "frame": 7,
+        "source": "Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_ForwardAttack1_07.png",
+        "edits": []
+      },
+      {
+        "frame": 8,
+        "source": "Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_ForwardAttack1_00.png",
+        "edits": []
+      }
+    ],
+    "gif": "C:\\Users\\hanss\\Desktop\\Soul---body-collector\\hys_FinalVersion_15_GIFs\\hys_Final_Enemy_Sword_sword_diagonal_slash.gif"
+  },
+  {
+    "weapon": "Sword",
+    "skill": "sword_up_diagonal_slash",
+    "duration_ms": 340,
+    "gif_frame_ms": 40,
+    "frame_sources": [
+      {
+        "frame": 0,
+        "source": "Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_ForwardAttack2_00.png",
+        "edits": []
+      },
+      {
+        "frame": 1,
+        "source": "Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_ForwardAttack2_01.png",
+        "edits": []
+      },
+      {
+        "frame": 2,
+        "source": "Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_ForwardAttack2_01.png",
+        "edits": []
+      },
+      {
+        "frame": 3,
+        "source": "Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_ForwardAttack2_04.png",
+        "edits": []
+      },
+      {
+        "frame": 4,
+        "source": "Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_ForwardAttack2_05.png",
+        "edits": []
+      },
+      {
+        "frame": 5,
+        "source": "Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_ForwardAttack2_05.png",
+        "edits": []
+      },
+      {
+        "frame": 6,
+        "source": "Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_ForwardAttack2_06.png",
+        "edits": []
+      },
+      {
+        "frame": 7,
+        "source": "Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_ForwardAttack2_07.png",
+        "edits": []
+      },
+      {
+        "frame": 8,
+        "source": "Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_ForwardAttack2_00.png",
+        "edits": []
+      }
+    ],
+    "gif": "C:\\Users\\hanss\\Desktop\\Soul---body-collector\\hys_FinalVersion_15_GIFs\\hys_Final_Enemy_Sword_sword_up_diagonal_slash.gif"
+  },
+  {
+    "weapon": "Sword",
+    "skill": "sword_wave",
+    "duration_ms": 530,
+    "gif_frame_ms": 60,
+    "frame_sources": [
+      {
+        "frame": 0,
+        "source": "Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_ForwardAttack1_00.png",
+        "edits": []
+      },
+      {
+        "frame": 1,
+        "source": "Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_ForwardAttack1_00.png",
+        "edits": []
+      },
+      {
+        "frame": 2,
+        "source": "Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_ForwardAttack1_01.png",
+        "edits": []
+      },
+      {
+        "frame": 3,
+        "source": "Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_ForwardAttack1_01.png",
+        "edits": []
+      },
+      {
+        "frame": 4,
+        "source": "Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_ForwardAttack1_05.png",
+        "edits": []
+      },
+      {
+        "frame": 5,
+        "source": "Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_ForwardAttack1_05.png",
+        "edits": []
+      },
+      {
+        "frame": 6,
+        "source": "Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_ForwardAttack1_06.png",
+        "edits": []
+      },
+      {
+        "frame": 7,
+        "source": "Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_ForwardAttack1_07.png",
+        "edits": []
+      },
+      {
+        "frame": 8,
+        "source": "Assets/05Anims/hys_Player_Anims/Sword/Sprites/hys_RedQueen_RequestedMotions/hys_RedQueen_ForwardAttack1_00.png",
+        "edits": []
+      }
+    ],
+    "gif": "C:\\Users\\hanss\\Desktop\\Soul---body-collector\\hys_FinalVersion_15_GIFs\\hys_Final_Enemy_Sword_sword_wave.gif"
+  },
+  {
+    "weapon": "Axe",
+    "skill": "axe_swing",
+    "duration_ms": 340,
+    "gif_frame_ms": 40,
+    "frame_sources": [
+      {
+        "frame": 0,
+        "source": "Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Attack1_00.png",
+        "edits": []
+      },
+      {
+        "frame": 1,
+        "source": "Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Attack1_01.png",
+        "edits": []
+      },
+      {
+        "frame": 2,
+        "source": "Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Attack1_02.png",
+        "edits": []
+      },
+      {
+        "frame": 3,
+        "source": "Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Attack1_03.png",
+        "edits": []
+      },
+      {
+        "frame": 4,
+        "source": "Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Attack1_04.png",
+        "edits": [
+          "remove_baked_spin_arc"
+        ]
+      },
+      {
+        "frame": 5,
+        "source": "Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Attack1_03.png",
+        "edits": []
+      },
+      {
+        "frame": 6,
+        "source": "Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Attack1_02.png",
+        "edits": []
+      },
+      {
+        "frame": 7,
+        "source": "Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Attack1_01.png",
+        "edits": []
+      },
+      {
+        "frame": 8,
+        "source": "Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Attack1_00.png",
+        "edits": []
+      }
+    ],
+    "gif": "C:\\Users\\hanss\\Desktop\\Soul---body-collector\\hys_FinalVersion_15_GIFs\\hys_Final_Enemy_Axe_axe_swing.gif"
+  },
+  {
+    "weapon": "Axe",
+    "skill": "axe_body_charge",
+    "duration_ms": 460,
+    "gif_frame_ms": 50,
+    "frame_sources": [
+      {
+        "frame": 0,
+        "source": "Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Attack1_00.png",
+        "edits": []
+      },
+      {
+        "frame": 1,
+        "source": "Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Attack1_01.png",
+        "edits": []
+      },
+      {
+        "frame": 2,
+        "source": "Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Attack1_02.png",
+        "edits": []
+      },
+      {
+        "frame": 3,
+        "source": "Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Attack1_03.png",
+        "edits": []
+      },
+      {
+        "frame": 4,
+        "source": "Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Attack1_02.png",
+        "edits": []
+      },
+      {
+        "frame": 5,
+        "source": "Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Attack1_01.png",
+        "edits": []
+      },
+      {
+        "frame": 6,
+        "source": "Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Attack1_00.png",
+        "edits": []
+      },
+      {
+        "frame": 7,
+        "source": "Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Attack1_01.png",
+        "edits": []
+      },
+      {
+        "frame": 8,
+        "source": "Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Attack1_00.png",
+        "edits": []
+      }
+    ],
+    "gif": "C:\\Users\\hanss\\Desktop\\Soul---body-collector\\hys_FinalVersion_15_GIFs\\hys_Final_Enemy_Axe_axe_body_charge.gif"
+  },
+  {
+    "weapon": "Axe",
+    "skill": "axe_spin_charge",
+    "duration_ms": 490,
+    "gif_frame_ms": 50,
+    "frame_sources": [
+      {
+        "frame": 0,
+        "source": "Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Attack2_02.png",
+        "edits": []
+      },
+      {
+        "frame": 1,
+        "source": "Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Attack2_03.png",
+        "edits": []
+      },
+      {
+        "frame": 2,
+        "source": "Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Attack2_04.png",
+        "edits": [
+          "remove_baked_spin_arc"
+        ]
+      },
+      {
+        "frame": 3,
+        "source": "Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Attack2_00.png",
+        "edits": []
+      },
+      {
+        "frame": 4,
+        "source": "Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Attack2_01.png",
+        "edits": []
+      },
+      {
+        "frame": 5,
+        "source": "Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Attack2_02.png",
+        "edits": []
+      },
+      {
+        "frame": 6,
+        "source": "Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Attack2_03.png",
+        "edits": []
+      },
+      {
+        "frame": 7,
+        "source": "Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Attack2_04.png",
+        "edits": [
+          "remove_baked_spin_arc"
+        ]
+      },
+      {
+        "frame": 8,
+        "source": "Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions/hys_RedKing_Attack2_00.png",
+        "edits": []
+      }
+    ],
+    "gif": "C:\\Users\\hanss\\Desktop\\Soul---body-collector\\hys_FinalVersion_15_GIFs\\hys_Final_Enemy_Axe_axe_spin_charge.gif"
+  },
+  {
+    "weapon": "Bow",
+    "skill": "bow_air_arrow_shot",
+    "duration_ms": 550,
+    "gif_frame_ms": 60,
+    "frame_sources": [
+      {
+        "frame": 0,
+        "source": "Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_JumpStart_00.png",
+        "edits": []
+      },
+      {
+        "frame": 1,
+        "source": "Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_JumpStart_01.png",
+        "edits": []
+      },
+      {
+        "frame": 2,
+        "source": "Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_JumpStart_02.png",
+        "edits": []
+      },
+      {
+        "frame": 3,
+        "source": "Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_JumpApex_00.png",
+        "edits": []
+      },
+      {
+        "frame": 4,
+        "source": "Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_Attack1_02.png",
+        "edits": []
+      },
+      {
+        "frame": 5,
+        "source": "Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_Attack1_03.png",
+        "edits": []
+      },
+      {
+        "frame": 6,
+        "source": "Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_Attack1_04.png",
+        "edits": []
+      },
+      {
+        "frame": 7,
+        "source": "Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_JumpFall_01.png",
+        "edits": []
+      },
+      {
+        "frame": 8,
+        "source": "Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_JumpFall_02.png",
+        "edits": []
+      }
+    ],
+    "gif": "C:\\Users\\hanss\\Desktop\\Soul---body-collector\\hys_FinalVersion_15_GIFs\\hys_Final_Enemy_Bow_bow_air_arrow_shot.gif"
+  },
+  {
+    "weapon": "Bow",
+    "skill": "bow_rapid_shot",
+    "duration_ms": 620,
+    "gif_frame_ms": 70,
+    "frame_sources": [
+      {
+        "frame": 0,
+        "source": "Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_Attack1_00.png",
+        "edits": []
+      },
+      {
+        "frame": 1,
+        "source": "Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_Attack1_02.png",
+        "edits": []
+      },
+      {
+        "frame": 2,
+        "source": "Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_Attack1_03.png",
+        "edits": []
+      },
+      {
+        "frame": 3,
+        "source": "Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_Attack1_02.png",
+        "edits": []
+      },
+      {
+        "frame": 4,
+        "source": "Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_Attack1_03.png",
+        "edits": []
+      },
+      {
+        "frame": 5,
+        "source": "Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_Attack1_02.png",
+        "edits": []
+      },
+      {
+        "frame": 6,
+        "source": "Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_Attack1_03.png",
+        "edits": []
+      },
+      {
+        "frame": 7,
+        "source": "Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_Attack1_04.png",
+        "edits": []
+      },
+      {
+        "frame": 8,
+        "source": "Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_Attack1_05.png",
+        "edits": []
+      }
+    ],
+    "gif": "C:\\Users\\hanss\\Desktop\\Soul---body-collector\\hys_FinalVersion_15_GIFs\\hys_Final_Enemy_Bow_bow_rapid_shot.gif"
+  },
+  {
+    "weapon": "Bow",
+    "skill": "bow_low_charge_shot",
+    "duration_ms": 1100,
+    "gif_frame_ms": 120,
+    "frame_sources": [
+      {
+        "frame": 0,
+        "source": "Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_Attack2_00.png",
+        "edits": []
+      },
+      {
+        "frame": 1,
+        "source": "Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_Attack2_01.png",
+        "edits": []
+      },
+      {
+        "frame": 2,
+        "source": "Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_Attack2_02.png",
+        "edits": []
+      },
+      {
+        "frame": 3,
+        "source": "Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_Attack2_02.png",
+        "edits": []
+      },
+      {
+        "frame": 4,
+        "source": "Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_Attack2_02.png",
+        "edits": []
+      },
+      {
+        "frame": 5,
+        "source": "Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_Attack2_02.png",
+        "edits": []
+      },
+      {
+        "frame": 6,
+        "source": "Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_Attack2_04.png",
+        "edits": []
+      },
+      {
+        "frame": 7,
+        "source": "Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_Attack2_05.png",
+        "edits": []
+      },
+      {
+        "frame": 8,
+        "source": "Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions/hys_RedBishop_Bow_Attack2_00.png",
+        "edits": []
+      }
+    ],
+    "gif": "C:\\Users\\hanss\\Desktop\\Soul---body-collector\\hys_FinalVersion_15_GIFs\\hys_Final_Enemy_Bow_bow_low_charge_shot.gif"
+  },
+  {
+    "weapon": "Lance",
+    "skill": "lance_charge_thrust",
+    "duration_ms": 480,
+    "gif_frame_ms": 50,
+    "frame_sources": [
+      {
+        "frame": 0,
+        "source": "Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Attack1_00.png",
+        "edits": []
+      },
+      {
+        "frame": 1,
+        "source": "Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Attack1_01.png",
+        "edits": []
+      },
+      {
+        "frame": 2,
+        "source": "Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Attack1_02.png",
+        "edits": []
+      },
+      {
+        "frame": 3,
+        "source": "Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Attack1_03.png",
+        "edits": []
+      },
+      {
+        "frame": 4,
+        "source": "Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Attack1_04.png",
+        "edits": []
+      },
+      {
+        "frame": 5,
+        "source": "Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Attack1_05.png",
+        "edits": []
+      },
+      {
+        "frame": 6,
+        "source": "Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Attack1_04.png",
+        "edits": []
+      },
+      {
+        "frame": 7,
+        "source": "Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Attack1_01.png",
+        "edits": []
+      },
+      {
+        "frame": 8,
+        "source": "Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Attack1_00.png",
+        "edits": []
+      }
+    ],
+    "gif": "C:\\Users\\hanss\\Desktop\\Soul---body-collector\\hys_FinalVersion_15_GIFs\\hys_Final_Enemy_Lance_lance_charge_thrust.gif"
+  },
+  {
+    "weapon": "Lance",
+    "skill": "lance_thrust_combo",
+    "duration_ms": 650,
+    "gif_frame_ms": 70,
+    "frame_sources": [
+      {
+        "frame": 0,
+        "source": "Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Attack1_00.png",
+        "edits": []
+      },
+      {
+        "frame": 1,
+        "source": "Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Attack1_03.png",
+        "edits": []
+      },
+      {
+        "frame": 2,
+        "source": "Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Attack2_00.png",
+        "edits": []
+      },
+      {
+        "frame": 3,
+        "source": "Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Attack2_03.png",
+        "edits": []
+      },
+      {
+        "frame": 4,
+        "source": "Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Attack1_00.png",
+        "edits": []
+      },
+      {
+        "frame": 5,
+        "source": "Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Attack1_03.png",
+        "edits": []
+      },
+      {
+        "frame": 6,
+        "source": "Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Attack2_00.png",
+        "edits": []
+      },
+      {
+        "frame": 7,
+        "source": "Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Attack2_03.png",
+        "edits": []
+      },
+      {
+        "frame": 8,
+        "source": "Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Attack1_05.png",
+        "edits": []
+      }
+    ],
+    "gif": "C:\\Users\\hanss\\Desktop\\Soul---body-collector\\hys_FinalVersion_15_GIFs\\hys_Final_Enemy_Lance_lance_thrust_combo.gif"
+  },
+  {
+    "weapon": "Lance",
+    "skill": "lance_finisher_thrust",
+    "duration_ms": 340,
+    "gif_frame_ms": 40,
+    "frame_sources": [
+      {
+        "frame": 0,
+        "source": "Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Attack2_00.png",
+        "edits": []
+      },
+      {
+        "frame": 1,
+        "source": "Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Attack2_01.png",
+        "edits": []
+      },
+      {
+        "frame": 2,
+        "source": "Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Attack2_02.png",
+        "edits": []
+      },
+      {
+        "frame": 3,
+        "source": "Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Attack2_03.png",
+        "edits": []
+      },
+      {
+        "frame": 4,
+        "source": "Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Attack2_04.png",
+        "edits": []
+      },
+      {
+        "frame": 5,
+        "source": "Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Attack2_05.png",
+        "edits": []
+      },
+      {
+        "frame": 6,
+        "source": "Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Attack2_04.png",
+        "edits": []
+      },
+      {
+        "frame": 7,
+        "source": "Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Attack2_01.png",
+        "edits": []
+      },
+      {
+        "frame": 8,
+        "source": "Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Attack2_00.png",
+        "edits": []
+      }
+    ],
+    "gif": "C:\\Users\\hanss\\Desktop\\Soul---body-collector\\hys_FinalVersion_15_GIFs\\hys_Final_Enemy_Lance_lance_finisher_thrust.gif"
+  },
+  {
+    "weapon": "Shield",
+    "skill": "shield_charge",
+    "duration_ms": 520,
+    "gif_frame_ms": 60,
+    "frame_sources": [
+      {
+        "frame": 0,
+        "source": "Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_Dash_00.png",
+        "edits": [
+          "remove_baked_speed_lines"
+        ]
+      },
+      {
+        "frame": 1,
+        "source": "Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_Dash_01.png",
+        "edits": [
+          "remove_baked_speed_lines"
+        ]
+      },
+      {
+        "frame": 2,
+        "source": "Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_Dash_02.png",
+        "edits": [
+          "remove_baked_speed_lines"
+        ]
+      },
+      {
+        "frame": 3,
+        "source": "Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_Dash_03.png",
+        "edits": [
+          "remove_baked_speed_lines"
+        ]
+      },
+      {
+        "frame": 4,
+        "source": "Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_Dash_04.png",
+        "edits": [
+          "remove_baked_speed_lines"
+        ]
+      },
+      {
+        "frame": 5,
+        "source": "Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_Dash_05.png",
+        "edits": [
+          "remove_baked_speed_lines"
+        ]
+      },
+      {
+        "frame": 6,
+        "source": "Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_Attack_03.png",
+        "edits": []
+      },
+      {
+        "frame": 7,
+        "source": "Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_Attack_04.png",
+        "edits": []
+      },
+      {
+        "frame": 8,
+        "source": "Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_Attack_05.png",
+        "edits": []
+      }
+    ],
+    "gif": "C:\\Users\\hanss\\Desktop\\Soul---body-collector\\hys_FinalVersion_15_GIFs\\hys_Final_Enemy_Shield_shield_charge.gif"
+  },
+  {
+    "weapon": "Shield",
+    "skill": "shield_slam",
+    "duration_ms": 660,
+    "gif_frame_ms": 70,
+    "frame_sources": [
+      {
+        "frame": 0,
+        "source": "Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_Attack_00.png",
+        "edits": [
+          "redraw_shield_and_arm_pixels"
+        ]
+      },
+      {
+        "frame": 1,
+        "source": "Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_Attack_00.png",
+        "edits": [
+          "redraw_shield_and_arm_pixels"
+        ]
+      },
+      {
+        "frame": 2,
+        "source": "Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_Attack_00.png",
+        "edits": [
+          "redraw_shield_and_arm_pixels"
+        ]
+      },
+      {
+        "frame": 3,
+        "source": "Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_Attack_00.png",
+        "edits": [
+          "redraw_shield_and_arm_pixels"
+        ]
+      },
+      {
+        "frame": 4,
+        "source": "Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_Attack_00.png",
+        "edits": [
+          "redraw_shield_and_arm_pixels"
+        ]
+      },
+      {
+        "frame": 5,
+        "source": "Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_Attack_00.png",
+        "edits": [
+          "redraw_shield_and_arm_pixels"
+        ]
+      },
+      {
+        "frame": 6,
+        "source": "Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_Attack_00.png",
+        "edits": [
+          "redraw_shield_and_arm_pixels"
+        ]
+      },
+      {
+        "frame": 7,
+        "source": "Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_Attack_00.png",
+        "edits": [
+          "redraw_shield_and_arm_pixels"
+        ]
+      },
+      {
+        "frame": 8,
+        "source": "Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_Attack_00.png",
+        "edits": [
+          "redraw_shield_and_arm_pixels"
+        ]
+      }
+    ],
+    "gif": "C:\\Users\\hanss\\Desktop\\Soul---body-collector\\hys_FinalVersion_15_GIFs\\hys_Final_Enemy_Shield_shield_slam.gif"
+  },
+  {
+    "weapon": "Shield",
+    "skill": "shield_diagonal_knockback",
+    "duration_ms": 540,
+    "gif_frame_ms": 60,
+    "frame_sources": [
+      {
+        "frame": 0,
+        "source": "Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_Attack_00.png",
+        "edits": [
+          "redraw_shield_and_arm_pixels"
+        ]
+      },
+      {
+        "frame": 1,
+        "source": "Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_Attack_01.png",
+        "edits": [
+          "redraw_shield_and_arm_pixels"
+        ]
+      },
+      {
+        "frame": 2,
+        "source": "Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_Attack_01.png",
+        "edits": [
+          "redraw_shield_and_arm_pixels"
+        ]
+      },
+      {
+        "frame": 3,
+        "source": "Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_Attack_02.png",
+        "edits": [
+          "redraw_shield_and_arm_pixels"
+        ]
+      },
+      {
+        "frame": 4,
+        "source": "Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_Attack_03.png",
+        "edits": [
+          "redraw_shield_and_arm_pixels"
+        ]
+      },
+      {
+        "frame": 5,
+        "source": "Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_Attack_04.png",
+        "edits": [
+          "redraw_shield_and_arm_pixels"
+        ]
+      },
+      {
+        "frame": 6,
+        "source": "Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_Attack_05.png",
+        "edits": [
+          "redraw_shield_and_arm_pixels"
+        ]
+      },
+      {
+        "frame": 7,
+        "source": "Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_Attack_01.png",
+        "edits": [
+          "redraw_shield_and_arm_pixels"
+        ]
+      },
+      {
+        "frame": 8,
+        "source": "Assets/05Anims/hys_Player_Anims/Shield/Sprites/hys_RedRook_Attack_00.png",
+        "edits": [
+          "redraw_shield_and_arm_pixels"
+        ]
+      }
+    ],
+    "gif": "C:\\Users\\hanss\\Desktop\\Soul---body-collector\\hys_FinalVersion_15_GIFs\\hys_Final_Enemy_Shield_shield_diagonal_knockback.gif"
+  }
+]

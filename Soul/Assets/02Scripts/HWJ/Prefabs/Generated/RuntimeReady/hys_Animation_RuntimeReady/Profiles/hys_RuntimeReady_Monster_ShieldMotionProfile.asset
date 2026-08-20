@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: HWJ.Runtime::HWJ_MotionProfileSO
   weaponType: 7
   animatorController: {fileID: 9100000, guid: 11e3855233c24332a4e98c50e557fbe9, type: 2}
-  defaultAttackMotionKey: Shield_Bash
+  defaultAttackMotionKey: Shield_Charge
   motions:
-  - motionKey: Shield_Guard
+  - motionKey: Shield_Charge
     animatorTriggerName: M_shield_1
     animatorStateName: 
     layerIndex: 0
@@ -24,7 +24,7 @@ MonoBehaviour:
     useTrigger: 1
     useCrossFade: 0
     resetTriggerBeforeSet: 1
-  - motionKey: Shield_Bash
+  - motionKey: Shield_Slam
     animatorTriggerName: M_shield_2
     animatorStateName: 
     layerIndex: 0
@@ -32,7 +32,7 @@ MonoBehaviour:
     useTrigger: 1
     useCrossFade: 0
     resetTriggerBeforeSet: 1
-  - motionKey: Shield_Charge
+  - motionKey: Shield_DiagonalKnockback
     animatorTriggerName: M_shield_3
     animatorStateName: 
     layerIndex: 0

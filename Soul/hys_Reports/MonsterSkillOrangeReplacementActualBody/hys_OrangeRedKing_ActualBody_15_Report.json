@@ -1,0 +1,107 @@
+[
+  {
+    "weapon": "Sword",
+    "skill": "sword_diagonal_slash",
+    "frames": 9,
+    "unique_frames": 9,
+    "gif": "C:\\Users\\hanss\\Desktop\\Soul---body-collector\\Soul\\hys_Reports\\MonsterSkillOrangeReplacementActualBody\\hys_GIFs\\hys_Final_Enemy_Sword_sword_diagonal_slash.gif"
+  },
+  {
+    "weapon": "Sword",
+    "skill": "sword_up_diagonal_slash",
+    "frames": 9,
+    "unique_frames": 9,
+    "gif": "C:\\Users\\hanss\\Desktop\\Soul---body-collector\\Soul\\hys_Reports\\MonsterSkillOrangeReplacementActualBody\\hys_GIFs\\hys_Final_Enemy_Sword_sword_up_diagonal_slash.gif"
+  },
+  {
+    "weapon": "Sword",
+    "skill": "sword_wave",
+    "frames": 9,
+    "unique_frames": 9,
+    "gif": "C:\\Users\\hanss\\Desktop\\Soul---body-collector\\Soul\\hys_Reports\\MonsterSkillOrangeReplacementActualBody\\hys_GIFs\\hys_Final_Enemy_Sword_sword_wave.gif"
+  },
+  {
+    "weapon": "Axe",
+    "skill": "axe_swing",
+    "frames": 9,
+    "unique_frames": 6,
+    "gif": "C:\\Users\\hanss\\Desktop\\Soul---body-collector\\Soul\\hys_Reports\\MonsterSkillOrangeReplacementActualBody\\hys_GIFs\\hys_Final_Enemy_Axe_axe_swing.gif"
+  },
+  {
+    "weapon": "Axe",
+    "skill": "axe_body_charge",
+    "frames": 9,
+    "unique_frames": 9,
+    "gif": "C:\\Users\\hanss\\Desktop\\Soul---body-collector\\Soul\\hys_Reports\\MonsterSkillOrangeReplacementActualBody\\hys_GIFs\\hys_Final_Enemy_Axe_axe_body_charge.gif"
+  },
+  {
+    "weapon": "Axe",
+    "skill": "axe_spin_charge",
+    "frames": 9,
+    "unique_frames": 9,
+    "gif": "C:\\Users\\hanss\\Desktop\\Soul---body-collector\\Soul\\hys_Reports\\MonsterSkillOrangeReplacementActualBody\\hys_GIFs\\hys_Final_Enemy_Axe_axe_spin_charge.gif"
+  },
+  {
+    "weapon": "Bow",
+    "skill": "bow_air_arrow_shot",
+    "frames": 9,
+    "unique_frames": 8,
+    "gif": "C:\\Users\\hanss\\Desktop\\Soul---body-collector\\Soul\\hys_Reports\\MonsterSkillOrangeReplacementActualBody\\hys_GIFs\\hys_Final_Enemy_Bow_bow_air_arrow_shot.gif"
+  },
+  {
+    "weapon": "Bow",
+    "skill": "bow_rapid_shot",
+    "frames": 9,
+    "unique_frames": 8,
+    "gif": "C:\\Users\\hanss\\Desktop\\Soul---body-collector\\Soul\\hys_Reports\\MonsterSkillOrangeReplacementActualBody\\hys_GIFs\\hys_Final_Enemy_Bow_bow_rapid_shot.gif"
+  },
+  {
+    "weapon": "Bow",
+    "skill": "bow_low_charge_shot",
+    "frames": 9,
+    "unique_frames": 8,
+    "gif": "C:\\Users\\hanss\\Desktop\\Soul---body-collector\\Soul\\hys_Reports\\MonsterSkillOrangeReplacementActualBody\\hys_GIFs\\hys_Final_Enemy_Bow_bow_low_charge_shot.gif"
+  },
+  {
+    "weapon": "Lance",
+    "skill": "lance_charge_thrust",
+    "frames": 9,
+    "unique_frames": 9,
+    "gif": "C:\\Users\\hanss\\Desktop\\Soul---body-collector\\Soul\\hys_Reports\\MonsterSkillOrangeReplacementActualBody\\hys_GIFs\\hys_Final_Enemy_Lance_lance_charge_thrust.gif"
+  },
+  {
+    "weapon": "Lance",
+    "skill": "lance_thrust_combo",
+    "frames": 9,
+    "unique_frames": 9,
+    "gif": "C:\\Users\\hanss\\Desktop\\Soul---body-collector\\Soul\\hys_Reports\\MonsterSkillOrangeReplacementActualBody\\hys_GIFs\\hys_Final_Enemy_Lance_lance_thrust_combo.gif"
+  },
+  {
+    "weapon": "Lance",
+    "skill": "lance_finisher_thrust",
+    "frames": 9,
+    "unique_frames": 9,
+    "gif": "C:\\Users\\hanss\\Desktop\\Soul---body-collector\\Soul\\hys_Reports\\MonsterSkillOrangeReplacementActualBody\\hys_GIFs\\hys_Final_Enemy_Lance_lance_finisher_thrust.gif"
+  },
+  {
+    "weapon": "Shield",
+    "skill": "shield_charge",
+    "frames": 9,
+    "unique_frames": 8,
+    "gif": "C:\\Users\\hanss\\Desktop\\Soul---body-collector\\Soul\\hys_Reports\\MonsterSkillOrangeReplacementActualBody\\hys_GIFs\\hys_Final_Enemy_Shield_shield_charge.gif"
+  },
+  {
+    "weapon": "Shield",
+    "skill": "shield_slam",
+    "frames": 9,
+    "unique_frames": 9,
+    "gif": "C:\\Users\\hanss\\Desktop\\Soul---body-collector\\Soul\\hys_Reports\\MonsterSkillOrangeReplacementActualBody\\hys_GIFs\\hys_Final_Enemy_Shield_shield_slam.gif"
+  },
+  {
+    "weapon": "Shield",
+    "skill": "shield_diagonal_knockback",
+    "frames": 9,
+    "unique_frames": 9,
+    "gif": "C:\\Users\\hanss\\Desktop\\Soul---body-collector\\Soul\\hys_Reports\\MonsterSkillOrangeReplacementActualBody\\hys_GIFs\\hys_Final_Enemy_Shield_shield_diagonal_knockback.gif"
+  }
+]

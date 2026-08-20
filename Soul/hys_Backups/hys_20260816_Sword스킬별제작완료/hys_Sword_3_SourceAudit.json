@@ -1,0 +1,275 @@
+[
+  {
+    "weapon": "Sword",
+    "skill": "sword_diagonal_slash",
+    "duration_ms": 340,
+    "gif_frame_durations_ms": [
+      40,
+      40,
+      40,
+      40,
+      40,
+      40,
+      40,
+      30,
+      30
+    ],
+    "frame_sources": [
+      {
+        "frame": 0,
+        "source": "Tools/hys_imagegen_sheets/Sword/hys_Sword_sword_diagonal_slash_sheet.png",
+        "edits": [
+          "skill_specific_pose_sheet",
+          "identity_palette_and_scale_lock"
+        ]
+      },
+      {
+        "frame": 1,
+        "source": "Tools/hys_imagegen_sheets/Sword/hys_Sword_sword_diagonal_slash_sheet.png",
+        "edits": [
+          "skill_specific_pose_sheet",
+          "identity_palette_and_scale_lock"
+        ]
+      },
+      {
+        "frame": 2,
+        "source": "Tools/hys_imagegen_sheets/Sword/hys_Sword_sword_diagonal_slash_sheet.png",
+        "edits": [
+          "skill_specific_pose_sheet",
+          "identity_palette_and_scale_lock"
+        ]
+      },
+      {
+        "frame": 3,
+        "source": "Tools/hys_imagegen_sheets/Sword/hys_Sword_sword_diagonal_slash_sheet.png",
+        "edits": [
+          "skill_specific_pose_sheet",
+          "identity_palette_and_scale_lock"
+        ]
+      },
+      {
+        "frame": 4,
+        "source": "Tools/hys_imagegen_sheets/Sword/hys_Sword_sword_diagonal_slash_sheet.png",
+        "edits": [
+          "skill_specific_pose_sheet",
+          "identity_palette_and_scale_lock"
+        ]
+      },
+      {
+        "frame": 5,
+        "source": "Tools/hys_imagegen_sheets/Sword/hys_Sword_sword_diagonal_slash_sheet.png",
+        "edits": [
+          "skill_specific_pose_sheet",
+          "identity_palette_and_scale_lock"
+        ]
+      },
+      {
+        "frame": 6,
+        "source": "Tools/hys_imagegen_sheets/Sword/hys_Sword_sword_diagonal_slash_sheet.png",
+        "edits": [
+          "skill_specific_pose_sheet",
+          "identity_palette_and_scale_lock"
+        ]
+      },
+      {
+        "frame": 7,
+        "source": "Tools/hys_imagegen_sheets/Sword/hys_Sword_sword_diagonal_slash_sheet.png",
+        "edits": [
+          "skill_specific_pose_sheet",
+          "identity_palette_and_scale_lock"
+        ]
+      },
+      {
+        "frame": 8,
+        "source": "Tools/hys_imagegen_sheets/Sword/hys_Sword_sword_diagonal_slash_sheet.png",
+        "edits": [
+          "skill_specific_pose_sheet",
+          "identity_palette_and_scale_lock"
+        ]
+      }
+    ],
+    "gif": "C:\\Users\\hanss\\Desktop\\Soul---body-collector\\hys_FinalVersion_15_GIFs\\hys_Final_Enemy_Sword_sword_diagonal_slash.gif"
+  },
+  {
+    "weapon": "Sword",
+    "skill": "sword_up_diagonal_slash",
+    "duration_ms": 340,
+    "gif_frame_durations_ms": [
+      40,
+      40,
+      40,
+      40,
+      40,
+      40,
+      40,
+      30,
+      30
+    ],
+    "frame_sources": [
+      {
+        "frame": 0,
+        "source": "Tools/hys_imagegen_sheets/Sword/hys_Sword_sword_up_diagonal_slash_sheet.png",
+        "edits": [
+          "skill_specific_pose_sheet",
+          "identity_palette_and_scale_lock"
+        ]
+      },
+      {
+        "frame": 1,
+        "source": "Tools/hys_imagegen_sheets/Sword/hys_Sword_sword_up_diagonal_slash_sheet.png",
+        "edits": [
+          "skill_specific_pose_sheet",
+          "identity_palette_and_scale_lock"
+        ]
+      },
+      {
+        "frame": 2,
+        "source": "Tools/hys_imagegen_sheets/Sword/hys_Sword_sword_up_diagonal_slash_sheet.png",
+        "edits": [
+          "skill_specific_pose_sheet",
+          "identity_palette_and_scale_lock"
+        ]
+      },
+      {
+        "frame": 3,
+        "source": "Tools/hys_imagegen_sheets/Sword/hys_Sword_sword_up_diagonal_slash_sheet.png",
+        "edits": [
+          "skill_specific_pose_sheet",
+          "identity_palette_and_scale_lock"
+        ]
+      },
+      {
+        "frame": 4,
+        "source": "Tools/hys_imagegen_sheets/Sword/hys_Sword_sword_up_diagonal_slash_sheet.png",
+        "edits": [
+          "skill_specific_pose_sheet",
+          "identity_palette_and_scale_lock"
+        ]
+      },
+      {
+        "frame": 5,
+        "source": "Tools/hys_imagegen_sheets/Sword/hys_Sword_sword_up_diagonal_slash_sheet.png",
+        "edits": [
+          "skill_specific_pose_sheet",
+          "identity_palette_and_scale_lock"
+        ]
+      },
+      {
+        "frame": 6,
+        "source": "Tools/hys_imagegen_sheets/Sword/hys_Sword_sword_up_diagonal_slash_sheet.png",
+        "edits": [
+          "skill_specific_pose_sheet",
+          "identity_palette_and_scale_lock"
+        ]
+      },
+      {
+        "frame": 7,
+        "source": "Tools/hys_imagegen_sheets/Sword/hys_Sword_sword_up_diagonal_slash_sheet.png",
+        "edits": [
+          "skill_specific_pose_sheet",
+          "identity_palette_and_scale_lock"
+        ]
+      },
+      {
+        "frame": 8,
+        "source": "Tools/hys_imagegen_sheets/Sword/hys_Sword_sword_up_diagonal_slash_sheet.png",
+        "edits": [
+          "skill_specific_pose_sheet",
+          "identity_palette_and_scale_lock"
+        ]
+      }
+    ],
+    "gif": "C:\\Users\\hanss\\Desktop\\Soul---body-collector\\hys_FinalVersion_15_GIFs\\hys_Final_Enemy_Sword_sword_up_diagonal_slash.gif"
+  },
+  {
+    "weapon": "Sword",
+    "skill": "sword_wave",
+    "duration_ms": 530,
+    "gif_frame_durations_ms": [
+      60,
+      60,
+      60,
+      60,
+      60,
+      50,
+      60,
+      60,
+      60
+    ],
+    "frame_sources": [
+      {
+        "frame": 0,
+        "source": "Tools/hys_imagegen_sheets/Sword/hys_Sword_sword_wave_sheet.png",
+        "edits": [
+          "skill_specific_pose_sheet",
+          "identity_palette_and_scale_lock"
+        ]
+      },
+      {
+        "frame": 1,
+        "source": "Tools/hys_imagegen_sheets/Sword/hys_Sword_sword_wave_sheet.png",
+        "edits": [
+          "skill_specific_pose_sheet",
+          "identity_palette_and_scale_lock"
+        ]
+      },
+      {
+        "frame": 2,
+        "source": "Tools/hys_imagegen_sheets/Sword/hys_Sword_sword_wave_sheet.png",
+        "edits": [
+          "skill_specific_pose_sheet",
+          "identity_palette_and_scale_lock"
+        ]
+      },
+      {
+        "frame": 3,
+        "source": "Tools/hys_imagegen_sheets/Sword/hys_Sword_sword_wave_sheet.png",
+        "edits": [
+          "skill_specific_pose_sheet",
+          "identity_palette_and_scale_lock"
+        ]
+      },
+      {
+        "frame": 4,
+        "source": "Tools/hys_imagegen_sheets/Sword/hys_Sword_sword_wave_sheet.png",
+        "edits": [
+          "skill_specific_pose_sheet",
+          "identity_palette_and_scale_lock"
+        ]
+      },
+      {
+        "frame": 5,
+        "source": "Tools/hys_imagegen_sheets/Sword/hys_Sword_sword_wave_sheet.png",
+        "edits": [
+          "skill_specific_pose_sheet",
+          "identity_palette_and_scale_lock"
+        ]
+      },
+      {
+        "frame": 6,
+        "source": "Tools/hys_imagegen_sheets/Sword/hys_Sword_sword_wave_sheet.png",
+        "edits": [
+          "skill_specific_pose_sheet",
+          "identity_palette_and_scale_lock"
+        ]
+      },
+      {
+        "frame": 7,
+        "source": "Tools/hys_imagegen_sheets/Sword/hys_Sword_sword_wave_sheet.png",
+        "edits": [
+          "skill_specific_pose_sheet",
+          "identity_palette_and_scale_lock"
+        ]
+      },
+      {
+        "frame": 8,
+        "source": "Tools/hys_imagegen_sheets/Sword/hys_Sword_sword_wave_sheet.png",
+        "edits": [
+          "skill_specific_pose_sheet",
+          "identity_palette_and_scale_lock"
+        ]
+      }
+    ],
+    "gif": "C:\\Users\\hanss\\Desktop\\Soul---body-collector\\hys_FinalVersion_15_GIFs\\hys_Final_Enemy_Sword_sword_wave.gif"
+  }
+]
