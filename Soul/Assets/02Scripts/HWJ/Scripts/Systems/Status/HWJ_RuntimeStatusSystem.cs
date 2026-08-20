@@ -318,6 +318,17 @@ public partial class HWJ_RuntimeStatusSystem : MonoBehaviour
             return;
         }
 
+        if (TryApplyDamageAbsorbers(damage, source, sourceDamage, out float remainingDamage))
+        {
+            damage = remainingDamage;
+
+            if (damage <= 0f)
+            {
+                SavePlayerRuntimeSnapshotIfOwner();
+                return;
+            }
+        }
+
         bool wasDead = IsDead;
         currentHp = Mathf.Max(0f, currentHp - damage);
         CacheCurrentHpForActiveState();
@@ -356,6 +367,40 @@ public partial class HWJ_RuntimeStatusSystem : MonoBehaviour
 
         currentHp = Mathf.Min(MaxHp, currentHp + amount);
         CacheCurrentHpForActiveState();
+    }
+
+    /// <summary>
+    /// 시체 빙의 중 발생한 부패만큼 현재 빙의체 HP를 감소시킵니다.
+    /// 전투 피해가 아니므로 무적 시간, 방어, 피격 경직, 피격 이펙트를 적용하지 않습니다.
+    /// </summary>
+    public bool ApplyCorpseDecayHpLoss(float hpLoss)
+    {
+        ResolveReferences();
+
+        if (hpLoss <= 0f
+            || !UsesHp
+            || currentHp <= 0f
+            || soulSystem == null
+            || soulSystem.CurrentState != HWJ_SoulRuntimeState.Body
+            || possessionSystem == null
+            || !possessionSystem.IsCorpsePossessionActive)
+        {
+            return false;
+        }
+
+        currentHp = Mathf.Max(0f, currentHp - hpLoss);
+        CacheCurrentHpForActiveState();
+
+        if (currentHp <= 0f)
+        {
+            if (!TryHandleHealthDepleted())
+            {
+                HandleEmptyHp();
+            }
+        }
+
+        SavePlayerRuntimeSnapshotIfOwner();
+        return true;
     }
 
     /// <summary>

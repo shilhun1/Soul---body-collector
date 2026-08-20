@@ -45,6 +45,16 @@ public partial class HWJ_SkillActionSystem : MonoBehaviour
     public float LastDamageApplied => lastDamageApplied;
     public bool IsNavigationBlocked => Time.time < navigationBlockEndTime;
     public bool ShouldStopNavigationMovement => IsNavigationBlocked && !skillMovementControlsVelocity;
+    public Vector2 ActionEffectSpawnOffset
+    {
+        get => actionEffectSpawnOffset;
+        set => actionEffectSpawnOffset = value;
+    }
+    public bool MirrorActionEffectByFacing
+    {
+        get => mirrorActionEffectByFacing;
+        set => mirrorActionEffectByFacing = value;
+    }
 
     private void Awake()
     {

@@ -167,7 +167,7 @@ public class HWJ_CombatSystem : MonoBehaviour, HWJ_ICombatActor, HWJ_IDamageDeal
             return false;
         }
 
-        HWJ_RuntimeStatusSystem targetStatus = targetResolver.GetComponent<HWJ_RuntimeStatusSystem>();
+        HWJ_RuntimeStatusSystem targetStatus = ResolveRuntimeStatus(targetResolver);
         HWJ_CombatSystem targetCombat = targetResolver.GetComponent<HWJ_CombatSystem>();
         HWJ_DamageData damageData = GetDamageData();
         float outgoingDamage = Mathf.Max(0f, GetOutgoingDamage(damageMultiplier));
@@ -205,7 +205,17 @@ public class HWJ_CombatSystem : MonoBehaviour, HWJ_ICombatActor, HWJ_IDamageDeal
             return false;
         }
 
-        HWJ_RuntimeStatusSystem targetStatus = targetResolver.GetComponent<HWJ_RuntimeStatusSystem>();
+        // 이미 빙의된 원본 육신의 지연 공격이나 투사체가 빙의자를 공격하지 못하게 한다.
+        HWJ_PossessionSystem targetPossession =
+            targetResolver.GetComponent<HWJ_PossessionSystem>();
+
+        if (targetPossession != null
+            && targetPossession.PossessedBodyResolver == dataResolver)
+        {
+            return false;
+        }
+
+        HWJ_RuntimeStatusSystem targetStatus = ResolveRuntimeStatus(targetResolver);
 
         if (targetStatus == null || targetStatus.IsDead)
         {
@@ -370,7 +380,7 @@ public class HWJ_CombatSystem : MonoBehaviour, HWJ_ICombatActor, HWJ_IDamageDeal
         }
 
         HWJ_KnockbackSystem knockbackSystem = targetResolver.GetComponent<HWJ_KnockbackSystem>();
-        HWJ_RuntimeStatusSystem targetStatus = targetResolver.GetComponent<HWJ_RuntimeStatusSystem>();
+        HWJ_RuntimeStatusSystem targetStatus = ResolveRuntimeStatus(targetResolver);
 
         if (targetStatus != null && targetStatus.ShouldIgnoreKnockback)
         {
@@ -408,6 +418,36 @@ public class HWJ_CombatSystem : MonoBehaviour, HWJ_ICombatActor, HWJ_IDamageDeal
         }
 
         return Mathf.Max(0f, damage);
+    }
+
+    /// <summary>
+    /// 씬에 중복 RuntimeStatus가 남아 있어도 GameManager가 등록한 플레이어 상태를 우선 사용합니다.
+    /// 몬스터 피해, HUD, 저장 시스템이 같은 플레이어 HP를 읽고 쓰게 하기 위한 해석 경로입니다.
+    /// </summary>
+    private static HWJ_RuntimeStatusSystem ResolveRuntimeStatus(
+        HWJ_RootObjectDataResolver targetResolver)
+    {
+        if (targetResolver == null)
+        {
+            return null;
+        }
+
+        if (HWJ_GameAccess.HasManager
+            && HWJ_GameAccess.Manager.PlayerResolver == targetResolver
+            && HWJ_GameAccess.Manager.PlayerStatus != null)
+        {
+            return HWJ_GameAccess.Manager.PlayerStatus;
+        }
+
+        HWJ_RuntimeObjectContext targetContext =
+            targetResolver.GetComponent<HWJ_RuntimeObjectContext>();
+
+        if (targetContext != null && targetContext.RuntimeStatus != null)
+        {
+            return targetContext.RuntimeStatus;
+        }
+
+        return targetResolver.GetComponent<HWJ_RuntimeStatusSystem>();
     }
 
     private float ApplyDefense(float incomingDamage, HWJ_DamageData sourceDamage)

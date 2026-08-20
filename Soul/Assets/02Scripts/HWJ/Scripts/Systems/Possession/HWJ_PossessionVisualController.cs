@@ -67,19 +67,35 @@ public class HWJ_PossessionVisualController : MonoBehaviour
             return;
         }
 
-        SpriteRenderer possessedRenderer =
-            possessedBody.GetComponentInChildren<SpriteRenderer>();
+        float ownerFacingDirection = ownerMotionSystem != null
+            ? ownerMotionSystem.CurrentFacingDirection
+            : ownerSpriteRenderer != null && ownerSpriteRenderer.flipX ? -1f : 1f;
+        HWJ_CharacterMotionSystem possessedMotionSystem =
+            possessedBody.GetComponent<HWJ_CharacterMotionSystem>();
+        SpriteRenderer possessedRenderer = possessedMotionSystem != null
+            ? possessedMotionSystem.VisualRenderer
+            : possessedBody.GetComponentInChildren<SpriteRenderer>();
 
         if (ownerSpriteRenderer != null && possessedRenderer != null)
         {
+            float possessedFacingDirection = possessedMotionSystem != null
+                ? possessedMotionSystem.CurrentFacingDirection
+                : possessedRenderer.flipX ? -1f : 1f;
+            bool possessedRightFacingFlipX = possessedFacingDirection < 0f
+                ? !possessedRenderer.flipX
+                : possessedRenderer.flipX;
+
             ownerSpriteRenderer.sprite = possessedRenderer.sprite;
             ownerSpriteRenderer.color = possessedRenderer.color;
-            ownerSpriteRenderer.flipX = possessedRenderer.flipX;
+            ownerSpriteRenderer.flipX = possessedRightFacingFlipX;
             ownerSpriteRenderer.flipY = possessedRenderer.flipY;
             ownerMotionSystem?.RefreshFacingBaseline();
+            ownerMotionSystem?.FaceDirection(ownerFacingDirection);
         }
 
-        Animator possessedAnimator = possessedBody.GetComponentInChildren<Animator>();
+        Animator possessedAnimator = possessedMotionSystem != null
+            ? possessedMotionSystem.VisualAnimator
+            : possessedBody.GetComponentInChildren<Animator>();
 
         if (ownerAnimator != null && possessedAnimator != null)
         {

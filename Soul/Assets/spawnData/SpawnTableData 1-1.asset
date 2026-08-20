@@ -1,0 +1,156 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d1a5acc17f284fdd907014eda3e72398, type: 3}
+  m_Name: SpawnTableData 1-1
+  m_EditorClassIdentifier: Assembly-CSharp::HWJ_SpawnTableDataSO
+  tableId: 
+  entries:
+  - spawnId: enemy_1
+    spawnPointId: enemy_1
+    spawnPointType: 1
+    rootObjectData: {fileID: 11400000, guid: cc000000000000000000000000000004, type: 2}
+    prefabOverride: {fileID: 3576862325422680928, guid: a59df2ced68ffef41899d729c2e94a7d, type: 3}
+    spawnCount: 1
+    spawnDelaySeconds: 0
+    useSequentialSpawnWhenMultiple: 1
+    waitUntilCurrentSpawnedMonstersDefeated: 1
+    nextSpawnMaxWaitSeconds: 5
+    skipSpawnWhenRewardClaimed: 1
+    spawnOffset: {x: 0, y: 0}
+    randomizePoint: 0
+    spawnOnStart: 1
+  - spawnId: enemy_2
+    spawnPointId: enemy_2
+    spawnPointType: 1
+    rootObjectData: {fileID: 11400000, guid: cc000000000000000000000000000001, type: 2}
+    prefabOverride: {fileID: 3576862325422680928, guid: d5bf07532af8bbc45a0f20ef875ee17a, type: 3}
+    spawnCount: 1
+    spawnDelaySeconds: 0
+    useSequentialSpawnWhenMultiple: 1
+    waitUntilCurrentSpawnedMonstersDefeated: 1
+    nextSpawnMaxWaitSeconds: 5
+    skipSpawnWhenRewardClaimed: 1
+    spawnOffset: {x: 0, y: 0}
+    randomizePoint: 0
+    spawnOnStart: 1
+  - spawnId: enemy_3
+    spawnPointId: enemy_3
+    spawnPointType: 1
+    rootObjectData: {fileID: 11400000, guid: cc000000000000000000000000000001, type: 2}
+    prefabOverride: {fileID: 3576862325422680928, guid: d5bf07532af8bbc45a0f20ef875ee17a, type: 3}
+    spawnCount: 1
+    spawnDelaySeconds: 0
+    useSequentialSpawnWhenMultiple: 1
+    waitUntilCurrentSpawnedMonstersDefeated: 1
+    nextSpawnMaxWaitSeconds: 5
+    skipSpawnWhenRewardClaimed: 1
+    spawnOffset: {x: 0, y: 0}
+    randomizePoint: 0
+    spawnOnStart: 1
+  - spawnId: enemy_4
+    spawnPointId: enemy_4
+    spawnPointType: 1
+    rootObjectData: {fileID: 11400000, guid: cc000000000000000000000000000002, type: 2}
+    prefabOverride: {fileID: 3576862325422680928, guid: b5b460fd804c27741882ca7cb73f719c, type: 3}
+    spawnCount: 1
+    spawnDelaySeconds: 0
+    useSequentialSpawnWhenMultiple: 1
+    waitUntilCurrentSpawnedMonstersDefeated: 1
+    nextSpawnMaxWaitSeconds: 5
+    skipSpawnWhenRewardClaimed: 1
+    spawnOffset: {x: 0, y: 0}
+    randomizePoint: 0
+    spawnOnStart: 1
+  - spawnId: enemy_5
+    spawnPointId: enemy_5
+    spawnPointType: 1
+    rootObjectData: {fileID: 11400000, guid: cc000000000000000000000000000003, type: 2}
+    prefabOverride: {fileID: 3576862325422680928, guid: f3be394d9fe9a654c972f7282987f973, type: 3}
+    spawnCount: 1
+    spawnDelaySeconds: 0
+    useSequentialSpawnWhenMultiple: 1
+    waitUntilCurrentSpawnedMonstersDefeated: 1
+    nextSpawnMaxWaitSeconds: 5
+    skipSpawnWhenRewardClaimed: 1
+    spawnOffset: {x: 0, y: 0}
+    randomizePoint: 0
+    spawnOnStart: 1
+  - spawnId: enemy_6
+    spawnPointId: enemy_6
+    spawnPointType: 1
+    rootObjectData: {fileID: 11400000, guid: cc000000000000000000000000000001, type: 2}
+    prefabOverride: {fileID: 3576862325422680928, guid: d5bf07532af8bbc45a0f20ef875ee17a, type: 3}
+    spawnCount: 1
+    spawnDelaySeconds: 0
+    useSequentialSpawnWhenMultiple: 1
+    waitUntilCurrentSpawnedMonstersDefeated: 1
+    nextSpawnMaxWaitSeconds: 5
+    skipSpawnWhenRewardClaimed: 1
+    spawnOffset: {x: 0, y: 0}
+    randomizePoint: 0
+    spawnOnStart: 1
+  - spawnId: enemy_7
+    spawnPointId: enemy_7
+    spawnPointType: 1
+    rootObjectData: {fileID: 11400000, guid: cc000000000000000000000000000004, type: 2}
+    prefabOverride: {fileID: 3576862325422680928, guid: a59df2ced68ffef41899d729c2e94a7d, type: 3}
+    spawnCount: 1
+    spawnDelaySeconds: 0
+    useSequentialSpawnWhenMultiple: 1
+    waitUntilCurrentSpawnedMonstersDefeated: 1
+    nextSpawnMaxWaitSeconds: 5
+    skipSpawnWhenRewardClaimed: 1
+    spawnOffset: {x: 0, y: 0}
+    randomizePoint: 0
+    spawnOnStart: 1
+  - spawnId: enemy_8
+    spawnPointId: enemy_8
+    spawnPointType: 1
+    rootObjectData: {fileID: 11400000, guid: cc000000000000000000000000000001, type: 2}
+    prefabOverride: {fileID: 3576862325422680928, guid: d5bf07532af8bbc45a0f20ef875ee17a, type: 3}
+    spawnCount: 1
+    spawnDelaySeconds: 0
+    useSequentialSpawnWhenMultiple: 1
+    waitUntilCurrentSpawnedMonstersDefeated: 1
+    nextSpawnMaxWaitSeconds: 5
+    skipSpawnWhenRewardClaimed: 1
+    spawnOffset: {x: 0, y: 0}
+    randomizePoint: 0
+    spawnOnStart: 1
+  - spawnId: enemy_9
+    spawnPointId: enemy_9
+    spawnPointType: 1
+    rootObjectData: {fileID: 11400000, guid: cc000000000000000000000000000001, type: 2}
+    prefabOverride: {fileID: 3576862325422680928, guid: d5bf07532af8bbc45a0f20ef875ee17a, type: 3}
+    spawnCount: 1
+    spawnDelaySeconds: 0
+    useSequentialSpawnWhenMultiple: 1
+    waitUntilCurrentSpawnedMonstersDefeated: 1
+    nextSpawnMaxWaitSeconds: 5
+    skipSpawnWhenRewardClaimed: 1
+    spawnOffset: {x: 0, y: 0}
+    randomizePoint: 0
+    spawnOnStart: 1
+  - spawnId: enemy_10
+    spawnPointId: enemy_10
+    spawnPointType: 1
+    rootObjectData: {fileID: 11400000, guid: cc000000000000000000000000000001, type: 2}
+    prefabOverride: {fileID: 3576862325422680928, guid: d5bf07532af8bbc45a0f20ef875ee17a, type: 3}
+    spawnCount: 1
+    spawnDelaySeconds: 0
+    useSequentialSpawnWhenMultiple: 1
+    waitUntilCurrentSpawnedMonstersDefeated: 1
+    nextSpawnMaxWaitSeconds: 5
+    skipSpawnWhenRewardClaimed: 1
+    spawnOffset: {x: 0, y: 0}
+    randomizePoint: 0
+    spawnOnStart: 1

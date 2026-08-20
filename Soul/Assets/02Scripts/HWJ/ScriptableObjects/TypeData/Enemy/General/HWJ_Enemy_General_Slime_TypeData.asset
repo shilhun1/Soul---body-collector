@@ -1,0 +1,131 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 62b1072cf898fa14b8272b23fb396e5a, type: 3}
+  m_Name: HWJ_Enemy_General_Slime_TypeData
+  m_EditorClassIdentifier: HWJ.Runtime::HWJ_EnemyTypeDataSO
+  objectType: 1
+  typeId: enemy.general.slime
+  displayName: "\uC77C\uBC18 \uC2AC\uB77C\uC784"
+  defaultWeaponType: 0
+  description: "\uC77C\uBC18 \uBAAC\uC2A4\uD130 \uACF5\uD1B5 FSM\uC744 \uC0AC\uC6A9\uD569\uB2C8\uB2E4.
+    \uC560\uB2C8\uBA54\uC774\uC158\uACFC \uC774\uD399\uD2B8\uB294 \uD6C4\uC18D \uC544\uD2B8
+    \uC791\uC5C5\uC5D0\uC11C \uC5F0\uACB0\uD569\uB2C8\uB2E4."
+  role:
+    weaponType: 0
+    isElite: 0
+    leavesCorpseOnDeath: 0
+    isPossessableBody: 1
+    guaranteesStatOrb: 0
+  tracking:
+    trackingRange: 12
+    loseTargetRange: 14
+  patrol:
+    enabled: 1
+    radius: 2.5
+    speedMultiplier: 0.55
+    turnPauseSeconds: 0.15
+  vision:
+    viewDistance: 12
+    viewAngle: 270
+    requireSamePlatform: 0
+    samePlatformHeightTolerance: 0.4
+    groundProbeDistance: 3
+    requireClearLineOfSight: 1
+  returnBehavior:
+    maxChaseDistanceFromSpawn: 14
+    speedMultiplier: 1
+    arrivalDistance: 0.1
+    waitBelowDifferentPlatform: 0
+  ai:
+    aiProfileId: ai.general.slime
+    decisionIntervalSeconds: 0.1
+    behaviorTreeId: 
+    idleSeconds: 0.35
+    detectSeconds: 0.15
+    attackPrepareSeconds: 0.05
+    attackRecoverySeconds: 0.4
+    repathSeconds: 0.15
+    defaultSkillCooldownSeconds: 3
+    basicAttackIntervalSeconds: 1.2
+    skillCycleCount: 0
+    skillCycleResetDelaySeconds: 5
+  navigation:
+    stoppingDistance: 0.88000005
+    pathRefreshSeconds: 0.15
+    canUsePlatformDrop: 0
+    avoidLedges: 1
+    ledgeCheckForwardDistance: 0.45
+    ledgeCheckDownDistance: 1.2
+    wallCheckDistance: 0.18
+  state:
+    startState: 1
+    attackRange: 1.6
+    returnToIdleDelaySeconds: 0.5
+    stopWhenHit: 1
+    hasSuperArmor: 0
+    immuneToHitStun: 0
+  basicAttack:
+    mode: 0
+    motionKey: ContactAttack
+    fallbackHitDelaySeconds: 0
+    hitRangeTolerance: 0.2
+    damageMultiplier: 1
+    contactDamageIntervalSeconds: 1.2
+  skillCycle:
+    skills: []
+  playerPossessionSkillSet:
+    skills: []
+  possessionBody:
+    canPossess: 0
+    canBePossessed: 1
+    possessableHeartEffectPrefab: {fileID: 0}
+    heartSocketName: Heart
+    possessionRange: 2
+    spiritMentalCostOnPossession: 5
+    livePossessionMaxMental: 60
+    livePossessionMentalCostOnSuccess: 10
+    livePossessionMentalDrainInterval: 1
+    livePossessionMentalDrainAmount: 1
+    livePossessionSuccessChance: 1
+    livePossessionFailureSpiritMentalCost: 10
+    livePossessionFailureControlLockSeconds: 0.5
+    livePossessionFailureKnockbackPower: 3
+    livePossessionFailureKnockbackSeconds: 0.2
+    livePossessionFailureMessage: "\uB300\uC0C1\uC758 \uC815\uC2E0\uB825\uC5D0 \uBC00\uB824
+      \uBE59\uC758\uC5D0 \uC2E4\uD328\uD588\uB2E4."
+    requiresDefeatedState: 0
+    transfersControlToBody: 1
+    loadsBodyStatsToPlayer: 1
+    overrideBodyDecayOnPossession: 0
+    possessedBodyDecayOverride:
+      resourceDisplayName: "\uBE59\uC758 \uC815\uC2E0\uB825"
+      initialDecayValue: 0
+      maxDecayValue: 60
+      decayTickSeconds: 1
+      decayAmountPerTick: 1
+      moveDecayPerSecond: 0
+      basicAttackDecayAmount: 0
+      skillDecayAmount: 0
+      actionDecayAmount: 0
+      hitDecayPenalty: 0
+      decayResistance: 0
+      startDecayOnEnterBody: 1
+      enterSoulStateWhenMaxed: 1
+      enterSoulStateWhenEmpty: 0
+      depletedMessage: "\uC774 \uBAB8\uC740 \uB354 \uC774\uC0C1 \uBABB \uC4F0\uACA0\uB2E4."
+      dangerThresholds:
+      - dangerLevel: 1
+        ratio: 0.5
+      - dangerLevel: 2
+        ratio: 0.75
+      - dangerLevel: 3
+        ratio: 0.9

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: hys_RuntimeReady_Player_LanceMotionProfile
   m_EditorClassIdentifier: HWJ.Runtime::HWJ_MotionProfileSO
   weaponType: 4
-  animatorController: {fileID: 9100000, guid: 6666e53a3312adb4ab9ba3080393ec78, type: 2}
+  animatorController: {fileID: 9100000, guid: aad5f0980164ee94aabe8a56759e5264, type: 2}
   defaultAttackMotionKey: Lance_ChargeThrust
   motions:
   - motionKey: Lance_ChargeThrust

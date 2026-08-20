@@ -84,3 +84,31 @@ MonoBehaviour:
     spawnOffset: {x: 0, y: 0}
     randomizePoint: 0
     spawnOnStart: 1
+  - spawnId: Enemy_General_Slime
+    spawnPointId: Enemy_General_Slime
+    spawnPointType: 1
+    rootObjectData: {fileID: 11400000, guid: 81aac2a979aedd346ab0e520b4b9151f, type: 2}
+    prefabOverride: {fileID: 7057163663799429369, guid: cfb879187ec1e6b4b92b3601d90a6939, type: 3}
+    spawnCount: 1
+    spawnDelaySeconds: 0
+    useSequentialSpawnWhenMultiple: 1
+    waitUntilCurrentSpawnedMonstersDefeated: 1
+    nextSpawnMaxWaitSeconds: 5
+    skipSpawnWhenRewardClaimed: 1
+    spawnOffset: {x: 0, y: 0}
+    randomizePoint: 0
+    spawnOnStart: 0
+  - spawnId: Enemy_General_Rat
+    spawnPointId: Enemy_General_Rat
+    spawnPointType: 1
+    rootObjectData: {fileID: 11400000, guid: 57a61846de480b143b46ea0b4cde2c37, type: 2}
+    prefabOverride: {fileID: 5209565325691485207, guid: 34f7b06717407b743888f490fe7b654f, type: 3}
+    spawnCount: 1
+    spawnDelaySeconds: 0
+    useSequentialSpawnWhenMultiple: 1
+    waitUntilCurrentSpawnedMonstersDefeated: 1
+    nextSpawnMaxWaitSeconds: 5
+    skipSpawnWhenRewardClaimed: 1
+    spawnOffset: {x: 0, y: 0}
+    randomizePoint: 0
+    spawnOnStart: 0

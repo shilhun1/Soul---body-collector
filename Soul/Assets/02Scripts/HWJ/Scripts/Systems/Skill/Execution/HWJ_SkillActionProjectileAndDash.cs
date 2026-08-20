@@ -25,7 +25,7 @@ public partial class HWJ_SkillActionSystem
 
         if (skillAction.ActionEffectPrefab != null)
         {
-            SpawnActionEffect(skillAction.ActionEffectPrefab);
+            SpawnActionEffect(skillAction);
         }
 
         switch (skillAction.ActionType)

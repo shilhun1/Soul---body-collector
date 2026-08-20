@@ -9,7 +9,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 
 /// <summary>
-/// 저장하지 않은 작업 씬을 건드리지 않고 빙의 PlayMode 테스트 5개를 실행합니다.
+/// 저장하지 않은 작업 씬을 건드리지 않고 빙의 PlayMode 테스트 묶음을 실행합니다.
 /// 일반 Play 모드의 씬 스냅샷 안에서 빈 런타임 씬으로 이동하므로 종료 후 사용자 씬은 그대로 복원됩니다.
 /// </summary>
 public sealed class HWJ_PossessionDirectPlayModeRunner : MonoBehaviour
@@ -25,10 +25,10 @@ public sealed class HWJ_PossessionDirectPlayModeRunner : MonoBehaviour
         nameof(HWJ_PossessionModesPlayModeTests.RMinigame_ProgressesWithUnscaledTimeWhileWorldIsPaused),
         nameof(HWJ_PossessionModesPlayModeTests.LiveMentalZero_ReleasesToSpirit_RestoresHostileWithRemainingHp_AndBlocksForever),
         nameof(HWJ_PossessionModesPlayModeTests.ECorpsePossession_IsImmediate_UsesDecay_AndGhostDoesNotDecay),
-        nameof(HWJ_PossessionModesPlayModeTests.LiveBodyHpZero_EjectsPlayerToSpiritAndLeavesDeadMonster),
+        nameof(HWJ_PossessionModesPlayModeTests.LiveBodyHpZero_EjectsPlayerToSpiritAndRemovesBodyPermanently),
         nameof(HWJ_PossessionModesPlayModeTests.SpiritMentalZero_EntersGameOverDeadState),
         nameof(HWJ_PossessionModesPlayModeTests.PossessionTransition_RestoresBodyPhysics_AndAllowsJump),
-        nameof(HWJ_PossessionModesPlayModeTests.PossessionTransition_ReleasesMashGate_AndAcceptsNextSpaceJump)
+        nameof(HWJ_PossessionModesPlayModeTests.PossessionTransition_ReleasesMashGate_AndAcceptsNextJumpRequest)
     };
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -60,6 +60,12 @@ public sealed class HWJ_PossessionDirectPlayModeRunner : MonoBehaviour
         if (File.Exists(RuntimeFlagPath))
         {
             File.Delete(RuntimeFlagPath);
+        }
+
+        if (Application.isBatchMode)
+        {
+            EditorApplication.Exit(failures.Count == 0 ? 0 : 1);
+            yield break;
         }
 
         // 일반 Play 모드를 끝내면 Unity가 저장하지 않은 사용자 씬 스냅샷을 원래 상태로 복원합니다.

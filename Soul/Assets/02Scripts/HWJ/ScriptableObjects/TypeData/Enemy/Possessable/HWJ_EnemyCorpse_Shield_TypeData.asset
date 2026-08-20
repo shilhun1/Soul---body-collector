@@ -26,6 +26,23 @@ MonoBehaviour:
   tracking:
     trackingRange: 8
     loseTargetRange: 0
+  patrol:
+    enabled: 1
+    radius: 2.5
+    speedMultiplier: 0.55
+    turnPauseSeconds: 0.15
+  vision:
+    viewDistance: 3
+    viewAngle: 180
+    requireSamePlatform: 1
+    samePlatformHeightTolerance: 0.4
+    groundProbeDistance: 3
+    requireClearLineOfSight: 1
+  returnBehavior:
+    maxChaseDistanceFromSpawn: 8
+    speedMultiplier: 1
+    arrivalDistance: 0.1
+    waitBelowDifferentPlatform: 1
   ai:
     aiProfileId: 
     decisionIntervalSeconds: 0.1
@@ -54,6 +71,13 @@ MonoBehaviour:
     stopWhenHit: 1
     hasSuperArmor: 0
     immuneToHitStun: 0
+  basicAttack:
+    mode: 0
+    motionKey: BasicAttack
+    fallbackHitDelaySeconds: 0.25
+    hitRangeTolerance: 0.15
+    damageMultiplier: 1
+    contactDamageIntervalSeconds: 1.5
   skillCycle:
     skills:
     - skillId: shield_charge
@@ -128,9 +152,9 @@ MonoBehaviour:
     requiresDefeatedState: 0
     transfersControlToBody: 1
     loadsBodyStatsToPlayer: 1
-    overrideBodyDecayOnPossession: 0
+    overrideBodyDecayOnPossession: 1
     possessedBodyDecayOverride:
-      resourceDisplayName: "\uBE59\uC758\uCCB4 \uC815\uC2E0\uB825"
+      resourceDisplayName: "\uC2DC\uCCB4 \uBD80\uD328"
       initialDecayValue: 0
       maxDecayValue: 120
       decayTickSeconds: 0.5
@@ -141,6 +165,7 @@ MonoBehaviour:
       actionDecayAmount: 0
       hitDecayPenalty: 0
       decayResistance: 0
+      reduceBodyHpWithDecay: 1
       startDecayOnEnterBody: 1
       enterSoulStateWhenMaxed: 1
       enterSoulStateWhenEmpty: 1

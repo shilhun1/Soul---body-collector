@@ -86,7 +86,7 @@ public static class hys_SwordMonsterAnimationValidator
     private static void ValidateProtectedHashes(List<string> results)
     {
         string projectRoot = Directory.GetParent(Application.dataPath).FullName;
-        foreach (KeyValuePair<string, string> pair in ProtectedHashes)
+        foreach (KeyValuePair<string, string> pair in ProtectedHashes)  
         {
             string assetPath = SwordRoot + "/Clips/" + pair.Key;
             string absolutePath = Path.Combine(projectRoot, assetPath.Replace('/', Path.DirectorySeparatorChar));

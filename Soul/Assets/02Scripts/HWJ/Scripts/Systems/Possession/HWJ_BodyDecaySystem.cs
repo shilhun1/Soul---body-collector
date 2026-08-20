@@ -15,6 +15,7 @@ public class HWJ_BodyDecaySystem : MonoBehaviour
     [SerializeField] private HWJ_SoulSystem soulSystem;
     [SerializeField] private HWJ_PossessionSystem possessionSystem;
     [SerializeField] private HWJ_PossessedBodySystem possessedBodySystem;
+    [SerializeField] private HWJ_RuntimeStatusSystem runtimeStatus;
 
     [Space(8f)]
     [Header("시체 부패 런타임")]
@@ -440,9 +441,14 @@ public class HWJ_BodyDecaySystem : MonoBehaviour
         }
 
         SetCurrentDecayValue(currentDecayValue + finalAmount, bodyDecay);
+        bool reducedBodyHp = bodyDecay != null
+            && bodyDecay.reduceBodyHpWithDecay
+            && runtimeStatus != null
+            && runtimeStatus.ApplyCorpseDecayHpLoss(finalAmount);
         runtimeStateMessage =
             $"시체 부패 {finalAmount:0.###} 증가. 사유: {reason}. "
-            + $"현재 부패: {CurrentDecayValue:0.###}/{MaxDecayValue:0.###}.";
+            + $"현재 부패: {CurrentDecayValue:0.###}/{MaxDecayValue:0.###}."
+            + (reducedBodyHp ? $" 빙의체 HP도 {finalAmount:0.###} 감소했습니다." : string.Empty);
     }
 
     private void TryReleasePossessionWhenDecayMaxed(HWJ_BodyDecayData bodyDecay)
@@ -655,6 +661,11 @@ public class HWJ_BodyDecaySystem : MonoBehaviour
         if (possessedBodySystem == null)
         {
             possessedBodySystem = GetComponent<HWJ_PossessedBodySystem>();
+        }
+
+        if (runtimeStatus == null)
+        {
+            runtimeStatus = GetComponent<HWJ_RuntimeStatusSystem>();
         }
     }
 

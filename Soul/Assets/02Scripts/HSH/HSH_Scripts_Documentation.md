@@ -48,6 +48,15 @@
 *   **HSH_GimmickDoor** (기믹 연동 문) *(신규 제작: 2026-08-07)*
     *   스위치나 기믹 연동 시 작동하는 문(Door/Gate) 컴포넌트입니다.
     *   Animator 파라미터 제어(`AnimatorOnly`), 단순 콜라이더 해제(`DisableCollider`), Y축 부드러운 위치 이동(`TransformMove`), 오브젝트 비활성화(`DisableObject`) 모드를 지원하며 작동 상태를 디버그 로그로 출력합니다.
+*   **HSH_FlameWall** (불꽃벽 기믹) *(신규 제작: 2026-08-11)*
+    *   육체(Body) 상태에서는 물리 벽으로 막히며 닿을 시 데미지 및 넉백을 입습니다.
+    *   영혼(Soul/Spirit) 상태에서는 `HSH_Soulpass` 연동을 통해 통과가 허용되지만, 불꽃벽 내부에 있는 동안 주기적(`damageInterval`) 화염 데미지를 입도록 구현된 기믹 컴포넌트입니다.
+*   **HSH_SpearDashBreakable** (창 폼 1번/4번 스킬 돌진 파괴 기믹) *(신규 제작 및 업데이트: 2026-08-11)*
+    *   기본 대쉬기로는 파괴되지 않으며, 플레이어가 창 폼(`HWJ_WeaponType.Lance`) 상태에서 **1번 스킬(`PiercingDrive`)** 또는 **4번 스킬(`BurstLance`)**로 돌진하여 부딪혔을 때만 오브젝트가 파괴/해제되어 통과가 가능해지는 기믹 컴포넌트입니다.
+    *   기본 대쉬기나 타 무기 폼 충돌 시 일반 단단한 물리 벽으로 작동하며, 파괴 모드(`DisableObject`, `DestroyObject`, `DisableCollider`, `AnimatorTrigger`), 파괴 이펙트, 음향 및 자동 복구 기능을 지원합니다.
+*   **HSH_AxeBreakableObject** (도끼 폼 파괴 기믹 오브젝트) *(신규 제작: 2026-08-12)*
+    *   플레이어가 **도끼 폼(`HWJ_WeaponType.Axe`)** 상태일 때 일반 공격, 스킬 적중 또는 물리/트리거 충돌 시 부서져서 통과가 가능해지는 환경 파괴 오브젝트 기믹 컴포넌트입니다.
+    *   `HWJ_PossessionSystem`, `HWJ_WeaponGimmickActivatorUtility`, `hys_Player_Attack` 다중 연동을 통해 도끼 폼을 완벽 판정하며, 다양한 파괴 모드(`DisableObject`, `DestroyObject`, `DisableCollider`, `AnimatorTrigger`), 파괴 이펙트/사운드, 도끼 내려찍기(Axe Dive) 전용 조건 및 자동 복구 기능을 지원합니다.
 
 ## 4. UI 시스템 (UI)
 게임 화면 내 다양한 정보와 피드백을 표시하는 스크립트들입니다.
@@ -159,5 +168,16 @@
     *   **`HSH_ShieldArrowTrap`**: 방패 폼(`HWJ_WeaponType.Shield`)일 경우 화살을 데미지 없이 막고 차단하는 방패 방어 화살 발사 함정 신규 제작 및 `RaycastAll` 감지 로직 적용.
     *   **`HSH_ProjectileSwitch`**: 화살/탄환 충돌 시 작동하는 스위치 구현, 태그 비교 예외 방지(`string.Equals`) 적용 및 작동 감지 `Debug.Log` 출력 연동.
     *   **`HSH_GimmickDoor`**: 스위치 및 기믹과 연동되어 열리는 문 컴포넌트 신규 제작 (애니메이터, 위치 이동, 콜라이더 제어 모드 지원 및 디버그 로그 출력).
+
+### 📅 2026-08-11 (화)
+*   **[HSH_FlameWall & HSH_SpearDashBreakable 기믹 신규 구현]**:
+    *   **`HSH_FlameWall`**: 육체 상태에서는 막힘/데미지를 적용하고 영혼 상태에서는 통과 가능하며 지속 데미지를 부여하는 불꽃벽 기믹 작성.
+    *   **`HSH_SpearDashBreakable`**: 창 폼(`HWJ_WeaponType.Lance`) 1번/4번 스킬 돌진 시에만 파괴되는 벽 기믹 구현.
+
+### 📅 2026-08-12 (수)
+*   **[HSH_AxeBreakableObject] 도끼 폼 파괴 기믹 오브젝트 신규 제작**:
+    *   도끼 폼(`HWJ_WeaponType.Axe`) 상태에서의 일반 공격(`TakeDamage`), 스킬 공격(`TryActivateFromSkillHit`) 및 물리/트리거 충돌 감지를 통해 환경 오브젝트를 파괴하는 기믹 작성.
+    *   `HWJ_PossessionSystem`, `HWJ_WeaponGimmickActivatorUtility`, `hys_Player_Attack` 다중 fallback 지원, 파괴 모드 4종(`DisableObject`, `DestroyObject`, `DisableCollider`, `AnimatorTrigger`), 시각/음향 연출 및 자동 복구(`respawnAfterTime`) 기능 구현.
+
 
 

@@ -922,6 +922,10 @@ MonoBehaviour:
   isSpawner: 0
   sparkPrefab: {fileID: 0}
   fireInterval: 5
+  detectPlayer: 1
+  detectDistance: 10
+  animator: {fileID: 0}
+  fireTriggerName: Fire
 --- !u!1001 &319155965
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1974,6 +1978,14 @@ MonoBehaviour:
   inactiveDuration: 3
   damageCooldown: 0.1
   knockbackPower: 5
+  detectPlayer: 0
+  detectionDistance: 4
+  detectDirection: {x: 0, y: 1}
+  animator: {fileID: 0}
+  attackTriggerName: Attack
+  activeBoolName: IsActive
+  steamCollider: {fileID: 0}
+  activeOffset: {x: 0, y: 1.5}
   steamParticles: {fileID: 1757637367}
 --- !u!4 &771666278 stripped
 Transform:
@@ -6602,6 +6614,10 @@ MonoBehaviour:
   playerPossession: {fileID: 0}
   autoFindPlayerResolverInScene: 1
   autoAddMissingPlayerCoreSystems: 1
+  autoPlacePlayerAtSceneStart: 1
+  autoBindSceneCamerasToPlayer: 1
+  sceneBootstrapRetrySeconds: 1
+  lastSceneBootstrapResult: 
   preservePlayerRuntimeAcrossScenes: 1
   hasPlayerRuntimeSnapshot: 0
   savedCurrentHp: 0
@@ -7855,10 +7871,13 @@ MonoBehaviour:
   isGrounded: 0
   groundLayer:
     serializedVersion: 2
-    m_Bits: 64
+    m_Bits: 0
   groundCheckOffset: {x: 0, y: -0.55}
   groundCheckSize: {x: 0.7, y: 0.12}
   phaseThroughCollidersInSoul: 1
+  swapLayerInSoulState: 1
+  soulLayerName: Soul
+  bodyLayerName: Player
   isSoulCollisionMode: 0
   ignoreEnemyBodyCollision: 1
   enemyCollisionRefreshSeconds: 0.25
@@ -7954,6 +7973,8 @@ MonoBehaviour:
   possessionRuleId: possession_can_start
   lastPossessionFailureCode: 0
   lastPossessionResult: 
+  lastLivePossessionRoll: 0
+  lastLivePossessionSuccessChance: 0
 --- !u!114 &1642525686
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7970,8 +7991,6 @@ MonoBehaviour:
   soulSystem: {fileID: 1642525687}
   possessionSystem: {fileID: 0}
   possessedBodySystem: {fileID: 0}
-  runtimeStatus: {fileID: 0}
-  collapseSystem: {fileID: 0}
   currentDecayValue: 0
   resetDecayWhenEnterBody: 1
   isDecaying: 0
@@ -8477,7 +8496,7 @@ SpriteRenderer:
   m_Size: {x: 0.23, y: 0.21}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 1
+  m_WasSpriteAssigned: 0
   m_SpriteSortPoint: 0
 --- !u!1 &1798815445
 GameObject:
