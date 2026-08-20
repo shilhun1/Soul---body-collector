@@ -227,16 +227,13 @@ public partial class HWJ_SkillActionSystem
             return null;
         }
 
-        if (mirrorActionEffectByFacing || !Mathf.Approximately(scaleMultiplier, 1f))
-        {
-            Vector3 scale = spawned.transform.localScale;
-            float targetScaleMultiplier = scaleMultiplier <= 0f ? 1f : scaleMultiplier;
-            float signX = (facingDirection < 0f && mirrorActionEffectByFacing) ? -1f : 1f;
-            scale.x = Mathf.Abs(scale.x) * signX * targetScaleMultiplier;
-            scale.y = Mathf.Abs(scale.y) * targetScaleMultiplier;
-            scale.z = Mathf.Abs(scale.z) * targetScaleMultiplier;
-            spawned.transform.localScale = scale;
-        }
+        Vector3 baseScale = prefab.transform.localScale;
+        float targetScaleMultiplier = scaleMultiplier <= 0f ? 1f : scaleMultiplier;
+        float signX = (facingDirection < 0f && mirrorActionEffectByFacing) ? -1f : 1f;
+        spawned.transform.localScale = new Vector3(
+            Mathf.Abs(baseScale.x) * signX * targetScaleMultiplier,
+            Mathf.Abs(baseScale.y) * targetScaleMultiplier,
+            Mathf.Abs(baseScale.z) * targetScaleMultiplier);
 
         return spawned;
     }

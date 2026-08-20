@@ -205,6 +205,8 @@ public static class hys_RuntimeReadyPrefabAnimationBinder
     private static void WirePlayerPrefab(Dictionary<string, HWJ_MotionProfileSO> profiles)
     {
         string prefabPath = $"{RuntimeReadyRoot}/HWJ_Runtime_Player_Soul.prefab";
+        if (!System.IO.File.Exists(prefabPath)) return;
+
         GameObject root = PrefabUtility.LoadPrefabContents(prefabPath);
         try
         {
@@ -279,6 +281,8 @@ public static class hys_RuntimeReadyPrefabAnimationBinder
     {
         string kind = possessable ? "Possessable" : "NoCorpse";
         string prefabPath = $"{RuntimeReadyRoot}/Enemies/HWJ_Runtime_Enemy_{kind}_{weapon.Name}.prefab";
+        if (!System.IO.File.Exists(prefabPath)) return;
+
         GameObject root = PrefabUtility.LoadPrefabContents(prefabPath);
         try
         {
@@ -297,6 +301,8 @@ public static class hys_RuntimeReadyPrefabAnimationBinder
     private static void WireCorpsePrefab(WeaponSpec weapon)
     {
         string prefabPath = $"{RuntimeReadyRoot}/Corpses/HWJ_Runtime_Corpse_{weapon.Name}.prefab";
+        if (!System.IO.File.Exists(prefabPath)) return;
+
         GameObject root = PrefabUtility.LoadPrefabContents(prefabPath);
         try
         {
