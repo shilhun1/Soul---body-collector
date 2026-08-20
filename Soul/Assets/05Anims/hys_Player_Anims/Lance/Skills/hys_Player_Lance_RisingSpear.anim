@@ -47,7 +47,38 @@ AnimationClip:
     classID: 212
     script: {fileID: 0}
     flags: 16
-  m_PPtrCurves: []
+  m_PPtrCurves:
+  - serializedVersion: 2
+    curve:
+    - time: 0
+      value: {fileID: 21300000, guid: a16ce000000000000000000000000036, type: 3}
+    - time: 0.21424244
+      value: {fileID: 21300000, guid: a16ce000000000000000000000000037, type: 3}
+    - time: 0.4284849
+      value: {fileID: 21300000, guid: a16ce000000000000000000000000038, type: 3}
+    - time: 0.6427273
+      value: {fileID: 21300000, guid: a16ce000000000000000000000000039, type: 3}
+    - time: 0.8569698
+      value: {fileID: 21300000, guid: a16ce000000000000000000000000040, type: 3}
+    - time: 1.0712122
+      value: {fileID: 21300000, guid: a16ce000000000000000000000000041, type: 3}
+    - time: 1.2854546
+      value: {fileID: 21300000, guid: a16ce000000000000000000000000015, type: 3}
+    - time: 1.4996971
+      value: {fileID: 21300000, guid: a16ce000000000000000000000000016, type: 3}
+    - time: 1.7139395
+      value: {fileID: 21300000, guid: a16ce000000000000000000000000017, type: 3}
+    - time: 1.928182
+      value: {fileID: 21300000, guid: a16ce000000000000000000000000018, type: 3}
+    - time: 2.1424243
+      value: {fileID: 21300000, guid: a16ce000000000000000000000000019, type: 3}
+    - time: 2.3566668
+      value: {fileID: 21300000, guid: a16ce000000000000000000000000020, type: 3}
+    attribute: m_Sprite
+    path: 
+    classID: 212
+    script: {fileID: 0}
+    flags: 2
   m_SampleRate: 12
   m_WrapMode: 1
   m_Bounds:
@@ -57,6 +88,15 @@ AnimationClip:
     genericBindings:
     - serializedVersion: 2
       path: 0
+      attribute: 0
+      script: {fileID: 0}
+      typeID: 212
+      customType: 23
+      isPPtrCurve: 1
+      isIntCurve: 0
+      isSerializeReferenceCurve: 0
+    - serializedVersion: 2
+      path: 0
       attribute: 304273561
       script: {fileID: 0}
       typeID: 212
@@ -64,7 +104,19 @@ AnimationClip:
       isPPtrCurve: 0
       isIntCurve: 0
       isSerializeReferenceCurve: 0
-    pptrCurveMapping: []
+    pptrCurveMapping:
+    - {fileID: 21300000, guid: a16ce000000000000000000000000036, type: 3}
+    - {fileID: 21300000, guid: a16ce000000000000000000000000037, type: 3}
+    - {fileID: 21300000, guid: a16ce000000000000000000000000038, type: 3}
+    - {fileID: 21300000, guid: a16ce000000000000000000000000039, type: 3}
+    - {fileID: 21300000, guid: a16ce000000000000000000000000040, type: 3}
+    - {fileID: 21300000, guid: a16ce000000000000000000000000041, type: 3}
+    - {fileID: 21300000, guid: a16ce000000000000000000000000015, type: 3}
+    - {fileID: 21300000, guid: a16ce000000000000000000000000016, type: 3}
+    - {fileID: 21300000, guid: a16ce000000000000000000000000017, type: 3}
+    - {fileID: 21300000, guid: a16ce000000000000000000000000018, type: 3}
+    - {fileID: 21300000, guid: a16ce000000000000000000000000019, type: 3}
+    - {fileID: 21300000, guid: a16ce000000000000000000000000020, type: 3}
   m_AnimationClipSettings:
     serializedVersion: 2
     m_AdditiveReferencePoseClip: {fileID: 0}
@@ -119,11 +171,4 @@ AnimationClip:
   m_EulerEditorCurves: []
   m_HasGenericRootTransform: 0
   m_HasMotionFloatCurves: 0
-  m_Events:
-  - time: 0.58
-    functionName: hys_PlaySkillEffect
-    data: VerticalStrike|3.2|0.65|0.5|180|19
-    objectReferenceParameter: {fileID: 0}
-    floatParameter: 0
-    intParameter: 0
-    messageOptions: 0
+  m_Events: []

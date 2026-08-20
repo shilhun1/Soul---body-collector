@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: HWJ.Runtime::HWJ_MotionProfileSO
   weaponType: 5
   animatorController: {fileID: 9100000, guid: fd94fc676dda4a85ac0d3b45ed941bd4, type: 2}
-  defaultAttackMotionKey: Bow_Shoot
+  defaultAttackMotionKey: Bow_AirArrowShot
   motions:
-  - motionKey: Bow_Draw
+  - motionKey: Bow_AirArrowShot
     animatorTriggerName: M_bow_1
     animatorStateName: 
     layerIndex: 0
@@ -24,7 +24,7 @@ MonoBehaviour:
     useTrigger: 1
     useCrossFade: 0
     resetTriggerBeforeSet: 1
-  - motionKey: Bow_Shoot
+  - motionKey: Bow_RapidShot
     animatorTriggerName: M_bow_2
     animatorStateName: 
     layerIndex: 0
@@ -32,7 +32,7 @@ MonoBehaviour:
     useTrigger: 1
     useCrossFade: 0
     resetTriggerBeforeSet: 1
-  - motionKey: Bow_RapidShot
+  - motionKey: Bow_LowChargeShot
     animatorTriggerName: M_bow_3
     animatorStateName: 
     layerIndex: 0

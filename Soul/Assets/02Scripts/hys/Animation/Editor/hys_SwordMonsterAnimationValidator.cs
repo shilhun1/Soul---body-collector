@@ -21,8 +21,9 @@ public static class hys_SwordMonsterAnimationValidator
     {
         { "hys_Enemy_Sword_Death.anim", "191F660ACF91068C9D3F678E766738E3E0DA7157D456E21DB704DB0087F3C978" },
         { "hys_Enemy_Sword_Hit.anim", "AF34E7DA260B7FFCF199A7667298957B7E9E459A372A8716B634F227002A6B1F" },
-        { "hys_Enemy_Sword_sword_diagonal_slash.anim", "25F2B4A5EC0D0BEF108F64777900978BEEE11E045803834A770927EE5980E303" },
-        { "hys_Enemy_Sword_sword_up_diagonal_slash.anim", "3DE8D2C814E28902BC5C9FD4A7718F1EEE02DB443297620FBDC78ED29E35F2FC" },
+        // 실제 R_Queen 검 프레임으로 갱신한 Sword 1·2번 클립을 보호합니다.
+        { "hys_Enemy_Sword_sword_diagonal_slash.anim", "28E21EEC395E511C1C5F9E8921F228370470479C41D21CB0F72E05CD02D5AF29" },
+        { "hys_Enemy_Sword_sword_up_diagonal_slash.anim", "AF5CD764781AD358DCF249DB12B90A9E86D2881016D8010D436471743DBDE31A" },
         { "hys_Enemy_Sword_Idle.anim", "ECB7689A32A8B8667E4EBB779E171218A7C35A77971460C70710F662989B15AF" }
     };
 

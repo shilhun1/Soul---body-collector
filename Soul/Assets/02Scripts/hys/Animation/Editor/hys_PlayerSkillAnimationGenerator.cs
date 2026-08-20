@@ -1,17 +1,20 @@
 #if UNITY_EDITOR
 using System;
+using System.Collections.Generic;
+using System.IO;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
 
 /// <summary>
-/// 플레이어 5종의 스킬 모션 키에 맞춰 비어 있는 전용 클립과 Animator 상태를 준비합니다.
-/// 스프라이트가 전달되면 생성된 클립의 SpriteRenderer.Sprite 트랙만 채우면 됩니다.
+/// HWJ 플레이어 스킬의 실제 지속 시간에 맞춰 무기별 도트 모션을 조합하고
+/// 외부 이펙트 이벤트가 없는 전용 AnimationClip과 Animator 상태를 구성합니다.
 /// </summary>
 [InitializeOnLoad]
 public static class hys_PlayerSkillAnimationGenerator
 {
-    private const string SessionKey = "hys.PlayerSkillAnimationGenerator.v2";
+    private const string SessionKey = "hys.PlayerSkillAnimationGenerator.v3";
+    private const float FrameRate = 12f;
     private const float TransitionSeconds = 0.03f;
 
     private sealed class WeaponSpec
@@ -26,13 +29,14 @@ public static class hys_PlayerSkillAnimationGenerator
         public string Name;
         public string MotionKey;
         public float Duration;
-        public EffectEventSpec[] Effects;
+        public string[] MotionSequence;
     }
 
-    private sealed class EffectEventSpec
+    private sealed class SpriteFrame
     {
-        public float Time;
-        public string Command;
+        public int Index;
+        public string Path;
+        public Sprite Sprite;
     }
 
     private static readonly WeaponSpec[] WeaponSpecs =
@@ -41,79 +45,57 @@ public static class hys_PlayerSkillAnimationGenerator
             "Sword",
             "Assets/05Anims/Player_Anims/hys_Player_Sword.controller",
             Skill("ReapSlash", "PlayerSkill_Sword_ReapSlash", 1.30f,
-                Effect(0.15f, "CircularSlash|2.6|1.0|0.1|0|18")),
+                "ForwardAttack1:0,1,5-7"),
             Skill("DashSlash", "PlayerSkill_Sword_DashSlash", 1.72f,
-                Effect(0.22f, "HorizontalWave|2.8|1.35|0.05|0|20")),
+                "Run", "ForwardAttack1:0,1,5-7"),
             Skill("ForceSlash", "PlayerSkill_Sword_ForceSlash", 1.33f,
-                Effect(0.25f, "HorizontalWave|3.3|1.5|0.1|0|18")),
+                "ForwardAttack2:0,1,4-7"),
             Skill("FinalSlash", "PlayerSkill_Sword_FinalSlash", 4.26f,
-                Effect(0.35f, "RotatingSlash|2.5|0.7|0.2|0|20"),
-                Effect(1.25f, "CircularSlash|3.0|0.8|0.15|0|20"),
-                Effect(2.25f, "HorizontalWave|3.5|1.6|0.1|0|20"),
-                Effect(3.20f, "CircularSlash|3.7|0.7|0.2|0|22"))),
+                "ForwardAttack1:0,1,5-7", "Run", "ForwardAttack2:0,1,4-7", "ForwardAttack1:0,1,5-7")),
         CreateWeapon(
             "Axe",
             "Assets/05Anims/hys_Player_Anims/Axe/hys_Player_Axe.controller",
             Skill("SlashAxe", "PlayerSkill_Axe_SlashAxe", 1.58f,
-                Effect(0.28f, "CircularSlash|3.0|0.9|0.1|-12|17")),
+                "Attack1:0-3"),
             Skill("FlameSlash", "PlayerSkill_Axe_FlameSlash", 2.60f,
-                Effect(0.42f, "RotatingSlash|3.2|0.8|0.2|-15|18")),
+                "Attack2:0-3", "Attack1:0-3"),
             Skill("Whirlwind", "PlayerSkill_Axe_Whirlwind", 2.63f,
-                Effect(0.15f, "CircularSlash|3.0|0.2|0.15|0|20"),
-                Effect(0.95f, "CircularSlash|3.2|0.2|0.15|120|20"),
-                Effect(1.75f, "CircularSlash|3.4|0.2|0.15|240|20")),
+                "Attack1:0-3", "Attack2:0-3", "Attack1:0-3"),
             Skill("EarthBreaker", "PlayerSkill_Axe_EarthBreaker", 4.16f,
-                Effect(1.10f, "VerticalStrike|3.5|0.75|0.2|0|17"),
-                Effect(2.60f, "VerticalStrike|4.0|0.9|0.2|0|19"))),
+                "JumpStart", "JumpApex", "JumpFall", "PlungeLand:3")),
         CreateWeapon(
             "Bow",
             "Assets/05Anims/hys_Player_Anims/Bow/hys_Player_Bow.controller",
             Skill("EvasionTriple", "PlayerSkill_Bow_EvasionTriple", 1.80f,
-                Effect(0.18f, "RotatingSlash|1.8|0.4|0.2|0|20"),
-                Effect(0.62f, "HorizontalWave|1.8|1.0|0.15|0|22"),
-                Effect(1.04f, "HorizontalWave|1.8|1.0|0.15|0|22")),
+                "Bow_Dash", "Bow_Attack1", "Bow_Attack1", "Bow_Attack1"),
             Skill("PentaStrike", "PlayerSkill_Bow_PentaStrike", 3.46f,
-                Effect(0.30f, "HorizontalWave|1.7|1.2|0.25|0|22"),
-                Effect(0.78f, "HorizontalWave|1.7|1.2|0.15|-8|22"),
-                Effect(1.26f, "HorizontalWave|1.7|1.2|0.05|6|22"),
-                Effect(1.74f, "HorizontalWave|1.7|1.2|0.18|-5|22"),
-                Effect(2.22f, "HorizontalWave|2.0|1.3|0.12|0|22")),
+                "Bow_Attack1", "Bow_Attack2:0-2,5", "Bow_Attack1", "Bow_Attack2:0-2,5", "Bow_Attack1"),
             Skill("GrandPierce", "PlayerSkill_Bow_GrandPierce", 2.96f,
-                Effect(0.68f, "HorizontalWave|4.3|1.8|0.15|0|20")),
+                "Bow_Attack2:0-2,5", "Bow_Attack2:0-2,5"),
             Skill("ArrowsRain", "PlayerSkill_Bow_ArrowsRain", 1.90f,
-                Effect(0.22f, "VerticalStrike|2.0|0.5|0.8|180|22"),
-                Effect(0.58f, "VerticalStrike|2.2|1.0|0.8|180|22"),
-                Effect(0.94f, "VerticalStrike|2.4|1.5|0.8|180|22"))),
+                "Bow_JumpStart", "Bow_Attack1", "Bow_JumpFall")),
         CreateWeapon(
             "Lance",
             "Assets/05Anims/hys_Player_Anims/Lance/hys_Player_Lance.controller",
             Skill("PiercingDrive", "PlayerSkill_Lance_PiercingDrive", 0.50f,
-                Effect(0.04f, "HorizontalWave|2.3|1.4|0.12|0|28")),
+                "Dash", "Attack1"),
             Skill("RapidStinger", "PlayerSkill_Lance_RapidStinger", 2.06f,
-                Effect(0.12f, "HorizontalWave|1.5|1.1|0.2|0|26"),
-                Effect(0.48f, "HorizontalWave|1.5|1.1|0.1|-5|26"),
-                Effect(0.84f, "HorizontalWave|1.5|1.1|0.25|5|26"),
-                Effect(1.20f, "HorizontalWave|1.5|1.1|0.12|-3|26"),
-                Effect(1.56f, "HorizontalWave|1.8|1.2|0.18|0|26")),
+                "Attack1", "Attack1", "Attack1", "Attack1", "Attack1"),
             Skill("RisingSpear", "PlayerSkill_Lance_RisingSpear", 2.44f,
-                Effect(0.58f, "VerticalStrike|3.2|0.65|0.5|180|19")),
+                "Attack2", "JumpStart", "JumpApex"),
             Skill("BurstLance", "PlayerSkill_Lance_BurstLance", 4.02f,
-                Effect(0.62f, "RotatingSlash|2.4|0.5|0.2|0|20"),
-                Effect(1.58f, "HorizontalWave|3.4|1.6|0.15|0|22"),
-                Effect(2.62f, "CircularSlash|3.5|0.8|0.2|0|22"))),
+                "Attack1", "Attack2", "Dash", "Attack1", "Attack2")),
         CreateWeapon(
             "Shield",
             "Assets/05Anims/hys_Player_Anims/Shield/hys_Player_Shield.controller",
             Skill("ShieldSlam", "PlayerSkill_Shield_ShieldSlam", 1.32f,
-                Effect(0.32f, "CircularSlash|2.4|0.8|0.1|0|18")),
+                "Run", "Attack"),
             Skill("GroundStrike", "PlayerSkill_Shield_GroundStrike", 1.48f,
-                Effect(0.42f, "VerticalStrike|3.0|0.65|0.1|0|18")),
+                "JumpStart", "JumpFall", "PlungeLand:3"),
             Skill("DarkBarrier", "PlayerSkill_Shield_DarkBarrier", 0.58f,
-                Effect(0.04f, "CircularSlash|3.4|0.0|0.2|0|28")),
+                "Hit:2", "Idle"),
             Skill("GroundQuake", "PlayerSkill_Shield_GroundQuake", 2.68f,
-                Effect(0.48f, "VerticalStrike|3.2|0.55|0.1|0|19"),
-                Effect(1.28f, "VerticalStrike|3.6|0.85|0.1|0|20"),
-                Effect(1.98f, "CircularSlash|3.8|0.25|0.15|0|22")))
+                "JumpStart", "JumpApex", "JumpFall", "PlungeLand:3", "Attack"))
     };
 
     static hys_PlayerSkillAnimationGenerator()
@@ -124,13 +106,12 @@ public static class hys_PlayerSkillAnimationGenerator
         }
     }
 
-    [MenuItem("Tools/hys/Animation/플레이어 스킬 애니메이션 골격 생성")]
+    [MenuItem("Tools/hys/Animation/플레이어 스킬 애니메이션 갱신")]
     public static void Generate()
     {
         int createdClips = 0;
+        int updatedClips = 0;
         int updatedControllers = 0;
-
-        ConfigureEffectTextures();
 
         foreach (WeaponSpec weapon in WeaponSpecs)
         {
@@ -144,7 +125,6 @@ public static class hys_PlayerSkillAnimationGenerator
 
             string skillFolder = $"Assets/05Anims/hys_Player_Anims/{weapon.Weapon}/Skills";
             EnsureFolder(skillFolder);
-
             bool controllerChanged = false;
 
             foreach (SkillSpec skill in weapon.Skills)
@@ -154,12 +134,15 @@ public static class hys_PlayerSkillAnimationGenerator
 
                 if (clip == null)
                 {
-                    clip = CreatePlaceholderClip(weapon.Weapon, skill);
+                    clip = CreateSkillClip(weapon.Weapon, skill);
                     AssetDatabase.CreateAsset(clip, clipPath);
                     createdClips++;
                 }
 
-                EnsureSkillEvents(clip, skill);
+                if (RebuildSkillFrames(clip, weapon, skill))
+                {
+                    updatedClips++;
+                }
 
                 controllerChanged |= EnsureSkillState(controller, skill.MotionKey, clip);
             }
@@ -173,7 +156,7 @@ public static class hys_PlayerSkillAnimationGenerator
 
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
-        Debug.Log($"[hys Skill Animation] 생성 완료 - 새 클립 {createdClips}개, 갱신 Animator {updatedControllers}개");
+        Debug.Log($"[hys Skill Animation] 완료 - 신규 클립 {createdClips}개, 프레임 갱신 {updatedClips}개, Animator 갱신 {updatedControllers}개");
     }
 
     private static void GenerateOnce()
@@ -191,81 +174,175 @@ public static class hys_PlayerSkillAnimationGenerator
         }
     }
 
-    private static AnimationClip CreatePlaceholderClip(string weapon, SkillSpec skill)
+    private static AnimationClip CreateSkillClip(string weapon, SkillSpec skill)
     {
-        AnimationClip clip = new AnimationClip
+        return new AnimationClip
         {
             name = $"hys_Player_{weapon}_{skill.Name}",
-            frameRate = 12f,
+            frameRate = FrameRate,
             wrapMode = WrapMode.Once
         };
+    }
 
-        // 빈 클립도 스킬 실행 시간만큼 유지되도록 투명도 1의 안전한 곡선을 넣습니다.
-        float duration = Mathf.Max(1f / clip.frameRate, skill.Duration);
+    private static bool RebuildSkillFrames(AnimationClip clip, WeaponSpec weapon, SkillSpec skill)
+    {
+        List<Sprite> sprites = new List<Sprite>();
+
+        foreach (string motionSpec in skill.MotionSequence)
+        {
+            sprites.AddRange(LoadMotionSprites(weapon.Weapon, motionSpec));
+        }
+
+        if (sprites.Count == 0)
+        {
+            Debug.LogError($"[hys Skill Animation] 사용할 프레임이 없습니다: {weapon.Weapon}/{skill.Name}");
+            return false;
+        }
+
+        clip.ClearCurves();
+        clip.frameRate = FrameRate;
+        clip.wrapMode = WrapMode.Once;
+
+        float frameDuration = 1f / FrameRate;
+        float duration = Mathf.Max(frameDuration, skill.Duration);
+        // Unity는 마지막 스프라이트 키 뒤에 한 프레임을 더해 클립 길이를 계산하므로
+        // 마지막 키를 종료 시각보다 정확히 한 프레임 앞에 배치합니다.
+        float lastFrameTime = Mathf.Max(0f, duration - frameDuration);
+        float frameInterval = sprites.Count > 1
+            ? lastFrameTime / (sprites.Count - 1)
+            : 0f;
+        ObjectReferenceKeyframe[] spriteKeys = new ObjectReferenceKeyframe[sprites.Count];
+
+        for (int i = 0; i < sprites.Count; i++)
+        {
+            spriteKeys[i] = new ObjectReferenceKeyframe
+            {
+                time = i * frameInterval,
+                value = sprites[i]
+            };
+        }
+
+        EditorCurveBinding spriteBinding = EditorCurveBinding.PPtrCurve(
+            string.Empty,
+            typeof(SpriteRenderer),
+            "m_Sprite");
+        AnimationUtility.SetObjectReferenceCurve(clip, spriteBinding, spriteKeys);
+
+        // 마지막 프레임이 스킬 데이터의 종료 시각까지 유지되도록 길이 곡선을 함께 둡니다.
         EditorCurveBinding durationBinding = EditorCurveBinding.FloatCurve(
             string.Empty,
             typeof(SpriteRenderer),
             "m_Color.a");
-        AnimationCurve durationCurve = AnimationCurve.Constant(0f, duration, 1f);
-        AnimationUtility.SetEditorCurve(clip, durationBinding, durationCurve);
+        AnimationUtility.SetEditorCurve(
+            clip,
+            durationBinding,
+            AnimationCurve.Constant(0f, duration, 1f));
 
         AnimationClipSettings settings = AnimationUtility.GetAnimationClipSettings(clip);
         settings.loopTime = false;
         settings.loopBlend = false;
         AnimationUtility.SetAnimationClipSettings(clip, settings);
-        return clip;
-    }
 
-    private static void EnsureSkillEvents(AnimationClip clip, SkillSpec skill)
-    {
-        EffectEventSpec[] effects = skill.Effects ?? Array.Empty<EffectEventSpec>();
-        AnimationEvent[] events = new AnimationEvent[effects.Length];
-        for (int i = 0; i < effects.Length; i++)
-        {
-            events[i] = new AnimationEvent
-            {
-                time = Mathf.Clamp(effects[i].Time, 0f, Mathf.Max(0f, skill.Duration - 0.01f)),
-                functionName = "hys_PlaySkillEffect",
-                stringParameter = effects[i].Command
-            };
-        }
-
-        // 캐릭터 스프라이트 트랙은 유지하고 이펙트 호출 이벤트만 갱신합니다.
-        AnimationUtility.SetAnimationEvents(clip, events);
+        // 스프라이트에 포함되지 않은 별도 이펙트 호출은 생성하지 않습니다.
+        AnimationUtility.SetAnimationEvents(clip, Array.Empty<AnimationEvent>());
         EditorUtility.SetDirty(clip);
+        return true;
     }
 
-    private static void ConfigureEffectTextures()
+    private static List<Sprite> LoadMotionSprites(string weapon, string motionSpec)
     {
-        string[] texturePaths =
-        {
-            "Assets/Resources/hys/PlayerSkillEffects/hys_SkillEffect_CircularSlash.png",
-            "Assets/Resources/hys/PlayerSkillEffects/hys_SkillEffect_VerticalStrike.png",
-            "Assets/Resources/hys/PlayerSkillEffects/hys_SkillEffect_HorizontalWave.png",
-            "Assets/Resources/hys/PlayerSkillEffects/hys_SkillEffect_RotatingSlash.png"
-        };
+        string[] motionParts = motionSpec.Split(':');
+        string motionName = motionParts[0];
+        HashSet<int> selectedFrames = motionParts.Length > 1
+            ? ParseFrameSelection(motionParts[1])
+            : null;
+        string spriteFolder = $"Assets/05Anims/hys_Player_Anims/{weapon}/Sprites";
+        string[] guids = AssetDatabase.FindAssets("t:Sprite", new[] { spriteFolder });
+        List<SpriteFrame> frames = new List<SpriteFrame>();
+        string marker = $"_{motionName}_";
 
-        AssetDatabase.Refresh();
-        foreach (string texturePath in texturePaths)
+        foreach (string guid in guids)
         {
-            TextureImporter importer = AssetImporter.GetAtPath(texturePath) as TextureImporter;
-            if (importer == null)
+            string path = AssetDatabase.GUIDToAssetPath(guid);
+            string fileName = Path.GetFileNameWithoutExtension(path);
+            int markerIndex = fileName.LastIndexOf(marker, StringComparison.Ordinal);
+
+            if (markerIndex < 0)
             {
-                Debug.LogWarning($"[hys Skill Animation] 이펙트 텍스처를 찾지 못했습니다: {texturePath}");
                 continue;
             }
 
-            importer.textureType = TextureImporterType.Default;
-            importer.alphaSource = TextureImporterAlphaSource.FromInput;
-            importer.alphaIsTransparency = true;
-            importer.mipmapEnabled = false;
-            importer.isReadable = true;
-            importer.filterMode = FilterMode.Point;
-            importer.wrapMode = TextureWrapMode.Clamp;
-            importer.textureCompression = TextureImporterCompression.Uncompressed;
-            importer.maxTextureSize = 2048;
-            importer.SaveAndReimport();
+            string suffix = fileName.Substring(markerIndex + marker.Length);
+
+            if (!int.TryParse(suffix, out int frameIndex))
+            {
+                continue;
+            }
+
+            if (selectedFrames != null && !selectedFrames.Contains(frameIndex))
+            {
+                continue;
+            }
+
+            Sprite sprite = AssetDatabase.LoadAssetAtPath<Sprite>(path);
+
+            if (sprite != null)
+            {
+                frames.Add(new SpriteFrame
+                {
+                    Index = frameIndex,
+                    Path = path,
+                    Sprite = sprite
+                });
+            }
         }
+
+        frames.Sort((left, right) =>
+        {
+            int indexCompare = left.Index.CompareTo(right.Index);
+            return indexCompare != 0
+                ? indexCompare
+                : string.CompareOrdinal(left.Path, right.Path);
+        });
+
+        List<Sprite> result = new List<Sprite>(frames.Count);
+
+        foreach (SpriteFrame frame in frames)
+        {
+            result.Add(frame.Sprite);
+        }
+
+        return result;
+    }
+
+    private static HashSet<int> ParseFrameSelection(string selection)
+    {
+        HashSet<int> result = new HashSet<int>();
+        string[] segments = selection.Split(',');
+
+        foreach (string segment in segments)
+        {
+            string[] range = segment.Split('-');
+
+            if (!int.TryParse(range[0], out int start))
+            {
+                continue;
+            }
+
+            int end = start;
+
+            if (range.Length > 1 && !int.TryParse(range[1], out end))
+            {
+                end = start;
+            }
+
+            for (int frame = Mathf.Min(start, end); frame <= Mathf.Max(start, end); frame++)
+            {
+                result.Add(frame);
+            }
+        }
+
+        return result;
     }
 
     private static bool EnsureSkillState(
@@ -290,7 +367,7 @@ public static class hys_PlayerSkillAnimationGenerator
             changed = true;
         }
 
-        if (skillState.motion == null)
+        if (skillState.motion != clip)
         {
             skillState.motion = clip;
             changed = true;
@@ -417,23 +494,14 @@ public static class hys_PlayerSkillAnimationGenerator
         string name,
         string motionKey,
         float duration,
-        params EffectEventSpec[] effects)
+        params string[] motionSequence)
     {
         return new SkillSpec
         {
             Name = name,
             MotionKey = motionKey,
             Duration = duration,
-            Effects = effects
-        };
-    }
-
-    private static EffectEventSpec Effect(float time, string command)
-    {
-        return new EffectEventSpec
-        {
-            Time = time,
-            Command = command
+            MotionSequence = motionSequence
         };
     }
 }

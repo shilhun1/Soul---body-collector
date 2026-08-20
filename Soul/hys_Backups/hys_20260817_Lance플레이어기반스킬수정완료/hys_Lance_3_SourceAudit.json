@@ -1,0 +1,206 @@
+[
+  {
+    "weapon": "Lance",
+    "skill": "lance_charge_thrust",
+    "duration_ms": 300,
+    "gif_frame_durations_ms": [
+      30,
+      30,
+      20,
+      40,
+      40,
+      40,
+      40,
+      30,
+      30
+    ],
+    "frame_sources": [
+      {
+        "frame": 0,
+        "source": "Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Attack1_00.png",
+        "edits": []
+      },
+      {
+        "frame": 1,
+        "source": "Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Attack1_01.png",
+        "edits": []
+      },
+      {
+        "frame": 2,
+        "source": "Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Attack1_02.png",
+        "edits": []
+      },
+      {
+        "frame": 3,
+        "source": "Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Attack1_03.png",
+        "edits": []
+      },
+      {
+        "frame": 4,
+        "source": "Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Attack1_04.png",
+        "edits": []
+      },
+      {
+        "frame": 5,
+        "source": "Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Attack1_05.png",
+        "edits": []
+      },
+      {
+        "frame": 6,
+        "source": "Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Attack1_04.png",
+        "edits": []
+      },
+      {
+        "frame": 7,
+        "source": "Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Attack1_01.png",
+        "edits": []
+      },
+      {
+        "frame": 8,
+        "source": "Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Attack1_00.png",
+        "edits": []
+      }
+    ],
+    "gif": "C:\\Users\\hanss\\Desktop\\Soul---body-collector\\hys_FinalVersion_15_GIFs\\hys_Final_Enemy_Lance_lance_charge_thrust.gif"
+  },
+  {
+    "weapon": "Lance",
+    "skill": "lance_thrust_combo",
+    "duration_ms": 650,
+    "gif_frame_durations_ms": [
+      70,
+      60,
+      60,
+      60,
+      60,
+      60,
+      60,
+      70,
+      150
+    ],
+    "frame_sources": [
+      {
+        "frame": 0,
+        "source": "Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Attack1_00.png",
+        "edits": []
+      },
+      {
+        "frame": 1,
+        "source": "Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Attack1_03.png",
+        "edits": []
+      },
+      {
+        "frame": 2,
+        "source": "Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Attack1_05.png",
+        "edits": []
+      },
+      {
+        "frame": 3,
+        "source": "Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Attack2_03.png",
+        "edits": []
+      },
+      {
+        "frame": 4,
+        "source": "Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Attack2_05.png",
+        "edits": []
+      },
+      {
+        "frame": 5,
+        "source": "Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Attack1_03.png",
+        "edits": []
+      },
+      {
+        "frame": 6,
+        "source": "Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Attack1_05.png",
+        "edits": []
+      },
+      {
+        "frame": 7,
+        "source": "Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Attack2_03.png",
+        "edits": []
+      },
+      {
+        "frame": 8,
+        "source": "Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Idle_00.png",
+        "edits": []
+      }
+    ],
+    "gif": "C:\\Users\\hanss\\Desktop\\Soul---body-collector\\hys_FinalVersion_15_GIFs\\hys_Final_Enemy_Lance_lance_thrust_combo.gif"
+  },
+  {
+    "weapon": "Lance",
+    "skill": "lance_finisher_thrust",
+    "duration_ms": 350,
+    "gif_frame_durations_ms": [
+      30,
+      30,
+      20,
+      50,
+      50,
+      50,
+      40,
+      40,
+      40
+    ],
+    "frame_sources": [
+      {
+        "frame": 0,
+        "source": "Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Idle_00.png",
+        "edits": []
+      },
+      {
+        "frame": 1,
+        "source": "Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Attack2_00.png",
+        "edits": []
+      },
+      {
+        "frame": 2,
+        "source": "Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Attack2_01.png",
+        "edits": [
+          "player_source_pose_pixel_offset"
+        ]
+      },
+      {
+        "frame": 3,
+        "source": "Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Attack2_03.png",
+        "edits": [
+          "player_source_pose_pixel_offset"
+        ]
+      },
+      {
+        "frame": 4,
+        "source": "Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Attack2_04.png",
+        "edits": [
+          "player_source_pose_pixel_offset"
+        ]
+      },
+      {
+        "frame": 5,
+        "source": "Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Attack2_05.png",
+        "edits": [
+          "player_source_pose_pixel_offset"
+        ]
+      },
+      {
+        "frame": 6,
+        "source": "Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Attack2_04.png",
+        "edits": [
+          "player_source_pose_pixel_offset"
+        ]
+      },
+      {
+        "frame": 7,
+        "source": "Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Attack2_01.png",
+        "edits": [
+          "player_source_pose_pixel_offset"
+        ]
+      },
+      {
+        "frame": 8,
+        "source": "Assets/05Anims/hys_Player_Anims/Lance/Sprites/hys_RedBishop_PlayerMotions/hys_RedBishop_Idle_00.png",
+        "edits": []
+      }
+    ],
+    "gif": "C:\\Users\\hanss\\Desktop\\Soul---body-collector\\hys_FinalVersion_15_GIFs\\hys_Final_Enemy_Lance_lance_finisher_thrust.gif"
+  }
+]

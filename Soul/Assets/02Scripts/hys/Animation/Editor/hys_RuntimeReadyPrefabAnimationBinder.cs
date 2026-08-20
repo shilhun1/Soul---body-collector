@@ -24,6 +24,7 @@ public static class hys_RuntimeReadyPrefabAnimationBinder
         public string PlayerControllerPath;
         public string MonsterControllerPath;
         public string DefaultAttackKey;
+        public string MonsterDefaultAttackKey;
         public MotionSpec[] PlayerMotions;
         public MotionSpec[] MonsterMotions;
     }
@@ -95,9 +96,10 @@ public static class hys_RuntimeReadyPrefabAnimationBinder
                 Trigger("PlayerSkill_Bow_ArrowsRain")),
             MonsterMotions(
                 "Bow",
-                Trigger("Bow_Draw", "M_bow_1"),
-                Trigger("Bow_Shoot", "M_bow_2"),
-                Trigger("Bow_RapidShot", "M_bow_3"))),
+                Trigger("Bow_AirArrowShot", "M_bow_1"),
+                Trigger("Bow_RapidShot", "M_bow_2"),
+                Trigger("Bow_LowChargeShot", "M_bow_3")),
+            "Bow_AirArrowShot"),
         Weapon(
             "Lance",
             HWJ_WeaponType.Lance,
@@ -137,9 +139,10 @@ public static class hys_RuntimeReadyPrefabAnimationBinder
                 Trigger("PlayerSkill_Shield_GroundQuake")),
             MonsterMotions(
                 "Shield",
-                Trigger("Shield_Guard", "M_shield_1"),
-                Trigger("Shield_Bash", "M_shield_2"),
-                Trigger("Shield_Charge", "M_shield_3")))
+                Trigger("Shield_Charge", "M_shield_1"),
+                Trigger("Shield_Slam", "M_shield_2"),
+                Trigger("Shield_DiagonalKnockback", "M_shield_3")),
+            "Shield_Charge")
     };
 
     static hys_RuntimeReadyPrefabAnimationBinder()
@@ -171,7 +174,7 @@ public static class hys_RuntimeReadyPrefabAnimationBinder
                 $"{ProfileRoot}/hys_RuntimeReady_Monster_{weapon.Name}MotionProfile.asset",
                 weapon.WeaponType,
                 monsterController,
-                weapon.DefaultAttackKey,
+                weapon.MonsterDefaultAttackKey,
                 weapon.MonsterMotions);
         }
 
@@ -453,7 +456,8 @@ public static class hys_RuntimeReadyPrefabAnimationBinder
         string monsterControllerPath,
         string defaultAttackKey,
         MotionSpec[] playerMotions,
-        MotionSpec[] monsterMotions)
+        MotionSpec[] monsterMotions,
+        string monsterDefaultAttackKey = null)
     {
         return new WeaponSpec
         {
@@ -462,6 +466,8 @@ public static class hys_RuntimeReadyPrefabAnimationBinder
             PlayerControllerPath = playerControllerPath,
             MonsterControllerPath = monsterControllerPath,
             DefaultAttackKey = defaultAttackKey,
+            // 플레이어 기본 공격과 다른 HWJ 몬스터 패턴 키를 별도로 보존합니다.
+            MonsterDefaultAttackKey = monsterDefaultAttackKey ?? defaultAttackKey,
             PlayerMotions = playerMotions,
             MonsterMotions = monsterMotions
         };

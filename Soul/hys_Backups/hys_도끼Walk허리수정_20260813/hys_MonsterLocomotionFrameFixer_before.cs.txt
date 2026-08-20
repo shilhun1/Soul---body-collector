@@ -1,0 +1,331 @@
+#if UNITY_EDITOR
+using System;
+using System.Collections.Generic;
+using System.IO;
+using UnityEditor;
+using UnityEngine;
+
+/// <summary>
+/// 도끼 몬스터의 과한 상하 반복을 줄이고 활 이동 프레임의 잘못 잘린 픽셀 조각을 제거합니다.
+/// </summary>
+public static class hys_MonsterLocomotionFrameFixer
+{
+    private const string AxeSpriteFolder =
+        "Assets/05Anims/hys_Player_Anims/Axe/Sprites/hys_RedKing_PlayerMotions";
+    private const string AxeAlignedWalkFolder =
+        "Assets/05Anims/hys_Enemy_Anims/Axe/Sprites/hys_Enemy_Axe_WalkAligned";
+    private const string BowSpriteFolder =
+        "Assets/05Anims/hys_Player_Anims/Bow/Sprites/hys_RedBishop_Bow_PlayerMotions";
+
+    [MenuItem("Tools/hys/Animation/도끼 이동 및 활 중복 프레임 수정")]
+    public static void Fix()
+    {
+        CleanBowRunFrames();
+
+        // 큰 자세 전환을 제외하고 안정된 앞쪽 프레임을 왕복해 몸통이 춤추듯 튀지 않게 합니다.
+        RebuildAxeClip(
+            "Assets/05Anims/hys_Enemy_Anims/Axe/Clips/hys_Enemy_Axe_Idle.anim",
+            "Idle", new[] { 0, 1, 2, 1 }, 0.75f, 8f);
+        // Run 원본은 몸통과 다리 조합이 어긋나므로 연결된 전진 자세인 Dash 5프레임을 Walk 속도로 씁니다.
+        RebuildAxeClip(
+            "Assets/05Anims/hys_Enemy_Anims/Axe/Clips/hys_Enemy_Axe_Walk.anim",
+            "Dash", new[] { 0, 1, 2, 3, 4 }, 0.80f, 10f);
+
+        AssetDatabase.SaveAssets();
+        AssetDatabase.Refresh();
+        Debug.Log("[hys Locomotion] 도끼 Idle/Walk 안정화 및 활 Run 프레임 정리 완료");
+    }
+
+    private static void CleanBowRunFrames()
+    {
+        string absoluteFolder = Path.GetFullPath(
+            Path.Combine(Application.dataPath, "..", BowSpriteFolder));
+
+        foreach (string absolutePath in Directory.GetFiles(
+                     absoluteFolder, "hys_RedBishop_Bow_Run_*.png"))
+        {
+            Texture2D texture = new Texture2D(2, 2, TextureFormat.RGBA32, false);
+            if (!ImageConversion.LoadImage(texture, File.ReadAllBytes(absolutePath), false))
+            {
+                UnityEngine.Object.DestroyImmediate(texture);
+                throw new InvalidOperationException($"활 이동 PNG를 읽지 못했습니다: {absolutePath}");
+            }
+
+            Color32[] pixels = texture.GetPixels32();
+            bool[] keep = FindLargestOpaqueComponent(pixels, texture.width, texture.height);
+            int removedPixels = 0;
+
+            for (int index = 0; index < pixels.Length; index++)
+            {
+                if (pixels[index].a == 0 || keep[index])
+                {
+                    continue;
+                }
+
+                // 본체와 떨어진 작은 활 잔상 및 잘못 잘린 조각만 투명하게 지웁니다.
+                pixels[index] = new Color32(0, 0, 0, 0);
+                removedPixels++;
+            }
+
+            texture.SetPixels32(pixels);
+            texture.Apply(false, false);
+            File.WriteAllBytes(absolutePath, texture.EncodeToPNG());
+            UnityEngine.Object.DestroyImmediate(texture);
+
+            string assetPath = BowSpriteFolder + "/" + Path.GetFileName(absolutePath);
+            AssetDatabase.ImportAsset(assetPath, ImportAssetOptions.ForceUpdate);
+            Debug.Log($"[hys Locomotion] {Path.GetFileName(absolutePath)} 잔상 {removedPixels}픽셀 제거");
+        }
+    }
+
+    private static bool[] FindLargestOpaqueComponent(Color32[] pixels, int width, int height)
+    {
+        bool[] visited = new bool[pixels.Length];
+        List<int> largest = new List<int>();
+        Queue<int> queue = new Queue<int>();
+
+        for (int start = 0; start < pixels.Length; start++)
+        {
+            if (visited[start] || pixels[start].a == 0)
+            {
+                continue;
+            }
+
+            List<int> component = new List<int>();
+            visited[start] = true;
+            queue.Enqueue(start);
+
+            while (queue.Count > 0)
+            {
+                int current = queue.Dequeue();
+                component.Add(current);
+                int x = current % width;
+                int y = current / width;
+
+                for (int offsetY = -1; offsetY <= 1; offsetY++)
+                {
+                    for (int offsetX = -1; offsetX <= 1; offsetX++)
+                    {
+                        if (offsetX == 0 && offsetY == 0)
+                        {
+                            continue;
+                        }
+
+                        int nextX = x + offsetX;
+                        int nextY = y + offsetY;
+                        if (nextX < 0 || nextX >= width || nextY < 0 || nextY >= height)
+                        {
+                            continue;
+                        }
+
+                        int next = nextY * width + nextX;
+                        if (visited[next] || pixels[next].a == 0)
+                        {
+                            continue;
+                        }
+
+                        visited[next] = true;
+                        queue.Enqueue(next);
+                    }
+                }
+            }
+
+            if (component.Count > largest.Count)
+            {
+                largest = component;
+            }
+        }
+
+        bool[] result = new bool[pixels.Length];
+        foreach (int index in largest)
+        {
+            result[index] = true;
+        }
+
+        return result;
+    }
+
+    private static void RebuildAxeClip(
+        string clipPath, string motion, int[] indices, float duration, float frameRate)
+    {
+        AnimationClip clip = AssetDatabase.LoadAssetAtPath<AnimationClip>(clipPath);
+        if (clip == null)
+        {
+            throw new InvalidOperationException($"도끼 이동 클립을 찾지 못했습니다: {clipPath}");
+        }
+
+        ObjectReferenceKeyframe[] keys = new ObjectReferenceKeyframe[indices.Length];
+        float interval = duration / indices.Length;
+
+        for (int i = 0; i < indices.Length; i++)
+        {
+            string spritePath = $"{AxeSpriteFolder}/hys_RedKing_{motion}_{indices[i]:00}.png";
+            Sprite sprite = AssetDatabase.LoadAssetAtPath<Sprite>(spritePath);
+            if (sprite == null)
+            {
+                throw new InvalidOperationException($"도끼 이동 스프라이트를 찾지 못했습니다: {spritePath}");
+            }
+
+            keys[i] = new ObjectReferenceKeyframe { time = i * interval, value = sprite };
+        }
+
+        clip.ClearCurves();
+        clip.frameRate = frameRate;
+        clip.wrapMode = WrapMode.Loop;
+
+        EditorCurveBinding spriteBinding = EditorCurveBinding.PPtrCurve(
+            string.Empty, typeof(SpriteRenderer), "m_Sprite");
+        AnimationUtility.SetObjectReferenceCurve(clip, spriteBinding, keys);
+
+        // 마지막 프레임이 루프 종료 시점까지 유지되도록 길이 전용 곡선을 둡니다.
+        EditorCurveBinding durationBinding = EditorCurveBinding.FloatCurve(
+            string.Empty, typeof(SpriteRenderer), "m_Color.a");
+        AnimationUtility.SetEditorCurve(
+            clip, durationBinding, AnimationCurve.Constant(0f, duration, 1f));
+
+        AnimationClipSettings settings = AnimationUtility.GetAnimationClipSettings(clip);
+        settings.loopTime = true;
+        settings.loopBlend = false;
+        AnimationUtility.SetAnimationClipSettings(clip, settings);
+        AnimationUtility.SetAnimationEvents(clip, Array.Empty<AnimationEvent>());
+        EditorUtility.SetDirty(clip);
+    }
+
+    private static List<Sprite> CreateAlignedAxeWalkSprites()
+    {
+        EnsureAssetFolder(AxeAlignedWalkFolder);
+
+        // 첫 프레임의 몸통 중심을 기준으로 각 원본 프레임의 위치 차이만 보정합니다.
+        int[] offsetX = { 0, 0, 0, 2, 1, 1, 3, 2 };
+        int[] offsetYFromTop = { 0, 0, -1, -1, 0, -1, -1, -1 };
+        List<Sprite> sprites = new List<Sprite>(offsetX.Length);
+
+        for (int index = 0; index < offsetX.Length; index++)
+        {
+            string sourcePath = $"{AxeSpriteFolder}/hys_RedKing_Run_{index:00}.png";
+            string outputPath = $"{AxeAlignedWalkFolder}/hys_Enemy_Axe_WalkAligned_{index:00}.png";
+            WriteShiftedSprite(sourcePath, outputPath, offsetX[index], offsetYFromTop[index]);
+
+            Sprite sprite = AssetDatabase.LoadAssetAtPath<Sprite>(outputPath);
+            if (sprite == null)
+            {
+                throw new InvalidOperationException($"정렬된 도끼 Walk 스프라이트를 읽지 못했습니다: {outputPath}");
+            }
+
+            sprites.Add(sprite);
+        }
+
+        return sprites;
+    }
+
+    private static void WriteShiftedSprite(
+        string sourcePath, string outputPath, int offsetX, int offsetYFromTop)
+    {
+        string sourceAbsolutePath = Path.GetFullPath(
+            Path.Combine(Application.dataPath, "..", sourcePath));
+        string outputAbsolutePath = Path.GetFullPath(
+            Path.Combine(Application.dataPath, "..", outputPath));
+        Texture2D source = new Texture2D(2, 2, TextureFormat.RGBA32, false);
+
+        if (!ImageConversion.LoadImage(source, File.ReadAllBytes(sourceAbsolutePath), false))
+        {
+            UnityEngine.Object.DestroyImmediate(source);
+            throw new InvalidOperationException($"도끼 Walk PNG를 읽지 못했습니다: {sourcePath}");
+        }
+
+        Color32[] sourcePixels = source.GetPixels32();
+        Color32[] outputPixels = new Color32[sourcePixels.Length];
+
+        for (int y = 0; y < source.height; y++)
+        {
+            for (int x = 0; x < source.width; x++)
+            {
+                int targetX = x + offsetX;
+                int targetY = y - offsetYFromTop;
+                if (targetX < 0 || targetX >= source.width || targetY < 0 || targetY >= source.height)
+                {
+                    continue;
+                }
+
+                outputPixels[targetY * source.width + targetX] = sourcePixels[y * source.width + x];
+            }
+        }
+
+        Texture2D output = new Texture2D(source.width, source.height, TextureFormat.RGBA32, false);
+        output.SetPixels32(outputPixels);
+        output.Apply(false, false);
+        File.WriteAllBytes(outputAbsolutePath, output.EncodeToPNG());
+        UnityEngine.Object.DestroyImmediate(source);
+        UnityEngine.Object.DestroyImmediate(output);
+
+        AssetDatabase.ImportAsset(outputPath, ImportAssetOptions.ForceUpdate);
+        TextureImporter sourceImporter = AssetImporter.GetAtPath(sourcePath) as TextureImporter;
+        TextureImporter outputImporter = AssetImporter.GetAtPath(outputPath) as TextureImporter;
+        if (sourceImporter == null || outputImporter == null)
+        {
+            throw new InvalidOperationException($"도끼 Walk 임포터를 읽지 못했습니다: {outputPath}");
+        }
+
+        TextureImporterSettings settings = new TextureImporterSettings();
+        sourceImporter.ReadTextureSettings(settings);
+        outputImporter.SetTextureSettings(settings);
+        outputImporter.textureType = TextureImporterType.Sprite;
+        outputImporter.spriteImportMode = SpriteImportMode.Single;
+        outputImporter.spritePixelsPerUnit = sourceImporter.spritePixelsPerUnit;
+        outputImporter.filterMode = FilterMode.Point;
+        outputImporter.textureCompression = TextureImporterCompression.Uncompressed;
+        outputImporter.SaveAndReimport();
+    }
+
+    private static void RebuildAxeClip(
+        string clipPath, List<Sprite> sprites, float duration, float frameRate)
+    {
+        AnimationClip clip = AssetDatabase.LoadAssetAtPath<AnimationClip>(clipPath);
+        if (clip == null)
+        {
+            throw new InvalidOperationException($"도끼 Walk 클립을 찾지 못했습니다: {clipPath}");
+        }
+
+        ObjectReferenceKeyframe[] keys = new ObjectReferenceKeyframe[sprites.Count];
+        float interval = duration / sprites.Count;
+        for (int i = 0; i < sprites.Count; i++)
+        {
+            keys[i] = new ObjectReferenceKeyframe { time = i * interval, value = sprites[i] };
+        }
+
+        clip.ClearCurves();
+        clip.frameRate = frameRate;
+        clip.wrapMode = WrapMode.Loop;
+        EditorCurveBinding spriteBinding = EditorCurveBinding.PPtrCurve(
+            string.Empty, typeof(SpriteRenderer), "m_Sprite");
+        AnimationUtility.SetObjectReferenceCurve(clip, spriteBinding, keys);
+        EditorCurveBinding durationBinding = EditorCurveBinding.FloatCurve(
+            string.Empty, typeof(SpriteRenderer), "m_Color.a");
+        AnimationUtility.SetEditorCurve(
+            clip, durationBinding, AnimationCurve.Constant(0f, duration, 1f));
+
+        AnimationClipSettings settings = AnimationUtility.GetAnimationClipSettings(clip);
+        settings.loopTime = true;
+        settings.loopBlend = false;
+        AnimationUtility.SetAnimationClipSettings(clip, settings);
+        AnimationUtility.SetAnimationEvents(clip, Array.Empty<AnimationEvent>());
+        EditorUtility.SetDirty(clip);
+    }
+
+    private static void EnsureAssetFolder(string assetFolder)
+    {
+        string[] parts = assetFolder.Split('/');
+        string current = parts[0];
+        for (int i = 1; i < parts.Length; i++)
+        {
+            string next = current + "/" + parts[i];
+            if (!AssetDatabase.IsValidFolder(next))
+            {
+                AssetDatabase.CreateFolder(current, parts[i]);
+            }
+
+            current = next;
+        }
+    }
+}
+#endif
