@@ -18,7 +18,7 @@ MonoBehaviour:
   motions:
   - motionKey: Lance_ChargeThrust
     animatorTriggerName: 
-    animatorStateName: Base Layer.hys_Lance_Attack1
+    animatorStateName: hys_Lance_Attack1
     layerIndex: 0
     transitionSeconds: 0.03
     useTrigger: 0
@@ -26,7 +26,7 @@ MonoBehaviour:
     resetTriggerBeforeSet: 1
   - motionKey: Lance_ThrustCombo1
     animatorTriggerName: 
-    animatorStateName: Base Layer.hys_Lance_Attack1
+    animatorStateName: hys_Lance_Attack1
     layerIndex: 0
     transitionSeconds: 0.03
     useTrigger: 0
@@ -34,7 +34,7 @@ MonoBehaviour:
     resetTriggerBeforeSet: 1
   - motionKey: Lance_ThrustCombo2
     animatorTriggerName: 
-    animatorStateName: Base Layer.hys_Lance_Attack2
+    animatorStateName: hys_Lance_Attack2
     layerIndex: 0
     transitionSeconds: 0.03
     useTrigger: 0
@@ -42,7 +42,7 @@ MonoBehaviour:
     resetTriggerBeforeSet: 1
   - motionKey: Lance_ThrustCombo3
     animatorTriggerName: 
-    animatorStateName: Base Layer.hys_Lance_Attack1
+    animatorStateName: hys_Lance_Attack1
     layerIndex: 0
     transitionSeconds: 0.03
     useTrigger: 0
@@ -50,7 +50,7 @@ MonoBehaviour:
     resetTriggerBeforeSet: 1
   - motionKey: Lance_ThrustCombo4
     animatorTriggerName: 
-    animatorStateName: Base Layer.hys_Lance_Attack2
+    animatorStateName: hys_Lance_Attack2
     layerIndex: 0
     transitionSeconds: 0.03
     useTrigger: 0
@@ -58,7 +58,7 @@ MonoBehaviour:
     resetTriggerBeforeSet: 1
   - motionKey: Lance_FinisherThrust
     animatorTriggerName: 
-    animatorStateName: Base Layer.hys_Lance_Attack2
+    animatorStateName: hys_Lance_Attack2
     layerIndex: 0
     transitionSeconds: 0.03
     useTrigger: 0
@@ -98,7 +98,7 @@ MonoBehaviour:
     resetTriggerBeforeSet: 1
   - motionKey: Jump
     animatorTriggerName: 
-    animatorStateName: Base Layer.hys_Lance_Jump_Start
+    animatorStateName: hys_Lance_Jump_Start
     layerIndex: 0
     transitionSeconds: 0.03
     useTrigger: 0
@@ -106,7 +106,7 @@ MonoBehaviour:
     resetTriggerBeforeSet: 1
   - motionKey: DoubleJump
     animatorTriggerName: 
-    animatorStateName: Base Layer.hys_Lance_Jump_Start
+    animatorStateName: hys_Lance_Jump_Start
     layerIndex: 0
     transitionSeconds: 0.03
     useTrigger: 0
@@ -114,7 +114,7 @@ MonoBehaviour:
     resetTriggerBeforeSet: 1
   - motionKey: DropJump
     animatorTriggerName: 
-    animatorStateName: Base Layer.hys_Lance_Jump_Fall
+    animatorStateName: hys_Lance_Jump_Fall
     layerIndex: 0
     transitionSeconds: 0.03
     useTrigger: 0
@@ -122,7 +122,7 @@ MonoBehaviour:
     resetTriggerBeforeSet: 1
   - motionKey: Dash
     animatorTriggerName: 
-    animatorStateName: Base Layer.hys_Lance_Dash
+    animatorStateName: hys_Lance_Dash
     layerIndex: 0
     transitionSeconds: 0.03
     useTrigger: 0
@@ -130,7 +130,7 @@ MonoBehaviour:
     resetTriggerBeforeSet: 1
   - motionKey: Hit
     animatorTriggerName: 
-    animatorStateName: Base Layer.hys_Lance_Hit
+    animatorStateName: hys_Lance_Hit
     layerIndex: 0
     transitionSeconds: 0.03
     useTrigger: 0
@@ -138,7 +138,7 @@ MonoBehaviour:
     resetTriggerBeforeSet: 1
   - motionKey: Dead
     animatorTriggerName: 
-    animatorStateName: Base Layer.hys_Lance_Die
+    animatorStateName: hys_Lance_Die
     layerIndex: 0
     transitionSeconds: 0.03
     useTrigger: 0
