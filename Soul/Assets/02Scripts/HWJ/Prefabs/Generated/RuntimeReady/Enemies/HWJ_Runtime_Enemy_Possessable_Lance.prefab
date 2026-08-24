@@ -226,7 +226,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0657200c43504c80b4bb531708d60a6e, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: HWJ.Runtime::HWJ_RuntimeObjectContext
   dataResolver: {fileID: 0}
   runtimeStatus: {fileID: 0}
@@ -442,6 +442,7 @@ MonoBehaviour:
   flipSpriteByMoveDirection: 1
   useInitialSpriteFlipAsRightFacing: 1
   flipTransformScaleWhenNoSpriteRenderer: 0
+  updateFacingFromVelocity: 1
   moveThreshold: 0.05
   facingThreshold: 0.01
 --- !u!114 &4021032614522415451
@@ -659,7 +660,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 04be6380e1eac4445a13413423b9bb2d, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: HWJ.Runtime::HWJ_EnemyPerceptionSystem
   dataResolver: {fileID: 5825027136848324980}
   motionSystem: {fileID: 6606211508389657041}
@@ -671,7 +672,7 @@ MonoBehaviour:
   targetSearchIntervalSeconds: 0.5
   hasAggro: 0
   spawnPosition: {x: 0, y: 0, z: 0}
-  lastPerceptionResult:
+  lastPerceptionResult: 
 --- !u!1 &4640877549546444362
 GameObject:
   m_ObjectHideFlags: 0
@@ -807,7 +808,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 076888094eb54df599f4bea65fd53503, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: HWJ.Runtime::HWJ_HealthBarSystem
   healthBarData: {fileID: 0}
   runtimeStatus: {fileID: 4259455423999066608}
@@ -903,7 +904,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 424bd1d2447ca9a45a0de4544491ff05, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: HWJ.Runtime::HWJ_EnemyAttackAnimationRelay
   enemyAttackSystem: {fileID: 0}
 --- !u!212 &7155805927734915638 stripped

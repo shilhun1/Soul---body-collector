@@ -24,4 +24,6 @@ MonoBehaviour:
   weight: 1
   animationId:
   useStageOneSpecialExecution: 0
+  useCustomPatternExecutor: 1
+  customPatternExecutorKey: hys_second_boss
   skillActions: []

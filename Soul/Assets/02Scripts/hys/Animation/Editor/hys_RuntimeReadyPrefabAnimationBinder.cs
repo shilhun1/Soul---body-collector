@@ -179,16 +179,20 @@ public static class hys_RuntimeReadyPrefabAnimationBinder
         }
 
         WirePlayerPrefab(playerProfiles);
+        int wiredEnemyCount = 0;
+        int wiredCorpseCount = 0;
         foreach (WeaponSpec weapon in WeaponSpecs)
         {
-            WireEnemyPrefab(weapon, monsterProfiles[weapon.Name], true);
-            WireEnemyPrefab(weapon, monsterProfiles[weapon.Name], false);
-            WireCorpsePrefab(weapon);
+            wiredEnemyCount += WireEnemyPrefab(weapon, monsterProfiles[weapon.Name], true) ? 1 : 0;
+            wiredEnemyCount += WireEnemyPrefab(weapon, monsterProfiles[weapon.Name], false) ? 1 : 0;
+            wiredCorpseCount += WireCorpsePrefab(weapon) ? 1 : 0;
         }
 
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
-        Debug.Log("[hys RuntimeReady] 플레이어 1종, 몬스터 10종, 시체 5종에 전용 Animator와 모션 프로필을 연결했습니다.");
+        Debug.Log(
+            $"[hys RuntimeReady] 플레이어 1종, 몬스터 {wiredEnemyCount}종, 시체 {wiredCorpseCount}종에 " +
+            "전용 Animator와 모션 프로필을 연결했습니다.");
     }
 
     private static void GenerateOnce()
@@ -275,13 +279,21 @@ public static class hys_RuntimeReadyPrefabAnimationBinder
         }
     }
 
-    private static void WireEnemyPrefab(
+    private static bool WireEnemyPrefab(
         WeaponSpec weapon,
         HWJ_MotionProfileSO profile,
         bool possessable)
     {
         string kind = possessable ? "Possessable" : "NoCorpse";
         string prefabPath = $"{RuntimeReadyRoot}/Enemies/HWJ_Runtime_Enemy_{kind}_{weapon.Name}.prefab";
+
+        // 다른 생성 과정에서 제외된 선택형 프리팹은 오류를 내지 않고 건너뜁니다.
+        if (AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath) == null)
+        {
+            Debug.Log($"[hys RuntimeReady] 존재하지 않는 몬스터 프리팹을 건너뜁니다: {prefabPath}");
+            return false;
+        }
+
         GameObject root = PrefabUtility.LoadPrefabContents(prefabPath);
         try
         {
@@ -295,11 +307,21 @@ public static class hys_RuntimeReadyPrefabAnimationBinder
         {
             PrefabUtility.UnloadPrefabContents(root);
         }
+
+        return true;
     }
 
-    private static void WireCorpsePrefab(WeaponSpec weapon)
+    private static bool WireCorpsePrefab(WeaponSpec weapon)
     {
         string prefabPath = $"{RuntimeReadyRoot}/Corpses/HWJ_Runtime_Corpse_{weapon.Name}.prefab";
+
+        // 시체 프리팹을 생성하지 않는 구성에서도 나머지 연결 작업을 계속합니다.
+        if (AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath) == null)
+        {
+            Debug.Log($"[hys RuntimeReady] 존재하지 않는 시체 프리팹을 건너뜁니다: {prefabPath}");
+            return false;
+        }
+
         GameObject root = PrefabUtility.LoadPrefabContents(prefabPath);
         try
         {
@@ -312,6 +334,8 @@ public static class hys_RuntimeReadyPrefabAnimationBinder
         {
             PrefabUtility.UnloadPrefabContents(root);
         }
+
+        return true;
     }
 
     private static void EnsureMonsterLifecycle(GameObject root, Animator animator)

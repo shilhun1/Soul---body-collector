@@ -6,40 +6,40 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/01Scenes/HSH_Scene.unity
+    path: Assets/01Scenes/Soul_Test/HSH_Scene.unity
     guid: 986e3a17e86887f4eab1b719a72c4357
   - enabled: 1
-    path: Assets/01Scenes/HSH_MAPTEST.unity
+    path: Assets/01Scenes/Soul_Test/HSH_MAPTEST.unity
     guid: 9a070b7b4b857ae4dbaed04d1219f02e
   - enabled: 1
-    path: Assets/01Scenes/HSH_1-1.unity
+    path: Assets/01Scenes/Soul_Test/HSH_1-1.unity
     guid: e6cba81080660ba4f87eb9ae2ff6a6d0
   - enabled: 1
-    path: Assets/01Scenes/HSH_1-2.unity
+    path: Assets/01Scenes/Soul_Test/HSH_1-2.unity
     guid: 85d6a93e0a728064f857dfab31874356
   - enabled: 1
     path: Assets/01Scenes/Soul_Build/Title.unity
     guid: 31b03f9dcce59324dbfa117d3bc24f76
   - enabled: 1
-    path: Assets/01Scenes/2-1.unity
+    path: Assets/01Scenes/Soul_Test/2-1.unity
     guid: 3e9100ed15a958244b8c65f1f28212be
   - enabled: 1
-    path: Assets/01Scenes/HWJ_Stage1_01_RuinedVillage.unity
+    path: Assets/01Scenes/Soul_Test/HWJ_Stage1_01_RuinedVillage.unity
     guid: 0a8348df817904d4cad247fbceb8f7b3
-  - enabled: 0
-    path: Assets/01Scenes/HWJ_Stage1_02_RuinedOutpost.unity
-    guid: 2393f8b246e00a24099ea8d6857afcdc
-  - enabled: 0
-    path: Assets/01Scenes/HWJ_Stage1_03_BackRoad.unity
-    guid: 2aea21034990a2842bac05fd500da951
-  - enabled: 0
-    path: Assets/01Scenes/HWJ_Stage1_04_MidBossBarracks.unity
-    guid: d52a8a4a01b85aa4b91d3bb10d708c71
   - enabled: 1
-    path: Assets/01Scenes/1-1test.unity
+    path: Assets/01Scenes/Soul_Test/HWJ_Stage1_02_RuinedOutpost.unity
+    guid: 9610402ee3de1944abbc3d90efe134b9
+  - enabled: 1
+    path: Assets/01Scenes/HWJ_Stage1_03_BackRoad.unity
+    guid: 00000000000000000000000000000000
+  - enabled: 1
+    path: Assets/01Scenes/HWJ_Stage1_04_MidBossBarracks.unity
+    guid: 00000000000000000000000000000000
+  - enabled: 1
+    path: Assets/01Scenes/Soul_Test/1-1test.unity
     guid: 844a467c81ee0e245a0a8c471af1a213
   - enabled: 1
-    path: Assets/01Scenes/1-2.unity
+    path: Assets/01Scenes/Soul_Test/1-2.unity
     guid: ab451e1acd77cc54889f5415fc0638a7
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: aabb98dc3a332a146ab2e596f8eeb85e, type: 3}
