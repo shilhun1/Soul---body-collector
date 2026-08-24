@@ -56,3 +56,7 @@ MonoBehaviour:
   motionStepIntervalSeconds: 0.12
   projectilePrefab: {fileID: 6123444099088108134, guid: 9cf4f102adaf7694bae11e7010bab686, type: 3}
   actionEffectPrefab: {fileID: 7815009906001981100, guid: 174f53d1dad38ee4da8865e2289f7718, type: 3}
+  useCustomActionEffectOffset: 0
+  actionEffectOffset: {x: 0.8, y: 0.15}
+  actionEffectRotationZ: 0
+  actionEffectScaleMultiplier: 1

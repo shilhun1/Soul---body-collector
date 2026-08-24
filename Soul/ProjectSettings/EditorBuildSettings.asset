@@ -41,6 +41,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/01Scenes/Soul_Test/1-2.unity
     guid: ab451e1acd77cc54889f5415fc0638a7
+  - enabled: 1
+    path: Assets/01Scenes/Soul_Build/1-1.unity
+    guid: 9fc188d46f92ba74e8e8f9fbc11a830a
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: aabb98dc3a332a146ab2e596f8eeb85e, type: 3}
   m_UseUCBPForAssetBundles: 0
