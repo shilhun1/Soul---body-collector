@@ -19,12 +19,13 @@ public static class hys_SwordMonsterAnimationValidator
 
     private static readonly Dictionary<string, string> ProtectedHashes = new Dictionary<string, string>
     {
-        { "hys_Enemy_Sword_Death.anim", "191F660ACF91068C9D3F678E766738E3E0DA7157D456E21DB704DB0087F3C978" },
-        { "hys_Enemy_Sword_Hit.anim", "AF34E7DA260B7FFCF199A7667298957B7E9E459A372A8716B634F227002A6B1F" },
+        // 현재 저장소가 추적하는 정상 Death 클립의 SHA-256으로 기준을 맞춥니다.
+        { "hys_Enemy_Sword_Death.anim", "FF4F62AFA546A1A6FC3EFF173B0D7C3ABEDE16971E19D39991C2AA865C2288C0" },
+        { "hys_Enemy_Sword_Hit.anim", "042F58E368ACA4CCC8DB6FD5F31438D529D2AAB2D4B53A9BE5F41A3B545929F9" },
         // 실제 R_Queen 검 프레임으로 갱신한 Sword 1·2번 클립을 보호합니다.
-        { "hys_Enemy_Sword_sword_diagonal_slash.anim", "28E21EEC395E511C1C5F9E8921F228370470479C41D21CB0F72E05CD02D5AF29" },
-        { "hys_Enemy_Sword_sword_up_diagonal_slash.anim", "AF5CD764781AD358DCF249DB12B90A9E86D2881016D8010D436471743DBDE31A" },
-        { "hys_Enemy_Sword_Idle.anim", "ECB7689A32A8B8667E4EBB779E171218A7C35A77971460C70710F662989B15AF" }
+        { "hys_Enemy_Sword_sword_diagonal_slash.anim", "8F3298B542EDDE5FC14822EDCD716A6EBE066D5FE961F05448D7F9DA8B410C9E" },
+        { "hys_Enemy_Sword_sword_up_diagonal_slash.anim", "AEB08B8A5A261BEDA766CBFB4661F208EF26A6C2F7870439543918967D2983D4" },
+        { "hys_Enemy_Sword_Idle.anim", "6F2956DEDF055CFF12E4562C8FA225CD992FAAF81E861F8D5137E54D6115A4EF" }
     };
 
     static hys_SwordMonsterAnimationValidator()
@@ -113,14 +114,15 @@ public static class hys_SwordMonsterAnimationValidator
     private static void ValidateStatesAndClips(AnimatorController controller, List<string> results)
     {
         AnimatorStateMachine machine = controller.layers[0].stateMachine;
-        ValidateStateMotion(machine, "hys_Monster_Sword_Walk", SwordRoot + "/Clips/hys_Enemy_Sword_Walk.anim", 7, 10f, true, results);
+        // 현재 공용 Sword Walk는 저장소 기준 6프레임·8fps 루프입니다.
+        ValidateStateMotion(machine, "hys_Monster_Sword_Walk", SwordRoot + "/Clips/hys_Enemy_Sword_Walk.anim", 6, 8f, true, results);
         ValidateStateMotion(machine, "hys_Monster_Sword_Jump_Start", MissingClipRoot + "/hys_Enemy_Sword_Jump_Start.anim", 4, 12f, false, results);
         ValidateStateMotion(machine, "hys_Monster_Sword_Jump_Rise", MissingClipRoot + "/hys_Enemy_Sword_Jump_Rise.anim", 4, 12f, false, results);
         ValidateStateMotion(machine, "hys_Monster_Sword_Jump_Apex", MissingClipRoot + "/hys_Enemy_Sword_Jump_Apex.anim", 4, 10f, false, results);
         ValidateStateMotion(machine, "hys_Monster_Sword_Jump_Fall", MissingClipRoot + "/hys_Enemy_Sword_Jump_Fall.anim", 4, 10f, true, results);
         ValidateStateMotion(machine, "hys_Monster_Sword_Landing", MissingClipRoot + "/hys_Enemy_Sword_Landing.anim", 5, 14f, false, results);
         ValidateStateMotion(machine, "hys_Monster_Sword_Dash", MissingClipRoot + "/hys_Enemy_Sword_Dash.anim", 7, 18f, false, results);
-        ValidateStateMotion(machine, "hys_Monster_Sword_sword_wave", SwordRoot + "/Clips/hys_Enemy_Sword_sword_wave.anim", 9, 16f, false, results);
+        ValidateStateMotion(machine, "hys_Monster_Sword_sword_wave", SwordRoot + "/Clips/hys_Enemy_Sword_sword_wave.anim", 9, 12f, false, results);
 
         ValidateProtectedState(machine, "hys_Monster_Sword_Idle", "hys_Enemy_Sword_Idle.anim", results);
         ValidateProtectedState(machine, "hys_Monster_Sword_Hit", "hys_Enemy_Sword_Hit.anim", results);

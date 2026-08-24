@@ -120,11 +120,23 @@ public class hys_Player_Attack : MonoBehaviour, IPlayerAttackHandler
 
     private void Update()
     {
+        if (hys_PlayerCinematicControlLock.IsLockedFor(transform))
+        {
+            CancelForCinematic();
+            return;
+        }
+
         TickAxeDiveAttack();
     }
 
     private void FixedUpdate()
     {
+        if (hys_PlayerCinematicControlLock.IsLockedFor(transform))
+        {
+            if (rb != null) rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
+            return;
+        }
+
         if (rb == null)
         {
             return;
@@ -155,9 +167,30 @@ public class hys_Player_Attack : MonoBehaviour, IPlayerAttackHandler
         CancelAxeDiveAttack(false);
     }
 
+    private void CancelForCinematic()
+    {
+        if (attackRoutine != null)
+        {
+            StopCoroutine(attackRoutine);
+            attackRoutine = null;
+            attackSequence++;
+        }
+
+        CancelAxeDiveAttack(false);
+        hitTargets.Clear();
+        hitHwjTargets.Clear();
+        useAxeDiveHitBox = false;
+        attackFillEndTime = 0f;
+
+        if (playerState != null && playerState.CurrentState == hys_PlayerState.Attack)
+            playerState.SetState(hys_PlayerState.Idle);
+    }
+
     // 공격 가능 여부를 확인하고 공격 루틴을 시작합니다.
     public bool TryAttack()
     {
+        if (hys_PlayerCinematicControlLock.IsLockedFor(transform)) return false;
+
         if (playerState == null)
         {
             return false;

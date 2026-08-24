@@ -42,6 +42,16 @@ public class hys_SecondBossPhaseTransitionVisual : MonoBehaviour
         playRoutine = StartCoroutine(PlayRoutine(Mathf.Max(1f, durationSeconds)));
     }
 
+    public void CompleteNow()
+    {
+        // 대사를 건너뛰면 남아 있는 의식 오브젝트도 즉시 최종 단계로 정리합니다.
+        if (playRoutine != null) StopCoroutine(playRoutine);
+        playRoutine = null;
+        if (isPlaying) lastStageCount = Mathf.Max(lastStageCount, 5);
+        isPlaying = false;
+        CleanupVisuals();
+    }
+
     private IEnumerator PlayRoutine(float duration)
     {
         isPlaying = true;

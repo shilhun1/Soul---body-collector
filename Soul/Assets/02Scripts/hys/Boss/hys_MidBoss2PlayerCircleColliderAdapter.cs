@@ -52,10 +52,33 @@ public class hys_MidBoss2PlayerCircleColliderAdapter : MonoBehaviour
             changed = true;
         }
 
-        circle.isTrigger = false;
-        circle.offset = circleOffset;
-        circle.radius = Mathf.Max(0.1f, circleRadius);
-        circle.enabled = true;
+        // 같은 콜라이더 값을 주기적으로 다시 쓰면 바닥 접촉 형상이 재생성되어 몸체가 튈 수 있습니다.
+        // 실제 값이 다를 때만 변경해 타일 바닥 위의 물리 접촉을 안정적으로 유지합니다.
+        if (circle.isTrigger)
+        {
+            circle.isTrigger = false;
+            changed = true;
+        }
+
+        if ((circle.offset - circleOffset).sqrMagnitude > 0.000001f)
+        {
+            circle.offset = circleOffset;
+            changed = true;
+        }
+
+        float targetRadius = Mathf.Max(0.1f, circleRadius);
+        if (Mathf.Abs(circle.radius - targetRadius) > 0.0001f)
+        {
+            circle.radius = targetRadius;
+            changed = true;
+        }
+
+        if (!circle.enabled)
+        {
+            circle.enabled = true;
+            changed = true;
+        }
+
         configuredPlayer = playerRoot;
         if (changed) configureCount++;
         return true;

@@ -48,7 +48,7 @@ public class hys_SecondBossLogic : MonoBehaviour
     [Header("공통 패턴 규칙")]
     // 패턴이 완전히 종료된 시점부터 다음 패턴 선택까지 1초를 기다립니다.
     [SerializeField, Min(0f)] private float postPatternWaitSeconds = 1f;
-    [SerializeField] private bool flipSpriteWhenFacingLeft = true;
+    [SerializeField] private bool flipSpriteWhenFacingRight = true;
 
     [Header("디버그")]
     [SerializeField] private hys_SecondBossState currentState = hys_SecondBossState.Inactive;
@@ -254,8 +254,11 @@ public class hys_SecondBossLogic : MonoBehaviour
 
     private void FaceDirection(float direction)
     {
+        // 사용자가 요청한 반대 이미지 방향을 적용해 기존 기준과 좌우를 뒤집습니다.
         if (spriteRenderer != null && direction != 0f)
-            spriteRenderer.flipX = flipSpriteWhenFacingLeft && direction < 0f;
+            spriteRenderer.flipX = flipSpriteWhenFacingRight
+                ? direction < 0f
+                : direction > 0f;
     }
 
     private void StopHorizontalMovement()

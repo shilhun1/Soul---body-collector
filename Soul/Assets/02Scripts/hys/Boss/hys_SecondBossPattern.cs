@@ -54,6 +54,12 @@ public class hys_SecondBossPattern : MonoBehaviour
     [SerializeField] private Color warningColor = new Color(0.85f, 0.12f, 0.08f, 0.9f);
     [SerializeField, Min(0.01f)] private float warningLineWidth = 0.08f;
     [SerializeField] private Color phaseTwoMagicColor = new Color(0.45f, 0.12f, 0.85f, 0.95f);
+    [SerializeField] private Color dashWarningColor = new Color(1f, 0.62f, 0.12f, 0.95f);
+    [SerializeField] private Color summonWarningColor = new Color(0.18f, 0.78f, 1f, 0.95f);
+    [SerializeField] private Color darkShockwaveWarningColor = new Color(0.62f, 0.18f, 1f, 0.95f);
+    [SerializeField] private Color magicMarkWarningColor = new Color(1f, 0.18f, 0.78f, 0.96f);
+    [SerializeField] private Color eruptionWarningColor = new Color(0.92f, 0.08f, 0.34f, 0.96f);
+    [SerializeField, Min(0.1f)] private float dashDirectionWarningSeconds = 0.55f;
 
     [Header("패턴 1 - 대시 후 역방향 베기")]
     // 대시에는 피해가 없고, 플레이어를 지나친 뒤 사용하는 역방향 베기에만 피해가 있습니다.
@@ -143,6 +149,9 @@ public class hys_SecondBossPattern : MonoBehaviour
     [SerializeField] private bool isGroggy;
     [SerializeField] private int currentPhaseNumber = 1;
     [SerializeField] private string lastPatternAction;
+    [SerializeField] private int telegraphRequestCount;
+    [SerializeField] private int dashPathTelegraphCount;
+    [SerializeField] private int countdownTelegraphCount;
 
     private readonly ContactPoint2D[] groundContacts = new ContactPoint2D[8];
     private Coroutine activeRoutine;
@@ -168,6 +177,9 @@ public class hys_SecondBossPattern : MonoBehaviour
     public string LastPatternAction => lastPatternAction;
     public int CurrentPhaseNumber => currentPhaseNumber;
     public hys_SecondBossSummonSpawner SummonSpawner => summonSpawner;
+    public int TelegraphRequestCount => telegraphRequestCount;
+    public int DashPathTelegraphCount => dashPathTelegraphCount;
+    public int CountdownTelegraphCount => countdownTelegraphCount;
     // 강한 타격 순간을 Cinemachine Impulse 연출에 전달합니다.
     public event Action<float> ImpactRequested;
 
@@ -315,7 +327,14 @@ public class hys_SecondBossPattern : MonoBehaviour
         SetAnimationAction(hys_SecondBossAnimationAction.Dash);
         lastPatternAction = "패턴 1 준비";
         FaceDirection(lockedDirection);
-        yield return new WaitForSeconds(Mathf.Max(0.01f, pattern1PrepareSeconds));
+        float previewDirection = ResolveDirectionToCurrentTarget(lockedDirection);
+        float previewTargetX = currentTarget != null ? currentTarget.position.x : lockedTargetPosition.x;
+        Vector3 previewEnd = new Vector3(
+            previewTargetX + previewDirection * pattern1OvershootDistance,
+            transform.position.y,
+            transform.position.z);
+        ShowDashWarning(transform.position, previewEnd, 1.2f, dashDirectionWarningSeconds);
+        yield return new WaitForSeconds(Mathf.Max(pattern1PrepareSeconds, dashDirectionWarningSeconds));
 
         // 준비가 끝난 시점의 플레이어 방향과 위치를 다시 잡아 실제 뒤쪽까지 통과합니다.
         float dashDirection = ResolveDirectionToCurrentTarget(lockedDirection);
@@ -332,7 +351,13 @@ public class hys_SecondBossPattern : MonoBehaviour
         Vector3 slashCenter = transform.position
             + Vector3.right * reverseDirection * Mathf.Abs(pattern1SlashBoxOffset.x)
             + Vector3.up * pattern1SlashBoxOffset.y;
-        ShowRectangleWarning(slashCenter, pattern1SlashBoxSize, pattern1SlashWarningSeconds);
+        ShowRectangleWarning(
+            slashCenter,
+            pattern1SlashBoxSize,
+            pattern1SlashWarningSeconds,
+            warningColor,
+            hys_SecondBossTelegraphStyle.PhysicalSlash,
+            false);
         SetAnimationAction(hys_SecondBossAnimationAction.ReverseSlash);
         lastPatternAction = "역방향 베기";
         yield return new WaitForSeconds(Mathf.Max(0.01f, pattern1SlashWarningSeconds));
@@ -396,6 +421,7 @@ public class hys_SecondBossPattern : MonoBehaviour
         SetAnimationAction(hys_SecondBossAnimationAction.SummonCommand);
         lastPatternAction = "패턴 2 공격 명령";
         FaceDirection(lockedDirection);
+        ShowCommandWarning(transform.position, 2.2f, pattern2CommandSeconds);
         yield return new WaitForSeconds(Mathf.Max(0f, pattern2CommandSeconds));
         if (summonSpawner != null)
             yield return summonSpawner.SpawnFormationRoutine(summonCount);
@@ -417,7 +443,11 @@ public class hys_SecondBossPattern : MonoBehaviour
         Vector2 warningSize = new Vector2(
             Mathf.Abs(destinationX - transform.position.x),
             pattern3HitBoxSize.y);
-        ShowRectangleWarning(warningCenter, warningSize, pattern3PrepareSeconds);
+        ShowDashWarning(
+            transform.position,
+            new Vector3(destinationX, transform.position.y, transform.position.z),
+            Mathf.Max(1f, pattern3HitBoxSize.y * 0.32f),
+            pattern3PrepareSeconds);
         yield return new WaitForSeconds(Mathf.Max(0.01f, pattern3PrepareSeconds));
 
         // 준비가 끝난 시점의 플레이어 앞쪽 좌표를 다시 계산하되 최초 공격 방향은 유지합니다.
@@ -438,7 +468,13 @@ public class hys_SecondBossPattern : MonoBehaviour
             + Vector3.up * pattern3SlashBoxOffset.y;
         SetAnimationAction(hys_SecondBossAnimationAction.WideSlash);
         lastPatternAction = "넓은 전방 대검 베기";
-        ShowRectangleWarning(slashCenter, pattern3HitBoxSize, pattern3SlashWarningSeconds);
+        ShowRectangleWarning(
+            slashCenter,
+            pattern3HitBoxSize,
+            pattern3SlashWarningSeconds,
+            warningColor,
+            hys_SecondBossTelegraphStyle.PhysicalSlash,
+            false);
         yield return new WaitForSeconds(Mathf.Max(0.01f, pattern3SlashWarningSeconds));
         TryDamageTargetInBox(slashCenter, pattern3HitBoxSize, pattern3DamageMultiplier);
         RequestImpact(0.45f);
@@ -510,6 +546,7 @@ public class hys_SecondBossPattern : MonoBehaviour
         lastPatternAction = "패턴 4 검을 꽂아 충격파 준비";
         StopHorizontalMovement();
         float patternDirection = lockedDirection == 0f ? 1f : Mathf.Sign(lockedDirection);
+        ShowCommandWarning(transform.position, 2.8f, pattern4PlantSwordSeconds);
         hys_SecondBossMagicVisual.SpawnSword(
             transform.position,
             Vector2.up,
@@ -544,6 +581,14 @@ public class hys_SecondBossPattern : MonoBehaviour
             float enterDirection = Mathf.Sign(assaultAnchors[0].x - transform.position.x);
             if (enterDirection == 0f) enterDirection = patternDirection;
             lastPatternAction = "첫 번째 몬스터 위치로 진입";
+            float enterWarningSeconds = Mathf.Min(0.4f, dashDirectionWarningSeconds);
+            ShowDashWarning(
+                transform.position,
+                new Vector3(assaultAnchors[0].x, transform.position.y, transform.position.z),
+                1.1f,
+                enterWarningSeconds,
+                darkShockwaveWarningColor);
+            yield return new WaitForSeconds(enterWarningSeconds);
             yield return MoveHorizontallyTo(
                 assaultAnchors[0].x,
                 enterDirection,
@@ -605,7 +650,13 @@ public class hys_SecondBossPattern : MonoBehaviour
     private void ShowPattern4ShockwaveWarning(float xPosition)
     {
         Vector3 center = new Vector3(xPosition, transform.position.y, transform.position.z);
-        ShowRectangleWarning(center, pattern4ShockwaveSize, pattern4ShockwaveWarningSeconds);
+        ShowRectangleWarning(
+            center,
+            pattern4ShockwaveSize,
+            pattern4ShockwaveWarningSeconds,
+            darkShockwaveWarningColor,
+            hys_SecondBossTelegraphStyle.DarkShockwave,
+            false);
     }
 
     private bool SpawnPattern4GroundShockwave(float xPosition)
@@ -647,6 +698,15 @@ public class hys_SecondBossPattern : MonoBehaviour
         float dashDirection = Mathf.Sign(destinationX - transform.position.x);
         if (dashDirection == 0f) dashDirection = lockedDirection == 0f ? 1f : lockedDirection;
         FaceDirection(dashDirection);
+
+        float warningSeconds = Mathf.Min(0.35f, dashDirectionWarningSeconds);
+        ShowDashWarning(
+            transform.position,
+            new Vector3(destinationX, transform.position.y, transform.position.z),
+            1.05f,
+            warningSeconds,
+            darkShockwaveWarningColor);
+        yield return new WaitForSeconds(warningSeconds);
 
         float dashEndTime = Time.time + Mathf.Max(0.1f, pattern4DashMaxSeconds);
         float fireTime = Time.time + Mathf.Max(0f, pattern4SwordFireDelaySeconds);
@@ -703,7 +763,10 @@ public class hys_SecondBossPattern : MonoBehaviour
         ShowCircleWarning(
             swordTarget,
             pattern4SwordWaveHitRadius,
-            Mathf.Max(pattern4SwordWaveWarningSeconds, travelSeconds));
+            Mathf.Max(pattern4SwordWaveWarningSeconds, travelSeconds),
+            magicMarkWarningColor,
+            hys_SecondBossTelegraphStyle.MagicMark,
+            true);
         hys_SecondBossMagicVisual.SpawnSword(
             swordStart,
             swordPath.normalized,
@@ -725,6 +788,14 @@ public class hys_SecondBossPattern : MonoBehaviour
                 pattern5MarkSeconds,
                 pattern5MarkRadius,
                 phaseTwoMagicColor);
+            ShowCircleWarning(
+                    currentTarget.position,
+                    pattern5MarkRadius,
+                    pattern5MarkSeconds,
+                    magicMarkWarningColor,
+                    hys_SecondBossTelegraphStyle.MagicMark,
+                    true)
+                ?.Follow(currentTarget, Vector3.zero);
         }
         yield return new WaitForSeconds(Mathf.Max(0.1f, pattern5MarkSeconds));
 
@@ -741,7 +812,13 @@ public class hys_SecondBossPattern : MonoBehaviour
         float swordSpeed = Mathf.Max(0.1f, pattern5SwordTravelSpeed);
         float longestTravelSeconds = 0f;
         float expectedTravelSeconds = pattern5SwordSpawnRadius / swordSpeed;
-        ShowCircleWarning(swordCenter, pattern5SwordHitRadius, expectedTravelSeconds);
+        ShowCircleWarning(
+            swordCenter,
+            pattern5SwordHitRadius,
+            expectedTravelSeconds,
+            magicMarkWarningColor,
+            hys_SecondBossTelegraphStyle.MagicMark,
+            true);
         lastPatternAction = "고정된 플레이어 위치 주변에 마력 검 소환";
         for (int i = 0; i < swordCount; i++)
         {
@@ -779,13 +856,25 @@ public class hys_SecondBossPattern : MonoBehaviour
         SetAnimationAction(hys_SecondBossAnimationAction.MagicCast);
         Vector3 groundPosition = ResolvePattern6GroundPosition();
         lastPatternAction = "패턴 6 플레이어 아래 실제 지면에 거대 검 표식";
-        ShowCircleWarning(groundPosition, pattern6EruptionSize.x * 0.5f, pattern6MarkSeconds);
+        ShowCircleWarning(
+            groundPosition,
+            pattern6EruptionSize.x * 0.5f,
+            pattern6MarkSeconds,
+            eruptionWarningColor,
+            hys_SecondBossTelegraphStyle.SwordEruption,
+            true);
         yield return new WaitForSeconds(Mathf.Max(0.1f, pattern6MarkSeconds));
 
         SetAnimationAction(hys_SecondBossAnimationAction.MagicRelease);
         Vector3 eruptionCenter = groundPosition + Vector3.up * pattern6EruptionSize.y * 0.5f;
         lastPatternAction = "바닥에서 거대한 마력 검 솟구침";
-        ShowRectangleWarning(eruptionCenter, pattern6EruptionSize, pattern6SwordRemainSeconds);
+        ShowRectangleWarning(
+            eruptionCenter,
+            pattern6EruptionSize,
+            pattern6SwordRemainSeconds,
+            eruptionWarningColor,
+            hys_SecondBossTelegraphStyle.SwordEruption,
+            false);
         hys_SecondBossMagicVisual.SpawnSword(
             groundPosition - Vector3.up * pattern6EruptionSize.y * 0.55f,
             Vector2.up,
@@ -1024,25 +1113,80 @@ public class hys_SecondBossPattern : MonoBehaviour
         ImpactRequested?.Invoke(Mathf.Max(0f, force));
     }
 
-    private void ShowRectangleWarning(Vector3 center, Vector2 size, float duration)
+    private hys_SecondBossAttackTelegraph ShowRectangleWarning(
+        Vector3 center,
+        Vector2 size,
+        float duration,
+        Color color,
+        hys_SecondBossTelegraphStyle style,
+        bool countdown)
     {
-        hys_SkillWarningIndicator.ShowRectangle(center,
+        telegraphRequestCount++;
+        if (countdown) countdownTelegraphCount++;
+        return hys_SecondBossAttackTelegraph.ShowArea(
+            center,
             new Vector2(Mathf.Max(0.1f, size.x), Mathf.Max(0.1f, size.y)),
-            Mathf.Max(0.01f, duration), warningColor, warningLineWidth);
+            Mathf.Max(0.01f, duration),
+            color,
+            style,
+            countdown,
+            warningLineWidth);
     }
 
-    private void ShowCircleWarning(Vector3 center, float radius, float duration)
+    private hys_SecondBossAttackTelegraph ShowCircleWarning(
+        Vector3 center,
+        float radius,
+        float duration,
+        Color color,
+        hys_SecondBossTelegraphStyle style,
+        bool countdown)
     {
-        hys_SkillWarningIndicator.ShowCircle(
+        telegraphRequestCount++;
+        if (countdown) countdownTelegraphCount++;
+        return hys_SecondBossAttackTelegraph.ShowCircle(
             center,
             Mathf.Max(0.1f, radius),
             Mathf.Max(0.01f, duration),
-            warningColor,
+            color,
+            style,
+            countdown,
+            warningLineWidth);
+    }
+
+    private void ShowDashWarning(
+        Vector3 start,
+        Vector3 end,
+        float width,
+        float duration,
+        Color? overrideColor = null)
+    {
+        telegraphRequestCount++;
+        dashPathTelegraphCount++;
+        hys_SecondBossAttackTelegraph.ShowDashPath(
+            start,
+            end,
+            width,
+            Mathf.Max(0.05f, duration),
+            overrideColor ?? dashWarningColor,
+            warningLineWidth);
+    }
+
+    private void ShowCommandWarning(Vector3 center, float radius, float duration)
+    {
+        telegraphRequestCount++;
+        hys_SecondBossAttackTelegraph.ShowCommandSeal(
+            center,
+            radius,
+            Mathf.Max(0.05f, duration),
+            activePattern == hys_SecondBossPatternId.DarkMagicSummonAssault
+                ? darkShockwaveWarningColor
+                : summonWarningColor,
             warningLineWidth);
     }
 
     private void FaceDirection(float direction)
     {
+        // 패턴 도중에도 요청한 반대 이미지 방향을 유지합니다.
         if (spriteRenderer != null && direction != 0f) spriteRenderer.flipX = direction < 0f;
     }
 

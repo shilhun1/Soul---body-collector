@@ -281,6 +281,7 @@ public class hys_Player_Movement : MonoBehaviour
 
     private bool ShouldSkipBodyMovement()
     {
+        bool isCinematicLocked = hys_PlayerCinematicControlLock.IsLockedFor(transform);
         bool isSoulMovementState = disableBodyMovementInSoulState &&
             soulSystem != null &&
             (soulSystem.CurrentState == HWJ_SoulRuntimeState.BodyToSoul ||
@@ -291,7 +292,7 @@ public class hys_Player_Movement : MonoBehaviour
             playerAnimator != null &&
             playerAnimator.IsPossessionTransitionPlaying;
 
-        return isSoulMovementState || isPossessionAnimationLocked;
+        return isCinematicLocked || isSoulMovementState || isPossessionAnimationLocked;
     }
 
     private void ApplyLockedMovementPhysics()
@@ -309,6 +310,14 @@ public class hys_Player_Movement : MonoBehaviour
         if (isSoulMovementState)
         {
             rb.gravityScale = 0f;
+            return;
+        }
+
+        if (hys_PlayerCinematicControlLock.IsLockedFor(transform))
+        {
+            // 시네마틱 중에는 수평 입력만 제거하고 중력은 유지해 공중에서 자연스럽게 착지합니다.
+            rb.gravityScale = defaultGravityScale;
+            rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
             return;
         }
 
