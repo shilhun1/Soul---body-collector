@@ -40,6 +40,7 @@ public class hys_SecondBossPattern : MonoBehaviour
     [SerializeField] private Rigidbody2D body;
     [SerializeField] private Collider2D bodyCollider;
     [SerializeField] private SpriteRenderer spriteRenderer;
+    [SerializeField] private hys_SecondBossSummonSpawner summonSpawner;
 
     [Header("HWJ 패턴 데이터")]
     // 패턴 번호, 쿨타임, 가중치, HP/페이즈/거리 조건은 HWJ 공통 데이터에서 읽습니다.
@@ -72,11 +73,7 @@ public class hys_SecondBossPattern : MonoBehaviour
     [Header("패턴 2 - 공격 명령과 몬스터 소환")]
     [SerializeField, Min(0f)] private float pattern2CooldownSeconds = 60f;
     [SerializeField, Min(0f)] private float pattern2CommandSeconds = 0.8f;
-    // 플레이어가 빙의할 수 있는 5종 몬스터 프리팹을 Inspector에 등록합니다.
-    [SerializeField] private GameObject[] summonMonsterPrefabs = new GameObject[5];
     [SerializeField, Range(1, 5)] private int summonCount = 3;
-    [SerializeField, Min(0.1f)] private float summonSpacing = 2.2f;
-    [SerializeField] private float summonVerticalOffset = 0.2f;
 
     [Header("패턴 3 - 전방 접근 베기와 그로기")]
     [SerializeField, Min(0f)] private float pattern3CooldownSeconds = 20f;
@@ -100,6 +97,7 @@ public class hys_SecondBossPattern : MonoBehaviour
     [SerializeField, Min(0.01f)] private float pattern4PlantSwordSeconds = 0.65f;
     [SerializeField, Range(2, 10)] private int pattern4ShockwaveCount = 6;
     [SerializeField, Min(0.1f)] private float pattern4ShockwaveSpacing = 1.5f;
+    [SerializeField, Min(0.01f)] private float pattern4ShockwaveWarningSeconds = 0.18f;
     [SerializeField, Min(0.01f)] private float pattern4ShockwaveIntervalSeconds = 0.09f;
     [SerializeField] private Vector2 pattern4ShockwaveSize = new Vector2(1.25f, 4.2f);
     [SerializeField, Min(0f)] private float pattern4ShockwaveDamageMultiplier = 1.25f;
@@ -169,6 +167,9 @@ public class hys_SecondBossPattern : MonoBehaviour
     public hys_SecondBossAnimationAction CurrentAnimationAction => currentAnimationAction;
     public string LastPatternAction => lastPatternAction;
     public int CurrentPhaseNumber => currentPhaseNumber;
+    public hys_SecondBossSummonSpawner SummonSpawner => summonSpawner;
+    // 강한 타격 순간을 Cinemachine Impulse 연출에 전달합니다.
+    public event Action<float> ImpactRequested;
 
     private void Awake()
     {
@@ -336,6 +337,7 @@ public class hys_SecondBossPattern : MonoBehaviour
         lastPatternAction = "역방향 베기";
         yield return new WaitForSeconds(Mathf.Max(0.01f, pattern1SlashWarningSeconds));
         TryDamageTargetInBox(slashCenter, pattern1SlashBoxSize, pattern1DamageMultiplier);
+        RequestImpact(0.3f);
         yield return new WaitForSeconds(Mathf.Max(0f, pattern1RecoverySeconds));
         FinishPattern();
     }
@@ -395,7 +397,8 @@ public class hys_SecondBossPattern : MonoBehaviour
         lastPatternAction = "패턴 2 공격 명령";
         FaceDirection(lockedDirection);
         yield return new WaitForSeconds(Mathf.Max(0f, pattern2CommandSeconds));
-        SpawnPossessableMonsters(summonCount);
+        if (summonSpawner != null)
+            yield return summonSpawner.SpawnFormationRoutine(summonCount);
         lastPatternAction = "빙의 몬스터 소환 완료";
         FinishPattern();
     }
@@ -438,6 +441,7 @@ public class hys_SecondBossPattern : MonoBehaviour
         ShowRectangleWarning(slashCenter, pattern3HitBoxSize, pattern3SlashWarningSeconds);
         yield return new WaitForSeconds(Mathf.Max(0.01f, pattern3SlashWarningSeconds));
         TryDamageTargetInBox(slashCenter, pattern3HitBoxSize, pattern3DamageMultiplier);
+        RequestImpact(0.45f);
 
         SetAnimationAction(hys_SecondBossAnimationAction.None);
         isGroggy = true;
@@ -526,13 +530,13 @@ public class hys_SecondBossPattern : MonoBehaviour
             assaultAnchors.Add(transform.position
                 + Vector3.right * patternDirection
                 * (pattern4FirstSummonDistance + pattern4SummonDistanceSpacing * i)
-                + Vector3.up * summonVerticalOffset);
+                + Vector3.up * (summonSpawner != null ? summonSpawner.VerticalOffset : 0.2f));
         }
 
         SetAnimationAction(hys_SecondBossAnimationAction.SummonCommand);
         lastPatternAction = "보스 전방에 빙의 몬스터 2마리 소환";
-        SpawnPossessableMonstersAtPositions(assaultAnchors);
-        yield return new WaitForSeconds(0.2f);
+        if (summonSpawner != null)
+            yield return summonSpawner.SpawnAtPositionsRoutine(assaultAnchors);
 
         if (assaultAnchors.Count > 0)
         {
@@ -567,33 +571,47 @@ public class hys_SecondBossPattern : MonoBehaviour
 
         for (int step = 1; step <= safetyStepCount; step++)
         {
-            bool emittedThisStep = false;
+            bool hasLeftShockwave = false;
+            bool hasRightShockwave = false;
             float distance = pattern4ShockwaveSpacing * step;
             float leftX = originX - distance;
             float rightX = originX + distance;
 
             if (leftX >= leftBoundary)
             {
-                emittedThisStep = true;
-                if (SpawnPattern4GroundShockwave(leftX) && !dealtDamage) dealtDamage = true;
+                hasLeftShockwave = true;
+                ShowPattern4ShockwaveWarning(leftX);
             }
 
             if (rightX <= rightBoundary)
             {
-                emittedThisStep = true;
-                if (SpawnPattern4GroundShockwave(rightX) && !dealtDamage) dealtDamage = true;
+                hasRightShockwave = true;
+                ShowPattern4ShockwaveWarning(rightX);
             }
 
-            if (!emittedThisStep) break;
+            if (!hasLeftShockwave && !hasRightShockwave) break;
+
+            yield return new WaitForSeconds(Mathf.Max(0.01f, pattern4ShockwaveWarningSeconds));
+            if (hasLeftShockwave && SpawnPattern4GroundShockwave(leftX) && !dealtDamage)
+                dealtDamage = true;
+            if (hasRightShockwave && SpawnPattern4GroundShockwave(rightX) && !dealtDamage)
+                dealtDamage = true;
+            RequestImpact(0.12f);
 
             yield return new WaitForSeconds(Mathf.Max(0.01f, pattern4ShockwaveIntervalSeconds));
         }
     }
 
+    private void ShowPattern4ShockwaveWarning(float xPosition)
+    {
+        Vector3 center = new Vector3(xPosition, transform.position.y, transform.position.z);
+        ShowRectangleWarning(center, pattern4ShockwaveSize, pattern4ShockwaveWarningSeconds);
+    }
+
     private bool SpawnPattern4GroundShockwave(float xPosition)
     {
         Vector3 shockwaveCenter = new Vector3(xPosition, transform.position.y, transform.position.z);
-        // 연속 충격파는 빨간 사각형 대신 파동 오브젝트 자체로 위치를 보여줍니다.
+        // 경고선이 사라지는 순간 실제 충격파와 피해를 발생시킵니다.
         hys_SecondBossMagicVisual.SpawnShockwave(
             shockwaveCenter - Vector3.up * pattern4ShockwaveSize.y * 0.5f,
             pattern4ShockwaveIntervalSeconds + 0.32f,
@@ -667,6 +685,7 @@ public class hys_SecondBossPattern : MonoBehaviour
                 swordTarget,
                 pattern4SwordWaveHitRadius,
                 pattern4SwordWaveDamageMultiplier);
+            RequestImpact(0.32f);
         }
     }
 
@@ -721,6 +740,8 @@ public class hys_SecondBossPattern : MonoBehaviour
         int swordCount = Mathf.Max(4, pattern5SwordCount);
         float swordSpeed = Mathf.Max(0.1f, pattern5SwordTravelSpeed);
         float longestTravelSeconds = 0f;
+        float expectedTravelSeconds = pattern5SwordSpawnRadius / swordSpeed;
+        ShowCircleWarning(swordCenter, pattern5SwordHitRadius, expectedTravelSeconds);
         lastPatternAction = "고정된 플레이어 위치 주변에 마력 검 소환";
         for (int i = 0; i < swordCount; i++)
         {
@@ -748,6 +769,7 @@ public class hys_SecondBossPattern : MonoBehaviour
             swordCenter,
             pattern5SwordHitRadius,
             pattern5DamageMultiplier);
+        RequestImpact(0.5f);
 
         FinishPattern();
     }
@@ -773,6 +795,7 @@ public class hys_SecondBossPattern : MonoBehaviour
             pattern6SwordRiseSpeed,
             phaseTwoMagicColor);
         TryDamageTargetInBox(eruptionCenter, pattern6EruptionSize, pattern6DamageMultiplier);
+        RequestImpact(0.75f);
         yield return new WaitForSeconds(Mathf.Max(0.1f, pattern6SwordRemainSeconds));
         FinishPattern();
     }
@@ -821,89 +844,6 @@ public class hys_SecondBossPattern : MonoBehaviour
             if (groundContacts[i].normal.y >= 0.5f) return true;
         }
         return false;
-    }
-
-    private List<GameObject> SpawnPossessableMonstersAtPositions(List<Vector3> spawnPositions)
-    {
-        List<GameObject> candidates = new List<GameObject>(5);
-        List<GameObject> spawnedMonsters = new List<GameObject>(5);
-        if (summonMonsterPrefabs != null)
-        {
-            for (int i = 0; i < summonMonsterPrefabs.Length; i++)
-            {
-                GameObject prefab = summonMonsterPrefabs[i];
-                if (prefab != null && !candidates.Contains(prefab)) candidates.Add(prefab);
-            }
-        }
-
-        if (spawnPositions == null) return spawnedMonsters;
-        int count = Mathf.Min(spawnPositions.Count, candidates.Count);
-        for (int i = 0; i < count; i++)
-        {
-            int selectedIndex = UnityEngine.Random.Range(0, candidates.Count);
-            GameObject prefab = candidates[selectedIndex];
-            candidates.RemoveAt(selectedIndex);
-
-            GameObject spawned = HWJ_GameAccess.Spawn(prefab, spawnPositions[i], Quaternion.identity);
-            if (spawned == null) spawned = Instantiate(prefab, spawnPositions[i], Quaternion.identity);
-            IgnoreCollisionWithSummonedMonster(spawned);
-            if (spawned != null) spawnedMonsters.Add(spawned);
-        }
-
-        return spawnedMonsters;
-    }
-
-    private List<GameObject> SpawnPossessableMonsters(int requestedCount)
-    {
-        List<GameObject> candidates = new List<GameObject>(5);
-        List<GameObject> spawnedMonsters = new List<GameObject>(5);
-        if (summonMonsterPrefabs != null)
-        {
-            for (int i = 0; i < summonMonsterPrefabs.Length; i++)
-                if (summonMonsterPrefabs[i] != null && !candidates.Contains(summonMonsterPrefabs[i]))
-                    candidates.Add(summonMonsterPrefabs[i]);
-        }
-
-        int count = Mathf.Min(Mathf.Max(1, requestedCount), candidates.Count);
-        for (int i = 0; i < count; i++)
-        {
-            int selectedIndex = UnityEngine.Random.Range(0, candidates.Count);
-            GameObject prefab = candidates[selectedIndex];
-            candidates.RemoveAt(selectedIndex);
-            float centeredIndex = i - (count - 1) * 0.5f;
-            Vector3 spawnPosition = transform.position
-                + Vector3.right * centeredIndex * summonSpacing
-                + Vector3.up * summonVerticalOffset;
-            GameObject spawned = HWJ_GameAccess.Spawn(prefab, spawnPosition, Quaternion.identity);
-            if (spawned == null) spawned = Instantiate(prefab, spawnPosition, Quaternion.identity);
-
-            // 보스가 자신이 소환한 몬스터의 몸체를 밀지 않도록 두 객체 사이의 충돌만 제외합니다.
-            IgnoreCollisionWithSummonedMonster(spawned);
-            if (spawned != null) spawnedMonsters.Add(spawned);
-        }
-
-        return spawnedMonsters;
-    }
-
-    private void IgnoreCollisionWithSummonedMonster(GameObject spawnedMonster)
-    {
-        if (spawnedMonster == null) return;
-
-        Collider2D[] bossColliders = GetComponentsInChildren<Collider2D>(true);
-        Collider2D[] monsterColliders = spawnedMonster.GetComponentsInChildren<Collider2D>(true);
-
-        for (int bossIndex = 0; bossIndex < bossColliders.Length; bossIndex++)
-        {
-            Collider2D bossCollider = bossColliders[bossIndex];
-            if (bossCollider == null) continue;
-
-            for (int monsterIndex = 0; monsterIndex < monsterColliders.Length; monsterIndex++)
-            {
-                Collider2D monsterCollider = monsterColliders[monsterIndex];
-                if (monsterCollider != null)
-                    Physics2D.IgnoreCollision(bossCollider, monsterCollider, true);
-            }
-        }
     }
 
     private bool TryDamageTargetInBox(Vector3 center, Vector2 size, float damageMultiplier)
@@ -1079,6 +1019,11 @@ public class hys_SecondBossPattern : MonoBehaviour
         currentAnimationAction = action;
     }
 
+    private void RequestImpact(float force)
+    {
+        ImpactRequested?.Invoke(Mathf.Max(0f, force));
+    }
+
     private void ShowRectangleWarning(Vector3 center, Vector2 size, float duration)
     {
         hys_SkillWarningIndicator.ShowRectangle(center,
@@ -1114,6 +1059,7 @@ public class hys_SecondBossPattern : MonoBehaviour
         if (body == null) body = GetComponent<Rigidbody2D>();
         if (bodyCollider == null) bodyCollider = GetComponent<Collider2D>();
         if (spriteRenderer == null) spriteRenderer = GetComponentInChildren<SpriteRenderer>();
+        if (summonSpawner == null) summonSpawner = GetComponent<hys_SecondBossSummonSpawner>();
     }
 
     private void OnDisable() { CancelActivePattern(); }

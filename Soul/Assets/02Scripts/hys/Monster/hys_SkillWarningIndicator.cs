@@ -16,6 +16,7 @@ public class hys_SkillWarningIndicator : MonoBehaviour
     [SerializeField] private Color warningColor = new Color(1f, 0.15f, 0.05f, 0.85f);
     [SerializeField] private float lineWidth = 0.06f;
 
+    private float startTime;
     private float endTime;
 
     /// <summary>지정한 위치에 원형 공격 예고선을 표시합니다.</summary>
@@ -76,6 +77,7 @@ public class hys_SkillWarningIndicator : MonoBehaviour
 
     private void Update()
     {
+        UpdateWarningPulse();
         if (Time.time >= endTime)
         {
             Destroy(gameObject);
@@ -87,8 +89,22 @@ public class hys_SkillWarningIndicator : MonoBehaviour
         durationSeconds = Mathf.Max(0.01f, duration);
         warningColor = color;
         lineWidth = Mathf.Max(0.01f, width);
+        startTime = Time.time;
         endTime = Time.time + durationSeconds;
         EnsureLineRenderer();
+    }
+
+    private void UpdateWarningPulse()
+    {
+        if (lineRenderer == null) return;
+        float progress = Mathf.Clamp01((Time.time - startTime) / Mathf.Max(0.01f, durationSeconds));
+        float pulse = 0.65f + Mathf.Sin(Time.time * 22f) * 0.15f;
+        Color visibleColor = warningColor;
+        // 타격 시점이 가까워질수록 경고선이 진하고 굵어져 공격 범위를 쉽게 읽을 수 있습니다.
+        visibleColor.a *= Mathf.Lerp(pulse, 1f, progress);
+        lineRenderer.startColor = visibleColor;
+        lineRenderer.endColor = visibleColor;
+        lineRenderer.widthMultiplier = lineWidth * Mathf.Lerp(0.85f, 1.45f, progress);
     }
 
     private void EnsureLineRenderer()
