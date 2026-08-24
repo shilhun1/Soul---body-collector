@@ -7,7 +7,8 @@ public class HSH_BarUI : MonoBehaviour
     {
         HP,
         GhostHP,
-        Exp
+        Exp,
+        Mental
     }
 
     [Header("UI Settings")]
@@ -20,7 +21,6 @@ public class HSH_BarUI : MonoBehaviour
     [Header("Game Over UI")]
     public HSH_GameOverUI gameOverUI; // 체력이 다 까졌을 때 띄울 창
 
-
     [Header("Stats")]
     public float currentValue = 100f;
     public float maxValue = 100f;
@@ -29,10 +29,14 @@ public class HSH_BarUI : MonoBehaviour
     public Color hpColor = Color.red;
     public Color ghostHpColor = new Color(0.6f, 0f, 1f); // 보라색
     public Color expColor = Color.yellow;
+    public Color mentalColor = new Color(0.2f, 0.6f, 1f); // 파란색/하늘색
 
     [SerializeField] private HWJ_RuntimeStatusSystem statusSystem;
     [SerializeField] private HWJ_SoulSystem soulSystem;
     [SerializeField] private HWJ_LevelUpSystem levelUpSystem;
+    [SerializeField] private HWJ_PossessionSystem possessionSystem;
+    [SerializeField] private HWJ_BodyDecaySystem bodyDecaySystem;
+    [SerializeField] private HWJ_LivePossessionMentalState liveMentalState;
     private bool temp = true;
 
     private void Start()
@@ -51,7 +55,7 @@ public class HSH_BarUI : MonoBehaviour
 
     private void FindPlayerSystems()
     {
-        if (statusSystem == null || levelUpSystem == null)
+        if (statusSystem == null || levelUpSystem == null || possessionSystem == null || bodyDecaySystem == null)
         {
             GameObject player = GameObject.FindGameObjectWithTag("Player");
             if (player != null)
@@ -59,17 +63,48 @@ public class HSH_BarUI : MonoBehaviour
                 if (statusSystem == null) statusSystem = player.GetComponent<HWJ_RuntimeStatusSystem>();
                 if (soulSystem == null) soulSystem = player.GetComponent<HWJ_SoulSystem>();
                 if (levelUpSystem == null) levelUpSystem = player.GetComponent<HWJ_LevelUpSystem>();
+                if (possessionSystem == null) possessionSystem = player.GetComponent<HWJ_PossessionSystem>();
+                if (bodyDecaySystem == null) bodyDecaySystem = player.GetComponent<HWJ_BodyDecaySystem>();
+                if (liveMentalState == null) liveMentalState = player.GetComponent<HWJ_LivePossessionMentalState>();
             }
         }
 
-        if (soulSystem == null && statusSystem != null)
+        if (statusSystem != null)
         {
-            soulSystem = statusSystem.GetComponent<HWJ_SoulSystem>();
+            if (soulSystem == null) soulSystem = statusSystem.GetComponent<HWJ_SoulSystem>();
+            if (levelUpSystem == null) levelUpSystem = statusSystem.GetComponent<HWJ_LevelUpSystem>();
+            if (possessionSystem == null) possessionSystem = statusSystem.GetComponent<HWJ_PossessionSystem>();
+            if (bodyDecaySystem == null) bodyDecaySystem = statusSystem.GetComponent<HWJ_BodyDecaySystem>();
+            if (liveMentalState == null) liveMentalState = statusSystem.GetComponent<HWJ_LivePossessionMentalState>();
         }
 
-        if (levelUpSystem == null && statusSystem != null)
+        if (possessionSystem == null)
         {
-            levelUpSystem = statusSystem.GetComponent<HWJ_LevelUpSystem>();
+            possessionSystem = Object.FindAnyObjectByType<HWJ_PossessionSystem>();
+        }
+
+        if (possessionSystem != null && liveMentalState == null)
+        {
+            if (possessionSystem.TryGetActiveLiveMentalState(out HWJ_LivePossessionMentalState activeMental))
+            {
+                liveMentalState = activeMental;
+            }
+            else if (possessionSystem.PossessedBodyResolver != null)
+            {
+                liveMentalState = possessionSystem.PossessedBodyResolver.GetComponent<HWJ_LivePossessionMentalState>();
+            }
+        }
+
+        if (bodyDecaySystem == null)
+        {
+            if (HWJ_GameManager.Instance != null && HWJ_GameManager.Instance.PlayerPossessionMental != null)
+            {
+                bodyDecaySystem = HWJ_GameManager.Instance.PlayerPossessionMental;
+            }
+            else
+            {
+                bodyDecaySystem = Object.FindAnyObjectByType<HWJ_BodyDecaySystem>();
+            }
         }
 
         if (levelUpSystem == null)
@@ -103,8 +138,8 @@ public class HSH_BarUI : MonoBehaviour
     {
         FindPlayerSystems();
 
-        // 플레이어의 Soul 상태에 맞춰 체력바 타입 자동 변경 (경험치 바는 제외)
-        if (soulSystem != null && currentType != BarType.Exp)
+        // 플레이어의 Soul 상태에 맞춰 체력바 타입 자동 변경 (경험치 바, 멘탈 바는 제외)
+        if (soulSystem != null && currentType != BarType.Exp && currentType != BarType.Mental)
         {
             if (soulSystem.CurrentState == HWJ_SoulRuntimeState.Soul)
             {
@@ -167,6 +202,27 @@ public class HSH_BarUI : MonoBehaviour
             {
                 statusSystem.ApplyDamage(amount);
             }
+            else if (currentType == BarType.Mental)
+            {
+                HWJ_LivePossessionMentalState targetMental = liveMentalState;
+                if (targetMental == null && possessionSystem != null && possessionSystem.TryGetActiveLiveMentalState(out HWJ_LivePossessionMentalState activeMental))
+                {
+                    targetMental = activeMental;
+                }
+
+                if (targetMental != null)
+                {
+                    targetMental.ApplyMentalDrain(amount);
+                }
+                else if (bodyDecaySystem != null)
+                {
+                    bodyDecaySystem.ApplyActionDecay(amount);
+                }
+                else
+                {
+                    currentValue -= amount;
+                }
+            }
             // 고스트 체력(GhostHP)은 함정 데미지 등 외부 요인으로 감소시키지 않음
         }
         else
@@ -205,11 +261,15 @@ public class HSH_BarUI : MonoBehaviour
     /// - BarType.Exp (경험치):
     ///   → HWJ_LevelUpSystem.CurrentExperience 및 TryGetRequiredExperienceForCurrentLevel 에서 경험치 정보와 요구 경험치를 가져옵니다.
     ///   → 레벨 정보는 HWJ_LevelUpSystem.CurrentLevel 에서 읽어와 levelTextUI 에 적용합니다.
+    ///
+    /// - BarType.Mental (정신력):
+    ///   → HWJ_LivePossessionMentalState에서 MaxMentalValue(기준치) 및 CurrentMentalValue(현재 정신력)를 가져옵니다.
+    ///   → 시체 빙의 상태일 경우 HWJ_BodyDecaySystem에서 남은 유지 정신력(RemainingPossessionMentalValue)을 보조로 가져옵니다.
     /// </summary>
     private void CheckState()
     {
         // ===== [1단계] 현재 바 타입에 맞는 실시간 데이터를 가져옵니다 =====
-        if (statusSystem != null || levelUpSystem != null)
+        if (statusSystem != null || levelUpSystem != null || possessionSystem != null || bodyDecaySystem != null || liveMentalState != null)
         {
             // [HP 바] 빙의 상태일 때의 체력
             if (currentType == BarType.HP && statusSystem != null)
@@ -225,6 +285,35 @@ public class HSH_BarUI : MonoBehaviour
                 // 유저님의 요청대로 가장 심플하게 값만 대입합니다. (리플렉션 및 조건문 제거)
                 maxValue = 10f;
                 currentValue = soulSystem.SoulDeadlineTimer;
+            }
+            // [Mental 바] 정신력 (HWJ_LivePossessionMentalState 연동)
+            else if (currentType == BarType.Mental)
+            {
+                HWJ_LivePossessionMentalState targetMental = liveMentalState;
+
+                // 인스펙터에 지정되지 않았거나 실시간 빙의 대상이 변경된 경우 PossessionSystem에서 가져옴
+                if (possessionSystem != null)
+                {
+                    if (possessionSystem.TryGetActiveLiveMentalState(out HWJ_LivePossessionMentalState activeMental) && activeMental != null)
+                    {
+                        targetMental = activeMental;
+                    }
+                    else if (targetMental == null && possessionSystem.PossessedBodyResolver != null)
+                    {
+                        targetMental = possessionSystem.PossessedBodyResolver.GetComponent<HWJ_LivePossessionMentalState>();
+                    }
+                }
+
+                if (targetMental != null)
+                {
+                    maxValue = targetMental.MaxMentalValue;
+                    currentValue = targetMental.CurrentMentalValue;
+                }
+                else if (bodyDecaySystem != null && bodyDecaySystem.MaxPossessionMentalValue > 0f)
+                {
+                    currentValue = bodyDecaySystem.RemainingPossessionMentalValue;
+                    maxValue = bodyDecaySystem.MaxPossessionMentalValue;
+                }
             }
             // [Exp 바] 경험치 (HWJ_LevelUpSystem 연동)
             else if (currentType == BarType.Exp && levelUpSystem != null)
@@ -339,6 +428,9 @@ public class HSH_BarUI : MonoBehaviour
                         break;
                     case BarType.Exp:
                         fillImage.color = expColor;
+                        break;
+                    case BarType.Mental:
+                        fillImage.color = mentalColor;
                         break;
                 }
             }
