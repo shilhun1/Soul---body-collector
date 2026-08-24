@@ -28,7 +28,7 @@ MonoBehaviour:
   projectileSpeed: 10
   projectileMaximumDistance: 30
   projectileSize: {x: 0.8, y: 0.8}
-  projectileVisualPrefab: {fileID: 0}
+  projectileVisualPrefab: {fileID: 5334491356828427533, guid: 283a60eb9ac96ab47af41f199e9fdc71, type: 3}
   secondaryProjectileVisualPrefab: {fileID: 0}
   tertiaryProjectileVisualPrefab: {fileID: 0}
   hazardDurationSeconds: 0
