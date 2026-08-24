@@ -80,6 +80,12 @@ public class hys_GhostStateSupport : MonoBehaviour
     {
         CacheReferences();
 
+        if (hys_PlayerCinematicControlLock.IsLockedFor(transform))
+        {
+            ghostMoveInput = Vector2.zero;
+            return;
+        }
+
         bool shouldBeGhost = IsGhostState();
         if (isGhostActive != shouldBeGhost)
         {
@@ -111,6 +117,12 @@ public class hys_GhostStateSupport : MonoBehaviour
     {
         if (!isGhostActive || rb == null)
         {
+            return;
+        }
+
+        if (hys_PlayerCinematicControlLock.IsLockedFor(transform))
+        {
+            rb.linearVelocity = Vector2.zero;
             return;
         }
 

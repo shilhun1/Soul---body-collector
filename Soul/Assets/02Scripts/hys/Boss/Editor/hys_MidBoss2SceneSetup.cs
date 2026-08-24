@@ -1,5 +1,6 @@
 #if UNITY_EDITOR
 using System;
+using TMPro;
 using Unity.Cinemachine;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -15,6 +16,8 @@ public static class hys_MidBoss2SceneSetup
     private const string HysPrefabPath = "Assets/02Scripts/hys/Boss/Prefabs/hys_MidBoss2.prefab";
     private const string SpritePath = "Assets/05Anims/MidBoss_02/Sprites/hys_MidBoss2_Main.png";
     private const string ControllerPath = "Assets/05Anims/MidBoss_02/hys_MidBoss2.controller";
+    private const string DialogueFontPath = "Assets/07Font/Maplestory Light.ttf";
+    private const string AccentFontAssetPath = "Assets/07Font/Maplestory Bold SDF.asset";
     private const string BossObjectName = "hys_MidBoss2_SceneBoss";
     private const string VisualObjectName = "hys_MidBoss2_Visual";
     private const string GroundObjectName = "hys_MidBoss2_TestGround";
@@ -83,6 +86,7 @@ public static class hys_MidBoss2SceneSetup
         renderer.sprite = RequireAsset<Sprite>(SpritePath);
         renderer.color = Color.white;
         renderer.sortingOrder = 10;
+        renderer.flipX = true;
 
         Animator animator = RequireComponent<Animator>(boss);
         animator.runtimeAnimatorController = RequireAsset<RuntimeAnimatorController>(ControllerPath);
@@ -107,6 +111,7 @@ public static class hys_MidBoss2SceneSetup
         ConfigureSummonSpawner(summonSpawner);
         ConnectLogicReferences(logic, boss, renderer, pattern);
         ConfigureDialogue(dialogue);
+        ConfigureDialogueStyler(dialogueStyler);
         bridge.Initialize(logic, pattern, animator);
         executor.Initialize(pattern);
         CinemachineCamera cinemachineCamera = ConfigureCamera(scene, boss);
@@ -450,13 +455,26 @@ public static class hys_MidBoss2SceneSetup
         serialized.FindProperty("sequenceGapSeconds").floatValue = 0.08f;
         serialized.FindProperty("defaultDurationSeconds").floatValue = 1.5f;
         // HYS 전용 스타일러가 덧씌우기 전 첫 프레임에도 충분히 읽히는 기본 크기와 색을 지정합니다.
-        serialized.FindProperty("dialogueFontSize").intValue = 48;
-        serialized.FindProperty("dialogueCharacterSize").floatValue = 0.052f;
-        serialized.FindProperty("maxCharactersPerLine").intValue = 16;
-        serialized.FindProperty("horizontalBubblePadding").floatValue = 1.15f;
-        serialized.FindProperty("verticalBubblePadding").floatValue = 0.9f;
+        serialized.FindProperty("dialogueFontSize").intValue = 56;
+        serialized.FindProperty("dialogueCharacterSize").floatValue = 0.072f;
+        serialized.FindProperty("maxCharactersPerLine").intValue = 18;
+        serialized.FindProperty("horizontalBubblePadding").floatValue = 1.8f;
+        serialized.FindProperty("verticalBubblePadding").floatValue = 1.15f;
         serialized.FindProperty("textColor").colorValue = new Color(1f, 0.93f, 0.76f, 1f);
         serialized.FindProperty("bubbleColor").colorValue = new Color(0.035f, 0.045f, 0.075f, 0.94f);
+        serialized.ApplyModifiedPropertiesWithoutUndo();
+    }
+
+    private static void ConfigureDialogueStyler(hys_SecondBossDialogueStyler styler)
+    {
+        SerializedObject serialized = new SerializedObject(styler);
+        SetObject(serialized, "dialogueFont", RequireAsset<Font>(DialogueFontPath));
+        SetObject(serialized, "accentFontAsset", RequireAsset<TMP_FontAsset>(AccentFontAssetPath));
+        serialized.FindProperty("dialogueTmpFontSize").floatValue = 46f;
+        serialized.FindProperty("titleTmpFontSize").floatValue = 32f;
+        serialized.FindProperty("bossNameTmpFontSize").floatValue = 34f;
+        serialized.FindProperty("minimumPanelWidth").floatValue = 7.6f;
+        serialized.FindProperty("minimumPanelHeight").floatValue = 1.95f;
         serialized.ApplyModifiedPropertiesWithoutUndo();
     }
 

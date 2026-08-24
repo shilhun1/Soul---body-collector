@@ -168,9 +168,13 @@ public class hys_Player_Animator : MonoBehaviour
     private bool wasAxeDiveStarting;
     private bool wasAxeDiveFalling;
     private bool wasAxeDiveGrounded;
+    private bool cinematicIdleLocked;
+    private float animatorSpeedBeforeCinematic = 1f;
 
     // 이동 스크립트가 빙의 연출이 끝날 때까지 플레이어 입력을 잠글 때 사용합니다.
     public bool IsPossessionTransitionPlaying => isGhostPossessionPlaying;
+    // 보스 인트로 중 이동·점프 프레임이 다시 재생되지 않는지 런타임 검증에서 확인합니다.
+    public bool IsCinematicIdleLocked => cinematicIdleLocked;
 
     private int playerStateHash;
     private int isMovingHash;
@@ -213,6 +217,12 @@ public class hys_Player_Animator : MonoBehaviour
         previousSoulRuntimeState = GetSoulRuntimeState();
     }
 
+    private void OnDisable()
+    {
+        // 씬 종료나 오브젝트 비활성화 뒤에도 Animator 속도 0이 남지 않게 원상 복구합니다.
+        ExitCinematicIdleLock();
+    }
+
     private void Update()
     {
         CacheReferences();
@@ -220,6 +230,17 @@ public class hys_Player_Animator : MonoBehaviour
         if (animator == null)
         {
             return;
+        }
+
+        if (hys_PlayerCinematicControlLock.IsLockedFor(transform))
+        {
+            EnterCinematicIdleLock();
+            return;
+        }
+
+        if (cinematicIdleLocked)
+        {
+            ExitCinematicIdleLock();
         }
 
         // 빙의 시작·사망·영혼 이탈·출현 연출 중에는 전용 브리지만 Animator를 제어합니다.
@@ -403,6 +424,62 @@ public class hys_Player_Animator : MonoBehaviour
             possessionAnimationBridge = GetComponent<hys_HWJPossessionAnimationBridge>();
         }
 
+    }
+
+    // 보스 연출 중 현재 무기의 Idle 첫 프레임에 고정해 점프 착지 뒤 몸체 흔들림을 제거합니다.
+    public void EnterCinematicIdleLock()
+    {
+        CacheReferences();
+        if (animator == null || cinematicIdleLocked)
+        {
+            return;
+        }
+
+        cinematicIdleLocked = true;
+        animatorSpeedBeforeCinematic = animator.speed;
+
+        if (playerState != null && playerState.CurrentState != hys_PlayerState.Dead)
+        {
+            playerState.SetState(hys_PlayerState.Idle);
+        }
+
+        ResetAttackAnimationCombo();
+        AnimatorControllerParameter[] parameters = animator.parameters;
+        for (int i = 0; i < parameters.Length; i++)
+        {
+            if (parameters[i].type == AnimatorControllerParameterType.Trigger)
+            {
+                animator.ResetTrigger(parameters[i].nameHash);
+            }
+        }
+
+        SetAnimatorInt(playerStateHash, (int)hys_PlayerState.Idle);
+        SetAnimatorInt(attackComboStepHash, 0);
+        SetAnimatorBool(isMovingHash, false);
+        SetAnimatorBool(isGroundedHash, true);
+        SetAnimatorFloat(horizontalSpeedHash, 0f);
+        SetAnimatorFloat(verticalSpeedHash, 0f);
+        SetAnimatorBool(axeDiveAttackHash, false);
+        SetAnimatorBool(axePlungeGroundedHash, false);
+
+        PlayAnimatorState(ResolveWeaponStateName("Idle", bodyIdleStateName));
+        animator.speed = 0f;
+    }
+
+    // 연출 종료 시 잠금 전 재생 속도를 복구해 전투 애니메이션이 정상적으로 이어지게 합니다.
+    public void ExitCinematicIdleLock()
+    {
+        if (!cinematicIdleLocked)
+        {
+            return;
+        }
+
+        if (animator != null)
+        {
+            animator.speed = animatorSpeedBeforeCinematic;
+        }
+
+        cinematicIdleLocked = false;
     }
 
     private void CacheBodyAnimatorController()
